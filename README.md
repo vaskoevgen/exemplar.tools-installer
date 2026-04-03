@@ -6,11 +6,18 @@ Automated installer for [exemplar.tools](https://exemplar.tools/) that clones or
 
 ## Quick start
 
+**Latest version (always up to date):**
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main/install.sh | bash
 ```
 
-The script reads `repos.conf` from the same repository, processes every listed repo, and reports a summary.
+**Pin to a specific release:**
+```bash
+EXEMPLAR_VERSION=v1.0.0 \
+  curl -fsSL https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main/install.sh | bash
+```
+
+The script reads `repos.conf` from the matching ref, processes every listed repo, and reports a summary.
 
 ---
 
@@ -69,6 +76,7 @@ Lines starting with `#` and blank lines are ignored.
 |---|---|---|
 | `EXEMPLAR_INSTALL_DIR` | `./exemplar.tools` | Base directory when `local_dir` is omitted from a repo entry |
 | `EXEMPLAR_CONFIG_URL` | `repos.conf` URL in this repo | URL **or local path** to an alternative config file |
+| `EXEMPLAR_VERSION` | `main` | Git tag to pin to (e.g. `v1.2.0`); controls which `repos.conf` is fetched |
 | `EXEMPLAR_NO_COLOR` | _(unset)_ | Set to any value to disable colored output |
 
 ### Use a custom config file
@@ -102,6 +110,24 @@ cd exemplar.tools-installer
 # Edit repos.conf, then run
 bash install.sh
 ```
+
+---
+
+## Releases
+
+Releases are created automatically when a version tag is pushed:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+GitHub Actions will:
+1. Validate `repos.conf` and `install.sh` syntax
+2. Generate release notes from commits since the previous tag
+3. Publish a GitHub Release with `install.sh` and `repos.conf` attached as assets
+
+Each release captures a consistent snapshot of which repositories and refs are included, so clients can pin to a known-good version with `EXEMPLAR_VERSION`.
 
 ---
 

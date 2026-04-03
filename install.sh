@@ -9,13 +9,16 @@
 # Environment overrides:
 #   EXEMPLAR_INSTALL_DIR  — base installation directory (default: ./exemplar.tools)
 #   EXEMPLAR_CONFIG_URL   — URL or local path to a repos.conf file
+#   EXEMPLAR_VERSION      — pin to a specific release tag (e.g. v1.2.0); omit for latest
 #   EXEMPLAR_NO_COLOR     — disable colored output (set to any non-empty value)
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 readonly INSTALLER_VERSION="1.0.0"
-readonly RAW_BASE="https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main"
+readonly REPO="vaskoevgen/exemplar.tools-installer"
+_ref="${EXEMPLAR_VERSION:-main}"
+readonly RAW_BASE="https://raw.githubusercontent.com/${REPO}/${_ref}"
 readonly DEFAULT_CONFIG_URL="${RAW_BASE}/repos.conf"
 
 EXEMPLAR_INSTALL_DIR="${EXEMPLAR_INSTALL_DIR:-$(pwd)/exemplar.tools}"
@@ -39,7 +42,7 @@ log_step()    { echo -e "\n${BOLD}$*${NC}"; }
 # ── Banner ────────────────────────────────────────────────────────────────────
 print_banner() {
   echo ""
-  echo -e "${BOLD}  exemplar.tools installer${NC}  ${DIM}v${INSTALLER_VERSION}${NC}"
+  echo -e "${BOLD}  exemplar.tools installer${NC}  ${DIM}v${INSTALLER_VERSION}${NC}  ${DIM}(ref: ${_ref})${NC}"
   echo -e "  ${DIM}https://exemplar.tools${NC}"
   echo ""
 }
