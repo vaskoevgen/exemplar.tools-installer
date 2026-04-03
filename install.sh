@@ -78,20 +78,71 @@ fetch_config() {
   fi
 }
 
-# ── Python venv setup ─────────────────────────────────────────────────────────
-setup_python() {
+# ── Pre-install local inter-repo deps into a venv ────────────────────────────
+# Reads pyproject.toml, finds deps whose names match sibling local repos,
+# and pip-installs them editable so the main install doesn't fail.
+preinstall_local_deps() {
   local dir="$1"
+  local venv="${dir}/.venv"
+  local pyproject="${dir}/pyproject.toml"
 
-  local deps_file="" install_cmd=""
+  [[ -f "$pyproject" ]] || return 0
+  [[ -d "$venv" ]]      || return 0
+
+  local base_dir
+  base_dir="$(dirname "$dir")"
+
+  # Use tomllib (Python 3.11+) to extract all declared dep names
+  local local_paths
+  local_paths=$(python3 - "$pyproject" "$base_dir" <<'PYEOF'
+import sys, re, os, pathlib
+pyproject_path, base_dir = sys.argv[1], sys.argv[2]
+try:
+    import tomllib
+    with open(pyproject_path, "rb") as f:
+        data = tomllib.load(f)
+    deps = list(data.get("project", {}).get("dependencies", []))
+    for extras in data.get("project", {}).get("optional-dependencies", {}).values():
+        deps += extras
+except Exception:
+    deps = []
+
+for dep in deps:
+    name = re.split(r"[\[>=<!;@ ]", dep)[0].strip()
+    local_path = os.path.join(base_dir, name)
+    if os.path.isdir(os.path.join(local_path, ".git")):
+        print(local_path)
+PYEOF
+)
+
+  [[ -z "$local_paths" ]] && return 0
+
+  while IFS= read -r local_path; do
+    local pkg_name
+    pkg_name="$(basename "$local_path")"
+    log_info "Python: pre-installing local dep '${pkg_name}' → $(basename "$dir")/.venv"
+    "$venv/bin/pip" install --quiet -e "$local_path"
+  done <<< "$local_paths"
+}
+
+# ── Python venv setup ─────────────────────────────────────────────────────────
+# $1 = repo dir, $2 = optional pip extras (e.g. "all", "anthropic,mcp")
+setup_python() {
+  local dir="$1" extras="${2:-}"
+
+  local deps_file="" install_target=""
   if [[ -f "${dir}/requirements.txt" ]]; then
     deps_file="requirements.txt"
-    install_cmd="pip install --quiet -r requirements.txt"
+    install_target="-r requirements.txt"
   elif [[ -f "${dir}/pyproject.toml" ]]; then
     deps_file="pyproject.toml"
-    install_cmd="pip install --quiet -e ."
+    install_target=".[${extras:-}]"
+    # Strip trailing dot-bracket if no extras: ".[" → "."
+    [[ -z "$extras" ]] && install_target="."
   elif [[ -f "${dir}/setup.py" ]]; then
     deps_file="setup.py"
-    install_cmd="pip install --quiet -e ."
+    install_target=".[${extras:-}]"
+    [[ -z "$extras" ]] && install_target="."
   else
     return 0
   fi
@@ -101,14 +152,21 @@ setup_python() {
     return 0
   fi
 
-  log_info "Python: ${deps_file} detected"
+  local extras_label="${extras:+ [${extras}]}"
+  log_info "Python: ${deps_file} detected${extras_label}"
   local venv="${dir}/.venv"
   if [[ ! -d "$venv" ]]; then
     log_info "Python: creating .venv"
     python3 -m venv "$venv"
   fi
+
+  "$venv/bin/pip" install --quiet --upgrade pip
+
+  # Pre-install any sibling local repos this package depends on
+  preinstall_local_deps "$dir"
+
   log_info "Python: installing dependencies"
-  (cd "$dir" && "$venv/bin/pip" install --quiet --upgrade pip && $venv/bin/$install_cmd)
+  (cd "$dir" && "$venv/bin/pip" install --quiet -e "$install_target")
   log_success "Python: .venv ready"
 }
 
@@ -143,10 +201,11 @@ setup_rust() {
 }
 
 # ── Install dependencies (auto-detects language) ─────────────────────────────
+# $1 = repo dir, $2 = optional pip extras
 setup_deps() {
-  local dir="$1"
+  local dir="$1" extras="${2:-}"
   [[ -n "${EXEMPLAR_NO_DEPS:-}" ]] && return 0
-  setup_python "$dir"
+  setup_python "$dir" "$extras"
   setup_node   "$dir"
   setup_rust   "$dir"
 }
@@ -158,7 +217,7 @@ is_tag() {
 
 # ── Clone or update a single repository ──────────────────────────────────────
 process_repo() {
-  local url="$1" ref="$2" dir="$3"
+  local url="$1" ref="$2" dir="$3" extras="${4:-}"
 
   # Expand tilde
   dir="${dir/#\~/$HOME}"
@@ -209,7 +268,7 @@ process_repo() {
     log_success "Cloned successfully"
   fi
 
-  setup_deps "$dir"
+  setup_deps "$dir" "$extras"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
@@ -231,13 +290,14 @@ main() {
     [[ -z "${line//[[:space:]]/}" ]] && continue
     [[ "$line" =~ ^[[:space:]]*# ]]  && continue
 
-    # Parse columns: url  ref  [dir]
-    local url ref dir
-    read -r url ref dir <<< "$line"
+    # Parse columns: url  ref  [dir]  [extras]
+    local url ref dir extras
+    read -r url ref dir extras <<< "$line"
     [[ -z "$url" || -z "$ref" ]] && continue
 
     # Default local dir: <install_dir>/<repo-name>
-    if [[ -z "$dir" ]]; then
+    # "-" is a placeholder meaning "use default dir"
+    if [[ -z "$dir" || "$dir" == "-" ]]; then
       local repo_name
       repo_name="$(basename "$url" .git)"
       dir="${EXEMPLAR_INSTALL_DIR}/${repo_name}"
@@ -245,7 +305,7 @@ main() {
 
     total=$((total + 1))
 
-    if process_repo "$url" "$ref" "$dir"; then
+    if process_repo "$url" "$ref" "$dir" "$extras"; then
       success=$((success + 1))
     else
       log_error "Failed: ${url}"
