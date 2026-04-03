@@ -77,6 +77,7 @@ Lines starting with `#` and blank lines are ignored.
 | `EXEMPLAR_INSTALL_DIR` | `./exemplar.tools` | Base directory when `local_dir` is omitted from a repo entry |
 | `EXEMPLAR_CONFIG_URL` | `repos.conf` URL in this repo | URL **or local path** to an alternative config file |
 | `EXEMPLAR_VERSION` | `main` | Git tag to pin to (e.g. `v1.2.0`); controls which `repos.conf` is fetched |
+| `EXEMPLAR_NO_DEPS` | _(unset)_ | Set to any value to skip all dependency installation |
 | `EXEMPLAR_NO_COLOR` | _(unset)_ | Set to any value to disable colored output |
 
 ### Use a custom config file

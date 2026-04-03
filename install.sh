@@ -10,6 +10,7 @@
 #   EXEMPLAR_INSTALL_DIR  — base installation directory (default: ./exemplar.tools)
 #   EXEMPLAR_CONFIG_URL   — URL or local path to a repos.conf file
 #   EXEMPLAR_VERSION      — pin to a specific release tag (e.g. v1.2.0); omit for latest
+#   EXEMPLAR_NO_DEPS      — skip all dependency installation (set to any non-empty value)
 #   EXEMPLAR_NO_COLOR     — disable colored output (set to any non-empty value)
 # ─────────────────────────────────────────────────────────────────────────────
 set -euo pipefail
@@ -77,6 +78,79 @@ fetch_config() {
   fi
 }
 
+# ── Python venv setup ─────────────────────────────────────────────────────────
+setup_python() {
+  local dir="$1"
+
+  local deps_file="" install_cmd=""
+  if [[ -f "${dir}/requirements.txt" ]]; then
+    deps_file="requirements.txt"
+    install_cmd="pip install --quiet -r requirements.txt"
+  elif [[ -f "${dir}/pyproject.toml" ]]; then
+    deps_file="pyproject.toml"
+    install_cmd="pip install --quiet -e ."
+  elif [[ -f "${dir}/setup.py" ]]; then
+    deps_file="setup.py"
+    install_cmd="pip install --quiet -e ."
+  else
+    return 0
+  fi
+
+  if ! command -v python3 &>/dev/null; then
+    log_warn "Python: python3 not found — skipping (${deps_file} detected)"
+    return 0
+  fi
+
+  log_info "Python: ${deps_file} detected"
+  local venv="${dir}/.venv"
+  if [[ ! -d "$venv" ]]; then
+    log_info "Python: creating .venv"
+    python3 -m venv "$venv"
+  fi
+  log_info "Python: installing dependencies"
+  (cd "$dir" && "$venv/bin/pip" install --quiet --upgrade pip && $venv/bin/$install_cmd)
+  log_success "Python: .venv ready"
+}
+
+# ── Node.js deps setup ────────────────────────────────────────────────────────
+setup_node() {
+  local dir="$1"
+  [[ -f "${dir}/package.json" ]] || return 0
+
+  if ! command -v npm &>/dev/null; then
+    log_warn "Node.js: npm not found — skipping (package.json detected)"
+    return 0
+  fi
+
+  log_info "Node.js: package.json detected"
+  (cd "$dir" && npm install --silent)
+  log_success "Node.js: node_modules ready"
+}
+
+# ── Rust deps setup ───────────────────────────────────────────────────────────
+setup_rust() {
+  local dir="$1"
+  [[ -f "${dir}/Cargo.toml" ]] || return 0
+
+  if ! command -v cargo &>/dev/null; then
+    log_warn "Rust: cargo not found — skipping (Cargo.toml detected)"
+    return 0
+  fi
+
+  log_info "Rust: Cargo.toml detected"
+  (cd "$dir" && cargo fetch --quiet)
+  log_success "Rust: dependencies fetched"
+}
+
+# ── Install dependencies (auto-detects language) ─────────────────────────────
+setup_deps() {
+  local dir="$1"
+  [[ -n "${EXEMPLAR_NO_DEPS:-}" ]] && return 0
+  setup_python "$dir"
+  setup_node   "$dir"
+  setup_rust   "$dir"
+}
+
 # ── Resolve whether a ref is a tag ───────────────────────────────────────────
 is_tag() {
   git tag --list | grep -qx "$1"
@@ -134,6 +208,8 @@ process_repo() {
     git clone --branch "$ref" --quiet "$url" "$dir"
     log_success "Cloned successfully"
   fi
+
+  setup_deps "$dir"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
