@@ -13,12 +13,9 @@ jobs:
     name: Create release
     runs-on: ubuntu-latest
 
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Validate repos.conf
         run: |
@@ -58,7 +55,7 @@ jobs:
           echo "EOF"       >> "$GITHUB_OUTPUT"
 
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v2.3.2
         with:
           name: ${{ github.ref_name }}
           body: |
