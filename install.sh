@@ -7,7 +7,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main/install.sh | bash
 #
 # Environment overrides:
-#   EXEMPLAR_INSTALL_DIR  — base installation directory (default: ~/exemplar)
+#   EXEMPLAR_INSTALL_DIR  — base installation directory (default: ./exemplar.tools)
 #   EXEMPLAR_CONFIG_URL   — URL or local path to a repos.conf file
 #   EXEMPLAR_NO_COLOR     — disable colored output (set to any non-empty value)
 # ─────────────────────────────────────────────────────────────────────────────
@@ -18,7 +18,7 @@ readonly INSTALLER_VERSION="1.0.0"
 readonly RAW_BASE="https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main"
 readonly DEFAULT_CONFIG_URL="${RAW_BASE}/repos.conf"
 
-EXEMPLAR_INSTALL_DIR="${EXEMPLAR_INSTALL_DIR:-${HOME}/exemplar}"
+EXEMPLAR_INSTALL_DIR="${EXEMPLAR_INSTALL_DIR:-$(pwd)/exemplar.tools}"
 EXEMPLAR_CONFIG_URL="${EXEMPLAR_CONFIG_URL:-${DEFAULT_CONFIG_URL}}"
 
 # ── Colors ────────────────────────────────────────────────────────────────────

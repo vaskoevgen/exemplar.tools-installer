@@ -67,7 +67,7 @@ Lines starting with `#` and blank lines are ignored.
 
 | Variable | Default | Description |
 |---|---|---|
-| `EXEMPLAR_INSTALL_DIR` | `~/exemplar` | Base directory when `local_dir` is omitted from a repo entry |
+| `EXEMPLAR_INSTALL_DIR` | `./exemplar.tools` | Base directory when `local_dir` is omitted from a repo entry |
 | `EXEMPLAR_CONFIG_URL` | `repos.conf` URL in this repo | URL **or local path** to an alternative config file |
 | `EXEMPLAR_NO_COLOR` | _(unset)_ | Set to any value to disable colored output |
 
