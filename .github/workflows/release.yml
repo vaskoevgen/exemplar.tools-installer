@@ -1,0 +1,81 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate repos.conf
+        run: |
+          echo "Validating repos.conf..."
+          while IFS= read -r line; do
+            [[ -z "${line//[[:space:]]/}" ]] && continue
+            [[ "$line" =~ ^[[:space:]]*# ]]  && continue
+            read -r url ref _ <<< "$line"
+            if [[ -z "$url" || -z "$ref" ]]; then
+              echo "ERROR: Invalid entry: '$line'" >&2
+              exit 1
+            fi
+            if [[ "$url" != http://* && "$url" != https://* && "$url" != git@* ]]; then
+              echo "ERROR: Invalid URL: '$url'" >&2
+              exit 1
+            fi
+            echo "  OK: $url @ $ref"
+          done < repos.conf
+          echo "repos.conf is valid."
+
+      - name: Validate install.sh syntax
+        run: bash -n install.sh && echo "install.sh syntax OK"
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # Use git log since previous tag as release notes
+          PREV_TAG=$(git tag --sort=-version:refname | grep -v "^${TAG}$" | head -1)
+          if [[ -n "$PREV_TAG" ]]; then
+            NOTES=$(git log "${PREV_TAG}..${TAG}" --pretty=format:"- %s" --no-merges)
+          else
+            NOTES=$(git log --pretty=format:"- %s" --no-merges)
+          fi
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES"    >> "$GITHUB_OUTPUT"
+          echo "EOF"       >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: ${{ github.ref_name }}
+          body: |
+            ## What's changed
+
+            ${{ steps.changelog.outputs.notes }}
+
+            ## Install
+
+            **Latest version (always up to date):**
+            ```bash
+            curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | bash
+            ```
+
+            **Pin to this version:**
+            ```bash
+            EXEMPLAR_VERSION=${{ github.ref_name }} \
+              curl -fsSL https://raw.githubusercontent.com/${{ github.repository }}/main/install.sh | bash
+            ```
+          files: |
+            install.sh
+            repos.conf
+          fail_on_unmatched_files: true
