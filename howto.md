@@ -124,15 +124,37 @@ source ./exemplar.tools/pact/.venv/bin/activate
 source ./exemplar.tools/pact/.venv/bin/activate.fish
 ```
 
+**Set your API key:**
+
+```bash
+export ANTHROPIC_API_KEY=sk-...
+```
+
 **Initialize and run:**
 
 ```bash
 pact init my-project
 # Edit my-project/task.md  — what to build
 # Edit my-project/sops.md  — coding standards
-
 pact run my-project
 ```
+
+**Recommended `pact.yaml`** — add to `my-project/pact.yaml` before running:
+
+```yaml
+budget: 10.0
+shaping: false
+build_mode: unary
+backend: anthropic
+model: claude-opus-4-6
+role_backends:
+  decomposer: anthropic
+  contract_author: anthropic
+  test_author: anthropic
+  code_author: anthropic
+```
+
+> Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
 **Useful commands:**
 
@@ -141,6 +163,13 @@ pact status my-project        # current phase and state
 pact components my-project    # list components and status
 pact build my-project <id>    # rebuild a specific component
 pact health my-project        # check for coordination issues
+```
+
+**Run contract tests manually** (pact's test runner needs PYTHONPATH):
+
+```bash
+PYTHONPATH=my-project/src \
+  pytest my-project/tests/<component>/contract_test.py -q
 ```
 
 ```bash
@@ -167,15 +196,19 @@ source ./exemplar.tools/baton/.venv/bin/activate
 source ./exemplar.tools/baton/.venv/bin/activate.fish
 ```
 
-**Initialize and deploy:**
+**Initialize from Constrain artifacts:**
 
 ```bash
-baton init my-circuit
-# Edit my-circuit/circuit.yaml — nodes and edges from component_map.yaml
+# Generate circuit.yaml from component_map.yaml
+baton init my-circuit --name my-app --constrain-dir .
 
-baton up my-circuit       # boot the circuit
-baton status my-circuit   # check node health
-baton watch my-circuit    # start custodian monitor
+# Edit my-circuit/baton.yaml — assign port numbers to each node (required)
+# port: null → port: 8001, 8002, etc.
+
+cd my-circuit
+baton status     # verify circuit loaded correctly
+baton up         # boot the circuit
+baton watch      # start custodian monitor
 ```
 
 **Hot-swap a component without downtime:**
@@ -207,10 +240,11 @@ source ./exemplar.tools/sentinel/.venv/bin/activate.fish
 **Initialize and register components from your Pact project:**
 
 ```bash
-sentinel init my-project
+# Run from your working directory (creates sentinel.yaml + .sentinel/)
+sentinel init
 sentinel register my-project   # imports PACT keys from pact project
-sentinel serve                  # start HTTP API (watches logs + webhooks)
 sentinel report                 # recent incidents and fix history
+sentinel serve                  # start HTTP API (watches logs + webhooks)
 ```
 
 ```bash
@@ -285,6 +319,42 @@ Run state is cached. Clear it and retry:
 ```bash
 rm -rf my-project/.pact
 pact run my-project
+```
+
+### pact health CRITICAL: planning dominates generation
+
+Pact spent too many tokens on planning with no implementation output. Disable shaping in `pact.yaml`:
+
+```yaml
+shaping: false
+```
+
+Then clear state and retry:
+
+```bash
+rm -rf my-project/.pact
+pact run my-project
+```
+
+### pact tests return 0/0 passed
+
+Pact's test runner doesn't set `PYTHONPATH`. Run tests manually:
+
+```bash
+PYTHONPATH=my-project/src pytest my-project/tests/<component>/contract_test.py -q
+```
+
+### pact uses claude_code backend (requires Claude Code CLI)
+
+If you see `"Implementing via Claude Code"` but don't have Claude Code CLI, force the direct API in `pact.yaml`:
+
+```yaml
+backend: anthropic
+role_backends:
+  decomposer: anthropic
+  contract_author: anthropic
+  test_author: anthropic
+  code_author: anthropic
 ```
 
 ### Switching between tools
