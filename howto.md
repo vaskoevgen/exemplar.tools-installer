@@ -195,6 +195,8 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
+> Pact always writes `my-build/access_graph.json` at the end of the build — used by Arbiter in Step 3.
+
 **Run:**
 
 ```bash
@@ -232,7 +234,68 @@ deactivate
 
 ## Step 3 — Govern: Arbiter
 
-> **Coming soon.** Arbiter enforces access auditing, blast-radius analysis, and trust scoring between components. Consumes `trust_policy.yaml` from Constrain and access graphs from Pact. Runs as a sidecar between Pact and Baton.
+> **Integration in progress.** Arbiter CLI commands (`init`, `canary`, `trust`, `report`) work. However, the Pact → Arbiter integration is not yet complete:
+> - `arbiter watch` / `arbiter serve` (live sidecar) are not yet implemented
+> - Pact writes `access_graph.json` using a `components` schema; Arbiter `register` expects a `nodes` schema — these don't match yet
+>
+> Once the integration is complete, the workflow will be:
+
+**Activate:**
+
+```bash
+# bash / zsh
+source ../exemplar.tools/arbiter/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/arbiter/.venv/bin/activate.fish
+```
+
+**Initialize:**
+
+```bash
+arbiter init
+```
+
+**Register the access graph produced by Pact** (once schemas are aligned):
+
+```bash
+arbiter register my-build/access_graph.json
+# Registered: N nodes, N authority domains.
+```
+
+**Inject canaries and verify no data escapes:**
+
+```bash
+arbiter canary inject --tiers PUBLIC
+arbiter canary results --run <run_id>
+```
+
+> If a canary escapes, the node's trust score drops to 0. Recovery requires human review:
+> ```bash
+> arbiter trust reset-taint <node_id> --review <ticket_id>
+> ```
+
+**After traffic flows**, check trust and generate reports:
+
+```bash
+arbiter trust show <node_id>
+arbiter report --run <run_id>
+arbiter blast-radius <node_id> <version>
+```
+
+```bash
+deactivate
+```
+
+### Key concepts
+
+| Concept | What it means |
+|---------|--------------|
+| **Trust score** | 0.1–1.0 per node, built from audit events. Canary escape → 0.0 |
+| **Trust tier** | PROBATIONARY → LOW → ESTABLISHED → HIGH → TRUSTED |
+| **Authority domain** | One node owns each domain — enforced at register time |
+| **Blast radius** | Impact surface of a change: affected nodes × data tiers × soak requirement |
+| **Canary** | Synthetic fingerprinted data injected to detect leakage across component boundaries |
 
 ---
 
