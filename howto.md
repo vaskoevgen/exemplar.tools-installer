@@ -240,19 +240,21 @@ source ../exemplar.tools/baton/.venv/bin/activate.fish
 baton init my-circuit --name my-app --constrain-dir .
 ```
 
-**Edit `my-circuit/baton.yaml`** — the generated file has `port: null` for every node. **You must replace each `null` with a real port number before running:**
+**Edit `my-circuit/baton.yaml`** — the generated file has `port: null` and `proxy_mode: null` for every node. **You must replace both before running:**
 
 ```yaml
 # Before (generated):
 - name: my_component
   port: null
+  proxy_mode: null
 
 # After (required):
 - name: my_component
   port: 8001
+  proxy_mode: http
 ```
 
-Assign sequential ports starting from 8001.
+Assign sequential ports starting from 8001. Use `http` for `proxy_mode` unless your component uses a different protocol (`tcp`, `grpc`, `protobuf`, `soap`).
 
 **Boot the circuit:**
 
