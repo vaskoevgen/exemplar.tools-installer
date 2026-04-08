@@ -132,6 +132,44 @@ Each release captures a consistent snapshot of which repositories and refs are i
 
 ---
 
+## howto.md — Next Iteration Roadmap
+
+The current `howto.md` covers: Constrain → Ledger → Pact → Baton → Sentinel → Kindex.
+
+The following tools are not yet documented and should be added in the next iteration.
+
+### Missing tools
+
+| Tool | Where in flow | What it does |
+|------|--------------|--------------|
+| **Cartographer** | Before Constrain | Scans existing codebases and drafts artifacts for the whole stack automatically — the onboarding step for existing projects |
+| **Advocate** | After Pact | 6-persona adversarial code review (Red Team, Sage, User, SME, etc.). Natural quality gate before deploying |
+| **Arbiter** | Between Pact and Baton | Access auditing, blast-radius analysis, trust scoring. Has its own `init/register/watch/serve` workflow |
+| **Chronicler** | After Baton/Sentinel | Correlates events into stories, bridges runtime to learning (feeds Stigmergy + Apprentice) |
+| **Stigmergy** | After Chronicler | Mines organisational patterns from GitHub/Linear/Slack signals — surfaces coordination gaps |
+| **Apprentice** | After Chronicler | Progressive model distillation — routes API → local model as quality is proven, reducing cost |
+| **Webprobe** | Standalone | Security/UX site auditor using LLM agents — useful for auditing deployed services |
+
+**Separate optional stack:**
+- **Signet** — cryptographic identity vault + MCP server
+- **Tessera** — self-validating documents with hash chain
+
+### Recommended howto structure (next iteration)
+
+```
+Step 0 — Cartographer    (existing projects only)
+Step 1 — Specify         Constrain → Ledger
+Step 2 — Build           Pact → Advocate (review gate)
+Step 3 — Govern          Arbiter
+Step 4 — Deploy          Baton
+Step 5 — Observe         Sentinel → Chronicler → Stigmergy
+Step 6 — Learn           Apprentice
+Step 7 — Knowledge       Kindex
+Optional                 Webprobe, Signet, Tessera
+```
+
+---
+
 ## Requirements
 
 - `git` ≥ 2.x
