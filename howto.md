@@ -40,6 +40,12 @@ cd your-project
 
 ---
 
+## Step 0 — Cartographer (existing projects only)
+
+> **Coming soon.** Cartographer scans an existing codebase and automatically drafts artifacts for the whole stack (Constrain, Pact, Ledger, Arbiter, Baton, Sentinel). Use this step instead of Step 1 when onboarding a project that already has code.
+
+---
+
 ## Step 1 — Specify
 
 ### 1a — Constrain (Boundaries & components)
@@ -121,7 +127,9 @@ deactivate
 
 ---
 
-## Step 2 — Pact
+## Step 2 — Build
+
+### 2a — Pact
 
 Pact builds the software using the artifacts produced by Constrain. It decomposes your task into components, writes contracts and tests, then implements each component via the Anthropic API.
 
@@ -216,11 +224,19 @@ deactivate
 
 ---
 
-## Step 3 — Deploy & Observe
+### 2b — Advocate (Review gate)
 
-After Pact builds the code, use Baton to deploy it and the observe layer to monitor it.
+> **Coming soon.** Advocate runs a 6-persona adversarial review of the code produced by Pact — Red Team, Adversarial, Sage, User, SME, and Good Friend — and surfaces issues before deployment.
 
-### 3a — Baton (Deploy)
+---
+
+## Step 3 — Govern: Arbiter
+
+> **Coming soon.** Arbiter enforces access auditing, blast-radius analysis, and trust scoring between components. Consumes `trust_policy.yaml` from Constrain and access graphs from Pact. Runs as a sidecar between Pact and Baton.
+
+---
+
+## Step 4 — Deploy: Baton
 
 Baton orchestrates deployment as a self-healing circuit topology using the `component_map.yaml` from Constrain.
 
@@ -277,7 +293,9 @@ deactivate
 
 ---
 
-### 3b — Sentinel (Observe)
+## Step 5 — Observe
+
+### 5a — Sentinel
 
 Sentinel watches production logs, attributes errors to Pact components via embedded PACT keys, and tightens contracts so each bug class becomes non-recurring.
 
@@ -307,7 +325,25 @@ deactivate
 
 ---
 
-### 3c — Kindex (Knowledge)
+### 5b — Chronicler
+
+> **Coming soon.** Chronicler correlates events from Baton (OTLP spans) and Sentinel (incidents) into stories at three granularities — request, service, and journey — then emits them to Stigmergy and Apprentice.
+
+---
+
+### 5c — Stigmergy
+
+> **Coming soon.** Stigmergy ingests signals from GitHub, Linear, and Slack, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and dependency risks.
+
+---
+
+## Step 6 — Learn: Apprentice
+
+> **Coming soon.** Apprentice progressively distills frontier API calls into a local fine-tuned model. It routes requests between the API and the local model, shifting traffic as correlation proves quality, reducing cost over time.
+
+---
+
+## Step 7 — Knowledge: Kindex
 
 Kindex is a persistent knowledge graph that learns from your sessions and provides context to every tool in the stack.
 
@@ -342,12 +378,33 @@ deactivate
 
 ---
 
+## Optional Tools
+
+### Webprobe
+
+> **Coming soon.** Webprobe maps any website as a directed graph, captures per-node metrics, scans for security vulnerabilities, and uses LLM agents to discover visual and behavioural defects. Useful for auditing deployed services.
+
+---
+
+### Signet
+
+> **Coming soon.** Signet is a cryptographic identity vault and MCP server. It manages credentials, generates zero-knowledge proofs, and enforces privacy policies — data flows one-way: vault → agent → service.
+
+---
+
+### Tessera
+
+> **Coming soon.** Tessera is a self-validating executable document format. Every document carries its schema, state, history, and cryptographic signatures — the chain can be verified without an external authority.
+
+---
+
 ## The Closed Loop
 
 ```
-Constrain → Pact → Baton → Sentinel → (tighten contracts) → Constrain
-                              ↑
-                           Kindex (cross-cutting knowledge layer)
+Constrain → Pact → Arbiter → Baton → Sentinel → Chronicler → Stigmergy
+                                          ↓                       ↓
+                                       Kindex               Apprentice
+                                    (knowledge)              (learning)
 ```
 
 Production incidents detected by Sentinel feed back to tighten Pact contracts — making the entire class of bug non-recurring.
