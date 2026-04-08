@@ -1,3 +1,8 @@
-exemplar.tools/
+# tests
+calculator-demo-test/
 test/
+
+# env
 .env
+
+exemplar.tools/
