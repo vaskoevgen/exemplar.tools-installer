@@ -1,14 +1,42 @@
 # How to use exemplar.tools
 
+## Prerequisites
+
+- **Python 3.11+** — required by all tools
+- **Git** — for the installer
+- **curl** — for the installer
+- **Anthropic API key** with access to `claude-opus-4-6`
+
+---
+
+## Directory layout
+
+The installer creates `exemplar.tools/` as a sibling to your project folder:
+
+```
+parent/
+├── your-project/        ← your working directory throughout this guide
+└── exemplar.tools/      ← cloned by the installer (run from parent/)
+    ├── constrain/
+    ├── pact/
+    ├── baton/
+    ├── sentinel/
+    └── kindex/
+```
+
 ## Install
 
-Run once to clone all repositories and set up dependencies:
+Run once **from the parent directory** to clone all repositories and set up dependencies:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main/install.sh | bash
 ```
 
-This creates an `exemplar.tools/` directory in your current working directory.
+Then enter your project folder — all commands below are run from there:
+
+```bash
+cd your-project
+```
 
 ---
 
@@ -16,16 +44,16 @@ This creates an `exemplar.tools/` directory in your current working directory.
 
 ### 1a — Constrain (Boundaries & components)
 
-Interview your problem and produce structured artifacts consumed by the rest of the stack.
+Constrain runs an **interactive AI interview** about your problem. It asks clarifying questions and resolves ambiguities before producing structured artifacts. Expect 5–15 minutes of back-and-forth. Answer the questions directly — Constrain will stop when it has enough to proceed.
 
 **Activate:**
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/constrain/.venv/bin/activate
+source ../exemplar.tools/constrain/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/constrain/.venv/bin/activate.fish
+source ../exemplar.tools/constrain/.venv/bin/activate.fish
 ```
 
 **Set your API key:**
@@ -37,11 +65,10 @@ export ANTHROPIC_API_KEY=sk-...
 **Run from your project directory:**
 
 ```bash
-cd my-project
 constrain
 ```
 
-**Output artifacts** (written to current directory):
+Constrain will interview you about what you want to build. When it finishes, it writes these files to your current directory:
 
 | File | Consumed by |
 |------|-------------|
@@ -57,34 +84,18 @@ deactivate
 
 ---
 
-### 1b — Ledger (Schema obligations)
+### 1b — Ledger (Schema obligations) — optional
 
-Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel.
+Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
 **Activate:**
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/ledger/.venv/bin/activate
+source ../exemplar.tools/ledger/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/ledger/.venv/bin/activate.fish
-```
-
-> **Note:** The `ledger` binary has a packaging bug. Run from the repo root using python directly:
-
-```bash
-cd ./exemplar.tools/ledger
-```
-
-Define a helper for the session:
-
-```bash
-# bash / zsh
-function ledger() { PYTHONPATH=src .venv/bin/python -c "import sys; sys.path.insert(0,'src'); from cli.cli import cli_main; cli_main()" -- "$@"; }
-
-# fish
-function ledger; PYTHONPATH=src .venv/bin/python -c "import sys; sys.path.insert(0,'src'); from cli.cli import cli_main; cli_main()" -- $argv; end
+source ../exemplar.tools/ledger/.venv/bin/activate.fish
 ```
 
 **Initialize and register schemas:**
@@ -112,16 +123,18 @@ deactivate
 
 ## Step 2 — Pact
 
-Build the software using the artifacts produced by Constrain.
+Pact builds the software using the artifacts produced by Constrain. It decomposes your task into components, writes contracts and tests, then implements each component via the Anthropic API.
+
+**Cost and time:** a typical run costs **$1–3** and takes **10–30 minutes** depending on project size and the `budget` setting.
 
 **Activate:**
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/pact/.venv/bin/activate
+source ../exemplar.tools/pact/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/pact/.venv/bin/activate.fish
+source ../exemplar.tools/pact/.venv/bin/activate.fish
 ```
 
 **Set your API key:**
@@ -130,16 +143,34 @@ source ./exemplar.tools/pact/.venv/bin/activate.fish
 export ANTHROPIC_API_KEY=sk-...
 ```
 
-**Initialize and run:**
+**Initialize the project:**
 
 ```bash
-pact init my-project
-# Edit my-project/task.md  — what to build
-# Edit my-project/sops.md  — coding standards
-pact run my-project
+pact init my-build
 ```
 
-**Recommended `pact.yaml`** — add to `my-project/pact.yaml` before running:
+> `my-build` is the name of the Pact project subdirectory. You can call it anything.
+
+**Edit `my-build/task.md`** — describe what to build. Be specific. Example:
+
+```markdown
+# Task
+
+Build a CLI tool that reads a text file containing one URL per line,
+checks whether each URL is reachable via HTTP GET, and reports which
+ones are unreachable.
+
+## Requirements
+
+- Accept a file path as a CLI argument
+- Skip blank lines and lines starting with #
+- Support --timeout (default 5s), --concurrency (default 10), --json flags
+- Exit 0 if all reachable, exit 1 if any unreachable
+```
+
+**Edit `my-build/sops.md`** — coding standards (style, language, constraints). Leave blank to use defaults.
+
+**Create `my-build/pact.yaml` before running** — this configuration is required:
 
 ```yaml
 budget: 10.0
@@ -156,21 +187,28 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
-**Useful commands:**
+**Run:**
 
 ```bash
-pact status my-project        # current phase and state
-pact components my-project    # list components and status
-pact build my-project <id>    # rebuild a specific component
-pact health my-project        # check for coordination issues
+pact run my-build
 ```
 
-**Run contract tests manually** (pact's test runner needs PYTHONPATH):
+Pact runs autonomously. Monitor progress with:
 
 ```bash
-PYTHONPATH=my-project/src \
-  pytest my-project/tests/<component>/contract_test.py -q
+pact status my-build        # current phase and state
+pact components my-build    # list components and status
+pact health my-build        # check for coordination issues
 ```
+
+**Verify the build — run contract tests:**
+
+```bash
+PYTHONPATH=my-build/src \
+  pytest my-build/tests/<component>/contract_test.py -q
+```
+
+> Replace `<component>` with the component directory name shown by `pact components`.
 
 ```bash
 deactivate
@@ -190,21 +228,35 @@ Baton orchestrates deployment as a self-healing circuit topology using the `comp
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/baton/.venv/bin/activate
+source ../exemplar.tools/baton/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/baton/.venv/bin/activate.fish
+source ../exemplar.tools/baton/.venv/bin/activate.fish
 ```
 
 **Initialize from Constrain artifacts:**
 
 ```bash
-# Generate circuit.yaml from component_map.yaml
 baton init my-circuit --name my-app --constrain-dir .
+```
 
-# Edit my-circuit/baton.yaml — assign port numbers to each node (required)
-# port: null → port: 8001, 8002, etc.
+**Edit `my-circuit/baton.yaml`** — the generated file has `port: null` for every node. **You must replace each `null` with a real port number before running:**
 
+```yaml
+# Before (generated):
+- name: my_component
+  port: null
+
+# After (required):
+- name: my_component
+  port: 8001
+```
+
+Assign sequential ports starting from 8001.
+
+**Boot the circuit:**
+
+```bash
 cd my-circuit
 baton status     # verify circuit loaded correctly
 baton up         # boot the circuit
@@ -231,10 +283,10 @@ Sentinel watches production logs, attributes errors to Pact components via embed
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/sentinel/.venv/bin/activate
+source ../exemplar.tools/sentinel/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/sentinel/.venv/bin/activate.fish
+source ../exemplar.tools/sentinel/.venv/bin/activate.fish
 ```
 
 **Initialize and register components from your Pact project:**
@@ -242,9 +294,9 @@ source ./exemplar.tools/sentinel/.venv/bin/activate.fish
 ```bash
 # Run from your working directory (creates sentinel.yaml + .sentinel/)
 sentinel init
-sentinel register my-project   # imports PACT keys from pact project
-sentinel report                 # recent incidents and fix history
-sentinel serve                  # start HTTP API (watches logs + webhooks)
+sentinel register my-build   # imports PACT keys from pact project
+sentinel report               # recent incidents and fix history
+sentinel serve                # start HTTP API (watches logs + webhooks)
 ```
 
 ```bash
@@ -261,10 +313,10 @@ Kindex is a persistent knowledge graph that learns from your sessions and provid
 
 ```bash
 # bash / zsh
-source ./exemplar.tools/kindex/.venv/bin/activate
+source ../exemplar.tools/kindex/.venv/bin/activate
 
 # fish
-source ./exemplar.tools/kindex/.venv/bin/activate.fish
+source ../exemplar.tools/kindex/.venv/bin/activate.fish
 ```
 
 **Basic usage:**
@@ -317,44 +369,8 @@ end
 Run state is cached. Clear it and retry:
 
 ```bash
-rm -rf my-project/.pact
-pact run my-project
-```
-
-### pact health CRITICAL: planning dominates generation
-
-Pact spent too many tokens on planning with no implementation output. Disable shaping in `pact.yaml`:
-
-```yaml
-shaping: false
-```
-
-Then clear state and retry:
-
-```bash
-rm -rf my-project/.pact
-pact run my-project
-```
-
-### pact tests return 0/0 passed
-
-Pact's test runner doesn't set `PYTHONPATH`. Run tests manually:
-
-```bash
-PYTHONPATH=my-project/src pytest my-project/tests/<component>/contract_test.py -q
-```
-
-### pact uses claude_code backend (requires Claude Code CLI)
-
-If you see `"Implementing via Claude Code"` but don't have Claude Code CLI, force the direct API in `pact.yaml`:
-
-```yaml
-backend: anthropic
-role_backends:
-  decomposer: anthropic
-  contract_author: anthropic
-  test_author: anthropic
-  code_author: anthropic
+rm -rf my-build/.pact
+pact run my-build
 ```
 
 ### Switching between tools
@@ -363,12 +379,12 @@ Each tool has its own `.venv`. Deactivate before activating another:
 
 ```bash
 deactivate
-source ./exemplar.tools/kindex/.venv/bin/activate.fish
+source ../exemplar.tools/kindex/.venv/bin/activate.fish
 ```
 
 ### Updating all repositories
 
-Re-run the installer at any time to pull latest changes:
+Re-run the installer from the parent directory at any time to pull latest changes:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/vaskoevgen/exemplar.tools-installer/main/install.sh | bash
