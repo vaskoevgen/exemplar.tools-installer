@@ -1,5 +1,20 @@
 # How to use exemplar.tools
 
+## Quick start — minimum path to a working app
+
+Three steps take you from idea to deployed, tested code:
+
+```
+Step 1 — Constrain   describe what to build → structured artifacts
+Step 2a — Pact       build the code → contracts, tests, implementation
+Step 4 — Baton       deploy it → running circuit of services
+```
+
+Everything else (Ledger, Advocate, Arbiter, Sentinel, Kindex) adds governance,
+quality, and observability on top. You don't need them to ship.
+
+---
+
 ## Prerequisites
 
 - **Python 3.11+** — required by all tools
