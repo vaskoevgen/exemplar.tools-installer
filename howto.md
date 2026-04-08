@@ -42,7 +42,124 @@ cd your-project
 
 ## Step 0 — Cartographer (existing projects only)
 
-> **Coming soon.** Cartographer scans an existing codebase and automatically drafts artifacts for the whole stack (Constrain, Pact, Ledger, Arbiter, Baton, Sentinel). Use this step instead of Step 1 when onboarding a project that already has code.
+Cartographer scans an existing codebase and produces draft artifacts for every tool in the stack. Use this step **instead of Step 1** when onboarding a project that already has code — it replaces the Constrain interview with automated discovery.
+
+**Activate:**
+
+```bash
+# bash / zsh
+source ../exemplar.tools/cartographer/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/cartographer/.venv/bin/activate.fish
+```
+
+**Initialize:**
+
+```bash
+cartographer init
+# Creates cartographer.yaml with default settings
+```
+
+**Edit `cartographer.yaml`** — point it at your source and infrastructure:
+
+```yaml
+version: "1.0"
+
+targets:
+  source:
+    dirs: ["./src"]
+    languages: [python, typescript, javascript, go]
+    exclude: [".venv", "node_modules", "dist", "__pycache__"]
+
+  # Optional: live backend introspection (read-only)
+  infrastructure:
+    backends:
+      - id: main_db
+        type: postgres
+        connection_hint: "postgres://user:pass@localhost:5432/mydb"
+        owner_component_hint: my_service
+
+  # Optional: running services to probe for OpenAPI specs
+  services:
+    base_urls:
+      - "http://localhost:8001"
+    openapi_paths:
+      - "./specs/service.yaml"
+
+# Point to existing stack artifacts (for compatibility checking)
+stack:
+  pact_project_dir: null
+  baton_config: null
+  ledger_registry: null
+  sentinel_manifest: null
+
+output_dir: ".cartographer/drafts/"
+```
+
+**Run discovery:**
+
+```bash
+# Source code only (safe, no network calls)
+cartographer discover --no-live
+
+# Source + live backends and services
+cartographer discover
+```
+
+Cartographer scans for components, ORM models, API routes, PACT keys, env vars, and sensitive fields, then writes draft artifacts to `.cartographer/drafts/`:
+
+```
+.cartographer/drafts/
+  constrain/   ← prompt, constraints, component_map, trust_policy, schema_hints
+  pact/        ← contracts per component, task description
+  ledger/      ← backend and schema definitions
+  baton/       ← circuit topology
+  sentinel/    ← component manifest
+```
+
+**Review the drafts:**
+
+```bash
+cartographer drafts list
+cartographer drafts show pact my_component_draft.yaml
+cartographer drafts show ledger main_db_users_draft.yaml
+```
+
+**Check stack compatibility:**
+
+```bash
+cartographer check
+# Shows PASS / WARN / FAIL per tool with recommended next steps
+```
+
+**Adopt high-confidence items** (preview first, then apply):
+
+```bash
+cartographer adopt --dry-run             # preview what would be registered
+cartographer adopt --confidence high     # register high-confidence drafts
+cartographer adopt --confidence medium   # then medium
+```
+
+> Every draft item has a `_confidence` level (high/medium/low) and a `_note` explaining the evidence. Fields requiring classification (PII, financial, auth) must be confirmed explicitly with `--confirm-classification`.
+
+**Check again** — score should improve. Repeat until compliant:
+
+```bash
+cartographer check
+```
+
+```bash
+deactivate
+```
+
+### What each confidence level means
+
+| Level | Source | Action needed |
+|-------|--------|--------------|
+| **high** | AST analysis, direct ORM definition | Safe to adopt, verify intent |
+| **medium** | Pattern matching, heuristics | Review before adopting |
+| **low** | Name-based guessing | Must verify — do not adopt blindly |
 
 ---
 
