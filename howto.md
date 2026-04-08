@@ -228,7 +228,69 @@ deactivate
 
 ### 2b — Advocate (Review gate)
 
-> **Coming soon.** Advocate runs a 6-persona adversarial review of the code produced by Pact — Red Team, Adversarial, Sage, User, SME, and Good Friend — and surfaces issues before deployment.
+Advocate runs a 6-persona adversarial review of the code produced by Pact. Six AI reviewers attack the code simultaneously from different angles and surface issues before you deploy.
+
+**Activate:**
+
+```bash
+# bash / zsh
+source ../exemplar.tools/advocate/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/advocate/.venv/bin/activate.fish
+```
+
+**Set your API key:**
+
+```bash
+export ANTHROPIC_API_KEY=sk-...
+```
+
+**Review the built source:**
+
+```bash
+advocate review my-build/src/
+```
+
+**Save results for sharing or CI:**
+
+```bash
+advocate review my-build/src/ \
+  -o findings.json \
+  --html review-report.html
+```
+
+**Focus on specific personas:**
+
+```bash
+advocate review my-build/src/ -p red_team -p adversarial   # security focus
+advocate review my-build/src/ -p sage -p user               # design/clarity focus
+```
+
+**Cheaper sequential mode (same results, lower cost):**
+
+```bash
+advocate review my-build/src/ --sequential
+```
+
+```bash
+deactivate
+```
+
+### The six personas
+
+| Persona | Angle |
+|---------|-------|
+| **Red Team** | It's vulnerable — harden it |
+| **Adversarial** | It's wrong — defend your assumptions |
+| **Sage** | It's complicated — simplify it |
+| **User** | It's unintuitive — clarify it |
+| **SME** | Peer review — would a colleague sign off? |
+| **Good Friend** | The harsh truth you need to hear |
+
+> **Disagreements are valuable.** When two personas rate the same issue differently (e.g. Sage: HIGH, SME: INFO), that tension reveals a real tradeoff worth examining.
+
+**Typical cost:** ~$0.15–0.30 per review, ~30 seconds in parallel mode.
 
 ---
 
