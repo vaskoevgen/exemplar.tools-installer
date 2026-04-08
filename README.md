@@ -132,6 +132,41 @@ Each release captures a consistent snapshot of which repositories and refs are i
 
 ---
 
+## How it all fits together
+
+```
+[Cartographer]  ← optional: existing projects only
+      ↓
+[Constrain]  →  prompt.md, constraints.yaml, component_map.yaml, trust_policy.yaml, schema_hints.yaml
+      ↓                                    ↓
+  [Ledger]                             [Arbiter init]
+  (schemas)                            arbiter watch (sidecar, port 7700)
+      ↓                                    ↓
+    export assertions            ┌─────────────────────┐
+      ↓                          │                     │
+[Pact]  →  src/, tests/, access_graph.json  →  [Arbiter register]
+      ↓                                            ↓
+  [Advocate]                              trust scores, blast radius
+  (code review gate)
+      ↓
+[Baton]  →  circuit up  →  OTLP spans  →  Arbiter
+      ↓
+[Sentinel]  →  incidents, contract tightening
+      ↓                    ↓
+[Chronicler]  →  stories (request / service / journey)
+      ↓                    ↓
+[Stigmergy]          [Apprentice]
+(org patterns)    (model distillation)
+
+[Kindex]  ←  cross-cutting knowledge layer (all tools feed into it)
+```
+
+**Feedback loops:**
+- `Sentinel → Constrain` — production bugs tighten contracts, preventing the whole class from recurring
+- `Chronicler → Apprentice` — production traffic trains local models, progressively reducing API cost
+
+---
+
 ## howto.md — Next Iteration Roadmap
 
 The current `howto.md` covers: Constrain → Ledger → Pact → Baton → Sentinel → Kindex.
