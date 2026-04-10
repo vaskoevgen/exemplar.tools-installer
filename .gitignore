@@ -1,6 +1,7 @@
 # tests
 calculator-demo-test/
 test/
+todo-app-test/
 
 # env
 .env
