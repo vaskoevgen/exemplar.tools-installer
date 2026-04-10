@@ -829,7 +829,157 @@ stigmergy config set llm.provider anthropic
 
 ## Step 6 — Learn: Apprentice
 
-> **Coming soon.** Apprentice progressively distills frontier API calls into a local fine-tuned model. It routes requests between the API and the local model, shifting traffic as correlation proves quality, reducing cost over time.
+Apprentice routes every request to the frontier API (Claude, GPT, etc.), collects the responses as training examples, fine-tunes a local model, then progressively shifts traffic to it — while continuously verifying quality. The goal: replace expensive API calls with a $0 local model that produces equivalent results for your specific tasks.
+
+**Three phases, all automatic:**
+
+| Phase | What happens |
+|---|---|
+| Cold Start | Every request → remote API. Responses stored as training data. |
+| Reinforcement | Both models run. Evaluator scores local vs. remote. Rolling window tracks correlation. |
+| Steady State | Local model handles most traffic. Sampler periodically checks quality. Auto-regresses if it drops. |
+
+**Activate:**
+
+```bash
+source ../exemplar.tools/apprentice/.venv/bin/activate
+```
+
+**Initialize — create `apprentice.yaml`:**
+
+```bash
+apprentice init
+```
+
+The wizard walks through 4 steps: task definition, remote provider (Claude/GPT), local model (Ollama endpoint), and budget caps. It writes `apprentice.yaml` and creates `.apprentice/` directories.
+
+For a minimal calculator task, the generated config looks like:
+
+```yaml
+provider:
+  api_base_url: https://api.anthropic.com
+  api_key: "env:ANTHROPIC_API_KEY"
+  model: "claude-haiku-4-5-20251001"
+  timeout_seconds: 30
+
+local_model:
+  endpoint: "http://localhost:11434"
+  model_name: "llama3.1:8b"
+  timeout_seconds: 60
+
+tasks:
+  - task_name: calculator_eval
+    prompt_template: |
+      Given an arithmetic expression, return the numeric result.
+      Input: {expression}
+    input_schema:
+      - name: expression
+        type: string
+        required: true
+    output_schema:
+      - name: result
+        type: string
+        required: true
+    evaluators:
+      - type: exact_match
+        match_fields:
+          - name: result
+            weight: 1.0
+            case_sensitive: true
+    thresholds:
+      local_ready: 0.7
+      local_only: 0.85
+      degraded_threshold: 0.3
+    sampling_rate_initial: 1.0
+    min_training_examples: 100
+
+budget:
+  max_daily_cost_usd: 10.00
+  max_monthly_cost_usd: 150.00
+  budget_state_path: .apprentice/budget_state.json
+
+finetuning:
+  backend: local_lora
+  model_base: "llama3.1:8b"
+  output_dir: .apprentice/models/
+
+audit:
+  log_path: .apprentice/audit.log
+  log_level: INFO
+
+training_data:
+  storage_dir: .apprentice/training_data/
+  max_examples_per_task: 50000
+```
+
+**Start the HTTP daemon (required for `run`):**
+
+```bash
+apprentice serve --config apprentice.yaml
+```
+
+Apprentice exposes an HTTP API. `run` sends requests through it.
+
+**Execute a task (in another terminal):**
+
+```bash
+apprentice run calculator_eval --input '{"expression": "2 + 2"}'
+```
+
+Returns the result plus metadata: which model answered (`remote`, `local`, or `dual`), cost, and current phase.
+
+**Check current phase and training progress:**
+
+```bash
+apprentice status
+apprentice status --task calculator_eval
+```
+
+**Generate a full report:**
+
+```bash
+apprentice report
+```
+
+Shows per-task correlation scores, phase history, cost breakdown, and training data counts.
+
+**Bulk-load existing training examples:**
+
+```bash
+apprentice ingest --task calculator_eval examples.jsonl
+```
+
+Useful for bootstrapping with historical data to skip Cold Start faster.
+
+**Deactivate when done:**
+
+```bash
+deactivate
+```
+
+#### Evaluator types
+
+| Type | What it checks |
+|---|---|
+| `exact_match` | Field values must match exactly |
+| `semantic_similarity` | Embedding cosine similarity above threshold |
+| `llm_judge` | A second LLM call scores the local output |
+| `regex_match` | Output must match a regex pattern |
+| `json_schema_match` | Output must conform to a JSON schema |
+
+#### PII protection
+
+Apprentice includes built-in PII scrubbing before data reaches models or training stores. Default mode uses regex patterns (emails, phones, SSNs, credit cards, API keys). Enable NER-based detection for unstructured text by installing the `ml` extra:
+
+```bash
+pip install -e ".[ml]"
+```
+
+#### Prerequisites for local fine-tuning
+
+- **Ollama** running locally with the base model pulled (`ollama pull llama3.1:8b`)
+- Fine-tuning only triggers after `min_training_examples` are collected
+- For GKE-based LoRA training, install the `gke` extra and configure Kubernetes credentials
 
 ---
 
