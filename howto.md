@@ -283,15 +283,15 @@ source ../exemplar.tools/pact/.venv/bin/activate.fish
 export ANTHROPIC_API_KEY=sk-...
 ```
 
-**Initialize the project:**
+**Initialize the project** (run from your project folder):
 
 ```bash
-pact init my-build
+pact init .
 ```
 
-> `my-build` is the name of the Pact project subdirectory. You can call it anything.
+> Run `pact init .` in your project directory. Pact creates `task.md`, `pact.yaml`, and `sops.md` in place. If Constrain artifacts (`prompt.md`, `constraints.yaml`, etc.) are already present, Pact picks them up automatically.
 
-**Edit `my-build/task.md`** — describe what to build. Be specific. Example:
+**Edit `task.md`** — describe what to build. Be specific. Example:
 
 ```markdown
 # Task
@@ -308,9 +308,9 @@ ones are unreachable.
 - Exit 0 if all reachable, exit 1 if any unreachable
 ```
 
-**Edit `my-build/sops.md`** — coding standards (style, language, constraints). Leave blank to use defaults.
+**Edit `sops.md`** — coding standards (style, language, constraints). Leave blank to use defaults.
 
-**Create `my-build/pact.yaml` before running** — this configuration is required:
+**Create `pact.yaml` before running** — this configuration is required:
 
 ```yaml
 budget: 10.0
@@ -327,30 +327,75 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
-> Pact always writes `my-build/access_graph.json` at the end of the build — used by Arbiter in Step 3.
+> Pact always writes `access_graph.json` at the end of the build — used by Arbiter in Step 3.
 
-**Run:**
-
-```bash
-pact run my-build
-```
-
-Pact runs autonomously. Monitor progress with:
+**Run the daemon:**
 
 ```bash
-pact status my-build        # current phase and state
-pact components my-build    # list components and status
-pact health my-build        # check for coordination issues
+pact daemon .
 ```
+
+Monitor progress in a second terminal:
+
+```bash
+pact status .        # current phase and cost
+pact log .           # full audit trail
+```
+
+**Interview phase** — Pact pauses after generating questions. Answer by editing two files:
+
+**1. `decomposition/interview.json`** — find the `"questions"` array, add a `"user_answers"` field with your answers, and set `"approved": true` at the top level:
+
+```json
+{
+  "approved": true,
+  "questions": [...],
+  "user_answers": {
+    "1": "In-memory storage, no persistence needed",
+    "2": "Python stdlib only, no third-party libraries",
+    "3": "..."
+  }
+}
+```
+
+**2. `.pact/state.json`** — set `"status": "active"`, `"approved": true`, and add an `"interview_result"` key that mirrors the answers:
+
+```json
+{
+  "status": "active",
+  "approved": true,
+  "interview_result": {
+    "approved": true,
+    "user_answers": {
+      "1": "In-memory storage, no persistence needed",
+      "2": "Python stdlib only, no third-party libraries",
+      "3": "..."
+    }
+  }
+}
+```
+
+Then signal the daemon:
+```bash
+pact approve .
+```
+
+**Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning (planning tokens dominate generation tokens on first builds). Resume each time it pauses:
+
+```bash
+pact resume .
+```
+
+Repeat up to 2–3 times until the implementation phase starts (visible in `pact log .` as `implementation — root attempt 1`).
 
 **Verify the build — run contract tests:**
 
 ```bash
-PYTHONPATH=my-build/src \
-  pytest my-build/tests/<component>/contract_test.py -q
+PYTHONPATH=src/<component> \
+  pytest tests/<component>/contract_test.py -q
 ```
 
-> Replace `<component>` with the component directory name shown by `pact components`.
+> Replace `<component>` with the component name (e.g. `root`).
 
 ```bash
 deactivate
@@ -381,13 +426,13 @@ export ANTHROPIC_API_KEY=sk-...
 **Review the built source:**
 
 ```bash
-advocate review my-build/src/
+advocate review src/
 ```
 
 **Save results for sharing or CI:**
 
 ```bash
-advocate review my-build/src/ \
+advocate review src/ \
   -o findings.json \
   --html review-report.html
 ```
@@ -395,14 +440,14 @@ advocate review my-build/src/ \
 **Focus on specific personas:**
 
 ```bash
-advocate review my-build/src/ -p red_team -p adversarial   # security focus
-advocate review my-build/src/ -p sage -p user               # design/clarity focus
+advocate review src/ -p red_team -p adversarial   # security focus
+advocate review src/ -p sage -p user               # design/clarity focus
 ```
 
 **Cheaper sequential mode (same results, lower cost):**
 
 ```bash
-advocate review my-build/src/ --sequential
+advocate review src/ --sequential
 ```
 
 ```bash
@@ -453,7 +498,7 @@ arbiter init
 **Register the access graph produced by Pact** (once schemas are aligned):
 
 ```bash
-arbiter register my-build/access_graph.json
+arbiter register access_graph.json
 # Registered: N nodes, N authority domains.
 ```
 
@@ -507,41 +552,54 @@ source ../exemplar.tools/baton/.venv/bin/activate
 source ../exemplar.tools/baton/.venv/bin/activate.fish
 ```
 
-**Initialize from Constrain artifacts:**
+**Generate `baton.yaml` from your Pact project:**
 
 ```bash
-baton init my-circuit --name my-app --constrain-dir .
+source ../exemplar.tools/pact/.venv/bin/activate
+pact deploy .
+deactivate
 ```
 
-**Edit `my-circuit/baton.yaml`** — the generated file has `port: null` and `proxy_mode: null` for every node. **You must replace both before running:**
+This generates `baton.yaml` in your project folder with one node per component.
+
+**Edit `baton.yaml`** — add `role: ingress` to your entry-point node and set the correct port:
 
 ```yaml
-# Before (generated):
-- name: my_component
-  port: null
-  proxy_mode: null
-
-# After (required):
-- name: my_component
-  port: 8001
-  proxy_mode: http
+nodes:
+- name: root
+  port: 8000
+  role: ingress        # ← required on entry-point nodes
+  metadata:
+    health_check: http://127.0.0.1:8000/tasks
+    canary_error_rate_pct: '5.0'
+    canary_p95_ms: '500.0'
 ```
 
-Assign sequential ports starting from 8001. Use `http` for `proxy_mode` unless your component uses a different protocol (`tcp`, `grpc`, `protobuf`, `soap`).
+**Start your app** (Baton is a proxy — your app must be running separately):
+
+```bash
+python src/root/root.py   # starts on port 8000
+```
 
 **Boot the circuit:**
 
 ```bash
-cd my-circuit
 baton status     # verify circuit loaded correctly
-baton up         # boot the circuit
-baton watch      # start custodian monitor
+baton up --mock  # boot with mock responses (no live app needed for testing)
+baton up         # boot as live proxy to your running app
+```
+
+**Check signals and metrics:**
+
+```bash
+baton signals    # recent request signals
+baton metrics    # persistent metrics
 ```
 
 **Hot-swap a component without downtime:**
 
 ```bash
-baton swap my-circuit <node-id> --image <new-image>
+baton swap <node-name> --image <new-image>
 ```
 
 ```bash
@@ -571,7 +629,7 @@ source ../exemplar.tools/sentinel/.venv/bin/activate.fish
 ```bash
 # Run from your working directory (creates sentinel.yaml + .sentinel/)
 sentinel init
-sentinel register my-build   # imports PACT keys from pact project
+sentinel register .          # imports PACT keys from the current project
 sentinel report               # recent incidents and fix history
 sentinel serve                # start HTTP API (watches logs + webhooks)
 ```
@@ -1090,8 +1148,8 @@ end
 Run state is cached. Clear it and retry:
 
 ```bash
-rm -rf my-build/.pact
-pact run my-build
+pact clean . --all
+pact daemon .
 ```
 
 ### Switching between tools
