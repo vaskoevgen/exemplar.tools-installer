@@ -711,7 +711,119 @@ kindex:
 
 ### 5c — Stigmergy
 
-> **Coming soon.** Stigmergy ingests signals from GitHub, Linear, and Slack, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and dependency risks.
+Stigmergy ingests signals from GitHub, Linear, Slack, and Grafana, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and parallel activity that could become conflicts.
+
+It runs without an LLM key — the default `stub` provider uses deterministic heuristics at zero cost. Swap to `anthropic` for richer analysis when needed.
+
+**Activate:**
+
+```bash
+source ../exemplar.tools/stigmergy/.venv/bin/activate
+```
+
+**Initialize (interactive setup):**
+
+```bash
+stigmergy init
+```
+
+The wizard auto-discovers git repos and config files in the workspace. Accept defaults to get started quickly. It writes `.stigmergy/config.yaml`.
+
+For a non-interactive setup, answer the prompts as follows (press Enter to accept defaults):
+
+| Prompt | Recommended value for testing |
+|---|---|
+| What should stigmergy monitor? | *(Enter — keep default)* |
+| Enable GitHub? | Y |
+| Use default repos? | Y |
+| GitHub mode | `mock` *(no `gh` auth needed)* |
+| Enable Linear? | N |
+| Enable Grafana? | N |
+| LLM provider | `stub` *(no API key needed)* |
+| Daily cap / Hourly cap | *(Enter — keep defaults)* |
+
+**Run one batch (mock data, no API key):**
+
+```bash
+stigmergy run --once
+```
+
+Expected output includes:
+- Signals fetched from mock GitHub
+- Mesh topology showing signal workers
+- Key Findings — parallel activity, coordination gaps
+- Portfolio Risk Clusters
+- Run archived to `.stigmergy/runs/`
+
+**Check connectivity (live mode, before using real sources):**
+
+```bash
+# Requires: gh auth login
+stigmergy check --github
+
+# Requires: LINEAR_API_KEY env var
+stigmergy check --linear
+
+# Requires: SLACK_BOT_TOKEN env var
+stigmergy check --slack
+```
+
+**Run with real GitHub data:**
+
+```bash
+# Requires: gh auth login
+stigmergy run --once --live
+```
+
+**View status from last run:**
+
+```bash
+stigmergy status
+```
+
+**Adjust config after init:**
+
+```bash
+stigmergy config show
+stigmergy config set llm.provider anthropic
+stigmergy config set budget.daily_cap_usd 10.00
+```
+
+**Provide feedback on a finding (calibrates the attention model):**
+
+```bash
+# The finding hash is shown in the Key Findings output
+stigmergy feedback --finding <hash> --response already_knew
+stigmergy feedback --finding <hash> --response had_no_idea
+```
+
+**Deactivate when done:**
+
+```bash
+deactivate
+```
+
+#### Signal sources
+
+| Source | Mode | Requires |
+|---|---|---|
+| GitHub | `mock` (default) or `live` | `gh auth login` for live |
+| Linear | `mock` or `live` | `LINEAR_API_KEY` for live |
+| Slack | `mock` or `live` | `SLACK_BOT_TOKEN` for live |
+| Grafana | `mock` or `live` | `GRAFANA_API_KEY` for live |
+
+#### LLM providers
+
+| Provider | Cost | Quality |
+|---|---|---|
+| `stub` (default) | Free | Deterministic heuristics |
+| `anthropic` | ~$0.01/run | LLM-enhanced assessments (Haiku) |
+
+To use Anthropic:
+```bash
+export ANTHROPIC_API_KEY=your-key
+stigmergy config set llm.provider anthropic
+```
 
 ---
 
