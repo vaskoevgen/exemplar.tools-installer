@@ -584,7 +584,128 @@ deactivate
 
 ### 5b — Chronicler
 
-> **Coming soon.** Chronicler correlates events from Baton (OTLP spans) and Sentinel (incidents) into stories at three granularities — request, service, and journey — then emits them to Stigmergy and Apprentice.
+Chronicler sits between your running services and the pattern-learning layer. It collects events (OTLP spans, webhooks, Sentinel incidents, log files), groups them into **stories** at three granularities, and forwards completed stories to Stigmergy and Apprentice.
+
+| Story type | Grouped by | Timeout | Meaning |
+|---|---|---|---|
+| Request | `trace_id` | 30 s | One request and its downstream spans |
+| Service | `entity_id` + `component_id` | 5 m | Sequence of requests to one component |
+| Journey | `session_id` | 30 m | Full causal chain across components |
+
+> **Integration status:** Chronicler's configuration schema and correlation engine are fully implemented. The CLI start/status/stories/replay commands parse correctly but the runtime handlers are not yet wired up — all commands currently return immediately without side effects. Use Chronicler today to validate your config and understand the story model; the live event collection path ships in the next release.
+
+**Activate:**
+
+```bash
+source ../exemplar.tools/chronicler/.venv/bin/activate
+```
+
+**Create `chronicler.yaml` in your project folder:**
+
+```yaml
+sources:
+  - type: otlp
+    bind_address: "0.0.0.0"
+    port: 4317
+
+  - type: sentinel
+    bind_address: "0.0.0.0"
+    port: 8081
+
+sinks:
+  - type: disk
+    output_dir: .chronicler/stories
+
+rules:
+  - name: request_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [trace_id]
+    window_seconds: 30
+
+  - name: service_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [entity_id, component_id]
+    window_seconds: 300
+
+  - name: journey_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [session_id]
+    window_seconds: 1800
+```
+
+**Validate the config (config parsing is fully implemented):**
+
+```bash
+python -c "
+from chronicler.config import load_config
+cfg = load_config('chronicler.yaml')
+print('Sources:', [s.type for s in cfg.sources])
+print('Sinks:  ', [s.type for s in cfg.sinks])
+print('Rules:  ', [r.name for r in cfg.rules])
+"
+```
+
+Expected output:
+```
+Sources: [<SourceType.otlp: 'otlp'>, <SourceType.sentinel: 'sentinel'>]
+Sinks:   [<SinkType.disk: 'disk'>]
+Rules:   ['request_story', 'service_story', 'journey_story']
+```
+
+**Check available commands:**
+
+```bash
+chronicler --help
+chronicler start --help
+chronicler stories --help
+chronicler replay --help
+```
+
+**Deactivate when done:**
+
+```bash
+deactivate
+```
+
+#### Sink types
+
+| Sink | What it does | Status |
+|---|---|---|
+| `disk` | Writes stories as JSONL files to `output_dir` | Implemented |
+| `stigmergy` | Forwards stories to Stigmergy for pattern mining | Placeholder |
+| `apprentice` | Forwards stories to Apprentice for model distillation | Placeholder |
+| `kindex` | Stores noteworthy stories in the knowledge graph | Placeholder |
+
+Only the `disk` sink is fully implemented. Use it to capture stories locally while the network sinks are in progress.
+
+#### Adding Stigmergy / Apprentice / Kindex sinks (future)
+
+When these tools are running, add them to `chronicler.yaml`:
+
+```yaml
+sinks:
+  - type: disk
+    output_dir: .chronicler/stories
+
+  - type: stigmergy
+    url: http://localhost:8400
+
+  - type: apprentice
+    url: http://localhost:8401
+
+  - type: kindex
+    url: http://localhost:8402
+
+kindex:
+  noteworthiness_threshold: 0.7
+  event_type_filters: ["span", "incident"]
+```
 
 ---
 
