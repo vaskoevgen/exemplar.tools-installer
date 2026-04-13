@@ -226,6 +226,10 @@ deactivate
 
 Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
+> **Integration status:** The Ledger CLI and annotation model are fully designed. The CLI parses all commands correctly and exits 0. However, the business logic behind every command is a stub — `ledger init` creates no `ledger.yaml`, `ledger backend add` registers nothing, `ledger schema add` stores nothing, and `ledger export` returns empty contracts. The `ledger builtins list` command works and shows the full annotation catalogue.
+>
+> Once implemented, the workflow will be:
+
 **Activate:**
 
 ```bash
@@ -251,6 +255,13 @@ ledger schema validate
 ledger export --format pact --component user_service
 ledger export --format arbiter
 ledger export --format sentinel
+```
+
+**Explore the built-in annotation catalogue (works today):**
+
+```bash
+ledger builtins list
+ledger builtins show immutable
 ```
 
 ```bash
@@ -280,8 +291,14 @@ source ../exemplar.tools/pact/.venv/bin/activate.fish
 **Set your API key:**
 
 ```bash
+# bash / zsh
 export ANTHROPIC_API_KEY=sk-...
+
+# fish
+set -x ANTHROPIC_API_KEY sk-...
 ```
+
+> In fish shell, `export VAR=value` is not valid — use `set -x` instead.
 
 **Initialize the project** (run from your project folder):
 
@@ -307,6 +324,8 @@ ones are unreachable.
 - Support --timeout (default 5s), --concurrency (default 10), --json flags
 - Exit 0 if all reachable, exit 1 if any unreachable
 ```
+
+> Constraints like "single file under 300 lines" in `task.md` are guidance to the agent, not hard limits — the implementation may exceed them. To enforce a constraint mechanically, add it to `sops.md` or ensure the generated contract tests cover it.
 
 **Edit `sops.md`** — coding standards (style, language, constraints). Leave blank to use defaults.
 
@@ -380,13 +399,15 @@ Then signal the daemon:
 pact approve .
 ```
 
-**Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning (planning tokens dominate generation tokens on first builds). Resume each time it pauses:
+**Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning (planning tokens dominate generation tokens on first builds). This is a false positive on first builds — all tokens go to planning before implementation starts. Resume each time it pauses:
 
 ```bash
 pact resume .
 ```
 
 Repeat up to 2–3 times until the implementation phase starts (visible in `pact log .` as `implementation — root attempt 1`).
+
+> If the daemon process exits entirely (rather than just pausing), check that `ANTHROPIC_API_KEY` is set in the shell that runs `pact daemon .`. If the state ends up as `"status": "failed"` in `.pact/state.json`, reset it manually: set `"status"` back to `"active"` and clear `"completed_at"` and `"pause_reason"`, then rerun `pact daemon .`.
 
 **Verify the build — run contract tests:**
 
@@ -544,20 +565,20 @@ Baton orchestrates deployment as a self-healing circuit topology using the `comp
 
 **Activate:**
 
-```bash
-# bash / zsh
-source ../exemplar.tools/baton/.venv/bin/activate
-
-# fish
-source ../exemplar.tools/baton/.venv/bin/activate.fish
-```
-
 **Generate `baton.yaml` from your Pact project:**
 
 ```bash
 source ../exemplar.tools/pact/.venv/bin/activate
 pact deploy .
 deactivate
+```
+
+```bash
+# bash / zsh
+source ../exemplar.tools/baton/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/baton/.venv/bin/activate.fish
 ```
 
 This generates `baton.yaml` in your project folder with one node per component.
