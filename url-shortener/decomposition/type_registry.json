@@ -17,7 +17,7 @@
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Signed integer (32-bit or platform default).",
+      "description": "Integer value (32-bit or platform default).",
       "owner_component": ""
     },
     {
@@ -47,7 +47,7 @@
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "A 6-character URL-safe alphanumeric code uniquely identifying a shortened link.",
+      "description": "A 6-character URL-safe string uniquely identifying a shortened link.",
       "owner_component": "root"
     },
     {
@@ -69,14 +69,20 @@
           "type_ref": "Url",
           "required": true,
           "default": "",
-          "description": "The original long URL to be shortened.",
-          "validators": []
+          "description": "The original long URL the user wants shortened.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "min=1",
+              "error_message": "URL must not be empty."
+            }
+          ]
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Request body for POST /shorten containing the long URL to shorten.",
+      "description": "Request body for POST /shorten containing the original long URL to shorten.",
       "owner_component": "root"
     },
     {
@@ -88,7 +94,7 @@
           "type_ref": "Url",
           "required": true,
           "default": "",
-          "description": "Fully-qualified short redirect URL (e.g. http://localhost:8000/abc123).",
+          "description": "Fully qualified short URL (e.g. http://localhost:8000/abc123).",
           "validators": []
         },
         {
@@ -103,7 +109,7 @@
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Response body for POST /shorten returning the generated short URL and its code.",
+      "description": "Response body for POST /shorten containing the generated short URL and its code.",
       "owner_component": "root"
     },
     {
@@ -123,12 +129,12 @@
           "type_ref": "ShortCode",
           "required": true,
           "default": "",
-          "description": "Unique 6-character code for redirection.",
+          "description": "Unique 6-character code for the link.",
           "validators": [
             {
               "kind": "length",
-              "expression": "max=6",
-              "error_message": "short_code must be at most 6 characters."
+              "expression": "min=6,max=6",
+              "error_message": "Short code must be exactly 6 characters."
             }
           ]
         },
@@ -137,7 +143,7 @@
           "type_ref": "Url",
           "required": true,
           "default": "",
-          "description": "The original long URL this code redirects to.",
+          "description": "The original long URL that this code redirects to.",
           "validators": []
         },
         {
@@ -145,7 +151,7 @@
           "type_ref": "DateTime",
           "required": true,
           "default": "",
-          "description": "Timestamp when the link was created (defaults to NOW() in DB).",
+          "description": "Timestamp (with timezone) when the link was created.",
           "validators": []
         },
         {
@@ -154,13 +160,19 @@
           "required": true,
           "default": "0",
           "description": "Number of times the short link has been visited.",
-          "validators": []
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "min=0",
+              "error_message": "Hit count cannot be negative."
+            }
+          ]
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "A single shortened-link record as stored in the database and returned by the API.",
+      "description": "A single shortened-link record as stored in the database and returned by GET /links.",
       "owner_component": "root"
     },
     {
@@ -188,7 +200,7 @@
           "type_ref": "DateTime",
           "required": true,
           "default": "",
-          "description": "Timestamp when the link was created.",
+          "description": "When the link was created.",
           "validators": []
         },
         {
@@ -196,14 +208,20 @@
           "type_ref": "Int",
           "required": true,
           "default": "",
-          "description": "Cumulative redirect count.",
-          "validators": []
+          "description": "Total redirect count for this link.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "min=0",
+              "error_message": "Hit count cannot be negative."
+            }
+          ]
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Public-facing link summary returned in the GET /links JSON array (excludes internal id).",
+      "description": "Public projection of a link record returned in the GET /links JSON array (excludes internal id).",
       "owner_component": "root"
     },
     {
@@ -213,58 +231,11 @@
       "item_type": "LinkListItem",
       "variants": [],
       "inner_types": [],
-      "description": "Response body for GET /links — an ordered list of all shortened links.",
+      "description": "JSON array of all shortened links returned by GET /links.",
       "owner_component": "root"
     },
     {
-      "name": "OptionalLinkRecord",
-      "kind": "optional",
-      "fields": [],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [
-        "LinkRecord"
-      ],
-      "description": "A LinkRecord that may be absent (e.g. when a code is not found in the database).",
-      "owner_component": "root"
-    },
-    {
-      "name": "AppConfig",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "database_url",
-          "type_ref": "DatabaseUrl",
-          "required": true,
-          "default": "",
-          "description": "PostgreSQL connection string from DATABASE_URL env var.",
-          "validators": []
-        },
-        {
-          "name": "base_url",
-          "type_ref": "String",
-          "required": true,
-          "default": "http://localhost:8000",
-          "description": "Base URL prefix used to construct short_url values in responses.",
-          "validators": []
-        },
-        {
-          "name": "max_code_retries",
-          "type_ref": "Int",
-          "required": true,
-          "default": "5",
-          "description": "Maximum number of attempts to generate a unique short code before raising an error.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "Application-level configuration read from environment variables.",
-      "owner_component": "root"
-    },
-    {
-      "name": "ErrorResponse",
+      "name": "ErrorDetail",
       "kind": "struct",
       "fields": [
         {
@@ -279,7 +250,52 @@
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Standard JSON error body returned for 4xx/5xx responses.",
+      "description": "Standard error response body returned for 404 and other error cases.",
+      "owner_component": "root"
+    },
+    {
+      "name": "AppConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "database_url",
+          "type_ref": "DatabaseUrl",
+          "required": true,
+          "default": "",
+          "description": "PostgreSQL connection string from DATABASE_URL env var.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^postgresql://",
+              "error_message": "DATABASE_URL must start with postgresql://."
+            }
+          ]
+        },
+        {
+          "name": "base_url",
+          "type_ref": "Url",
+          "required": false,
+          "default": "http://localhost:8000",
+          "description": "Base URL prefix used to construct full short_url values in responses.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Application configuration read from environment variables, shared between config, db, and main modules.",
+      "owner_component": "root"
+    },
+    {
+      "name": "MaxRetriesExhaustedCode",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "COLLISION_LIMIT_REACHED"
+      ],
+      "inner_types": [],
+      "description": "Enum for short-code generation failure modes when collision retries are exhausted.",
       "owner_component": "root"
     }
   ]

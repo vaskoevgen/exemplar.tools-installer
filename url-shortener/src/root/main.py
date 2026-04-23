@@ -1,21 +1,16 @@
 import logging
 import os
 import time
-from enum import Enum
-from typing import Any, List, Optional
+from pathlib import Path
+from typing import List, Optional
 
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import JSONResponse, RedirectResponse, FileResponse
-from pydantic import BaseModel, field_validator
+from fastapi.responses import FileResponse, RedirectResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel, field_validator, ConfigDict
 
-import db
 import shortener
-from config import AppConfig, get_config
-from shortener import (
-    CodeCollisionError,
-    LinkListItem,
-    ShortenResponse as _InternalShortenResponse,
-)
+import db
 
 _PACT_KEY = "PACT:481349:root"
 logger = logging.getLogger(__name__)
@@ -35,142 +30,179 @@ def _log(level: str, msg: str, **kwargs) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Pydantic models for request/response serialization
+# Path configuration
+# ---------------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+STATIC_DIR = str(BASE_DIR / "static")
+
+# ---------------------------------------------------------------------------
+# Pydantic models
 # ---------------------------------------------------------------------------
 
 
 class ShortenRequest(BaseModel):
-    """Request body for POST /shorten containing the long URL to shorten."""
+    """Request body for POST /shorten containing the original long URL to shorten."""
+    model_config = ConfigDict(strict=False)
     url: str
 
     @field_validator("url")
     @classmethod
-    def validate_url(cls, v: str) -> str:
-        if not v or not (v.startswith("http://") or v.startswith("https://")):
-            raise ValueError("url must be a valid HTTP or HTTPS URL")
+    def url_must_be_nonempty(cls, v: str) -> str:
+        if not v or not v.strip():
+            raise ValueError("url must not be empty")
         return v
 
 
-class ShortenResponseModel(BaseModel):
+class ShortenResponse(BaseModel):
     """Response body for POST /shorten."""
     short_url: str
     code: str
 
 
-class LinkListItemModel(BaseModel):
-    """Public-facing link summary for GET /links."""
+class LinkListItem(BaseModel):
+    """Public projection of a link record returned in GET /links JSON array."""
     code: str
     original_url: str
-    created_at: Any
+    created_at: str
     hit_count: int
 
 
-class ErrorResponse(BaseModel):
-    """Standard JSON error body returned for 4xx/5xx responses."""
+# Type alias
+LinkList = List[LinkListItem]
+
+
+class LinkRecord(BaseModel):
+    """A single shortened-link record as stored in the database."""
+    id: int
+    short_code: str
+    original_url: str
+    created_at: str
+    hit_count: int
+
+    @field_validator("short_code")
+    @classmethod
+    def short_code_length(cls, v: str) -> str:
+        if len(v) != 6:
+            raise ValueError("short_code must be exactly 6 characters")
+        return v
+
+    @field_validator("hit_count")
+    @classmethod
+    def hit_count_non_negative(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("hit_count must be non-negative")
+        return v
+
+
+class ErrorDetail(BaseModel):
+    """Standard error response body."""
     detail: str
 
 
-class HttpMethod(str, Enum):
-    """HTTP methods used by the API routes."""
-    GET = "GET"
-    POST = "POST"
+from enum import Enum
 
 
-# Re-export contract names at module level
-ShortenResponse = _InternalShortenResponse
+class MaxRetriesExhaustedCode(Enum):
+    """Enum for short-code generation failure modes."""
+    COLLISION_LIMIT_REACHED = "COLLISION_LIMIT_REACHED"
+
+
+class AppConfig(BaseModel):
+    """Application configuration read from environment variables."""
+    database_url: str
+    base_url: str = "http://localhost:8000"
+
+    @field_validator("database_url")
+    @classmethod
+    def database_url_must_start_with_postgresql(cls, v: str) -> str:
+        if not v.startswith("postgresql://"):
+            raise ValueError("database_url must start with postgresql://")
+        return v
+
 
 # ---------------------------------------------------------------------------
-# FastAPI application
+# FastAPI app
 # ---------------------------------------------------------------------------
 
 app = FastAPI()
 
 
 # ---------------------------------------------------------------------------
-# Exception handler for CodeCollisionError -> 503
+# Routes — order matters: /links and / before /{code}
 # ---------------------------------------------------------------------------
 
-@app.exception_handler(CodeCollisionError)
-async def code_collision_handler(request: Request, exc: CodeCollisionError):
-    return JSONResponse(
-        status_code=503,
-        content={"detail": "Failed to generate a unique short code. Try again later."},
-    )
-
-
-# ---------------------------------------------------------------------------
-# Lifecycle events
-# ---------------------------------------------------------------------------
-
-@app.on_event("startup")
-async def startup_event() -> None:
-    """Verify DB connectivity on startup."""
-    _log("info", "Application startup: verifying database connection.")
-    conn = db.get_conn()
-    _log("info", "Database connection verified. Application ready.")
-
-
-@app.on_event("shutdown")
-async def shutdown_event() -> None:
-    """Close DB connection on shutdown."""
-    _log("info", "Application shutdown: closing database connection.")
-    db.close_conn()
-
-
-# ---------------------------------------------------------------------------
-# Routes — order matters! Static/literal routes before path parameter routes.
-# ---------------------------------------------------------------------------
 
 @app.get("/")
-async def get_index() -> Any:
-    """Serves static/index.html as a FileResponse with content-type text/html."""
-    _log("info", "GET / called")
-    index_path = os.path.join("static", "index.html")
-    if not os.path.exists(index_path):
-        raise HTTPException(status_code=404, detail="Index file not found.")
-    return FileResponse(index_path, media_type="text/html")
+def route_index():
+    """GET / — serves static/index.html via FileResponse."""
+    _log("debug", "route_index invoked")
+    index_path = Path(BASE_DIR) / "static" / "index.html"
+    if not index_path.exists():
+        raise HTTPException(status_code=500, detail="Index file not found.")
+    return FileResponse(str(index_path), media_type="text/html")
 
 
 @app.get("/links")
-async def get_links() -> Any:
-    """Returns a JSON array of all link records."""
-    _log("info", "GET /links called")
+def route_list_links():
+    """GET /links — returns JSON array of all links."""
+    _log("debug", "route_list_links invoked")
     try:
-        items = shortener.list_links()
-        return [item.model_dump() if hasattr(item, 'model_dump') else item for item in items]
-    except Exception:
-        _log("error", "Database error during link listing.")
+        links = shortener.list_links()
+    except Exception as e:
+        _log("error", f"Database error during link listing: {e}")
         raise HTTPException(status_code=500, detail="Internal server error.")
-
-
-@app.get("/{code}")
-async def get_redirect(code: str) -> Any:
-    """Resolves a short code and returns 307 redirect."""
-    _log("info", f"GET /{code} called")
-    original_url = shortener.resolve_and_track(code)
-    if original_url is None:
-        raise HTTPException(status_code=404, detail="Short link not found.")
-    return RedirectResponse(url=original_url, status_code=307)
+    _log("debug", "route_list_links completed")
+    return links
 
 
 @app.post("/shorten")
-async def post_shorten(body: ShortenRequest) -> Any:
-    """Accepts a JSON body with a URL, delegates to shortener.shorten_url()."""
-    _log("info", "POST /shorten called")
-    result = shortener.shorten_url(body.url)
-    return result.model_dump()
+def route_shorten(body: ShortenRequest):
+    """POST /shorten — accepts ShortenRequest JSON body, returns ShortenResponse."""
+    _log("debug", f"route_shorten invoked for url={body.url}")
+    base_url = os.environ.get("BASE_URL", "http://localhost:8000")
+    try:
+        result = shortener.shorten_url(body.url, base_url)
+    except RuntimeError as e:
+        _log("error", f"Max retries exhausted: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail="Could not generate a unique short code after 5 attempts."
+        )
+    except Exception as e:
+        _log("error", f"Database error during shorten: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    _log("debug", "route_shorten completed")
+    return result
 
 
-# ---------------------------------------------------------------------------
-# REQUIRED EXPORTS
-# ---------------------------------------------------------------------------
+@app.get("/{code}")
+def route_redirect(code: str):
+    """GET /{code} — resolves short code, returns 307 redirect or 404."""
+    _log("debug", f"route_redirect invoked for code={code}")
+    try:
+        original_url = shortener.get_link(code)
+    except Exception as e:
+        _log("error", f"Database error during redirect: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
+    if original_url is None:
+        raise HTTPException(status_code=404, detail="Short link not found.")
+    _log("debug", f"route_redirect completed: redirecting to {original_url}")
+    return RedirectResponse(url=original_url, status_code=307)
 
-__all__ = [
-    "AppConfig",
-    "ShortenRequest",
-    "ShortenResponse",
-    "LinkListItem",
-    "ErrorResponse",
-    "CodeCollisionError",
-    "HttpMethod",
-]
+
+# Mount static files after routes so routes take priority
+try:
+    if Path(STATIC_DIR).exists():
+        app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+except Exception:
+    pass
+
+
+# Re-export all required names at module level for test imports
+# (They are already defined above, this comment documents the exports)
+# ShortenRequest, ShortenResponse, LinkRecord, LinkListItem, LinkList,
+# ErrorDetail, MaxRetriesExhaustedCode, AppConfig, HTTPException,
+# route_index, route_shorten, route_redirect, route_list_links
+# The functions get_database_url, get_conn, generate_code, shorten_url,
+# get_link, list_links are in their respective modules.

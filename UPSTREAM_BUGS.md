@@ -42,21 +42,35 @@ deactivate
 
 ---
 
-## pact — health check loops in post-build phases
+## pact — health check fires before any code generation (planning ratio = 0.00x)
 
 **Repo:** `https://github.com/jmcentire/pact`
-**File:** `src/pact/health.py` (health check logic)
-**Status:** Not fixed upstream
+**File:** `src/pact/health.py`
+**Status:** PR open — https://github.com/jmcentire/pact/pull/2
 
 ### Problem
 
-After all code is generated, Pact's health check fires in every post-build cleanup phase (arbiter → polish → retrospective → complete). The check calculates the planning/generation token ratio across the entire session lifetime. Since decomposition tokens (≈75k) accumulated before any code was written, the ratio never recovers — causing the daemon to pause 5–6 times on phases that produce zero code by design.
+The `output_planning_ratio` check fires at the start of every phase, including `preflight` and `implement`, before any code has been generated. At that point `generation_tokens = 0`, so the ratio is literally `0 / N = 0.00x`, which is always below the CRITICAL threshold (0.25). This causes the daemon to pause before it even begins writing code, requiring manual `pact resume .` to proceed.
 
-This requires restarting `pact daemon .` and running `pact resume .` repeatedly after the build is already done.
+Additionally, post-build phases (integrate, arbiter, polish, retrospective, complete) produce no new code, so the cumulative ratio never improves after implementation ends — causing 5–6 more spurious pauses after the build is done.
+
+Root cause: `_check_output_planning_ratio()` only guards against `total_tokens < 1000`, but doesn't guard against `generation_tokens == 0`.
 
 ### Fix applied locally
 
-In `exemplar.tools/pact/src/pact/health.py` line 326:
+Two changes in `exemplar.tools/pact/src/pact/health.py`:
+
+**1. Skip ratio check when no generation tokens exist yet** (line ~390):
+
+```python
+# Before
+if metrics.total_tokens < 1000:
+
+# After
+if metrics.total_tokens < 1000 or metrics.generation_tokens == 0:
+```
+
+**2. Extend `_PRE_ARTIFACT_PHASES` to cover post-build phases** (line 326):
 
 ```python
 # Before
@@ -66,6 +80,8 @@ _PRE_ARTIFACT_PHASES = {"interview", "shape"}
 _PRE_ARTIFACT_PHASES = {"interview", "shape", "integrate", "arbiter", "polish", "retrospective", "complete"}
 ```
 
+Both fixes are required: fix 1 eliminates the pre-implementation pause; fix 2 eliminates post-build pauses.
+
 **PR open:** https://github.com/jmcentire/pact/pull/2
 
 ### Workaround (before fix is merged)
@@ -74,7 +90,7 @@ _PRE_ARTIFACT_PHASES = {"interview", "shape", "integrate", "arbiter", "polish", 
 # After each pause, restart daemon if needed and resume:
 pact daemon . &
 pact resume .
-# Repeat ~5-6 times total until status reaches complete
+# Repeat until status reaches complete (~6-7 times total without the fix)
 ```
 
 ---

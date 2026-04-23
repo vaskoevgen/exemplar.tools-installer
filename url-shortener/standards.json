@@ -22,7 +22,9 @@
   ],
   "validators": [
     "length(6..6)",
-    "regex(^[A-Za-z0-9_-]{6}$)"
+    "range(min=0)",
+    "regex(^[A-Za-z0-9_-]{6}$)",
+    "regex(^https?://\\S+$)"
   ],
   "tools": [],
   "mocks": {}

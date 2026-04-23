@@ -4,7 +4,7 @@
 
 ## Decomposition
 
-- [C] **Main** (`root`)
+- [ ] **Main** (`root`)
   # Task
 
 Build a URL shortener web service — a single deployable Python app where users paste a long URL and get a short redirect link back.

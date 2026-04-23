@@ -1,10 +1,7 @@
 import logging
-from typing import Any, List, Dict, Optional, Tuple
-
 import psycopg2
-import psycopg2.extras
-
-from config import get_config
+from psycopg2.extras import RealDictCursor
+import config
 
 _PACT_KEY = "PACT:481349:root"
 logger = logging.getLogger(__name__)
@@ -23,68 +20,38 @@ def _log(level: str, msg: str, **kwargs) -> None:
     getattr(logger, level)(f"[{_PACT_KEY}] {msg}", **kwargs)
 
 
-_conn: Optional[Any] = None
-
-
-def get_conn() -> Any:
+def get_conn():
     """
-    Returns a psycopg2 connection to PostgreSQL. Lazily initialises the
-    connection on first call. Returns the existing connection on subsequent
-    calls. Connection has autocommit=True.
+    Returns a new psycopg2 connection to PostgreSQL using DATABASE_URL from config.
+    Connection uses RealDictCursor as default cursor factory.
     """
-    global _conn
-    if _conn is not None and not getattr(_conn, 'closed', 1):
-        return _conn
-
-    cfg = get_config()
+    _log("debug", "get_conn invoked")
+    database_url = config.get_database_url()
     try:
-        _conn = psycopg2.connect(cfg.database_url)
-        _conn.autocommit = True
-        _log("info", "PostgreSQL connection established.")
-    except psycopg2.OperationalError:
-        _log("error", "Could not connect to PostgreSQL at the configured DATABASE_URL.")
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
+    except psycopg2.OperationalError as e:
+        _log("error", f"Could not connect to PostgreSQL: {e}")
         raise
-    return _conn
+    _log("debug", "get_conn completed")
+    return conn
 
 
-def execute(query: str, params: Any = ()) -> List[Dict[str, Any]]:
-    """
-    Executes a parameterised SQL query and returns all result rows as a list
-    of dicts (via RealDictCursor). Returns an empty list for statements with
-    no result set.
-    """
+def init_db():
+    """Creates the links table if it doesn't exist."""
+    _log("info", "init_db invoked")
     conn = get_conn()
-    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-        cur.execute(query, params)
-        try:
-            rows = cur.fetchall()
-            return [dict(row) for row in rows]
-        except psycopg2.ProgrammingError:
-            # No result set (e.g. INSERT without RETURNING)
-            return []
-
-
-def execute_one(query: str, params: Any = ()) -> Optional[Dict[str, Any]]:
-    """
-    Executes a parameterised SQL query and returns the first row as a dict,
-    or None if no rows are returned.
-    """
-    rows = execute(query, params)
-    if rows:
-        return rows[0]
-    return None
-
-
-def close_conn() -> None:
-    """
-    Closes the cached PostgreSQL connection if one is open. Safe to call
-    multiple times.
-    """
-    global _conn
-    if _conn is not None:
-        try:
-            _conn.close()
-            _log("info", "PostgreSQL connection closed.")
-        except Exception:
-            pass
-        _conn = None
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS links (
+                    id SERIAL PRIMARY KEY,
+                    short_code VARCHAR(6) NOT NULL UNIQUE,
+                    original_url TEXT NOT NULL UNIQUE,
+                    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                    hit_count INTEGER NOT NULL DEFAULT 0 CHECK (hit_count >= 0)
+                );
+            """)
+        conn.commit()
+    finally:
+        conn.close()
+    _log("info", "init_db completed")
