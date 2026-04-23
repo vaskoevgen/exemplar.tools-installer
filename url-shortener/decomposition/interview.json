@@ -1,0 +1,64 @@
+{
+  "risks": [
+    "RACE CONDITION ON SHORTEN: Two concurrent POST /shorten requests with the same URL could both pass the 'check if exists' query, then both attempt INSERT, causing one to fail on the UNIQUE constraint on original_url. The spec says 'if the URL already exists return the existing code' but doesn't prescribe INSERT ... ON CONFLICT, so a naive check-then-insert implementation will break under concurrency.",
+    "SHORT CODE COLLISION EXHAUSTION: 6 chars from token_urlsafe(4)[:6] yields a reduced alphabet (~64^6 ≈ 68B possibilities in theory, but token_urlsafe(4) only produces 6 base64url chars from 4 bytes = 2^32 ≈ 4B distinct values). With max 5 retries on collision, at scale this silently caps capacity. Not a launch risk but a correctness concern.",
+    "CONNECTION MANAGEMENT: The spec says 'get_conn()' but doesn't specify connection pooling. psycopg2 connections are expensive to create per-request. Without pooling (e.g., psycopg2.pool or a connection-per-request-with-proper-cleanup pattern), the service will leak connections or hit PostgreSQL's max_connections under any real load. The SOP bans third-party libs beyond the named set, so external poolers are off the table.",
+    "TEST DATABASE PROVISIONING: Tests require a real PostgreSQL database but there's no specification for how TEST_DATABASE_URL is provisioned, whether CI has PostgreSQL available, or whether conftest.py should CREATE/DROP the test database or merely truncate tables. Different engineers will write incompatible conftest.py implementations.",
+    "STATIC FILE MOUNT ORDER: FastAPI's StaticFiles mount on '/' will conflict with the GET /{code} catch-all route. If StaticFiles is mounted first, it may intercept short code requests. If the catch-all route is registered first, '/' won't serve index.html. The route registration order is critical and unspecified.",
+    "FastAPI TestClient uses httpx under the hood, but the spec lists httpx as an allowed dependency — however, TestClient by default does NOT follow redirects, which is fine for testing 307s. Risk is an engineer using `follow_redirects=True` and getting confused, or not realizing TestClient needs `from starlette.testclient import TestClient` or `from fastapi.testclient import TestClient`.",
+    "NO INPUT VALIDATION SPECIFIED: POST /shorten accepts {\"url\": \"...\"} but there's no specification for URL validation — should malformed URLs, javascript: URIs, or empty strings be rejected? Missing validation means engineers may ship an open redirect vulnerability."
+  ],
+  "ambiguities": [
+    "STATIC FILES vs CATCH-ALL ROUTE: How should GET / serve index.html while GET /{code} handles redirects? Should StaticFiles be mounted at a sub-path (e.g., /static/) with a dedicated GET / route, or should StaticFiles be mounted at / with careful ordering? The file structure shows 'src/static/' but main.py 'mounts static/' — the mount path is ambiguous.",
+    "CONNECTION LIFECYCLE: Should get_conn() return a new connection per call, use a module-level singleton, or use psycopg2.pool? Should connections be committed per-query or per-request? Transaction boundaries are unspecified.",
+    "ERROR RESPONSE FORMAT: 404 on unknown code is specified, but no error format is defined for POST /shorten failures (invalid URL, collision exhaustion, DB errors). Should errors return JSON? What status codes?",
+    "URL NORMALIZATION: 'If the URL already exists return the existing code' — does this mean exact string match, or should URLs be normalized (strip trailing slashes, lowercase scheme/host)? This directly affects the UNIQUE constraint behavior.",
+    "TEST ISOLATION: Should each test get a clean database (TRUNCATE between tests), or do tests run in a transaction that rolls back? This affects test interdependence and conftest.py design.",
+    "CORS: The frontend is served from the same origin, so CORS may not be needed — but if anyone tests from a different origin, it will fail silently. Not specified either way.",
+    "GET /links PAGINATION: Returns 'all links' as a JSON array. No pagination, no limit. This is a time bomb for any non-trivial dataset, but for a pragmatic MVP it's probably fine — just unacknowledged."
+  ],
+  "questions": [
+    "Q1: For the static file serving conflict — should GET / be a dedicated route that returns FileResponse('static/index.html'), with static assets (if any CSS/JS files are added later) mounted at /static/? Or should StaticFiles handle / directly?",
+    "Q2: Should POST /shorten validate that the URL is a well-formed HTTP(S) URL, or accept any string? This is a security concern (open redirect).",
+    "Q3: For DB connections — is a simple 'new connection per request, close after' acceptable, or should we implement connection pooling via psycopg2.pool.SimpleConnectionPool?",
+    "Q4: Should conftest.py create the schema (run 001_init.sql) against TEST_DATABASE_URL and TRUNCATE between tests, or CREATE/DROP the entire test database per session?",
+    "Q5: Should the INSERT for /shorten use INSERT ... ON CONFLICT (original_url) DO NOTHING + subsequent SELECT to handle concurrent duplicate submissions, or is a check-then-insert with exception handling acceptable?"
+  ],
+  "assumptions": [
+    "A1: GET / will be a dedicated FastAPI route returning FileResponse for index.html; no StaticFiles mount on / to avoid route conflicts. Static assets served via a mount at /static/ if needed.",
+    "A2: POST /shorten will reject URLs that don't start with http:// or https:// with a 422 response, as a minimal validation step.",
+    "A3: DB connections will be created per-request and closed in a finally block. No pooling for this MVP — acceptable given the spec's simplicity.",
+    "A4: conftest.py will run the migration SQL to create the schema at session scope, TRUNCATE the links table between each test function, and use TEST_DATABASE_URL.",
+    "A5: The INSERT will use INSERT ... ON CONFLICT (original_url) DO NOTHING followed by a SELECT, making the shorten operation idempotent and concurrency-safe without application-level locking.",
+    "A6: URL matching for deduplication is exact string match — no normalization.",
+    "A7: psycopg2.pool is part of psycopg2-binary and therefore not a 'third-party library' — it can be used if connection pooling is deemed necessary.",
+    "A8: Error responses from the API will be JSON objects with a 'detail' key, consistent with FastAPI's default HTTPException format."
+  ],
+  "acceptance_criteria": [
+    "AC1: POST /shorten with a valid HTTP(S) URL returns 200 with JSON body containing 'short_url' and 'code' keys; 'code' is exactly 6 characters; 'short_url' is of the form '{base_url}/{code}'.",
+    "AC2: POST /shorten with a previously-shortened URL returns the same code (idempotent) — verified by two sequential calls returning identical 'code' values.",
+    "AC3: GET /{code} with a valid code returns HTTP 307 with Location header set to the original URL.",
+    "AC4: GET /{code} atomically increments hit_count — verified by checking DB state shows hit_count=1 after one redirect request.",
+    "AC5: GET /{invalid_code} returns HTTP 404.",
+    "AC6: GET /links returns a JSON array where each element contains 'code', 'original_url', 'created_at', and 'hit_count' fields.",
+    "AC7: GET / returns HTTP 200 with HTML content (the frontend page).",
+    "AC8: All database queries use parameterised queries — no string interpolation or f-strings in SQL.",
+    "AC9: All public functions have type annotations.",
+    "AC10: Each file is under 200 lines.",
+    "AC11: tests/test_api.py contains at least one test per endpoint (minimum 4 tests) and all pass against a real PostgreSQL database.",
+    "AC12: The application starts successfully with `uvicorn src.api.main:app --port 8000` given a valid DATABASE_URL.",
+    "AC13: migrations/001_init.sql contains the CREATE TABLE statement and can be run idempotently (or at least cleanly on a fresh database).",
+    "AC14: Short code generation retries up to 5 times on collision before raising an error.",
+    "AC15: No dependencies are used beyond FastAPI, uvicorn, psycopg2-binary, pytest, and httpx."
+  ],
+  "user_answers": {
+    "Q1": "Use a dedicated GET / FastAPI route returning FileResponse('src/static/index.html'). Do not mount StaticFiles at /. This avoids the catch-all conflict entirely.",
+    "Q2": "Validate that the URL starts with http:// or https://. Reject anything else with HTTP 422.",
+    "Q3": "New connection per request, closed in a finally block. No pooling for this MVP.",
+    "Q4": "Run 001_init.sql once at session scope to create the schema. TRUNCATE links between each test function for isolation. Use TEST_DATABASE_URL env var.",
+    "Q5": "Use INSERT ... ON CONFLICT (original_url) DO NOTHING followed by SELECT to fetch the existing row. This makes /shorten fully idempotent and concurrency-safe."
+  },
+  "approved": true,
+  "audited_answers": [],
+  "processing_register": "pragmatic-implementation"
+}

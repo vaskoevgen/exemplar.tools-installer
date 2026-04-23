@@ -1,0 +1,76 @@
+version: "1.0"
+generated_by: constrain
+session_id: "url_shortener_001"
+
+constraints:
+  - id: C001
+    boundary: short_code generation
+    condition: must generate exactly 6 alphanumeric characters with sufficient entropy
+    violation: predictable or duplicate codes compromise link uniqueness
+    severity: must
+    rationale: core functionality requirement for unique URL mapping
+    classification_tier: PUBLIC
+    affected_components: [url_shortener_api]
+
+  - id: C002
+    boundary: duplicate URL handling
+    condition: must return existing short_code for duplicate original URLs
+    violation: multiple codes for same URL wastes storage and confuses users
+    severity: must
+    rationale: prevents storage bloat and maintains consistency
+    classification_tier: PUBLIC
+    affected_components: [url_shortener_api]
+
+  - id: C003
+    boundary: hit count operations
+    condition: hit count increment must be atomic with redirect response
+    violation: race conditions cause inaccurate analytics or database corruption
+    severity: must
+    rationale: data consistency and concurrent access safety
+    classification_tier: PUBLIC
+    affected_components: [url_shortener_api, postgres_db]
+
+  - id: C004
+    boundary: database access
+    condition: must use raw SQL only, no ORM framework
+    violation: violates architectural boundary conditions
+    severity: must
+    rationale: explicit project constraint for direct database control
+    classification_tier: null
+    affected_components: [url_shortener_api]
+
+  - id: C005
+    boundary: testing framework
+    condition: all tests must use pytest with real test database
+    violation: inconsistent test infrastructure or mocked dependencies
+    severity: must
+    rationale: project requirement for realistic test conditions
+    classification_tier: null
+    affected_components: [url_shortener_api]
+
+  - id: C006
+    boundary: deployment architecture
+    condition: must operate as single deployable unit serving both API and frontend
+    violation: multiple deployment units violates v1 scope constraints
+    severity: must
+    rationale: simplicity requirement for initial version
+    classification_tier: null
+    affected_components: [url_shortener_api, frontend_ui]
+
+  - id: C007
+    boundary: redirect response time
+    condition: should respond to redirect requests within 100ms under normal load
+    violation: poor user experience and potential timeout issues
+    severity: should
+    rationale: user experience requirement for fast redirects
+    classification_tier: PUBLIC
+    affected_components: [url_shortener_api, postgres_db]
+
+  - id: C008
+    boundary: concurrent access
+    condition: must handle 100 concurrent redirects without data corruption
+    violation: race conditions or deadlocks under load
+    severity: must
+    rationale: system reliability under expected internal usage
+    classification_tier: PUBLIC
+    affected_components: [url_shortener_api, postgres_db]

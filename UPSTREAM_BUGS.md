@@ -42,6 +42,43 @@ deactivate
 
 ---
 
+## pact — health check loops in post-build phases
+
+**Repo:** `https://github.com/jmcentire/pact`
+**File:** `src/pact/health.py` (health check logic)
+**Status:** Not fixed upstream
+
+### Problem
+
+After all code is generated, Pact's health check fires in every post-build cleanup phase (arbiter → polish → retrospective → complete). The check calculates the planning/generation token ratio across the entire session lifetime. Since decomposition tokens (≈75k) accumulated before any code was written, the ratio never recovers — causing the daemon to pause 5–6 times on phases that produce zero code by design.
+
+This requires restarting `pact daemon .` and running `pact resume .` repeatedly after the build is already done.
+
+### Fix applied locally
+
+In `exemplar.tools/pact/src/pact/health.py` line 326:
+
+```python
+# Before
+_PRE_ARTIFACT_PHASES = {"interview", "shape"}
+
+# After
+_PRE_ARTIFACT_PHASES = {"interview", "shape", "integrate", "arbiter", "polish", "retrospective", "complete"}
+```
+
+**PR open:** https://github.com/jmcentire/pact/pull/2
+
+### Workaround (before fix is merged)
+
+```bash
+# After each pause, restart daemon if needed and resume:
+pact daemon . &
+pact resume .
+# Repeat ~5-6 times total until status reaches complete
+```
+
+---
+
 ## advocate — missing jinja2 dependency
 
 **Repo:** `https://github.com/jmcentire/advocate`

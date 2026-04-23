@@ -1,0 +1,1056 @@
+{
+  "root_id": "root",
+  "nodes": {
+    "root": {
+      "component_id": "root",
+      "name": "Main",
+      "description": "# Task\n\nBuild a URL shortener web service — a single deployable Python app where users paste a long URL and get a short redirect link back.\n\n## Endpoints\n\n- `POST /shorten` — body `{\"url\": \"...\"}`, returns `{\"short_url\": \"http://localhost:8000/abc123\", \"code\": \"abc123\"}`. If the URL already exists return the existing code.\n- `GET /{code}` — HTTP 307 redirect to original URL, increments hit_count atomically. Returns 404 if code not found.\n- `GET /links` — returns JSON array of all links: `[{\"code\", \"original_url\", \"created_at\", \"hit_count\"}]`\n- `GET /` — serves `static/index.html`\n\n## Database\n\nPostgreSQL, raw SQL via psycopg2-binary (no ORM).\n\n```sql\nCREATE TABLE links (\n  id           SERIAL PRIMARY KEY,\n  short_code   VARCHAR(6)  NOT NULL UNIQUE,\n  original_url TEXT        NOT NULL UNIQUE,\n  created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),\n  hit_count    INTEGER     NOT NULL DEFAULT 0\n);\n```\n\nMigration file: `migrations/001_init.sql`\n\n## Short code generation\n\nUse `secrets.token_urlsafe(4)[:6]` — retry on collision (max 5 attempts).\n\n## Frontend\n\n`static/index.html` — vanilla HTML + JS, no build step:\n- Form: text input for URL + Submit button\n- On submit: POST /shorten, display the resulting short_url\n- Table below showing all links from GET /links (auto-refresh after shorten)\n\n## File structure\n\n```\nsrc/api/\n  main.py        # FastAPI app, mounts static/, all routes\n  db.py          # get_conn(), execute helpers using DATABASE_URL env var\n  shortener.py   # generate_code(), shorten_url(), get_link(), list_links()\n  config.py      # reads DATABASE_URL from env\nsrc/static/\n  index.html\nmigrations/\n  001_init.sql\ntests/\n  conftest.py    # creates test DB schema, yields TestClient, teardown\n  test_api.py    # tests for all 4 endpoints\n```\n\n## Runtime\n\n- `uvicorn src.api.main:app --port 8000`\n- Env var: `DATABASE_URL=postgresql://user:pass@localhost:5432/urlshortener`\n",
+      "depth": 0,
+      "parent_id": "",
+      "children": [],
+      "contract": {
+        "component_id": "root",
+        "name": "Main",
+        "description": "URL shortener web service — a single deployable Python 3.12 / FastAPI app. Users submit a long URL via POST /shorten and receive a short redirect link. GET /{code} performs a 307 redirect and atomically increments hit_count. GET /links returns all stored links. GET / serves the static HTML frontend. Database is PostgreSQL via psycopg2-binary with raw parameterised SQL. Composed of four modules: config.py (env config), db.py (connection + query helpers), shortener.py (business logic), main.py (FastAPI routes and lifecycle).",
+        "version": 1,
+        "types": [
+          {
+            "name": "DatabaseUrl",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "PostgreSQL connection string in the form postgresql://user:pass@host:port/dbname.",
+            "owner_component": "root"
+          },
+          {
+            "name": "ShortCode",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "A 6-character URL-safe alphanumeric code uniquely identifying a shortened link.",
+            "owner_component": "root"
+          },
+          {
+            "name": "OriginalUrl",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "str",
+            "variants": [],
+            "inner_types": [],
+            "description": "A user-submitted URL to be shortened. Must be a valid HTTP or HTTPS URL.",
+            "owner_component": "root"
+          },
+          {
+            "name": "AppConfig",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "database_url",
+                "type_ref": "DatabaseUrl",
+                "required": true,
+                "default": "",
+                "description": "PostgreSQL connection string from DATABASE_URL env var.",
+                "validators": []
+              },
+              {
+                "name": "base_url",
+                "type_ref": "String",
+                "required": true,
+                "default": "http://localhost:8000",
+                "description": "Base URL prefix used to construct short_url values in responses.",
+                "validators": []
+              },
+              {
+                "name": "max_code_retries",
+                "type_ref": "Int",
+                "required": true,
+                "default": "5",
+                "description": "Maximum number of attempts to generate a unique short code before raising an error.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Application-level configuration read from environment variables.",
+            "owner_component": "root"
+          },
+          {
+            "name": "ShortenRequest",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "url",
+                "type_ref": "Url",
+                "required": true,
+                "default": "",
+                "description": "The original long URL to be shortened.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Request body for POST /shorten containing the long URL to shorten.",
+            "owner_component": "root"
+          },
+          {
+            "name": "ShortenResponse",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "short_url",
+                "type_ref": "Url",
+                "required": true,
+                "default": "",
+                "description": "Fully-qualified short redirect URL (e.g. http://localhost:8000/abc123).",
+                "validators": []
+              },
+              {
+                "name": "code",
+                "type_ref": "ShortCode",
+                "required": true,
+                "default": "",
+                "description": "The 6-character short code portion of the URL.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Response body for POST /shorten returning the generated short URL and its code.",
+            "owner_component": "root"
+          },
+          {
+            "name": "LinkListItem",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "code",
+                "type_ref": "ShortCode",
+                "required": true,
+                "default": "",
+                "description": "The 6-character short code.",
+                "validators": []
+              },
+              {
+                "name": "original_url",
+                "type_ref": "Url",
+                "required": true,
+                "default": "",
+                "description": "The original long URL.",
+                "validators": []
+              },
+              {
+                "name": "created_at",
+                "type_ref": "DateTime",
+                "required": true,
+                "default": "",
+                "description": "Timestamp when the link was created.",
+                "validators": []
+              },
+              {
+                "name": "hit_count",
+                "type_ref": "Int",
+                "required": true,
+                "default": "",
+                "description": "Cumulative redirect count.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Public-facing link summary returned in the GET /links JSON array (excludes internal id).",
+            "owner_component": "root"
+          },
+          {
+            "name": "ErrorResponse",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "detail",
+                "type_ref": "String",
+                "required": true,
+                "default": "",
+                "description": "Human-readable error message.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Standard JSON error body returned for 4xx/5xx responses.",
+            "owner_component": "root"
+          },
+          {
+            "name": "CodeCollisionError",
+            "kind": "struct",
+            "fields": [
+              {
+                "name": "attempts",
+                "type_ref": "int",
+                "required": true,
+                "default": "",
+                "description": "Number of code generation attempts made before giving up.",
+                "validators": [
+                  {
+                    "kind": "range",
+                    "expression": "1..5",
+                    "error_message": "Attempts must be between 1 and 5."
+                  }
+                ]
+              },
+              {
+                "name": "message",
+                "type_ref": "str",
+                "required": true,
+                "default": "",
+                "description": "Descriptive error message.",
+                "validators": []
+              }
+            ],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Raised when generate_code() fails to produce a unique short code after max_retries attempts. Mapped to HTTP 503 by the exception handler in main.py.",
+            "owner_component": "root"
+          },
+          {
+            "name": "HttpMethod",
+            "kind": "enum",
+            "fields": [],
+            "item_type": "",
+            "variants": [
+              "GET",
+              "POST"
+            ],
+            "inner_types": [],
+            "description": "HTTP methods used by the API routes.",
+            "owner_component": "root"
+          },
+          {
+            "name": "RowDict",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "dict",
+            "variants": [],
+            "inner_types": [],
+            "description": "A dictionary representing a single database row returned by RealDictCursor. Keys are column names, values are Python-typed column values.",
+            "owner_component": "root"
+          },
+          {
+            "name": "String",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "UTF-8 string value.",
+            "owner_component": ""
+          },
+          {
+            "name": "Int",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "Signed integer (32-bit or platform default).",
+            "owner_component": ""
+          },
+          {
+            "name": "DateTime",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "ISO-8601 timestamp with timezone (maps to Python datetime and PostgreSQL TIMESTAMPTZ).",
+            "owner_component": ""
+          },
+          {
+            "name": "Url",
+            "kind": "primitive",
+            "fields": [],
+            "item_type": "",
+            "variants": [],
+            "inner_types": [],
+            "description": "A valid absolute HTTP or HTTPS URL represented as a string.",
+            "owner_component": "root"
+          }
+        ],
+        "functions": [
+          {
+            "name": "config.get_config",
+            "description": "Returns the application configuration singleton. Reads DATABASE_URL from environment on first call, caches the result for subsequent calls. Raises RuntimeError if DATABASE_URL is not set or is empty.",
+            "inputs": [],
+            "output_type": "AppConfig",
+            "error_cases": [
+              {
+                "name": "missing_database_url",
+                "condition": "DATABASE_URL environment variable is not set or is empty string.",
+                "error_type": "RuntimeError",
+                "error_data": {
+                  "message": "DATABASE_URL environment variable is required but not set."
+                }
+              }
+            ],
+            "preconditions": [
+              "Environment variable DATABASE_URL must be set and non-empty."
+            ],
+            "postconditions": [
+              "Returned AppConfig.database_url matches the value of os.environ['DATABASE_URL'].",
+              "Subsequent calls return the same cached AppConfig instance (singleton)."
+            ],
+            "idempotent": true,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "none",
+                "target": "",
+                "description": "Pure read from os.environ, cached after first call. No mutations."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "db.get_conn",
+            "description": "Returns a psycopg2 connection to PostgreSQL. Lazily initialises the connection on first call using config.get_config().database_url. Returns the existing connection on subsequent calls. Connection has autocommit=True.",
+            "inputs": [],
+            "output_type": "any",
+            "error_cases": [
+              {
+                "name": "connection_failed",
+                "condition": "PostgreSQL is unreachable or credentials are invalid.",
+                "error_type": "psycopg2.OperationalError",
+                "error_data": {
+                  "message": "Could not connect to PostgreSQL at the configured DATABASE_URL."
+                }
+              },
+              {
+                "name": "config_missing",
+                "condition": "DATABASE_URL not set, propagated from config.get_config().",
+                "error_type": "RuntimeError",
+                "error_data": {
+                  "message": "DATABASE_URL environment variable is required but not set."
+                }
+              }
+            ],
+            "preconditions": [
+              "config.get_config() must succeed (DATABASE_URL set).",
+              "PostgreSQL server must be reachable at the configured URL."
+            ],
+            "postconditions": [
+              "Returned connection is open and usable for queries.",
+              "Connection has autocommit=True."
+            ],
+            "idempotent": true,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Opens a TCP connection to PostgreSQL on first call. Subsequent calls return the cached connection."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "db.execute",
+            "description": "Executes a parameterised SQL query and returns all result rows as a list of dicts (via RealDictCursor). Returns an empty list for statements with no result set (INSERT without RETURNING, etc.).",
+            "inputs": [
+              {
+                "name": "query",
+                "type_ref": "str",
+                "required": true,
+                "default": "",
+                "description": "SQL query string with %s-style parameterised placeholders.",
+                "validators": []
+              },
+              {
+                "name": "params",
+                "type_ref": "any",
+                "required": false,
+                "default": "()",
+                "description": "Tuple of parameter values to bind to query placeholders.",
+                "validators": []
+              }
+            ],
+            "output_type": "list",
+            "error_cases": [
+              {
+                "name": "query_error",
+                "condition": "SQL syntax error or constraint violation.",
+                "error_type": "psycopg2.Error",
+                "error_data": {
+                  "message": "Database query execution failed."
+                }
+              },
+              {
+                "name": "connection_lost",
+                "condition": "PostgreSQL connection was dropped.",
+                "error_type": "psycopg2.OperationalError",
+                "error_data": {
+                  "message": "Database connection lost during query execution."
+                }
+              }
+            ],
+            "preconditions": [
+              "db.get_conn() has been called or will be called internally.",
+              "query uses %s placeholders — no string interpolation."
+            ],
+            "postconditions": [
+              "All returned dicts have keys matching the SELECT column names.",
+              "For non-SELECT statements, returns empty list."
+            ],
+            "idempotent": false,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Sends SQL query over the database connection and reads the result set."
+              }
+            ],
+            "performance_budget": {
+              "p95_latency_ms": 50,
+              "max_memory_mb": null,
+              "complexity": "O(n) where n is result set size"
+            }
+          },
+          {
+            "name": "db.execute_one",
+            "description": "Executes a parameterised SQL query and returns the first row as a dict, or None if no rows are returned. Convenience wrapper around execute().",
+            "inputs": [
+              {
+                "name": "query",
+                "type_ref": "str",
+                "required": true,
+                "default": "",
+                "description": "SQL query string with %s-style parameterised placeholders.",
+                "validators": []
+              },
+              {
+                "name": "params",
+                "type_ref": "any",
+                "required": false,
+                "default": "()",
+                "description": "Tuple of parameter values to bind to query placeholders.",
+                "validators": []
+              }
+            ],
+            "output_type": "any",
+            "error_cases": [
+              {
+                "name": "query_error",
+                "condition": "SQL syntax error or constraint violation.",
+                "error_type": "psycopg2.Error",
+                "error_data": {
+                  "message": "Database query execution failed."
+                }
+              },
+              {
+                "name": "connection_lost",
+                "condition": "PostgreSQL connection was dropped.",
+                "error_type": "psycopg2.OperationalError",
+                "error_data": {
+                  "message": "Database connection lost during query execution."
+                }
+              }
+            ],
+            "preconditions": [
+              "query uses %s placeholders — no string interpolation."
+            ],
+            "postconditions": [
+              "Returns the first row as a dict if result set is non-empty, else None.",
+              "Does not consume or return subsequent rows."
+            ],
+            "idempotent": false,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Sends SQL query over the database connection and reads at most one result row."
+              }
+            ],
+            "performance_budget": {
+              "p95_latency_ms": 30,
+              "max_memory_mb": null,
+              "complexity": "O(1) for single-row fetch"
+            }
+          },
+          {
+            "name": "db.close_conn",
+            "description": "Closes the cached PostgreSQL connection if one is open. Safe to call multiple times. Used during application shutdown.",
+            "inputs": [],
+            "output_type": "None",
+            "error_cases": [],
+            "preconditions": [],
+            "postconditions": [
+              "Any cached connection is closed and the module-level reference is reset to None.",
+              "Subsequent calls to get_conn() will open a fresh connection."
+            ],
+            "idempotent": true,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Sends connection termination to PostgreSQL if a connection was open."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "shortener.generate_code",
+            "description": "Generates a 6-character URL-safe short code using secrets.token_urlsafe(4)[:6]. This is a pure function with no side effects — collision detection is handled by the caller (shorten_url).",
+            "inputs": [],
+            "output_type": "ShortCode",
+            "error_cases": [],
+            "preconditions": [],
+            "postconditions": [
+              "Returned string is exactly 6 characters.",
+              "Returned string matches [A-Za-z0-9_-]{6}."
+            ],
+            "idempotent": false,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "none",
+                "target": "",
+                "description": "Pure function — reads from system CSPRNG via secrets module, no persistent side effects."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "shortener.shorten_url",
+            "description": "Shortens a URL. If the original_url already exists in the links table, returns the existing code (idempotent). Otherwise generates a new short code, inserts the row, and returns the ShortenResponse. Retries up to 5 times on short_code collision (UNIQUE constraint violation).",
+            "inputs": [
+              {
+                "name": "original_url",
+                "type_ref": "OriginalUrl",
+                "required": true,
+                "default": "",
+                "description": "The long URL to shorten. Must be a valid HTTP/HTTPS URL.",
+                "validators": [
+                  {
+                    "kind": "regex",
+                    "expression": "^https?://[^\\s]{3,2048}$",
+                    "error_message": "URL must be a valid HTTP or HTTPS URL."
+                  }
+                ]
+              }
+            ],
+            "output_type": "ShortenResponse",
+            "error_cases": [
+              {
+                "name": "code_collision_exhausted",
+                "condition": "All 5 retry attempts produced short codes that collide with existing codes.",
+                "error_type": "CodeCollisionError",
+                "error_data": {
+                  "attempts": "5",
+                  "message": "Failed to generate a unique short code after 5 attempts."
+                }
+              },
+              {
+                "name": "database_error",
+                "condition": "Unexpected database error during INSERT or SELECT.",
+                "error_type": "psycopg2.Error",
+                "error_data": {
+                  "message": "Database error during URL shortening."
+                }
+              }
+            ],
+            "preconditions": [
+              "Database connection is available.",
+              "The links table exists with the expected schema."
+            ],
+            "postconditions": [
+              "A row with the given original_url exists in the links table.",
+              "Returned ShortenResponse.code corresponds to the row's short_code.",
+              "Returned ShortenResponse.short_url is http://localhost:8000/{code}.",
+              "If the URL already existed, no new row was inserted and the existing code is returned."
+            ],
+            "idempotent": true,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server — links table",
+                "description": "SELECT to check for existing URL, INSERT to create new link row. Up to 5 INSERT retries on collision."
+              }
+            ],
+            "performance_budget": {
+              "p95_latency_ms": 100,
+              "max_memory_mb": null,
+              "complexity": "O(1) amortised — bounded retry loop (max 5)"
+            }
+          },
+          {
+            "name": "shortener.resolve_and_track",
+            "description": "Resolves a short code to its original URL and atomically increments hit_count. Uses a single UPDATE links SET hit_count = hit_count + 1 WHERE short_code = %s RETURNING original_url query for atomicity.",
+            "inputs": [
+              {
+                "name": "code",
+                "type_ref": "ShortCode",
+                "required": true,
+                "default": "",
+                "description": "The 6-character short code to resolve.",
+                "validators": [
+                  {
+                    "kind": "regex",
+                    "expression": "^[A-Za-z0-9_-]{6}$",
+                    "error_message": "Code must be exactly 6 URL-safe characters."
+                  },
+                  {
+                    "kind": "length",
+                    "expression": "6..6",
+                    "error_message": "Code must be exactly 6 characters."
+                  }
+                ]
+              }
+            ],
+            "output_type": "any",
+            "error_cases": [
+              {
+                "name": "database_error",
+                "condition": "Unexpected database error during UPDATE.",
+                "error_type": "psycopg2.Error",
+                "error_data": {
+                  "message": "Database error during code resolution."
+                }
+              }
+            ],
+            "preconditions": [
+              "Database connection is available.",
+              "The links table exists with the expected schema."
+            ],
+            "postconditions": [
+              "If a row with matching short_code exists: hit_count is incremented by exactly 1, and original_url is returned.",
+              "If no row matches: None is returned and no rows are modified."
+            ],
+            "idempotent": false,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "mutates_state",
+                "target": "PostgreSQL links.hit_count",
+                "description": "Atomically increments hit_count by 1 for the matching short_code row via UPDATE...RETURNING."
+              },
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server — links table",
+                "description": "Executes UPDATE...RETURNING query."
+              }
+            ],
+            "performance_budget": {
+              "p95_latency_ms": 30,
+              "max_memory_mb": null,
+              "complexity": "O(1) — single indexed UPDATE by UNIQUE short_code"
+            }
+          },
+          {
+            "name": "shortener.list_links",
+            "description": "Returns all link records from the links table, ordered by created_at descending (newest first). Maps each row dict to a LinkListItem.",
+            "inputs": [],
+            "output_type": "list",
+            "error_cases": [
+              {
+                "name": "database_error",
+                "condition": "Unexpected database error during SELECT.",
+                "error_type": "psycopg2.Error",
+                "error_data": {
+                  "message": "Database error during link listing."
+                }
+              }
+            ],
+            "preconditions": [
+              "Database connection is available.",
+              "The links table exists with the expected schema."
+            ],
+            "postconditions": [
+              "Returned list contains one LinkListItem per row in the links table.",
+              "List is ordered by created_at descending.",
+              "Each LinkListItem.hit_count reflects the current database value."
+            ],
+            "idempotent": true,
+            "is_async": false,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server — links table",
+                "description": "SELECT all rows from links ordered by created_at DESC."
+              }
+            ],
+            "performance_budget": {
+              "p95_latency_ms": 100,
+              "max_memory_mb": null,
+              "complexity": "O(n) where n is the number of links in the table"
+            }
+          },
+          {
+            "name": "main.post_shorten",
+            "description": "FastAPI route handler: POST /shorten. Accepts a JSON body with a URL, delegates to shortener.shorten_url(), and returns a ShortenResponse. CodeCollisionError is caught by a global exception handler and returned as a 503 ErrorResponse.",
+            "inputs": [
+              {
+                "name": "body",
+                "type_ref": "ShortenRequest",
+                "required": true,
+                "default": "",
+                "description": "JSON request body containing the URL to shorten.",
+                "validators": []
+              }
+            ],
+            "output_type": "ShortenResponse",
+            "error_cases": [
+              {
+                "name": "validation_error",
+                "condition": "Request body fails Pydantic validation (missing url, invalid format).",
+                "error_type": "ErrorResponse",
+                "error_data": {
+                  "http_status": "422",
+                  "detail": "Validation error for request body."
+                }
+              },
+              {
+                "name": "code_collision",
+                "condition": "shortener.shorten_url() raises CodeCollisionError after 5 retry attempts.",
+                "error_type": "ErrorResponse",
+                "error_data": {
+                  "http_status": "503",
+                  "detail": "Failed to generate a unique short code. Try again later."
+                }
+              }
+            ],
+            "preconditions": [
+              "Request body is valid JSON conforming to ShortenRequest schema.",
+              "Database is reachable."
+            ],
+            "postconditions": [
+              "Response status is 200.",
+              "Response body is a valid ShortenResponse.",
+              "A link row exists in the database for the given URL."
+            ],
+            "idempotent": true,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server via shortener.shorten_url()",
+                "description": "Reads/writes links table to create or look up the short URL."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "main.get_redirect",
+            "description": "FastAPI route handler: GET /{code}. Resolves the short code via shortener.resolve_and_track() and returns an HTTP 307 redirect to the original URL. Returns 404 if the code does not exist.",
+            "inputs": [
+              {
+                "name": "code",
+                "type_ref": "ShortCode",
+                "required": true,
+                "default": "",
+                "description": "The 6-character short code from the URL path.",
+                "validators": [
+                  {
+                    "kind": "regex",
+                    "expression": "^[A-Za-z0-9_-]{6}$",
+                    "error_message": "Code must be exactly 6 URL-safe characters."
+                  },
+                  {
+                    "kind": "length",
+                    "expression": "6..6",
+                    "error_message": "Code must be exactly 6 characters."
+                  }
+                ]
+              }
+            ],
+            "output_type": "any",
+            "error_cases": [
+              {
+                "name": "code_not_found",
+                "condition": "No link exists with the given short_code.",
+                "error_type": "ErrorResponse",
+                "error_data": {
+                  "http_status": "404",
+                  "detail": "Short link not found."
+                }
+              }
+            ],
+            "preconditions": [
+              "Database is reachable."
+            ],
+            "postconditions": [
+              "If code exists: HTTP 307 redirect to original_url. hit_count incremented by 1.",
+              "If code does not exist: HTTP 404 with ErrorResponse body."
+            ],
+            "idempotent": false,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "mutates_state",
+                "target": "PostgreSQL links.hit_count",
+                "description": "Atomically increments hit_count for the resolved short code."
+              },
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server via shortener.resolve_and_track()",
+                "description": "Executes UPDATE...RETURNING query on the links table."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "main.get_links",
+            "description": "FastAPI route handler: GET /links. Returns a JSON array of all link records via shortener.list_links().",
+            "inputs": [],
+            "output_type": "list",
+            "error_cases": [
+              {
+                "name": "database_error",
+                "condition": "Database unreachable or query failure.",
+                "error_type": "ErrorResponse",
+                "error_data": {
+                  "http_status": "500",
+                  "detail": "Internal server error."
+                }
+              }
+            ],
+            "preconditions": [
+              "Database is reachable."
+            ],
+            "postconditions": [
+              "Response status is 200.",
+              "Response body is a JSON array of LinkListItem objects.",
+              "Array is ordered by created_at descending."
+            ],
+            "idempotent": true,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server via shortener.list_links()",
+                "description": "SELECT all rows from links table."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "main.get_index",
+            "description": "FastAPI route handler: GET /. Serves static/index.html as a FileResponse with content-type text/html.",
+            "inputs": [],
+            "output_type": "any",
+            "error_cases": [
+              {
+                "name": "file_not_found",
+                "condition": "static/index.html does not exist on disk.",
+                "error_type": "ErrorResponse",
+                "error_data": {
+                  "http_status": "404",
+                  "detail": "Index file not found."
+                }
+              }
+            ],
+            "preconditions": [
+              "File static/index.html exists on disk relative to the application root."
+            ],
+            "postconditions": [
+              "Response status is 200.",
+              "Response content-type is text/html.",
+              "Response body is the contents of static/index.html."
+            ],
+            "idempotent": true,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "reads_file",
+                "target": "src/static/index.html",
+                "description": "Reads the static HTML frontend file from disk to serve as the response body."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "main.startup_event",
+            "description": "FastAPI startup lifecycle event handler. Verifies the database connection is viable by calling db.get_conn(). Logs a message on success. If the connection fails, the error propagates and prevents uvicorn from accepting requests.",
+            "inputs": [],
+            "output_type": "None",
+            "error_cases": [
+              {
+                "name": "db_unreachable",
+                "condition": "PostgreSQL is not reachable at startup.",
+                "error_type": "psycopg2.OperationalError",
+                "error_data": {
+                  "message": "Cannot connect to PostgreSQL. Application startup aborted."
+                }
+              },
+              {
+                "name": "config_missing",
+                "condition": "DATABASE_URL not set.",
+                "error_type": "RuntimeError",
+                "error_data": {
+                  "message": "DATABASE_URL environment variable is required but not set."
+                }
+              }
+            ],
+            "preconditions": [
+              "DATABASE_URL environment variable is set.",
+              "PostgreSQL server is reachable."
+            ],
+            "postconditions": [
+              "A database connection has been established and cached in db module.",
+              "Application is ready to accept HTTP requests."
+            ],
+            "idempotent": true,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Establishes initial database connection to verify connectivity at startup."
+              },
+              {
+                "kind": "logging",
+                "target": "stdout",
+                "description": "Logs a startup message confirming database connectivity."
+              }
+            ],
+            "performance_budget": null
+          },
+          {
+            "name": "main.shutdown_event",
+            "description": "FastAPI shutdown lifecycle event handler. Calls db.close_conn() to cleanly close the PostgreSQL connection.",
+            "inputs": [],
+            "output_type": "None",
+            "error_cases": [],
+            "preconditions": [],
+            "postconditions": [
+              "Database connection is closed.",
+              "Module-level connection reference in db.py is reset to None."
+            ],
+            "idempotent": true,
+            "is_async": true,
+            "side_effects": [],
+            "structured_side_effects": [
+              {
+                "kind": "network_call",
+                "target": "PostgreSQL server",
+                "description": "Sends connection termination to PostgreSQL."
+              },
+              {
+                "kind": "logging",
+                "target": "stdout",
+                "description": "Logs a shutdown message confirming connection closure."
+              }
+            ],
+            "performance_budget": null
+          }
+        ],
+        "dependencies": [],
+        "dependency_contracts": {},
+        "invariants": [
+          "All SQL queries use parameterised placeholders ($1, %s) — never string interpolation or f-strings.",
+          "Short codes are exactly 6 URL-safe characters matching the regex [A-Za-z0-9_-]{6}.",
+          "The original_url column has a UNIQUE constraint; submitting the same URL always returns the existing code (idempotent).",
+          "The short_code column has a UNIQUE constraint; collisions are retried up to 5 times before raising CodeCollisionError.",
+          "hit_count is incremented atomically via UPDATE ... SET hit_count = hit_count + 1 RETURNING original_url.",
+          "DATABASE_URL must be a valid PostgreSQL connection string or the app refuses to start.",
+          "Route definition order in main.py: GET /, GET /links, GET /{code}, POST /shorten — to prevent path parameter from capturing literal paths.",
+          "No ORM or SQLAlchemy — only raw SQL via psycopg2-binary.",
+          "Each source file is under 200 lines."
+        ],
+        "requires": [],
+        "processing_register": "pragmatic-implementation",
+        "data_access": {
+          "reads": [
+            "INTERNAL",
+            "PUBLIC"
+          ],
+          "writes": [
+            "INTERNAL"
+          ],
+          "rationale": "Reads DATABASE_URL from environment (INTERNAL configuration secret). Reads and writes the 'links' table in PostgreSQL which contains user-submitted URLs (PUBLIC), short codes (PUBLIC), timestamps (PUBLIC), and hit counts (PUBLIC). The database connection string is classified INTERNAL because it contains credentials. All link data is PUBLIC — no PII is collected.",
+          "side_effects": [
+            {
+              "type": "env_read",
+              "classification": "INTERNAL",
+              "fields": [
+                "DATABASE_URL",
+                "TEST_DATABASE_URL"
+              ],
+              "rationale": "Reads database connection string from environment variables at startup to establish PostgreSQL connection."
+            },
+            {
+              "type": "db_read",
+              "classification": "PUBLIC",
+              "fields": [
+                "links.short_code",
+                "links.original_url",
+                "links.created_at",
+                "links.hit_count"
+              ],
+              "rationale": "Queries the links table to resolve short codes to original URLs and to list all stored links."
+            },
+            {
+              "type": "db_write",
+              "classification": "PUBLIC",
+              "fields": [
+                "links.short_code",
+                "links.original_url",
+                "links.created_at",
+                "links.hit_count"
+              ],
+              "rationale": "Inserts new link rows when shortening URLs and atomically increments hit_count on each redirect."
+            },
+            {
+              "type": "file_read",
+              "classification": "PUBLIC",
+              "fields": [
+                "static/index.html"
+              ],
+              "rationale": "Serves the static HTML frontend file from disk on GET / requests."
+            }
+          ]
+        },
+        "authority": {
+          "domains": [
+            "links",
+            "short_codes"
+          ],
+          "rationale": "This component is the sole owner of the 'links' table in PostgreSQL, which stores all short-code-to-URL mappings. It is the authoritative source for short code generation, URL-to-code resolution, and hit_count tracking. No other component reads or writes the links domain."
+        }
+      },
+      "implementation_status": "tested",
+      "test_results": {
+        "total": 4,
+        "passed": 4,
+        "failed": 0,
+        "errors": 0,
+        "failure_details": [],
+        "timestamp": "2026-04-23T12:29:42.958051"
+      }
+    }
+  }
+}

@@ -1,0 +1,72 @@
+{
+  "version": "1.0",
+  "generated_by": "pact",
+  "project": "url-shortener",
+  "timestamp": "2026-04-23T12:58:02.395212",
+  "components": [
+    {
+      "id": "root",
+      "name": "Main",
+      "data_access": {
+        "reads": [
+          "INTERNAL",
+          "PUBLIC"
+        ],
+        "writes": [
+          "INTERNAL"
+        ],
+        "side_effects": [
+          {
+            "type": "env_read",
+            "classification": "INTERNAL",
+            "fields": [
+              "DATABASE_URL",
+              "TEST_DATABASE_URL"
+            ],
+            "rationale": "Reads database connection string from environment variables at startup to establish PostgreSQL connection."
+          },
+          {
+            "type": "db_read",
+            "classification": "PUBLIC",
+            "fields": [
+              "links.short_code",
+              "links.original_url",
+              "links.created_at",
+              "links.hit_count"
+            ],
+            "rationale": "Queries the links table to resolve short codes to original URLs and to list all stored links."
+          },
+          {
+            "type": "db_write",
+            "classification": "PUBLIC",
+            "fields": [
+              "links.short_code",
+              "links.original_url",
+              "links.created_at",
+              "links.hit_count"
+            ],
+            "rationale": "Inserts new link rows when shortening URLs and atomically increments hit_count on each redirect."
+          },
+          {
+            "type": "file_read",
+            "classification": "PUBLIC",
+            "fields": [
+              "static/index.html"
+            ],
+            "rationale": "Serves the static HTML frontend file from disk on GET / requests."
+          }
+        ]
+      },
+      "authority": {
+        "domains": [
+          "links",
+          "short_codes"
+        ],
+        "rationale": "This component is the sole owner of the 'links' table in PostgreSQL, which stores all short-code-to-URL mappings. It is the authoritative source for short code generation, URL-to-code resolution, and hit_count tracking. No other component reads or writes the links domain."
+      },
+      "contract_hash": "d69728429bfc80aed3835e74d0f193af830a7b8c71e78ef3b90dd48299ec53a1",
+      "test_hash": "e999bb9b9b8112bf555483db74d8fd3fa1d9b014a8d80c311aacbb75b0b6be4d"
+    }
+  ],
+  "edges": []
+}

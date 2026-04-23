@@ -405,7 +405,9 @@ pact approve .
 pact resume .
 ```
 
-Repeat up to 2–3 times until the implementation phase starts (visible in `pact log .` as `implementation — root attempt 1`).
+Repeat until the implementation phase starts (visible in `pact log .` as `implementation — root attempt 1`).
+
+> **Known bug:** The health gate also fires in every post-build cleanup phase (arbiter → polish → retrospective → complete) — even though no code is generated there. This means you will need 5–6 total `pact resume .` calls per build, not 2–3. If the daemon times out between resumes, restart it first: `pact daemon . &`, then `pact resume .`. The daemon exits automatically after ~10 min of waiting for input.
 
 > If the daemon process exits entirely (rather than just pausing), check that `ANTHROPIC_API_KEY` is set in the shell that runs `pact daemon .`. If the state ends up as `"status": "failed"` in `.pact/state.json`, reset it manually: set `"status"` back to `"active"` and clear `"completed_at"` and `"pause_reason"`, then rerun `pact daemon .`.
 

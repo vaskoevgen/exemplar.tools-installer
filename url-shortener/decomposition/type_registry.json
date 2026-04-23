@@ -1,0 +1,286 @@
+{
+  "types": [
+    {
+      "name": "String",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "UTF-8 string value.",
+      "owner_component": ""
+    },
+    {
+      "name": "Int",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Signed integer (32-bit or platform default).",
+      "owner_component": ""
+    },
+    {
+      "name": "DateTime",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "ISO-8601 timestamp with timezone (maps to Python datetime and PostgreSQL TIMESTAMPTZ).",
+      "owner_component": ""
+    },
+    {
+      "name": "Url",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A valid absolute HTTP or HTTPS URL represented as a string.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ShortCode",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A 6-character URL-safe alphanumeric code uniquely identifying a shortened link.",
+      "owner_component": "root"
+    },
+    {
+      "name": "DatabaseUrl",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "PostgreSQL connection string in the form postgresql://user:pass@host:port/dbname.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ShortenRequest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "url",
+          "type_ref": "Url",
+          "required": true,
+          "default": "",
+          "description": "The original long URL to be shortened.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Request body for POST /shorten containing the long URL to shorten.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ShortenResponse",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "short_url",
+          "type_ref": "Url",
+          "required": true,
+          "default": "",
+          "description": "Fully-qualified short redirect URL (e.g. http://localhost:8000/abc123).",
+          "validators": []
+        },
+        {
+          "name": "code",
+          "type_ref": "ShortCode",
+          "required": true,
+          "default": "",
+          "description": "The 6-character short code portion of the URL.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Response body for POST /shorten returning the generated short URL and its code.",
+      "owner_component": "root"
+    },
+    {
+      "name": "LinkRecord",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "id",
+          "type_ref": "Int",
+          "required": true,
+          "default": "",
+          "description": "Auto-incrementing primary key (SERIAL).",
+          "validators": []
+        },
+        {
+          "name": "short_code",
+          "type_ref": "ShortCode",
+          "required": true,
+          "default": "",
+          "description": "Unique 6-character code for redirection.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "max=6",
+              "error_message": "short_code must be at most 6 characters."
+            }
+          ]
+        },
+        {
+          "name": "original_url",
+          "type_ref": "Url",
+          "required": true,
+          "default": "",
+          "description": "The original long URL this code redirects to.",
+          "validators": []
+        },
+        {
+          "name": "created_at",
+          "type_ref": "DateTime",
+          "required": true,
+          "default": "",
+          "description": "Timestamp when the link was created (defaults to NOW() in DB).",
+          "validators": []
+        },
+        {
+          "name": "hit_count",
+          "type_ref": "Int",
+          "required": true,
+          "default": "0",
+          "description": "Number of times the short link has been visited.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single shortened-link record as stored in the database and returned by the API.",
+      "owner_component": "root"
+    },
+    {
+      "name": "LinkListItem",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "code",
+          "type_ref": "ShortCode",
+          "required": true,
+          "default": "",
+          "description": "The 6-character short code.",
+          "validators": []
+        },
+        {
+          "name": "original_url",
+          "type_ref": "Url",
+          "required": true,
+          "default": "",
+          "description": "The original long URL.",
+          "validators": []
+        },
+        {
+          "name": "created_at",
+          "type_ref": "DateTime",
+          "required": true,
+          "default": "",
+          "description": "Timestamp when the link was created.",
+          "validators": []
+        },
+        {
+          "name": "hit_count",
+          "type_ref": "Int",
+          "required": true,
+          "default": "",
+          "description": "Cumulative redirect count.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Public-facing link summary returned in the GET /links JSON array (excludes internal id).",
+      "owner_component": "root"
+    },
+    {
+      "name": "LinkList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "LinkListItem",
+      "variants": [],
+      "inner_types": [],
+      "description": "Response body for GET /links — an ordered list of all shortened links.",
+      "owner_component": "root"
+    },
+    {
+      "name": "OptionalLinkRecord",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [
+        "LinkRecord"
+      ],
+      "description": "A LinkRecord that may be absent (e.g. when a code is not found in the database).",
+      "owner_component": "root"
+    },
+    {
+      "name": "AppConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "database_url",
+          "type_ref": "DatabaseUrl",
+          "required": true,
+          "default": "",
+          "description": "PostgreSQL connection string from DATABASE_URL env var.",
+          "validators": []
+        },
+        {
+          "name": "base_url",
+          "type_ref": "String",
+          "required": true,
+          "default": "http://localhost:8000",
+          "description": "Base URL prefix used to construct short_url values in responses.",
+          "validators": []
+        },
+        {
+          "name": "max_code_retries",
+          "type_ref": "Int",
+          "required": true,
+          "default": "5",
+          "description": "Maximum number of attempts to generate a unique short code before raising an error.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Application-level configuration read from environment variables.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ErrorResponse",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "detail",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "Human-readable error message.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Standard JSON error body returned for 4xx/5xx responses.",
+      "owner_component": "root"
+    }
+  ]
+}

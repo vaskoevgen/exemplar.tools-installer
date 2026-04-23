@@ -1,0 +1,33 @@
+version: "1.0"
+generated_by: constrain
+session_id: "url_shortener_001"
+
+storage_backends:
+  - owner_component: "url_shortener_api"
+    type: postgres
+    description: "Primary storage for links table containing URL mappings and metadata"
+
+field_hints:
+  - backend_owner: "url_shortener_api"
+    field_description: "6-character alphanumeric short code identifier"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "unique identifier that should not change after creation"
+  
+  - backend_owner: "url_shortener_api"
+    field_description: "original long URL that gets redirected to"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "core data that should not be modified to maintain link integrity"
+  
+  - backend_owner: "url_shortener_api"
+    field_description: "timestamp when link was created"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable, audit_field]
+    rationale: "audit trail for link creation that should not be modified"
+  
+  - backend_owner: "url_shortener_api"
+    field_description: "counter tracking number of times link was accessed"
+    likely_classification: PUBLIC
+    likely_annotations: [audit_field]
+    rationale: "analytics data that changes frequently and should be tracked for audit"

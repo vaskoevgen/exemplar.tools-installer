@@ -1,0 +1,11 @@
+budget: 10.0
+shaping: false
+build_mode: unary
+backend: anthropic
+model: claude-opus-4-6
+constrain_dir: "."
+role_backends:
+  decomposer: anthropic
+  contract_author: anthropic
+  test_author: anthropic
+  code_author: anthropic
