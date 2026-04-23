@@ -10,7 +10,7 @@ These fixes are applied manually to the local clone after install. They will be 
 
 **Repo:** `https://github.com/jmcentire/ledger`
 **File:** `pyproject.toml`
-**Status:** Not fixed upstream
+**Status:** PR open — https://github.com/jmcentire/ledger/pull/1
 
 ### Problem
 
@@ -46,7 +46,7 @@ deactivate
 
 **Repo:** `https://github.com/jmcentire/advocate`
 **File:** `pyproject.toml`
-**Status:** Not fixed upstream
+**Status:** PR open — https://github.com/jmcentire/advocate/pull/1
 
 ### Problem
 
