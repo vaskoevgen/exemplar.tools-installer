@@ -206,6 +206,16 @@ export ANTHROPIC_API_KEY=sk-...
 constrain
 ```
 
+**Non-interactive mode** — skip the interview entirely by priming with a description document and setting both round counts to 0:
+
+```bash
+constrain new --min-challenge 0 --max-challenge 0 --min-understand 0 --max-understand 0 -p prime.md
+```
+
+Write `prime.md` as a plain-English description of what to build. Constrain ingests it, extracts requirements, and generates all artifacts in one pass — no back-and-forth needed.
+
+> **Prime document tip:** Do not use `{...}` JSON examples in the prime document (e.g. `{"title": "string"}`). Curly braces cause the YAML generator to crash with a mapping error. Describe JSON shapes in plain English instead — e.g. "a JSON object with a title field" or "returns the created task with its id, title, completed, and created_at fields".
+
 Constrain will interview you about what you want to build. When it finishes, it writes these files to your current directory:
 
 | File | Consumed by |

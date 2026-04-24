@@ -1,0 +1,40 @@
+{
+  "project_id": "todo-list",
+  "title": "Design: todo-list",
+  "summary": "",
+  "decomposition_tree": {
+    "root_id": "root",
+    "nodes": {
+      "root": {
+        "component_id": "root",
+        "name": "Main",
+        "description": "# Task\n\nBuild a Todo List web application with a Python/FastAPI backend, PostgreSQL database, and a single-page vanilla JavaScript frontend.\n\n## Requirements\n\n### Backend (FastAPI, Python)\n\n- `POST /tasks` — create a task with `{\"title\": \"string\"}` body; return the created task object\n- `GET /tasks` — list all tasks; accept optional `?completed=true` or `?completed=false` query param\n- `PATCH /tasks/{id}` — update a task; accept `{\"completed\": true/false}` body; return updated task\n- `DELETE /tasks/{id}` — delete a task; return 204 No Content\n- Serve the `static/index.html` file at `GET /`\n- Use PostgreSQL via DATABASE_URL environment variable (psycopg2)\n- Error responses: JSON with `{\"detail\": \"message\"}`, appropriate HTTP status codes (404 for missing task)\n\n### Database\n\nPostgreSQL table `tasks`:\n- `id` SERIAL PRIMARY KEY\n- `title` VARCHAR(500) NOT NULL\n- `completed` BOOLEAN NOT NULL DEFAULT FALSE\n- `created_at` TIMESTAMPTZ NOT NULL DEFAULT NOW()\n\n### Frontend (static/index.html)\n\nSingle HTML file with inline CSS and JavaScript (no external dependencies, no build step):\n- Show all tasks in a list\n- Input + button to add a new task\n- Checkbox to toggle task completion\n- Button to delete a task\n- Filter buttons: All / Active / Completed\n- Auto-refresh after each operation (re-fetch from API)\n\n### README.md\n\nInclude instructions for:\n- Starting the PostgreSQL database with Docker\n- Installing Python dependencies\n- Running the backend server\n- Opening the app in a browser\n- Full API endpoint reference\n\n## Storage\n\nDATABASE_URL environment variable points to the PostgreSQL connection string.\n\n## Constraints\n\n- Python 3.11+\n- FastAPI + uvicorn for the web server\n- psycopg2-binary for PostgreSQL\n- No ORM — use raw SQL queries\n- Single Python source file for the backend: `src/root/main.py`\n- Frontend: single file `src/root/static/index.html`\n- No authentication\n- No pagination\n",
+        "depth": 0,
+        "parent_id": "",
+        "children": [],
+        "contract": null,
+        "implementation_status": "pending",
+        "test_results": null
+      }
+    }
+  },
+  "engineering_decisions": [],
+  "failure_history": [
+    {
+      "component_id": "root",
+      "failure_type": "implementation_bug",
+      "description": "Component 'root' failed 13 of 18 contract tests. Since this is a leaf component, the implementation does not match the contract.",
+      "resolution": "Re-implement with fresh context, focusing on the failing tests.",
+      "timestamp": "2026-04-24T12:57:27.483633"
+    },
+    {
+      "component_id": "root",
+      "failure_type": "implementation_bug",
+      "description": "Component 'root' failed 13 of 18 contract tests. Since this is a leaf component, the implementation does not match the contract.",
+      "resolution": "Re-implement with fresh context, focusing on the failing tests.",
+      "timestamp": "2026-04-24T13:04:20.422477"
+    }
+  ],
+  "lessons_learned": [],
+  "version": 1
+}

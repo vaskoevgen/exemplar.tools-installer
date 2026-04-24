@@ -1,0 +1,44 @@
+version: "1.0"
+generated_by: constrain
+session_id: "task_mgmt_001"
+system: "Task Management Web Application"
+
+trust:
+  floor: 0.10
+  authority_override_floor: 0.40
+  decay_lambda: 0.05
+  taint_lock_tiers: []
+  conflict_trust_delta_threshold: 0.20
+
+classifications:
+  - field_pattern: "tasks.*"
+    tier: PUBLIC
+    authoritative_component: "api_backend"
+    canary_eligible: true
+    canary_pattern: "tasks.title"
+    rationale: "Personal task data with no sensitive information"
+
+soak:
+  base_durations:
+    PUBLIC: 1h
+    PII: 6h
+    FINANCIAL: 24h
+    AUTH: 48h
+    COMPLIANCE: 72h
+  target_requests: 1000
+
+authority_map:
+  - component: "web_frontend"
+    domains: ["ui.*", "user_interaction.*"]
+    rationale: "Owns user interface and interaction domain"
+  - component: "api_backend"
+    domains: ["tasks.*", "business_logic.*"]
+    rationale: "Owns task business logic and data operations"
+  - component: "database"
+    domains: ["persistence.*", "storage.*"]
+    rationale: "Owns data persistence and storage domain"
+
+human_gates:
+  always: []
+  on_low_trust_authoritative: false
+  on_unresolvable_conflict: true

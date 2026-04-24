@@ -1,0 +1,202 @@
+{
+  "types": [
+    {
+      "name": "String",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A UTF-8 string value.",
+      "owner_component": ""
+    },
+    {
+      "name": "Int",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A signed integer value.",
+      "owner_component": ""
+    },
+    {
+      "name": "Bool",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A boolean true/false value.",
+      "owner_component": ""
+    },
+    {
+      "name": "DateTime",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An ISO-8601 timestamp string with timezone (e.g. '2024-01-15T10:30:00+00:00').",
+      "owner_component": ""
+    },
+    {
+      "name": "TaskId",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An integer identifier for a task, corresponding to the SERIAL PRIMARY KEY in the database.",
+      "owner_component": "root"
+    },
+    {
+      "name": "Task",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "Unique auto-incrementing identifier for the task.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "The title/description of the task. Max 500 characters.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..500",
+              "error_message": "Title must be between 1 and 500 characters."
+            }
+          ]
+        },
+        {
+          "name": "completed",
+          "type_ref": "Bool",
+          "required": true,
+          "default": "false",
+          "description": "Whether the task has been completed. Defaults to false.",
+          "validators": []
+        },
+        {
+          "name": "created_at",
+          "type_ref": "DateTime",
+          "required": true,
+          "default": "",
+          "description": "Timestamp when the task was created, with timezone.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A complete task object as stored in the database and returned by the API.",
+      "owner_component": "root"
+    },
+    {
+      "name": "TaskList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "Task",
+      "variants": [],
+      "inner_types": [],
+      "description": "An ordered list of Task objects returned by the GET /tasks endpoint.",
+      "owner_component": "root"
+    },
+    {
+      "name": "CreateTaskRequest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "The title of the task to create. Max 500 characters.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..500",
+              "error_message": "Title must be between 1 and 500 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Request body for POST /tasks to create a new task.",
+      "owner_component": "root"
+    },
+    {
+      "name": "UpdateTaskRequest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "completed",
+          "type_ref": "Bool",
+          "required": true,
+          "default": "",
+          "description": "The new completion status for the task.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Request body for PATCH /tasks/{id} to update task completion status.",
+      "owner_component": "root"
+    },
+    {
+      "name": "OptionalBool",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [
+        "Bool"
+      ],
+      "description": "An optional boolean value, used for the completed query filter parameter.",
+      "owner_component": "root"
+    },
+    {
+      "name": "TaskFilterStatus",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "all",
+        "active",
+        "completed"
+      ],
+      "inner_types": [],
+      "description": "Filter options for viewing tasks in the frontend and querying the API.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ErrorResponse",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "detail",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "Human-readable error message describing what went wrong.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Standard JSON error response returned by the API for error conditions (e.g. 404).",
+      "owner_component": "root"
+    }
+  ]
+}

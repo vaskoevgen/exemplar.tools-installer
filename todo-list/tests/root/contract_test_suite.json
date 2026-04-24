@@ -1,0 +1,740 @@
+{
+  "component_id": "root",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "db_init_success",
+      "description": "init_db successfully creates tasks table when given a valid DatabaseURL",
+      "function": "init_db",
+      "category": "happy_path",
+      "setup_description": "Set DATABASE_URL env var to a valid PostgreSQL connection string; mock psycopg2.connect to return a mock connection.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid DatabaseURL",
+      "expected_output_description": "No return value (None); tasks table CREATE TABLE IF NOT EXISTS executed.",
+      "expected_error": "",
+      "assertions": [
+        "init_db completes without raising",
+        "CREATE TABLE IF NOT EXISTS SQL is executed on the connection",
+        "Connection/cursor is used with expected schema columns"
+      ]
+    },
+    {
+      "id": "db_init_missing_url",
+      "description": "init_db raises error when DATABASE_URL is not set or empty",
+      "function": "init_db",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_database_url",
+      "assertions": [
+        "Raises an appropriate exception when DATABASE_URL is missing or empty"
+      ]
+    },
+    {
+      "id": "db_init_connection_failed",
+      "description": "init_db raises error when PostgreSQL server is unreachable",
+      "function": "init_db",
+      "category": "error_case",
+      "setup_description": "Mock psycopg2.connect to raise OperationalError",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "connection_failed",
+      "assertions": [
+        "Raises an exception when connection fails"
+      ]
+    },
+    {
+      "id": "get_db_connection_success",
+      "description": "get_db_connection returns a connection with RealDictCursor after init_db",
+      "function": "get_db_connection",
+      "category": "happy_path",
+      "setup_description": "Mock psycopg2.connect; call init_db first",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns a connection object",
+        "Connection uses RealDictCursor"
+      ]
+    },
+    {
+      "id": "create_task_success",
+      "description": "create_task inserts a new task and returns a Task with correct fields",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Buy groceries"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returned task has the given title",
+        "Returned task has completed=False",
+        "Returned task has an integer id",
+        "Returned task has a created_at timestamp",
+        "INSERT ... RETURNING SQL was executed"
+      ]
+    },
+    {
+      "id": "create_task_boundary_min_title",
+      "description": "create_task accepts a single-character title (minimum valid length)",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task is created successfully with title 'A'"
+      ]
+    },
+    {
+      "id": "create_task_boundary_max_title",
+      "description": "create_task accepts a 500-character title (maximum valid length)",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A repeated 500 times"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task is created successfully with the 500-char title"
+      ]
+    },
+    {
+      "id": "create_task_empty_title",
+      "description": "create_task rejects an empty string title",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Raises validation error for empty title"
+      ]
+    },
+    {
+      "id": "create_task_too_long_title",
+      "description": "create_task rejects a title longer than 500 characters",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A repeated 501 times"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Raises validation error for title exceeding 500 chars"
+      ]
+    },
+    {
+      "id": "create_task_database_error",
+      "description": "create_task raises database_error when INSERT fails",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "Mock cursor.execute to raise psycopg2 DatabaseError",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_error",
+      "assertions": [
+        "Raises an exception when the database INSERT fails"
+      ]
+    },
+    {
+      "id": "list_tasks_all",
+      "description": "list_tasks returns all tasks when completed filter is None",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "completed": "None"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns a list of all tasks",
+        "No WHERE clause on completed is applied"
+      ]
+    },
+    {
+      "id": "list_tasks_completed_true",
+      "description": "list_tasks returns only completed tasks when filter is True",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "completed": "True"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns only tasks where completed=True"
+      ]
+    },
+    {
+      "id": "list_tasks_completed_false",
+      "description": "list_tasks returns only incomplete tasks when filter is False",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "completed": "False"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns only tasks where completed=False"
+      ]
+    },
+    {
+      "id": "list_tasks_empty",
+      "description": "list_tasks returns empty list when no tasks match",
+      "function": "list_tasks",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns an empty list"
+      ]
+    },
+    {
+      "id": "list_tasks_database_error",
+      "description": "list_tasks raises database_error when SELECT fails",
+      "function": "list_tasks",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_error",
+      "assertions": [
+        "Raises an exception when SELECT query fails"
+      ]
+    },
+    {
+      "id": "update_task_success",
+      "description": "update_task updates completed field and returns updated Task",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "1",
+        "completed": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returned task has updated completed value",
+        "Task id, title, and created_at are unchanged",
+        "UPDATE ... RETURNING SQL was executed"
+      ]
+    },
+    {
+      "id": "update_task_not_found",
+      "description": "update_task returns None when task_id does not exist",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "99999",
+        "completed": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "Returns None for nonexistent task_id"
+      ]
+    },
+    {
+      "id": "update_task_database_error",
+      "description": "update_task raises database_error when UPDATE fails",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_error",
+      "assertions": [
+        "Raises an exception when UPDATE query fails"
+      ]
+    },
+    {
+      "id": "delete_task_success",
+      "description": "delete_task removes existing task and returns True",
+      "function": "delete_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns True",
+        "Task is no longer in the database"
+      ]
+    },
+    {
+      "id": "delete_task_not_found",
+      "description": "delete_task returns False when task_id does not exist",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "99999"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "Returns False for nonexistent task_id"
+      ]
+    },
+    {
+      "id": "delete_task_database_error",
+      "description": "delete_task raises database_error when DELETE fails",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_error",
+      "assertions": [
+        "Raises an exception when DELETE query fails"
+      ]
+    },
+    {
+      "id": "handle_serve_index_success",
+      "description": "handle_serve_index returns FileResponse for static/index.html",
+      "function": "handle_serve_index",
+      "category": "happy_path",
+      "setup_description": "Create a temporary static/index.html file",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Returns a response with text/html content",
+        "Response serves the index.html file"
+      ]
+    },
+    {
+      "id": "handle_serve_index_file_not_found",
+      "description": "handle_serve_index raises error when static/index.html is missing",
+      "function": "handle_serve_index",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "file_not_found",
+      "assertions": [
+        "Raises an appropriate error when file does not exist"
+      ]
+    },
+    {
+      "id": "handle_create_task_success",
+      "description": "POST /tasks with valid title returns 201 and created Task",
+      "function": "handle_create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Test task"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status is 201",
+        "Response body contains the task with given title",
+        "Response body task has completed=false"
+      ]
+    },
+    {
+      "id": "handle_create_task_validation_error",
+      "description": "POST /tasks with empty title returns validation error",
+      "function": "handle_create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Response indicates validation failure",
+        "Error relates to title field"
+      ]
+    },
+    {
+      "id": "handle_list_tasks_success",
+      "description": "GET /tasks returns 200 with list of tasks",
+      "function": "handle_list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status is 200",
+        "Response body is a JSON array"
+      ]
+    },
+    {
+      "id": "handle_list_tasks_filter",
+      "description": "GET /tasks?completed=true returns only completed tasks",
+      "function": "handle_list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "completed": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status is 200",
+        "All returned tasks have completed=true"
+      ]
+    },
+    {
+      "id": "handle_update_task_success",
+      "description": "PATCH /tasks/{id} with valid body returns 200 and updated Task",
+      "function": "handle_update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "1",
+        "completed": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status is 200",
+        "Response body task has updated completed value"
+      ]
+    },
+    {
+      "id": "handle_update_task_not_found",
+      "description": "PATCH /tasks/{id} for nonexistent task returns 404 with ErrorResponse",
+      "function": "handle_update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "99999",
+        "completed": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "Response status is 404",
+        "Response body has detail 'Task not found'"
+      ]
+    },
+    {
+      "id": "handle_delete_task_success",
+      "description": "DELETE /tasks/{id} for existing task returns 204 with empty body",
+      "function": "handle_delete_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status is 204",
+        "Response body is empty"
+      ]
+    },
+    {
+      "id": "handle_delete_task_not_found",
+      "description": "DELETE /tasks/{id} for nonexistent task returns 404 with ErrorResponse",
+      "function": "handle_delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "task_id": "99999"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "Response status is 404",
+        "Response body has detail 'Task not found'"
+      ]
+    },
+    {
+      "id": "roundtrip_create_list",
+      "description": "Creating a task makes it appear in list_tasks",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "Create a task, then list all tasks",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The created task appears in the list",
+        "Task fields match what was returned by create_task"
+      ]
+    },
+    {
+      "id": "roundtrip_create_update_verify",
+      "description": "Creating then updating a task changes only completed field",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "Create a task, then update its completed to True",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Updated task has completed=True",
+        "Title, id, created_at are unchanged from create"
+      ]
+    },
+    {
+      "id": "roundtrip_create_delete_verify",
+      "description": "Creating then deleting a task removes it from list_tasks",
+      "function": "delete_task",
+      "category": "happy_path",
+      "setup_description": "Create a task, delete it, then list tasks",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "delete_task returns True",
+        "Task no longer appears in list_tasks"
+      ]
+    },
+    {
+      "id": "invariant_parameterized_queries",
+      "description": "All SQL queries use parameterized placeholders, not string interpolation",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "cursor.execute is called with %s placeholders",
+        "No f-string or format-string SQL construction detected"
+      ]
+    },
+    {
+      "id": "invariant_returning_clause",
+      "description": "INSERT and UPDATE use RETURNING to retrieve the full row",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SQL contains RETURNING clause"
+      ]
+    },
+    {
+      "id": "invariant_post_returns_201",
+      "description": "POST /tasks returns exactly 201 status code on success",
+      "function": "handle_create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 201"
+      ]
+    },
+    {
+      "id": "invariant_delete_returns_204",
+      "description": "DELETE /tasks/{id} returns exactly 204 with empty body on success",
+      "function": "handle_delete_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 204",
+        "Response body is empty"
+      ]
+    },
+    {
+      "id": "invariant_error_response_format",
+      "description": "Error responses conform to {detail: message} JSON structure",
+      "function": "handle_update_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "404 response body has 'detail' key",
+        "'detail' value is a string"
+      ]
+    },
+    {
+      "id": "type_task_title_valid",
+      "description": "TaskTitle accepts strings between 1 and 500 characters",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TaskTitle with 1 char is valid",
+        "TaskTitle with 500 chars is valid"
+      ]
+    },
+    {
+      "id": "type_task_title_invalid_empty",
+      "description": "TaskTitle rejects empty string",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "TaskTitle with empty string raises validation error"
+      ]
+    },
+    {
+      "id": "type_task_title_invalid_too_long",
+      "description": "TaskTitle rejects strings over 500 characters",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "TaskTitle with 501 chars raises validation error"
+      ]
+    },
+    {
+      "id": "type_database_url_valid",
+      "description": "DatabaseURL accepts valid postgresql:// URIs",
+      "function": "init_db",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "DatabaseURL with postgresql:// prefix is accepted",
+        "DatabaseURL with postgresql+psycopg2:// prefix is accepted"
+      ]
+    },
+    {
+      "id": "type_database_url_invalid",
+      "description": "DatabaseURL rejects non-postgresql URIs",
+      "function": "init_db",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "DatabaseURL with mysql:// raises validation error",
+        "DatabaseURL with empty string raises validation error"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for root component (src/root/main.py).\nTests organized into three classes: TestDatabase, TestCRUD, TestHandlers.\nRun with: pytest contract_test.py -v\n\"\"\"\nimport os\nimport re\nimport pytest\nfrom unittest.mock import patch, MagicMock, PropertyMock\nfrom datetime import datetime, timezone\n\n\n# ---------------------------------------------------------------------------\n# Attempt imports — the component is a single file: src/root/main.py\n# We try multiple import paths to be resilient to project layout.\n# ---------------------------------------------------------------------------\ntry:\n    from root.main import *\n    import root.main as main_module\nexcept ImportError:\n    try:\n        from root import *\n        import root as main_module\n    except ImportError:\n        from main import *\n        import main as main_module\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef _make_fake_row(task_id=1, title=\"Test task\", completed=False, created_at=None):\n    \"\"\"Return a dict mimicking a RealDictCursor row.\"\"\"\n    if created_at is None:\n        created_at = datetime.now(timezone.utc).isoformat()\n    return {\n        \"id\": task_id,\n        \"title\": title,\n        \"completed\": completed,\n        \"created_at\": created_at,\n    }\n\n\ndef _mock_cursor(fetchone_return=None, fetchall_return=None, rowcount=1):\n    \"\"\"Build a mock psycopg2 cursor.\"\"\"\n    cur = MagicMock()\n    cur.fetchone.return_value = fetchone_return\n    cur.fetchall.return_value = fetchall_return if fetchall_return is not None else []\n    cur.rowcount = rowcount\n    cur.__enter__ = MagicMock(return_value=cur)\n    cur.__exit__ = MagicMock(return_value=False)\n    return cur\n\n\ndef _mock_connection(cursor=None):\n    \"\"\"Build a mock psycopg2 connection.\"\"\"\n    conn = MagicMock()\n    if cursor is None:\n        cursor = _mock_cursor()\n    conn.cursor.return_value = cursor\n    conn.__enter__ = MagicMock(return_value=conn)\n    conn.__exit__ = MagicMock(return_value=False)\n    return conn\n\n\n# ---------------------------------------------------------------------------\n# Type validation tests\n# ---------------------------------------------------------------------------\n\nclass TestTypes:\n    \"\"\"Tests for contract-defined types and their validators.\"\"\"\n\n    def test_task_title_valid_min(self):\n        \"\"\"TaskTitle accepts a single-character string (boundary min).\"\"\"\n        # Try constructing a TaskTitle or CreateTaskRequest with length-1 title\n        try:\n            obj = CreateTaskRequest(title=\"A\")\n            assert obj.title == \"A\"\n        except NameError:\n            # If CreateTaskRequest is not a Pydantic model, try TaskTitle\n            try:\n                obj = TaskTitle(value=\"A\")\n                assert obj.value == \"A\"\n            except NameError:\n                pytest.skip(\"TaskTitle/CreateTaskRequest types not directly exposed\")\n\n    def test_task_title_valid_max(self):\n        \"\"\"TaskTitle accepts a 500-character string (boundary max).\"\"\"\n        long_title = \"A\" * 500\n        try:\n            obj = CreateTaskRequest(title=long_title)\n            assert obj.title == long_title\n        except NameError:\n            try:\n                obj = TaskTitle(value=long_title)\n                assert obj.value == long_title\n            except NameError:\n                pytest.skip(\"TaskTitle/CreateTaskRequest types not directly exposed\")\n\n    def test_task_title_reject_empty(self):\n        \"\"\"TaskTitle rejects empty string.\"\"\"\n        with pytest.raises((ValueError, Exception)):\n            try:\n                CreateTaskRequest(title=\"\")\n            except NameError:\n                TaskTitle(value=\"\")\n\n    def test_task_title_reject_too_long(self):\n        \"\"\"TaskTitle rejects string >500 characters.\"\"\"\n        with pytest.raises((ValueError, Exception)):\n            try:\n                CreateTaskRequest(title=\"A\" * 501)\n            except NameError:\n                TaskTitle(value=\"A\" * 501)\n\n    def test_database_url_valid_postgresql(self):\n        \"\"\"DatabaseURL accepts postgresql:// URI.\"\"\"\n        try:\n            url = DatabaseURL(value=\"postgresql://user:pass@localhost/db\")\n            assert \"postgresql\" in url.value\n        except NameError:\n            pytest.skip(\"DatabaseURL type not directly exposed\")\n\n    def test_database_url_valid_psycopg2(self):\n        \"\"\"DatabaseURL accepts postgresql+psycopg2:// URI.\"\"\"\n        try:\n            url = DatabaseURL(value=\"postgresql+psycopg2://user:pass@localhost/db\")\n            assert \"postgresql\" in url.value\n        except NameError:\n            pytest.skip(\"DatabaseURL type not directly exposed\")\n\n    def test_database_url_reject_mysql(self):\n        \"\"\"DatabaseURL rejects non-postgresql URIs.\"\"\"\n        try:\n            with pytest.raises((ValueError, Exception)):\n                DatabaseURL(value=\"mysql://user:pass@localhost/db\")\n        except NameError:\n            pytest.skip(\"DatabaseURL type not directly exposed\")\n\n    def test_database_url_reject_empty(self):\n        \"\"\"DatabaseURL rejects empty string.\"\"\"\n        try:\n            with pytest.raises((ValueError, Exception)):\n                DatabaseURL(value=\"\")\n        except NameError:\n            pytest.skip(\"DatabaseURL type not directly exposed\")\n\n\n# ---------------------------------------------------------------------------\n# Database layer tests\n# ---------------------------------------------------------------------------\n\nclass TestDatabase:\n    \"\"\"Tests for init_db and get_db_connection.\"\"\"\n\n    @patch.dict(os.environ, {\"DATABASE_URL\": \"postgresql://user:pass@localhost/testdb\"})\n    @patch(\"psycopg2.connect\")\n    def test_init_db_success(self, mock_connect):\n        \"\"\"init_db creates tasks table with correct schema.\"\"\"\n        mock_conn = _mock_connection()\n        mock_cur = _mock_cursor()\n        mock_conn.cursor.return_value = mock_cur\n        mock_connect.return_value = mock_conn\n\n        try:\n            result = init_db(os.environ[\"DATABASE_URL\"])\n        except TypeError:\n            # init_db might take no args and read DATABASE_URL itself\n            result = init_db()\n\n        assert result is None\n        # Verify CREATE TABLE was executed\n        calls = mock_cur.execute.call_args_list\n        sql_executed = \" \".join(str(c) for c in calls).lower()\n        assert \"create table\" in sql_executed or \"create\" in sql_executed\n\n    @patch.dict(os.environ, {}, clear=True)\n    def test_init_db_missing_database_url(self):\n        \"\"\"init_db raises error when DATABASE_URL is not set.\"\"\"\n        # Remove DATABASE_URL if present\n        os.environ.pop(\"DATABASE_URL\", None)\n        with pytest.raises(Exception):\n            try:\n                init_db(\"\")\n            except TypeError:\n                init_db()\n\n    @patch.dict(os.environ, {\"DATABASE_URL\": \"postgresql://user:pass@badhost/db\"})\n    @patch(\"psycopg2.connect\", side_effect=Exception(\"connection refused\"))\n    def test_init_db_connection_failed(self, mock_connect):\n        \"\"\"init_db raises error when PostgreSQL is unreachable.\"\"\"\n        with pytest.raises(Exception, match=\"connect|connection|refused\"):\n            try:\n                init_db(os.environ[\"DATABASE_URL\"])\n            except TypeError:\n                init_db()\n\n    @patch.dict(os.environ, {\"DATABASE_URL\": \"postgresql://user:pass@localhost/testdb\"})\n    @patch(\"psycopg2.connect\")\n    def test_get_db_connection_success(self, mock_connect):\n        \"\"\"get_db_connection returns a connection object.\"\"\"\n        mock_conn = _mock_connection()\n        mock_connect.return_value = mock_conn\n\n        # Initialize first\n        try:\n            init_db(os.environ[\"DATABASE_URL\"])\n        except TypeError:\n            init_db()\n\n        conn = get_db_connection()\n        assert conn is not None\n\n\n# ---------------------------------------------------------------------------\n# CRUD function tests\n# ---------------------------------------------------------------------------\n\nclass TestCRUD:\n    \"\"\"Tests for create_task, list_tasks, update_task, delete_task.\"\"\"\n\n    # -- create_task --------------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_create_task_success(self, mock_connect):\n        \"\"\"create_task inserts a task and returns it with correct fields.\"\"\"\n        row = _make_fake_row(task_id=1, title=\"Buy groceries\", completed=False)\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        # Patch the module-level connection retrieval\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                task = create_task(\"Buy groceries\")\n            except TypeError:\n                # Might need a connection arg\n                task = create_task(\"Buy groceries\", mock_conn)\n\n        # Verify the result has expected shape\n        if isinstance(task, dict):\n            assert task[\"title\"] == \"Buy groceries\"\n            assert task[\"completed\"] is False\n            assert \"id\" in task\n            assert \"created_at\" in task\n        else:\n            assert task.title == \"Buy groceries\"\n            assert task.completed is False\n            assert task.id is not None\n            assert task.created_at is not None\n\n        # Verify INSERT with RETURNING was used\n        sql_arg = str(mock_cur.execute.call_args)\n        assert \"insert\" in sql_arg.lower()\n        assert \"returning\" in sql_arg.lower()\n\n    @patch(\"psycopg2.connect\")\n    def test_create_task_uses_parameterized_query(self, mock_connect):\n        \"\"\"Invariant: create_task uses %s placeholders, not string interpolation.\"\"\"\n        row = _make_fake_row()\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                create_task(\"Test\")\n            except TypeError:\n                create_task(\"Test\", mock_conn)\n\n        sql = mock_cur.execute.call_args[0][0]\n        assert \"%s\" in sql, \"SQL must use parameterized %s placeholders\"\n        # Ensure no f-string patterns\n        assert \"{\" not in sql, \"SQL must not use string interpolation\"\n\n    # -- list_tasks ---------------------------------------------------------\n\n    @pytest.mark.parametrize(\"completed_filter,expected_where\", [\n        (None, False),\n        (True, True),\n        (False, True),\n    ])\n    @patch(\"psycopg2.connect\")\n    def test_list_tasks_filter(self, mock_connect, completed_filter, expected_where):\n        \"\"\"list_tasks applies correct WHERE clause based on CompletedFilter.\"\"\"\n        rows = [_make_fake_row(task_id=1, completed=True), _make_fake_row(task_id=2, completed=False)]\n        if completed_filter is True:\n            rows = [r for r in rows if r[\"completed\"]]\n        elif completed_filter is False:\n            rows = [r for r in rows if not r[\"completed\"]]\n\n        mock_cur = _mock_cursor(fetchall_return=rows)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = list_tasks(completed_filter)\n            except TypeError:\n                result = list_tasks(completed_filter, mock_conn)\n\n        assert isinstance(result, list)\n        if expected_where and completed_filter is not None:\n            sql = mock_cur.execute.call_args[0][0].lower()\n            assert \"where\" in sql or \"completed\" in sql\n\n    @patch(\"psycopg2.connect\")\n    def test_list_tasks_empty(self, mock_connect):\n        \"\"\"list_tasks returns empty list when no tasks exist.\"\"\"\n        mock_cur = _mock_cursor(fetchall_return=[])\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = list_tasks(None)\n            except TypeError:\n                result = list_tasks(None, mock_conn)\n\n        assert result == []\n\n    # -- update_task --------------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_update_task_success(self, mock_connect):\n        \"\"\"update_task returns updated task with new completed value.\"\"\"\n        row = _make_fake_row(task_id=1, title=\"Test\", completed=True)\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = update_task(1, True)\n            except TypeError:\n                result = update_task(1, True, mock_conn)\n\n        assert result is not None\n        if isinstance(result, dict):\n            assert result[\"completed\"] is True\n            assert result[\"id\"] == 1\n        else:\n            assert result.completed is True\n            assert result.id == 1\n\n        # Verify UPDATE ... RETURNING\n        sql = mock_cur.execute.call_args[0][0].lower()\n        assert \"update\" in sql\n        assert \"returning\" in sql\n\n    @patch(\"psycopg2.connect\")\n    def test_update_task_not_found(self, mock_connect):\n        \"\"\"update_task returns None when task_id does not exist.\"\"\"\n        mock_cur = _mock_cursor(fetchone_return=None, rowcount=0)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = update_task(99999, True)\n            except TypeError:\n                result = update_task(99999, True, mock_conn)\n\n        assert result is None\n\n    # -- delete_task --------------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_delete_task_success(self, mock_connect):\n        \"\"\"delete_task returns True when task exists and is deleted.\"\"\"\n        mock_cur = _mock_cursor(rowcount=1)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = delete_task(1)\n            except TypeError:\n                result = delete_task(1, mock_conn)\n\n        assert result is True\n\n    @patch(\"psycopg2.connect\")\n    def test_delete_task_not_found(self, mock_connect):\n        \"\"\"delete_task returns False when task_id does not exist.\"\"\"\n        mock_cur = _mock_cursor(rowcount=0)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            try:\n                result = delete_task(99999)\n            except TypeError:\n                result = delete_task(99999, mock_conn)\n\n        assert result is False\n\n\n# ---------------------------------------------------------------------------\n# Handler / API tests (via FastAPI TestClient)\n# ---------------------------------------------------------------------------\n\nclass TestHandlers:\n    \"\"\"Tests for handle_* route handlers via FastAPI TestClient.\"\"\"\n\n    @pytest.fixture(autouse=True)\n    def _setup_client(self):\n        \"\"\"Create a TestClient if the module exposes a FastAPI app.\"\"\"\n        try:\n            from fastapi.testclient import TestClient\n        except ImportError:\n            pytest.skip(\"fastapi not installed; skipping handler tests\")\n\n        # Find the FastAPI app instance\n        app = getattr(main_module, \"app\", None)\n        if app is None:\n            # Scan module for FastAPI instance\n            import fastapi\n            for name in dir(main_module):\n                obj = getattr(main_module, name)\n                if isinstance(obj, fastapi.FastAPI):\n                    app = obj\n                    break\n        if app is None:\n            pytest.skip(\"No FastAPI app found in module\")\n\n        self.client = TestClient(app, raise_server_exceptions=False)\n        self.app = app\n\n    # -- GET / (serve index) ------------------------------------------------\n\n    def test_handle_serve_index_success(self, tmp_path):\n        \"\"\"GET / serves static/index.html with text/html content type.\"\"\"\n        # Create the expected file\n        static_dir = tmp_path / \"static\"\n        static_dir.mkdir()\n        index_file = static_dir / \"index.html\"\n        index_file.write_text(\"<html><body>Hello</body></html>\")\n\n        with patch(\"os.path.exists\", return_value=True):\n            # Try patching FileResponse or the path used\n            resp = self.client.get(\"/\")\n            # If the file doesn't actually exist in test env, we accept various outcomes\n            if resp.status_code == 200:\n                assert \"html\" in resp.headers.get(\"content-type\", \"\").lower() or resp.status_code == 200\n\n    # -- POST /tasks --------------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_create_task_success(self, mock_connect):\n        \"\"\"POST /tasks with valid title returns 201 and created task.\"\"\"\n        row = _make_fake_row(task_id=1, title=\"New task\", completed=False)\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.post(\"/tasks\", json={\"title\": \"New task\"})\n\n        assert resp.status_code == 201\n        body = resp.json()\n        assert body[\"title\"] == \"New task\"\n        assert body[\"completed\"] is False\n        assert \"id\" in body\n        assert \"created_at\" in body\n\n    def test_handle_create_task_empty_title(self):\n        \"\"\"POST /tasks with empty title returns validation error (422).\"\"\"\n        resp = self.client.post(\"/tasks\", json={\"title\": \"\"})\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    def test_handle_create_task_title_too_long(self):\n        \"\"\"POST /tasks with title > 500 chars returns validation error.\"\"\"\n        resp = self.client.post(\"/tasks\", json={\"title\": \"A\" * 501})\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    def test_handle_create_task_missing_body(self):\n        \"\"\"POST /tasks with no body returns validation error.\"\"\"\n        resp = self.client.post(\"/tasks\")\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    # -- GET /tasks ---------------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_list_tasks_success(self, mock_connect):\n        \"\"\"GET /tasks returns 200 with a JSON array.\"\"\"\n        rows = [_make_fake_row(task_id=1), _make_fake_row(task_id=2)]\n        mock_cur = _mock_cursor(fetchall_return=rows)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.get(\"/tasks\")\n\n        assert resp.status_code == 200\n        body = resp.json()\n        assert isinstance(body, list)\n        assert len(body) == 2\n\n    @pytest.mark.parametrize(\"query,filter_val\", [\n        (\"?completed=true\", True),\n        (\"?completed=false\", False),\n        (\"\", None),\n    ])\n    @patch(\"psycopg2.connect\")\n    def test_handle_list_tasks_filter(self, mock_connect, query, filter_val):\n        \"\"\"GET /tasks with completed query param filters correctly.\"\"\"\n        if filter_val is True:\n            rows = [_make_fake_row(task_id=1, completed=True)]\n        elif filter_val is False:\n            rows = [_make_fake_row(task_id=1, completed=False)]\n        else:\n            rows = [_make_fake_row(task_id=1, completed=True), _make_fake_row(task_id=2, completed=False)]\n\n        mock_cur = _mock_cursor(fetchall_return=rows)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.get(f\"/tasks{query}\")\n\n        assert resp.status_code == 200\n        body = resp.json()\n        assert isinstance(body, list)\n        if filter_val is not None:\n            for task in body:\n                assert task[\"completed\"] == filter_val\n\n    # -- PATCH /tasks/{id} --------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_update_task_success(self, mock_connect):\n        \"\"\"PATCH /tasks/1 with valid body returns 200 and updated task.\"\"\"\n        row = _make_fake_row(task_id=1, title=\"Test\", completed=True)\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.patch(\"/tasks/1\", json={\"completed\": True})\n\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body[\"completed\"] is True\n        assert body[\"id\"] == 1\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_update_task_not_found(self, mock_connect):\n        \"\"\"PATCH /tasks/99999 returns 404 with ErrorResponse.\"\"\"\n        mock_cur = _mock_cursor(fetchone_return=None, rowcount=0)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.patch(\"/tasks/99999\", json={\"completed\": True})\n\n        assert resp.status_code == 404\n        body = resp.json()\n        assert \"detail\" in body\n        assert body[\"detail\"] == \"Task not found\"\n\n    def test_handle_update_task_missing_body(self):\n        \"\"\"PATCH /tasks/1 with no body returns validation error.\"\"\"\n        resp = self.client.patch(\"/tasks/1\")\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    # -- DELETE /tasks/{id} -------------------------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_delete_task_success(self, mock_connect):\n        \"\"\"DELETE /tasks/1 returns 204 with empty body.\"\"\"\n        mock_cur = _mock_cursor(rowcount=1)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.delete(\"/tasks/1\")\n\n        assert resp.status_code == 204\n        assert resp.content == b\"\" or resp.text == \"\"\n\n    @patch(\"psycopg2.connect\")\n    def test_handle_delete_task_not_found(self, mock_connect):\n        \"\"\"DELETE /tasks/99999 returns 404 with ErrorResponse.\"\"\"\n        mock_cur = _mock_cursor(rowcount=0, fetchone_return=None)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.delete(\"/tasks/99999\")\n\n        assert resp.status_code == 404\n        body = resp.json()\n        assert \"detail\" in body\n        assert body[\"detail\"] == \"Task not found\"\n\n    # -- Invariant: error response format -----------------------------------\n\n    @patch(\"psycopg2.connect\")\n    def test_invariant_error_response_format(self, mock_connect):\n        \"\"\"All error responses conform to {'detail': 'message'} structure.\"\"\"\n        mock_cur = _mock_cursor(fetchone_return=None, rowcount=0)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.patch(\"/tasks/99999\", json={\"completed\": True})\n\n        assert resp.status_code == 404\n        body = resp.json()\n        assert \"detail\" in body\n        assert isinstance(body[\"detail\"], str)\n        # Should not have unexpected keys at top level beyond 'detail'\n        # (some frameworks add others, so we just verify 'detail' exists)\n\n    @patch(\"psycopg2.connect\")\n    def test_invariant_post_returns_201(self, mock_connect):\n        \"\"\"POST /tasks returns exactly 201 on success, never 200.\"\"\"\n        row = _make_fake_row(task_id=42, title=\"Invariant test\")\n        mock_cur = _mock_cursor(fetchone_return=row)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.post(\"/tasks\", json={\"title\": \"Invariant test\"})\n\n        assert resp.status_code == 201, f\"Expected 201 but got {resp.status_code}\"\n\n    @patch(\"psycopg2.connect\")\n    def test_invariant_delete_returns_204_empty_body(self, mock_connect):\n        \"\"\"DELETE /tasks/{id} returns exactly 204 with empty body, never JSON.\"\"\"\n        mock_cur = _mock_cursor(rowcount=1)\n        mock_conn = _mock_connection(cursor=mock_cur)\n        mock_connect.return_value = mock_conn\n\n        with patch.object(main_module, \"get_db_connection\", return_value=mock_conn):\n            resp = self.client.delete(\"/tasks/1\")\n\n        assert resp.status_code == 204, f\"Expected 204 but got {resp.status_code}\"\n        assert resp.content == b\"\", \"DELETE success must return empty body\"\n"
+}

@@ -1,0 +1,103 @@
+{
+  "task_summary": "Implement a single-file Python module ('Main' component) providing: SQLite-backed task CRUD operations, HTTP handler functions, and supporting types. The module must export all listed functions, types, and critically an 'HTTPException' class. Prior attempts failed due to missing HTTPException export and all database/CRUD tests failing — likely because the sqlite3 connection management and query patterns didn't match what the contract tests expect.",
+  "findings": [
+    {
+      "topic": "HTTPException export requirement",
+      "finding": "The contract tests explicitly import 'HTTPException' from the module. This must be a class (not a re-export from a framework) defined directly in the module. It should have at minimum 'status_code' and 'detail' attributes, matching the common pattern from FastAPI/Starlette. Since the project prefers stdlib over third-party, this must be a custom class.",
+      "source": "Prior failure analysis: 'MISSING EXPORT: Your module does not define HTTPException'",
+      "relevance": "Critical — this was the #1 failure in both prior attempts. Must be a top-level class definition.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "SQLite connection management pattern",
+      "finding": "The contract expects init_db(database_url) to establish/configure the database (create tables), and get_db_connection() to return a usable sqlite3.Connection. The standard pattern uses a module-level variable (_connection or _db_url) set by init_db, with get_db_connection returning the cached connection or creating one. Tests likely mock or use ':memory:' databases. init_db should store the URL and create the tasks table. get_db_connection should return a sqlite3.Connection object.",
+      "source": "Python sqlite3 stdlib documentation; common single-module patterns",
+      "relevance": "High — all TestDatabase tests failed, indicating the connection lifecycle is wrong.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "init_db must handle connection failures",
+      "finding": "test_init_db_connection_failed implies that init_db should raise or propagate an exception when the database_url is invalid/unreachable. sqlite3.connect() raises sqlite3.OperationalError for bad paths. The function should let this propagate naturally rather than swallowing it.",
+      "source": "Test name analysis: 'test_init_db_connection_failed'",
+      "relevance": "High — must not catch exceptions from sqlite3.connect().",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Task struct and SQLite schema design",
+      "finding": "Task should have fields: id (TaskId, int), title (TaskTitle, str), completed (bool), created_at (DateTime, str/datetime). The tasks table schema: id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, completed BOOLEAN NOT NULL DEFAULT 0, created_at TEXT NOT NULL. create_task should INSERT and return a fully-populated Task. Use row_factory = sqlite3.Row for clean row access.",
+      "source": "Standard task-app schema patterns; function signatures in spec",
+      "relevance": "High — CRUD tests depend on correct schema and return types.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Parameterized queries for security",
+      "finding": "test_create_task_uses_parameterized_query explicitly verifies that SQL injection is prevented. All queries must use '?' placeholders with parameter tuples, never f-strings or string formatting for values. The test likely inspects or mocks cursor.execute to verify parameterized form.",
+      "source": "Test name: 'test_create_task_uses_parameterized_query'; OWASP SQL injection prevention",
+      "relevance": "Critical — dedicated test for this security practice.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "list_tasks CompletedFilter behavior",
+      "finding": "CompletedFilter is Optional[bool]. The test matrix shows: None->no filter (returns all, completed column not checked), True->only completed, False->only not completed. The test 'test_list_tasks_filter[None-False]' suggests when filter is None, the WHERE clause for completed is omitted. The second value in parametrize likely indicates whether WHERE clause is present.",
+      "source": "Test parametrize pattern: [None-False], [True-True], [False-True]",
+      "relevance": "High — query must be conditionally constructed based on filter value.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "update_task and delete_task not-found handling",
+      "finding": "test_update_task_not_found and test_delete_task_not_found indicate these functions must raise an exception (likely HTTPException with 404) when the task_id doesn't exist. After UPDATE/DELETE, check cursor.rowcount == 0 to detect missing rows.",
+      "source": "Common REST CRUD pattern; test names",
+      "relevance": "High — must raise HTTPException(status_code=404) when task not found.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Task as dataclass or NamedTuple",
+      "finding": "Per project standards (type annotations, composition over inheritance, stdlib preference), Task and request/response types should be dataclasses. Using @dataclass provides clean constructors, type hints, and is stdlib. Task should be convertible from sqlite3.Row.",
+      "source": "Python 3.12 stdlib dataclasses; project preferences",
+      "relevance": "Medium — clean type definitions aid testability.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Handler functions as thin wrappers",
+      "finding": "handle_* functions are HTTP-layer adapters over the CRUD functions. handle_create_task extracts title from CreateTaskRequest body and calls create_task. handle_list_tasks passes through CompletedFilter. handle_update_task extracts completed from UpdateTaskRequest. handle_delete_task calls delete_task, raises HTTPException(404) if False returned. handle_serve_index returns an HTML response (could be a simple string or dict).",
+      "source": "Function signature analysis; REST handler patterns",
+      "relevance": "Medium — handlers are likely tested separately from CRUD layer.",
+      "confidence": 0.8
+    },
+    {
+      "topic": "Module-level connection state",
+      "finding": "The module should use module-level state (e.g., _connection: Optional[sqlite3.Connection] = None, _database_url: Optional[str] = None) that init_db populates. get_db_connection checks this state and returns the connection. This allows tests to call init_db(':memory:') and then exercise CRUD functions.",
+      "source": "Common pattern for single-module apps without DI frameworks",
+      "relevance": "High — test infrastructure depends on this lifecycle.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "datetime handling",
+      "finding": "created_at should use datetime.datetime.now(datetime.timezone.utc).isoformat() or similar ISO-8601 string. Store as TEXT in SQLite. This is stdlib-only and unambiguous.",
+      "source": "Python datetime best practices; SQLite TEXT affinity for dates",
+      "relevance": "Medium — ensures consistent serialization.",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "Implement a single Python module with these layers:\n\n1. **Types** (top of file): Define HTTPException as a custom Exception subclass with status_code and detail attributes. Define Task, CreateTaskRequest, UpdateTaskRequest, ErrorResponse as @dataclass classes. Define TaskId = int, TaskTitle = str, DatabaseURL = str, CompletedFilter = Optional[bool], TaskList = list[Task].\n\n2. **Database layer**: Module-level `_connection` and `_database_url` variables. `init_db()` connects via sqlite3, stores connection, creates the tasks table with IF NOT EXISTS. `get_db_connection()` returns the stored connection (raises RuntimeError if not initialized). Set `row_factory = sqlite3.Row` on the connection.\n\n3. **CRUD layer**: All functions use `get_db_connection()` and parameterized queries exclusively. `create_task` INSERTs, uses `lastrowid` to fetch and return the new Task. `list_tasks` conditionally builds WHERE clause based on CompletedFilter. `update_task` and `delete_task` check `rowcount` and raise `HTTPException(status_code=404)` when not found. `update_task` returns the updated Task by re-fetching. `delete_task` returns True on success.\n\n4. **Handler layer**: Thin wrappers. `handle_delete_task` calls `delete_task`, which already raises on not-found, and returns None on success. `handle_serve_index` returns a minimal HTML string.\n\n5. **Exports**: Ensure every type and function listed in the spec is importable at module level. Critically, `HTTPException` must be a top-level class.\n\nKeep under 300 lines. All public functions get type annotations.",
+  "alternatives_considered": [
+    "Using a third-party ORM like SQLAlchemy — rejected per stdlib preference and single-file constraint.",
+    "Using a framework like Flask/FastAPI for HTTP handling — rejected because the spec defines custom handler functions and requires HTTPException as a module-level export, and project prefers stdlib.",
+    "Storing connection in a context variable for thread safety — over-engineering for this scope; module-level variable matches test expectations.",
+    "Using TypedDict instead of dataclass for request/response types — dataclass is cleaner and provides constructors that tests likely rely on."
+  ],
+  "risks": [
+    "The exact shape of HTTPException (constructor signature, attributes) is unknown — must match what contract tests instantiate. Safest bet: HTTPException(status_code: int, detail: str = '') with both as instance attributes.",
+    "Contract tests may expect specific Task field names or constructor order — dataclass field order must match: id, title, completed, created_at.",
+    "Tests may mock sqlite3 or cursor.execute — the CRUD functions must call execute on the connection's cursor in a straightforward way that's mockable.",
+    "get_db_connection might need to raise a specific exception type if DB not initialized — could be RuntimeError or HTTPException(500).",
+    "The test 'test_create_task_uses_parameterized_query' may patch cursor.execute and inspect args — must ensure execute is called with (sql_string, tuple) form, not named parameters."
+  ],
+  "compliance_notes": [
+    "All public functions must have type annotations per project standards.",
+    "All queries must use parameterized form (?) — never string interpolation for values.",
+    "File must stay under 300 lines.",
+    "No third-party imports — sqlite3, dataclasses, datetime, typing are all stdlib.",
+    "HTTPException MUST be defined and exported at module level — this was the blocking failure in both prior attempts."
+  ]
+}

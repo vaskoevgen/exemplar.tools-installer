@@ -1,0 +1,8 @@
+project_name: todo-list
+schemas_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list/schemas
+changelog_path: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list/changelog.yaml
+plans_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list/plans
+backends:
+  - name: todo_db
+    base_url: ""
+custom_annotations: []

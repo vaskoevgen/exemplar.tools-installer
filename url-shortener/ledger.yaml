@@ -1,8 +1,0 @@
-project_name: url-shortener
-schemas_dir: /Users/yevhenvasko/source/exemplar.tools-installer/url-shortener/schemas
-changelog_path: /Users/yevhenvasko/source/exemplar.tools-installer/url-shortener/changelog.yaml
-plans_dir: /Users/yevhenvasko/source/exemplar.tools-installer/url-shortener/plans
-backends:
-  - name: links_db
-    base_url: ""
-custom_annotations: []
