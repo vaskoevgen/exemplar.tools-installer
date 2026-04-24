@@ -1,9 +1,9 @@
 # tests
-calculator-demo-test/
-test/
-todo-app-test*/
 
 # env
 .env
 
 exemplar.tools/
+
+# Python virtual environments
+.venv/
