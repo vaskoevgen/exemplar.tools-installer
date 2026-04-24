@@ -1,0 +1,43 @@
+INFO:     Started server process [14638]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:63529 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [14638]
+INFO:     Started server process [15293]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:9000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64474 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51390 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:51392 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51394 - "PATCH /tasks/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51396 - "GET /tasks?completed=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51400 - "DELETE /tasks/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:51537 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:51539 - "PATCH /tasks/3 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51541 - "GET /tasks?completed=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51543 - "DELETE /tasks/3 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:55200 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:55347 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55426 - "GET /tasks?completed=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55501 - "GET /tasks?completed=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55581 - "PATCH /tasks/1 HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55740 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55740 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55740 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+INFO:     127.0.0.1:55909 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57015 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57015 - "GET /tasks?completed=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57015 - "GET /tasks?completed=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57015 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57016 - "POST /tasks HTTP/1.1" 201 Created
+INFO:     127.0.0.1:57016 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57016 - "DELETE /tasks/5 HTTP/1.1" 204 No Content
+INFO:     127.0.0.1:57016 - "GET /tasks HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57016 - "GET /tasks?completed=false HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57016 - "GET /tasks?completed=true HTTP/1.1" 200 OK
+INFO:     127.0.0.1:57016 - "GET /tasks HTTP/1.1" 200 OK

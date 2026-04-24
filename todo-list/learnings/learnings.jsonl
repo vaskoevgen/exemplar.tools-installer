@@ -1,0 +1,2 @@
+{"lesson": "implementation_bug in root: Component 'root' failed 13 of 18 contract tests. Since this is a leaf component, the implementation does not match the contract.", "category": "failure_mode", "component_id": "root", "timestamp": "2026-04-24T12:57:27.483967"}
+{"lesson": "implementation_bug in root: Component 'root' failed 13 of 18 contract tests. Since this is a leaf component, the implementation does not match the contract.", "category": "failure_mode", "component_id": "root", "timestamp": "2026-04-24T13:04:20.422919"}

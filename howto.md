@@ -206,6 +206,16 @@ export ANTHROPIC_API_KEY=sk-...
 constrain
 ```
 
+**Non-interactive mode** — skip the interview entirely by priming with a description document and setting both round counts to 0:
+
+```bash
+constrain new --min-challenge 0 --max-challenge 0 --min-understand 0 --max-understand 0 -p prime.md
+```
+
+Write `prime.md` as a plain-English description of what to build. Constrain ingests it, extracts requirements, and generates all artifacts in one pass — no back-and-forth needed.
+
+> **Prime document tip:** Do not use `{...}` JSON examples in the prime document (e.g. `{"title": "string"}`). Curly braces cause the YAML generator to crash with a mapping error. Describe JSON shapes in plain English instead — e.g. "a JSON object with a title field" or "returns the created task with its id, title, completed, and created_at fields".
+
 Constrain will interview you about what you want to build. When it finishes, it writes these files to your current directory:
 
 | File | Consumed by |
@@ -226,9 +236,7 @@ deactivate
 
 Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
-> **Integration status:** The Ledger CLI and annotation model are fully designed. The CLI parses all commands correctly and exits 0. However, the business logic behind every command is a stub — `ledger init` creates no `ledger.yaml`, `ledger backend add` registers nothing, `ledger schema add` stores nothing, and `ledger export` returns empty contracts. The `ledger builtins list` command works and shows the full annotation catalogue.
->
-> Once implemented, the workflow will be:
+> **Integration status:** `ledger init` and `ledger builtins list/show` are fully implemented. `ledger backend add` has a bug (TypeError: 4 args to 3-arg function) — register backends directly in `ledger.yaml` instead. `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but schema validation runs implicitly at config load time. Track progress at [jmcentire/ledger#2](https://github.com/jmcentire/ledger/pull/2).
 
 **Activate:**
 
@@ -240,32 +248,140 @@ source ../exemplar.tools/ledger/.venv/bin/activate
 source ../exemplar.tools/ledger/.venv/bin/activate.fish
 ```
 
-**Initialize and register schemas:**
+**Initialize Ledger in your project directory:**
 
 ```bash
 ledger init
-ledger backend add users_db --type postgres --owner user_service
-ledger schema add schemas/users.yaml
-ledger schema validate
+# Creates: ledger.yaml, schemas/, plans/, changelog.yaml
 ```
 
-**Export obligations to peer tools:**
+**Register a backend** — add directly to `ledger.yaml` (`ledger backend add` has a bug):
+
+```yaml
+# ledger.yaml
+backends:
+  - name: my_db        # required
+    base_url: ""       # optional, default ""
+```
+
+> Backend model fields: `name`, `enabled`, `base_url`, `timeout_ms`. There is no `owner` or `type` field.
+
+**Create a schema YAML** in `schemas/`:
+
+```yaml
+# schemas/links.yaml
+name: links          # required
+version: 1           # required — integer, not "1.0"
+
+fields:
+  - name: short_code
+    field_type: varchar(6)   # key is field_type, not type
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable      # annotations are dicts with 'name' key — not bare strings
+      - name: not_null
+```
+
+> Valid `classification` values: `PUBLIC`, `PII`, `FINANCIAL`, `AUTH`, `COMPLIANCE`.
+
+**Register and validate the schema:**
 
 ```bash
-ledger export --format pact --component user_service
-ledger export --format arbiter
-ledger export --format sentinel
+ledger schema add schemas/links.yaml   # exits 0; validation happens at config load
+ledger schema validate                 # exits 0 silently if valid
 ```
 
-**Explore the built-in annotation catalogue (works today):**
+**Explore the built-in annotation catalogue:**
 
 ```bash
 ledger builtins list
 ledger builtins show immutable
 ```
 
+**Export obligations** (stub — returns empty contracts until implemented):
+
+```bash
+ledger export --format pact
+ledger export --format arbiter
+```
+
 ```bash
 deactivate
+```
+
+---
+
+### 1c — Database setup (required before Pact if your app uses PostgreSQL)
+
+If your project connects to PostgreSQL, spin up the test database **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks.
+
+#### macOS (Docker Desktop) — port 5432 is mandatory
+
+Docker Desktop on macOS only proxies PostgreSQL SCRAM-SHA-256 authentication correctly through the **standard port 5432**. Other ports (5433, 5434, etc.) fail with `fe_sendauth: no password supplied` or `FATAL: password authentication failed` regardless of pg_hba.conf settings.
+
+```bash
+# Check if port 5432 is already in use
+lsof -i :5432 | grep LISTEN
+
+# If free, start a postgres container on 5432
+docker run -d \
+  --name pact-test-pg \
+  -e POSTGRES_USER=pact \
+  -e POSTGRES_PASSWORD=pact \
+  -e POSTGRES_DB=<yourapp>_test \
+  -p 5432:5432 \
+  arm64v8/postgres:17-alpine
+
+# Wait for it to be ready (usually < 5 seconds)
+until docker exec pact-test-pg pg_isready -U pact; do sleep 1; done
+```
+
+> Use `arm64v8/postgres:17-alpine` on Apple Silicon. The plain `postgres:17-alpine` image may silently pull the wrong architecture and misbehave.
+
+#### Create the schema
+
+Run your migration SQL before pact so the tables exist for the test harness:
+
+```bash
+docker exec -i pact-test-pg psql -U pact -d <yourapp>_test << 'SQL'
+-- paste your CREATE TABLE statements here
+SQL
+```
+
+#### Set DATABASE_URL and TEST_DATABASE_URL
+
+Both variables must be set in the shell that starts the Pact daemon:
+
+```bash
+# bash / zsh
+export DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+export TEST_DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+
+# fish
+set -x DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+set -x TEST_DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+```
+
+> Pact passes these to the test harness as-is. Both should point to the same test database — Pact does not use a separate application database during testing.
+
+#### Also add your project venv to PATH
+
+Pact's test runner calls `python3` from the system PATH. If your project depends on third-party libraries (FastAPI, psycopg2, etc.), your project venv must be on PATH before the daemon starts:
+
+```bash
+# bash / zsh — prepend your project venv
+export PATH="/absolute/path/to/your/project/.venv/bin:$PATH"
+
+# fish
+fish_add_path --prepend /absolute/path/to/your/project/.venv/bin
+```
+
+Then start the daemon:
+
+```bash
+source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
+pact daemon start
 ```
 
 ---
@@ -399,13 +515,27 @@ Then signal the daemon:
 pact approve .
 ```
 
-**Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning (planning tokens dominate generation tokens on first builds). This is a false positive on first builds — all tokens go to planning before implementation starts. Resume each time it pauses:
+**Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning. These are false positives caused by four known bugs in the health checker (PR open: [jmcentire/pact#2](https://github.com/jmcentire/pact/pull/2)). Resume each time it pauses:
 
 ```bash
 pact resume .
 ```
 
-Repeat up to 2–3 times until the implementation phase starts (visible in `pact log .` as `implementation — root attempt 1`).
+> **Known bugs (until PR #2 merges):** The health gate fires spuriously at multiple points in every build:
+>
+> | Check | When it fires | Root cause |
+> |-------|--------------|------------|
+> | `output_planning_ratio` | Before any code is written | `generation_tokens == 0` triggers ratio calculation |
+> | `variance_reaches_target` | During `preflight`, `integrate`, `arbiter`, `polish`, etc. | Only `interview` and `shape` were whitelisted as pre-artifact phases |
+> | `phase_balance` | Whenever `implement` dominates token spend | Execution phases dominating is expected, not an error |
+>
+> **Workaround:** each time the build pauses, run `pact resume .`. You may need to do this 3–5 times per build. If the daemon has exited (10 min idle timeout), restart it first:
+>
+> ```bash
+> # Set env vars (same as when you first started it), then:
+> pact daemon . &
+> pact resume .
+> ```
 
 > If the daemon process exits entirely (rather than just pausing), check that `ANTHROPIC_API_KEY` is set in the shell that runs `pact daemon .`. If the state ends up as `"status": "failed"` in `.pact/state.json`, reset it manually: set `"status"` back to `"active"` and clear `"completed_at"` and `"pause_reason"`, then rerun `pact daemon .`.
 

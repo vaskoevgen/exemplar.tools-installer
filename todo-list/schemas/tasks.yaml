@@ -1,0 +1,33 @@
+name: tasks
+version: 1
+
+fields:
+  - name: id
+    field_type: serial
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
+
+  - name: title
+    field_type: varchar(500)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: completed
+    field_type: boolean
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+      - name: immutable

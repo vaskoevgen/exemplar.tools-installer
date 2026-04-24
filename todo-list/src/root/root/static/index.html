@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #333; }
+        .add-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        #new-task { padding: 8px; flex: 1; border: 1px solid #ccc; border-radius: 4px; }
+        #add-btn { padding: 8px 16px; background: #2980b9; color: white; border: none; border-radius: 4px; cursor: pointer; }
+        #add-btn:hover { background: #1f6fa8; }
+        .filters { display: flex; gap: 8px; margin-bottom: 16px; }
+        .filters button { padding: 6px 14px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer; background: white; }
+        .filters button.active { background: #2980b9; color: white; border-color: #2980b9; }
+        .task { display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .task input[type=checkbox] { margin-right: 12px; cursor: pointer; }
+        .task span { flex: 1; }
+        .task.completed span { text-decoration: line-through; color: #999; }
+        .task .del-btn { background: #e74c3c; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+        .task .del-btn:hover { background: #c0392b; }
+        #empty-msg { color: #999; text-align: center; padding: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <div class="add-row">
+        <input type="text" id="new-task" placeholder="Enter a new task..." maxlength="500">
+        <button id="add-btn" onclick="addTask()">Add</button>
+    </div>
+    <div class="filters">
+        <button onclick="setFilter(null)" id="filter-all" class="active">All</button>
+        <button onclick="setFilter(false)" id="filter-active">Active</button>
+        <button onclick="setFilter(true)" id="filter-completed">Completed</button>
+    </div>
+    <div id="tasks"></div>
+    <div id="empty-msg" style="display:none">No tasks here.</div>
+
+    <script>
+        let currentFilter = null;
+
+        function setFilter(val) {
+            currentFilter = val;
+            document.getElementById('filter-all').classList.toggle('active', val === null);
+            document.getElementById('filter-active').classList.toggle('active', val === false);
+            document.getElementById('filter-completed').classList.toggle('active', val === true);
+            loadTasks();
+        }
+
+        async function loadTasks() {
+            let url = '/tasks';
+            if (currentFilter !== null) url += '?completed=' + currentFilter;
+            const resp = await fetch(url);
+            const tasks = await resp.json();
+            const container = document.getElementById('tasks');
+            const empty = document.getElementById('empty-msg');
+            container.innerHTML = '';
+            if (tasks.length === 0) {
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                tasks.forEach(t => {
+                    const div = document.createElement('div');
+                    div.className = 'task' + (t.completed ? ' completed' : '');
+                    div.innerHTML =
+                        `<input type="checkbox" ${t.completed ? 'checked' : ''} onchange="toggleTask(${t.id}, this.checked)">` +
+                        `<span>${escapeHtml(t.title)}</span>` +
+                        `<button class="del-btn" onclick="deleteTask(${t.id})">Delete</button>`;
+                    container.appendChild(div);
+                });
+            }
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        async function addTask() {
+            const input = document.getElementById('new-task');
+            const title = input.value.trim();
+            if (!title) return;
+            const resp = await fetch('/tasks', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({title})
+            });
+            if (!resp.ok) {
+                const err = await resp.json();
+                alert(err.detail || 'Failed to add task');
+                return;
+            }
+            input.value = '';
+            loadTasks();
+        }
+
+        async function toggleTask(id, completed) {
+            await fetch(`/tasks/${id}`, {
+                method: 'PATCH',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({completed})
+            });
+            loadTasks();
+        }
+
+        async function deleteTask(id) {
+            await fetch(`/tasks/${id}`, {method: 'DELETE'});
+            loadTasks();
+        }
+
+        document.getElementById('new-task').addEventListener('keydown', e => {
+            if (e.key === 'Enter') addTask();
+        });
+
+        loadTasks();
+    </script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+Created FIFO: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list/.pact/dispatch
+Dispatching phase: interview
+/Users/yevhenvasko/source/exemplar.tools/transmogrifier/src/transmogrifier/profiles.py:15: UserWarning: Field name "register" in "RegisterAccuracy" shadows an attribute in parent "BaseModel"
+  class RegisterAccuracy(BaseModel):
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Processing register established: pragmatic-implementation
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Phase complete: interview -> paused ($0.0721)
+Paused: Interview questions pending — waiting for user answers — waiting for signal on FIFO
+Received signal: approved
+Dispatching phase: interview
+Phase complete: shape -> active ($0.0721)
+Dispatching phase: shape
+Phase complete: decompose -> active ($0.0721)
+Dispatching phase: decompose
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Type registry: 12 shared types
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5913 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5938 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for root: 9 types, 11 functions (12546 tokens)
+Type registry enforcement: root.TaskId — replaced LLM version with canonical
+Type registry enforcement: root.Task — replaced LLM version with canonical
+Type registry enforcement: root.CreateTaskRequest — replaced LLM version with canonical
+Type registry enforcement: root.UpdateTaskRequest — replaced LLM version with canonical
+Type registry enforcement: root.ErrorResponse — replaced LLM version with canonical
+Type registry enforcement: root.String — injected referenced shared type
+Type registry enforcement: root.Bool — injected referenced shared type
+Type registry enforcement: root.DateTime — injected referenced shared type
+Type registry: 8 corrections applied to root
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 11 findings, 5093 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5609 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for root: 44 cases (11152 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+ for 6510fd23d240
+Traceback (most recent call last):
+  File "/Users/yevhenvasko/source/exemplar.tools/pact/src/pact/scheduler.py", line 313, in run_once
+    state = await self._do_burst(state)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yevhenvasko/source/exemplar.tools/pact/src/pact/scheduler.py", line 400, in _do_burst
+    state = await self._phase_interview(state, sops)
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yevhenvasko/source/exemplar.tools/pact/src/pact/scheduler.py", line 536, in _phase_interview
+    task = self.project.load_task()
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/yevhenvasko/source/exemplar.tools/pact/src/pact/project.py", line 374, in load_task
+    raise FileNotFoundError(f"No task.md found in {self.project_dir}")
+FileNotFoundError: No task.md found in /Users/yevhenvasko/source/exemplar.tools-installer
+Phase complete: interview -> failed ($0.0000)
+Run terminal: failed
+Daemon starting for: /Users/yevhenvasko/source/exemplar.tools-installer
+  FIFO: /Users/yevhenvasko/source/exemplar.tools-installer/.pact/dispatch
+  Health check: every 30s
+  Max idle: 600s
+  Phase timeout: 3600s (hard wall-clock)
+  Resume with: pact signal .
+
+
+[6510fd23d240] failed          $0.0000
+  Phase: interview
+  Project: /Users/yevhenvasko/source/exemplar.tools-installer
+  Reason: Unexpected error: No task.md found in /Users/yevhenvasko/source/exemplar.tools-installer
+Dispatching phase: decompose
+Skipping root — contract and tests already exist
+HEALTH CRITICAL: [variance_reaches_target] Only 0% of tokens reach generation. Variance is trapped in the planning layer.
+Phase complete: preflight -> paused ($0.0000)
+Health check triggered pause — dysmemic pressure detected
+Paused: Health check: dysmemic pressure detected. no remedies available. Review with 'pact health'. — waiting for signal on FIFO
+Received signal: resumed
+Dispatching phase: preflight
+Preflight skipped — backend 'anthropic' is not claude_code
+Phase complete: implement -> active ($0.0000)
+Dispatching phase: implement
+Implementing root (attempt 1/3)
+/Users/yevhenvasko/source/exemplar.tools/transmogrifier/src/transmogrifier/profiles.py:15: UserWarning: Field name "register" in "RegisterAccuracy" shadows an attribute in parent "BaseModel"
+  class RegisterAccuracy(BaseModel):
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4561 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4890 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 4 files (4763 tokens)
+Cannot auto-fix 1 missing exports: ['HTTPException']
+Component root failed 13/18 tests on attempt 1
+Implementing root (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4668 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4700 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 4 files (5663 tokens)
+Cannot auto-fix 1 missing exports: ['HTTPException']
+Component root failed 13/18 tests on attempt 2
+Implementing root (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 11 findings, 5168 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5090 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 3 files (4948 tokens)
+Cannot auto-fix 1 missing exports: ['HTTPException']
+Component root failed 13/18 tests on attempt 3
+Component root failed after 3 attempts
+Phase complete: diagnose -> active ($0.7261)
+Dispatching phase: diagnose
+Diagnosed root: implementation_bug in root
+Phase complete: implement -> active ($0.7261)
+Dispatching phase: implement
+Implementing root (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4469 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4838 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 4 files (4620 tokens)
+Cannot auto-fix 1 missing exports: ['HTTPException']
+Component root failed 13/18 tests on attempt 1
+Implementing root (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 11 findings, 4790 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4678 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 3 files (5529 tokens)
+Cannot auto-fix 1 missing exports: ['HTTPException']
+Component root failed 13/18 tests on attempt 2
+Implementing root (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 11 findings, 4981 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4955 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for root: 3 files (4884 tokens)
+Component root failed 13/18 tests on attempt 3
+Component root failed after 3 attempts
+HEALTH CRITICAL: [rejection_rate] Rejection rate 100% — agents rejecting 2/2 attempts. Selection pressure is on process compliance, not outcomes.
+Phase complete: diagnose -> active ($1.4422)
+Dispatching phase: diagnose
+Diagnosed root: implementation_bug in root
+HEALTH CRITICAL: [rejection_rate] Rejection rate 100% — agents rejecting 2/2 attempts. Selection pressure is on process compliance, not outcomes.
+Phase complete: implement -> active ($1.4422)
+Dispatching phase: implement
+Implementing root (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"

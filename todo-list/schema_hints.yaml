@@ -1,0 +1,30 @@
+version: "1.0"
+generated_by: constrain
+session_id: "task_mgmt_001"
+
+storage_backends:
+  - owner_component: "database"
+    type: postgres
+    description: "Primary storage for task data with id, title, completed, created_at fields"
+
+field_hints:
+  - backend_owner: "database"
+    field_description: "Task unique identifier"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Simple identifier with no sensitive information"
+  - backend_owner: "database"
+    field_description: "Task title/description text"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Personal task information, non-sensitive"
+  - backend_owner: "database"
+    field_description: "Task completion status boolean"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Simple status flag, non-sensitive"
+  - backend_owner: "database"
+    field_description: "Task creation timestamp"
+    likely_classification: PUBLIC
+    likely_annotations: [audit_field]
+    rationale: "Timestamp for task creation tracking and potential debugging"

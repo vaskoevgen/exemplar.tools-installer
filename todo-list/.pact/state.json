@@ -1,0 +1,138 @@
+{
+  "id": "94b131406f66",
+  "project_dir": "/Users/yevhenvasko/source/exemplar.tools-installer/todo-list",
+  "status": "active",
+  "phase": "implement",
+  "component_tasks": [
+    {
+      "component_id": "root",
+      "status": "pending",
+      "attempts": 0,
+      "last_error": ""
+    }
+  ],
+  "interview_result": {
+    "risks": [
+      "**Python version conflict**: Task spec says Python 3.11+, SOPs say Python 3.12+. If CI enforces 3.12+ but code targets 3.11 idioms (or vice versa), builds break.",
+      "**300-line file limit vs. single-file backend**: A FastAPI app with raw SQL, table creation/migration, error handling, static file serving, and all four CRUD endpoints will very likely exceed the 300-line SOP limit. The single `main.py` constraint directly conflicts with the SOP.",
+      "**300-line file limit vs. single-file frontend**: An `index.html` with inline CSS, JS, full CRUD UI, and filter logic will also likely exceed 300 lines. Same conflict.",
+      "**Testing raw SQL without external services**: SOP mandates 'Tests must be runnable without external services', but the entire data layer is raw psycopg2 SQL against PostgreSQL. There's no ORM to mock, no repository abstraction specified. Engineers will either need an in-memory substitute (sqlite won't match PG semantics), or must spin up a test container — violating the SOP. This is the highest-risk conflict in the spec.",
+      "**'All functions must have at least one test'**: Combined with a single-file backend using raw SQL, this requires careful function decomposition to make anything testable. If an engineer writes monolithic route handlers with inline SQL, testing without a DB is nearly impossible.",
+      "**No database migration or schema management strategy**: Spec says table `tasks` with a specific schema but doesn't specify who creates it — the app on startup? A separate script? A Docker init script? Different engineers will make incompatible choices.",
+      "**psycopg2 connection lifecycle unspecified**: No connection pooling strategy defined. A naive implementation will either leak connections, open one per request (slow), or hold a single global connection (not thread-safe under uvicorn workers).",
+      "**No CORS configuration mentioned**: If the frontend is served from the same FastAPI instance this is fine, but the spec doesn't explicitly prohibit separate serving. Missing CORS middleware would break any split-origin deployment.",
+      "**DELETE returning 204 conflicts with typical FastAPI Response handling**: FastAPI auto-serializes return values as JSON. Returning a bare 204 requires explicit `Response(status_code=204)`. Minor, but a common mistake.",
+      "**No validation on title field**: Spec says `VARCHAR(500) NOT NULL` but doesn't specify what happens with empty strings, whitespace-only titles, or strings exceeding 500 chars. Different engineers will handle this differently."
+    ],
+    "ambiguities": [
+      "**Task object shape**: `POST /tasks` says 'return the created task object' — does this include `id`, `created_at`, `completed`? What serialization format for `created_at` (ISO 8601? Unix timestamp)?",
+      "**PATCH /tasks/{id} — partial update scope**: Body says `{\"completed\": true/false}` but is `title` also updatable via PATCH? The spec only shows `completed` but doesn't explicitly restrict it.",
+      "**GET /tasks — sort order**: No ordering specified. Different engineers will return tasks in insertion order, reverse chronological, or alphabetical.",
+      "**Filter query param behavior**: `?completed=true` is specified but what about `?completed=invalid`? Return 400? Ignore the param? Default to all?",
+      "**Database table creation responsibility**: Should `main.py` auto-create the table on startup via `CREATE TABLE IF NOT EXISTS`, or is this handled externally?",
+      "**Frontend error handling**: No spec for what the UI does when API calls fail (network error, 404, 500). Toast? Alert? Silent failure?",
+      "**Static file serving mechanism**: Should this use `StaticFiles` middleware mount or a dedicated route handler for `GET /`? The spec says 'Serve the static/index.html file at GET /' which suggests a route, but static assets (if any beyond index.html) aren't addressed.",
+      "**Test file location and structure**: SOPs require tests but spec doesn't mention test file paths or fixtures."
+    ],
+    "questions": [
+      "Which Python version is authoritative — the task's 3.11+ or the SOP's 3.12+?",
+      "How should the 300-line-per-file SOP be reconciled with the single-file constraints? Is splitting into multiple modules acceptable, or does the line limit get waived for this task?",
+      "How should tests exercise the raw SQL data layer without a running PostgreSQL instance? Is a Docker-based test PostgreSQL acceptable (contradicting the SOP), or should we introduce a repository abstraction layer to enable mocking?",
+      "Should the application auto-create the `tasks` table on startup, or is schema creation handled externally?",
+      "Is `title` updatable via `PATCH /tasks/{id}`, or is `completed` the only mutable field after creation?",
+      "What is the expected sort order for `GET /tasks`?",
+      "Should empty or whitespace-only `title` values be rejected with a 400, or accepted as-is?"
+    ],
+    "assumptions": [
+      "Python 3.12+ (SOP takes precedence as organizational standard over task-local spec).",
+      "The 300-line limit is a guideline; for these two constrained single-file artifacts, we accept exceeding it rather than violating the single-file requirement, but will minimize bloat.",
+      "The application will auto-create the `tasks` table on startup using `CREATE TABLE IF NOT EXISTS`.",
+      "Tests will use a repository/service pattern extracted from route handlers, allowing the SQL layer to be mocked. Integration tests requiring PostgreSQL will be marked and skippable.",
+      "`created_at` will be serialized as ISO 8601 string in all JSON responses.",
+      "Task objects returned from API include all four fields: `id`, `title`, `completed`, `created_at`.",
+      "`GET /tasks` returns tasks ordered by `created_at ASC` (oldest first).",
+      "Only `completed` is updatable via PATCH. Title is immutable after creation.",
+      "Empty or whitespace-only titles are rejected with 400.",
+      "Titles exceeding 500 characters are rejected with 400.",
+      "Connection pooling will use a simple pool or connection-per-request pattern appropriate for uvicorn's async model (noting psycopg2 is synchronous — this may require `run_in_executor` or accepting blocking calls).",
+      "psycopg2 is synchronous and will block the async event loop; since the spec mandates psycopg2-binary (not asyncpg), we accept this limitation and will not introduce asyncpg.",
+      "Frontend errors will be shown via simple inline UI messages (not `alert()`).",
+      "Test files will live in `tests/` at the project root."
+    ],
+    "acceptance_criteria": [
+      "POST /tasks with valid JSON {\"title\": \"string\"} returns 201 with complete task object {id, title, completed, created_at}.",
+      "POST /tasks with empty/missing title returns 400 with {\"detail\": \"...\"} error.",
+      "GET /tasks returns 200 with JSON array of all task objects.",
+      "GET /tasks?completed=true returns only completed tasks; ?completed=false returns only active tasks.",
+      "PATCH /tasks/{id} with {\"completed\": true} returns 200 with updated task object where completed=true.",
+      "PATCH /tasks/{id} for non-existent id returns 404 with {\"detail\": \"...\"} error.",
+      "DELETE /tasks/{id} returns 204 with no body for existing task.",
+      "DELETE /tasks/{id} for non-existent id returns 404 with {\"detail\": \"...\"} error.",
+      "GET / serves the frontend HTML page with 200 and content-type text/html.",
+      "Frontend renders a task list, add-task input+button, per-task completion checkbox, per-task delete button, and All/Active/Completed filter buttons.",
+      "Frontend re-fetches and re-renders the task list after every create, toggle, or delete operation.",
+      "Application connects to PostgreSQL using DATABASE_URL environment variable.",
+      "Application auto-creates the tasks table on startup if it does not exist.",
+      "All public Python functions have type annotations.",
+      "All backend functions have at least one corresponding test.",
+      "Tests pass without requiring a running PostgreSQL instance (data layer is mockable).",
+      "Backend is a single file at src/root/main.py; frontend is a single file at src/root/static/index.html.",
+      "README.md includes Docker-based PG setup, pip install instructions, uvicorn run command, browser access URL, and full API reference.",
+      "No external frontend dependencies — no CDN links, no npm, no build step.",
+      "Raw SQL only — no SQLAlchemy, no ORM."
+    ],
+    "user_answers": {},
+    "approved": false,
+    "audited_answers": [],
+    "processing_register": "pragmatic-implementation"
+  },
+  "total_cost_usd": 1.442195,
+  "total_tokens": 88195,
+  "last_check_in": "2026-04-24T13:04:20.424592",
+  "created_at": "2026-04-24T12:39:54.412625",
+  "completed_at": "",
+  "pause_reason": "Components failed: root",
+  "phase_cycles": 2,
+  "health_snapshot": {
+    "planning_tokens": 5358,
+    "generation_tokens": 88195,
+    "planning_calls": 1,
+    "generation_calls": 2,
+    "plan_revisions": 0,
+    "implementation_attempts": 2,
+    "implementation_failures": 2,
+    "test_failures": 26,
+    "test_passes": 10,
+    "contracts_produced": 1,
+    "tests_produced": 1,
+    "implementations_produced": 0,
+    "component_failures": {
+      "root": 2
+    },
+    "cascade_events": 0,
+    "register_drift_events": 0,
+    "register_checks": 0,
+    "phase_tokens": {
+      "interview": {
+        "input_tokens": 3094,
+        "output_tokens": 2264,
+        "calls": 1
+      },
+      "implement": {
+        "input_tokens": 38134,
+        "output_tokens": 50061,
+        "calls": 2
+      }
+    },
+    "total_spend": 1.442195,
+    "budget_cap": 10.0,
+    "_overall_status": "critical",
+    "_critical_findings": [
+      "[rejection_rate] Rejection rate 100% — agents rejecting 2/2 attempts. Selection pressure is on pr"
+    ]
+  },
+  "processing_register": "pragmatic-implementation",
+  "audit_commit": "",
+  "arbiter_response": {},
+  "constrain_context": {}
+}

@@ -1,0 +1,59 @@
+version: "1.0"
+generated_by: constrain
+session_id: "task_mgmt_001"
+
+components:
+  - name: "web_frontend"
+    description: "Static HTML/JavaScript frontend serving user interface"
+    type: service
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Frontend only reads data via API calls, no direct writes"
+    authority:
+      domains: ["ui.*", "user_interaction.*"]
+      rationale: "Owns user interface and interaction domain"
+    dependencies: [api_backend]
+    constraints: [C001, C002, C005]
+
+  - name: "api_backend"
+    description: "FastAPI service handling REST endpoints and business logic"
+    type: service
+    port: 8000
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Backend handles all task CRUD operations"
+    authority:
+      domains: ["tasks.*", "business_logic.*"]
+      rationale: "Owns task business logic and data operations"
+    dependencies: [database]
+    constraints: [C001, C002, C004, C006, C007]
+
+  - name: "database"
+    description: "PostgreSQL database storing task data"
+    type: service
+    port: 5432
+    protocol: tcp
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Database stores and retrieves all task data"
+    authority:
+      domains: ["persistence.*", "storage.*"]
+      rationale: "Owns data persistence and storage domain"
+    dependencies: []
+    constraints: [C003, C007]
+
+edges:
+  - from: "web_frontend"
+    to: "api_backend"
+    protocol: http
+    description: "JSON API calls for task operations"
+  - from: "api_backend"
+    to: "database"
+    protocol: tcp
+    description: "SQL queries and task data persistence"

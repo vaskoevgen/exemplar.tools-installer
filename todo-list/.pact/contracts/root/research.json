@@ -1,0 +1,102 @@
+{
+  "task_summary": "Define the interface contract for the root 'Main' component of a Todo List web application. This component is a single Python file (src/root/main.py) implementing a FastAPI backend with raw SQL against PostgreSQL, serving a vanilla JS frontend. The contract must formalize the API surface (POST/GET/PATCH/DELETE on /tasks, GET / for static), the canonical type registry (Task, TaskId, CreateTaskRequest, UpdateTaskRequest, ErrorResponse, etc.), database schema, and error handling conventions.",
+  "findings": [
+    {
+      "topic": "FastAPI Pydantic model design for API contracts",
+      "finding": "FastAPI uses Pydantic models as the canonical way to define request/response schemas. The canonical types (Task, CreateTaskRequest, UpdateTaskRequest, ErrorResponse) map directly to Pydantic BaseModel subclasses. Fields must use Python type annotations matching the registry: `id: int`, `title: str`, `completed: bool`, `created_at: datetime`. FastAPI auto-generates OpenAPI schemas from these models, which serves as the living contract. Response models should be declared via `response_model=` parameter on route decorators to enforce serialization shape.",
+      "source": "FastAPI documentation — Response Model, Request Body",
+      "relevance": "Directly defines how the canonical type registry is realized in code and how the API contract is enforced at runtime.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "DateTime serialization convention (ISO-8601 with timezone)",
+      "finding": "The canonical DateTime type specifies ISO-8601 with timezone. PostgreSQL TIMESTAMPTZ values returned by psycopg2 are Python `datetime` objects with tzinfo set (typically UTC). Pydantic v2 serializes `datetime` to ISO-8601 by default. However, psycopg2 may return timezone-aware datetimes in the server's local timezone rather than UTC. Best practice: explicitly cast to UTC or use `AT TIME ZONE 'UTC'` in SQL, or configure psycopg2 connection timezone. Pydantic's `datetime` field handles serialization to the required format natively.",
+      "source": "psycopg2 documentation — Type adaptation; Pydantic v2 datetime serialization",
+      "relevance": "Ensures created_at field conforms to the canonical DateTime format across the serialization boundary.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Optional query parameter pattern for filtering",
+      "finding": "For `GET /tasks?completed=true|false`, FastAPI supports `Optional[bool] = None` as a query parameter with automatic parsing of 'true'/'false' strings to Python bool. This maps directly to the OptionalBool canonical type. When None, no filter is applied (return all tasks). When True/False, the SQL query adds a `WHERE completed = %s` clause. The TaskFilterStatus enum (all/active/completed) is a frontend concern mapping to: all→no param, active→completed=false, completed→completed=true.",
+      "source": "FastAPI documentation — Query Parameters and String Validations",
+      "relevance": "Defines the contract for the filtering interface between frontend and backend, bridging TaskFilterStatus to OptionalBool.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Error handling and HTTPException pattern",
+      "finding": "FastAPI's `HTTPException` with `detail=` string automatically produces `{\"detail\": \"message\"}` JSON responses, which exactly matches the canonical ErrorResponse struct. For 404 (task not found), raise `HTTPException(status_code=404, detail='Task not found')`. For validation errors, FastAPI returns 422 with Pydantic's error format by default. The contract should specify: 404 for missing task on PATCH/DELETE, 422 for malformed request bodies (handled automatically), and 204 No Content for successful DELETE (no body).",
+      "source": "FastAPI documentation — Handling Errors",
+      "relevance": "Directly implements the ErrorResponse canonical type and defines the error contract for all endpoints.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Raw SQL with psycopg2 — parameterized queries and connection management",
+      "finding": "Without an ORM, the contract must define SQL query patterns. Key practices: (1) Always use parameterized queries (`%s` placeholders) to prevent SQL injection. (2) Use `RETURNING *` on INSERT/UPDATE to get the created/updated row without a second query. (3) Connection management: create connection from DATABASE_URL env var, use context managers for cursors. (4) Use `psycopg2.extras.RealDictCursor` to get dict-like rows that map cleanly to Pydantic model constructors. (5) Table creation should be handled at startup (CREATE TABLE IF NOT EXISTS).",
+      "source": "psycopg2 documentation — Basic module usage; PostgreSQL RETURNING clause",
+      "relevance": "Defines the data access contract and how database rows map to canonical types.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "DELETE endpoint — 204 No Content response pattern",
+      "finding": "For DELETE /tasks/{id}, the contract specifies 204 No Content. In FastAPI, this is achieved with `@app.delete('/tasks/{id}', status_code=204)` and returning `Response(status_code=204)` or simply `None`. The response must have no body. If the task doesn't exist, return 404 with ErrorResponse. Important: check `cursor.rowcount` after DELETE to determine if a row was actually deleted.",
+      "source": "FastAPI documentation — Response Status Code; HTTP/1.1 RFC 7231 §6.3.5",
+      "relevance": "Defines the exact response contract for the DELETE endpoint, including the edge case of deleting a non-existent task.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Static file serving pattern",
+      "finding": "FastAPI can serve static files via `StaticFiles` mount or a direct route. For serving `static/index.html` at `GET /`, the cleanest pattern is `FileResponse('src/root/static/index.html')` on a GET route, or mounting `StaticFiles(directory='src/root/static', html=True)`. Since the spec says 'Serve static/index.html at GET /', a direct FileResponse route is more explicit and avoids path conflicts with API routes. Mount order matters: API routes should be registered before any catch-all static mount.",
+      "source": "FastAPI documentation — Static Files; Starlette StaticFiles",
+      "relevance": "Defines the contract for the static serving endpoint and avoids route conflict pitfalls.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Title validation — empty string and length constraint",
+      "finding": "The canonical CreateTaskRequest has a `title: String` field. The database constrains title to VARCHAR(500) NOT NULL. The contract should enforce: (1) title must not be empty or whitespace-only, (2) title must not exceed 500 characters. Pydantic v2 validators or `Field(min_length=1, max_length=500)` enforce this at the API boundary. Without explicit validation, an empty string would pass Pydantic's `str` type check but create a semantically invalid task.",
+      "source": "Pydantic v2 documentation — Field Validators; PostgreSQL VARCHAR constraints",
+      "relevance": "Frequently missed edge case — the contract must specify title validation rules to prevent invalid data.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "TaskId as path parameter — type coercion and validation",
+      "finding": "TaskId is defined as an integer (SERIAL PRIMARY KEY). FastAPI path parameters declared as `int` automatically validate and return 422 for non-integer values. The contract should specify that TaskId in path parameters is a positive integer. Negative or zero IDs are technically valid ints but will never match a SERIAL-generated key, resulting in a 404 — this is acceptable behavior but could optionally be caught earlier with `Path(gt=0)`.",
+      "source": "FastAPI documentation — Path Parameters and Numeric Validations",
+      "relevance": "Defines the type contract for TaskId at the API boundary.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Composition over inheritance — FastAPI dependency injection",
+      "finding": "The operating procedures mandate composition over inheritance. In a single-file FastAPI app, this manifests as: (1) Database connection/cursor provided via FastAPI's Depends() mechanism rather than base class methods. (2) Utility functions (get_db_connection, execute_query) as standalone functions composed into handlers. (3) Pydantic models as plain data containers, not subclassed hierarchies. This aligns with FastAPI's idiomatic patterns.",
+      "source": "Project operating procedures; FastAPI documentation — Dependencies",
+      "relevance": "Ensures the contract design follows the mandated architectural preference.",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "Define the interface contract as follows:\n\n**Pydantic Models (1:1 with canonical type registry):**\n- `Task(BaseModel)`: id: int, title: str, completed: bool, created_at: datetime — response model for POST and PATCH, list item for GET\n- `CreateTaskRequest(BaseModel)`: title: str (with Field(min_length=1, max_length=500)) — request body for POST /tasks\n- `UpdateTaskRequest(BaseModel)`: completed: bool — request body for PATCH /tasks/{id}\n- ErrorResponse is implicit via FastAPI's HTTPException(detail=str)\n\n**API Endpoints (5 routes):**\n1. `GET /` → FileResponse(static/index.html), 200\n2. `POST /tasks` → accepts CreateTaskRequest body, returns Task (201)\n3. `GET /tasks` → accepts optional `completed: bool | None = None` query param, returns list[Task] (200)\n4. `PATCH /tasks/{id}` → accepts int path param + UpdateTaskRequest body, returns Task (200), or 404 ErrorResponse\n5. `DELETE /tasks/{id}` → accepts int path param, returns 204 No Content, or 404 ErrorResponse\n\n**Database Contract:**\n- Single `tasks` table with schema per spec, created at startup via CREATE TABLE IF NOT EXISTS\n- All queries use parameterized SQL with %s placeholders\n- INSERT/UPDATE use RETURNING to retrieve the full row\n- RealDictCursor for dict-based row access\n- Connection obtained from DATABASE_URL environment variable\n\n**Composition Pattern:**\n- Standalone `get_db_connection()` function (or dependency)\n- Pure functions for DB operations: create_task, list_tasks, update_task, delete_task\n- FastAPI route handlers compose these functions\n\n**Error Contract:**\n- 404: {\"detail\": \"Task not found\"} for PATCH/DELETE on non-existent id\n- 422: automatic Pydantic validation errors for malformed bodies/params\n- 204: empty body for successful DELETE",
+  "alternatives_considered": [
+    "Using SQLAlchemy Core (not ORM) for query building — rejected because the spec explicitly requires raw SQL with psycopg2, and adding SQLAlchemy Core would introduce a third-party dependency against the stdlib preference.",
+    "Defining separate response models (TaskResponse vs Task) — rejected because the canonical registry defines Task as both the DB representation and API response, and adding wrapper types would diverge from the registry without benefit.",
+    "Using an enum query parameter (?status=all|active|completed) instead of ?completed=bool — rejected because the spec explicitly defines the API as accepting ?completed=true|false, with the TaskFilterStatus enum being a frontend-only concern.",
+    "Mounting StaticFiles for the entire static directory vs. a single FileResponse route for GET / — FileResponse is preferred for explicitness; StaticFiles mount can be added alongside if additional static assets are needed later.",
+    "Using connection pooling (psycopg2.pool) vs. simple connection per request — for a single-file app without high concurrency requirements, a module-level connection or simple pool is sufficient; full pooling adds complexity without spec justification."
+  ],
+  "risks": [
+    "psycopg2 connection lifecycle: if a module-level connection is used and the DB restarts, the connection becomes stale. Mitigation: reconnect on OperationalError or use a per-request connection pattern.",
+    "Timezone handling: psycopg2 may return datetimes in server-local timezone rather than UTC, causing inconsistent created_at serialization. Mitigation: SET timezone = 'UTC' on connection or use AT TIME ZONE in queries.",
+    "Race conditions on DELETE then PATCH: no transactional guarantees across requests, but this is acceptable for a single-user todo app without authentication.",
+    "Empty title edge case: without explicit min_length validation on CreateTaskRequest.title, whitespace-only strings could slip through. Pydantic Field(min_length=1) alone doesn't strip whitespace — a validator may be needed.",
+    "File path for static serving: FileResponse path is relative to CWD, not to the module file. If the server is started from a different directory, the static file won't be found. Mitigation: use Path(__file__).parent / 'static' / 'index.html' for robust path resolution.",
+    "The spec requires Python 3.11+ but operating procedures say 3.12+. The contract should target 3.12+ (the stricter constraint) to satisfy both."
+  ],
+  "compliance_notes": [
+    "All canonical types (Task, TaskId, CreateTaskRequest, UpdateTaskRequest, ErrorResponse, TaskList, OptionalBool, TaskFilterStatus) are preserved exactly as defined in the registry. Pydantic models map field names and types 1:1.",
+    "Type annotations on all public functions — enforced by operating procedures and naturally satisfied by FastAPI's type-driven design.",
+    "No ORM constraint satisfied — all DB access via raw parameterized SQL through psycopg2.",
+    "Single Python source file constraint: src/root/main.py contains all backend logic including models, DB functions, and route handlers.",
+    "Single frontend file constraint: src/root/static/index.html with inline CSS and JS.",
+    "Stdlib preference: only third-party dependencies are those explicitly required (FastAPI, uvicorn, psycopg2-binary).",
+    "300-line file limit from operating procedures — the single-file constraint may push close to this limit; functions should be concise.",
+    "Composition over inheritance: no class hierarchies; Pydantic models are flat, DB functions are standalone, dependencies use FastAPI's Depends().",
+    "All functions must have at least one test; tests must be runnable without external services — DB-dependent functions will need mocking or an in-memory substitute."
+  ]
+}

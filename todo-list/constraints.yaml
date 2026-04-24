@@ -1,0 +1,67 @@
+version: "1.0"
+generated_by: constrain
+session_id: "task_mgmt_001"
+
+constraints:
+  - id: C001
+    boundary: api_backend JSON responses
+    condition: All responses must be valid JSON with appropriate Content-Type header
+    violation: Client parsing errors, broken frontend integration
+    severity: must
+    rationale: Frontend depends on consistent JSON parsing
+    classification_tier: null
+    affected_components: [api_backend]
+
+  - id: C002
+    boundary: api_backend error handling
+    condition: Error responses must contain 'detail' key with descriptive message
+    violation: Users receive cryptic errors, debugging becomes difficult
+    severity: must
+    rationale: User experience and system maintainability requirement
+    classification_tier: null
+    affected_components: [api_backend]
+
+  - id: C003
+    boundary: database schema
+    condition: tasks table must have id, title, completed, created_at fields
+    violation: API cannot function, data model breaks
+    severity: must
+    rationale: Core data structure required for all operations
+    classification_tier: null
+    affected_components: [database]
+
+  - id: C004
+    boundary: deployment
+    condition: System must run as single Python process
+    violation: Deployment complexity increases, violates architecture constraint
+    severity: must
+    rationale: Simplicity requirement for single-process deployment
+    classification_tier: null
+    affected_components: [api_backend]
+
+  - id: C005
+    boundary: frontend technology
+    condition: Must use vanilla JavaScript with no build step
+    violation: Deployment complexity increases, build toolchain required
+    severity: must
+    rationale: Simplicity requirement specified in boundaries
+    classification_tier: null
+    affected_components: [web_frontend]
+
+  - id: C006
+    boundary: api_backend authentication
+    condition: No authentication or user accounts implemented
+    violation: Scope creep, architectural complexity increase
+    severity: must
+    rationale: Explicit non-goal to maintain simplicity
+    classification_tier: null
+    affected_components: [api_backend]
+
+  - id: C007
+    boundary: task data permanence
+    condition: DELETE operations must permanently remove tasks without recovery
+    violation: Data inconsistency, storage bloat
+    severity: must
+    rationale: Explicit requirement for permanent deletion
+    classification_tier: PUBLIC
+    affected_components: [api_backend, database]

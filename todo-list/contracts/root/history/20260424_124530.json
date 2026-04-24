@@ -1,0 +1,914 @@
+{
+  "component_id": "root",
+  "name": "Main",
+  "description": "Todo List web application with a FastAPI backend, PostgreSQL database (via psycopg2 raw SQL), and a single-page vanilla JavaScript frontend. Serves 5 HTTP endpoints for CRUD operations on tasks and a static HTML file. No ORM, no authentication, no pagination. Single Python source file (src/root/main.py) plus a static frontend (src/root/static/index.html).",
+  "version": 1,
+  "types": [
+    {
+      "name": "TaskId",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An integer identifier for a task, corresponding to the SERIAL PRIMARY KEY in the database.",
+      "owner_component": "root"
+    },
+    {
+      "name": "TaskTitle",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The task title string.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len(value) <= 500",
+              "error_message": "Title must be between 1 and 500 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Non-empty string of at most 500 characters representing a task's title. Maps to VARCHAR(500) NOT NULL in the database.",
+      "owner_component": ""
+    },
+    {
+      "name": "Task",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "Unique auto-incrementing identifier for the task.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "The title/description of the task. Max 500 characters.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..500",
+              "error_message": "Title must be between 1 and 500 characters."
+            }
+          ]
+        },
+        {
+          "name": "completed",
+          "type_ref": "Bool",
+          "required": true,
+          "default": "false",
+          "description": "Whether the task has been completed. Defaults to false.",
+          "validators": []
+        },
+        {
+          "name": "created_at",
+          "type_ref": "DateTime",
+          "required": true,
+          "default": "",
+          "description": "Timestamp when the task was created, with timezone.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A complete task object as stored in the database and returned by the API.",
+      "owner_component": "root"
+    },
+    {
+      "name": "CreateTaskRequest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "The title of the task to create. Max 500 characters.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..500",
+              "error_message": "Title must be between 1 and 500 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Request body for POST /tasks to create a new task.",
+      "owner_component": "root"
+    },
+    {
+      "name": "UpdateTaskRequest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "completed",
+          "type_ref": "Bool",
+          "required": true,
+          "default": "",
+          "description": "The new completion status for the task.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Request body for PATCH /tasks/{id} to update task completion status.",
+      "owner_component": "root"
+    },
+    {
+      "name": "ErrorResponse",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "detail",
+          "type_ref": "String",
+          "required": true,
+          "default": "",
+          "description": "Human-readable error message describing what went wrong.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Standard JSON error response returned by the API for error conditions (e.g. 404).",
+      "owner_component": "root"
+    },
+    {
+      "name": "TaskList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "Task",
+      "variants": [],
+      "inner_types": [],
+      "description": "An ordered list of Task objects returned by the GET /tasks endpoint.",
+      "owner_component": "root"
+    },
+    {
+      "name": "CompletedFilter",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [
+        "bool"
+      ],
+      "description": "Optional boolean query parameter for filtering tasks by completion status. None means no filter (return all).",
+      "owner_component": ""
+    },
+    {
+      "name": "DatabaseURL",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The full PostgreSQL connection URI.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^postgresql(\\+psycopg2)?://.*$",
+              "error_message": "DATABASE_URL must be a valid postgresql:// connection string."
+            },
+            {
+              "kind": "length",
+              "expression": "1 <= len(value) <= 2048",
+              "error_message": "DATABASE_URL must be between 1 and 2048 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "PostgreSQL connection string read from the DATABASE_URL environment variable. Must be a valid postgresql:// URI.",
+      "owner_component": ""
+    },
+    {
+      "name": "String",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A UTF-8 string value.",
+      "owner_component": ""
+    },
+    {
+      "name": "Bool",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A boolean true/false value.",
+      "owner_component": ""
+    },
+    {
+      "name": "DateTime",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An ISO-8601 timestamp string with timezone (e.g. '2024-01-15T10:30:00+00:00').",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "init_db",
+      "description": "Establishes a connection to PostgreSQL using DATABASE_URL and executes CREATE TABLE IF NOT EXISTS to ensure the tasks table exists with the required schema (id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, completed BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()). Called once at application startup.",
+      "inputs": [
+        {
+          "name": "database_url",
+          "type_ref": "DatabaseURL",
+          "required": true,
+          "default": "",
+          "description": "PostgreSQL connection string from the DATABASE_URL environment variable.",
+          "validators": []
+        }
+      ],
+      "output_type": "None",
+      "error_cases": [
+        {
+          "name": "missing_database_url",
+          "condition": "DATABASE_URL environment variable is not set or is empty.",
+          "error_type": "RuntimeError",
+          "error_data": {
+            "detail": "DATABASE_URL environment variable is not set."
+          }
+        },
+        {
+          "name": "connection_failed",
+          "condition": "Cannot connect to PostgreSQL at the specified URL (network error, auth failure, database does not exist).",
+          "error_type": "psycopg2.OperationalError",
+          "error_data": {
+            "detail": "Failed to connect to database."
+          }
+        }
+      ],
+      "preconditions": [
+        "DATABASE_URL environment variable is set and contains a valid PostgreSQL connection string.",
+        "The PostgreSQL server at the specified URL is reachable and accepting connections."
+      ],
+      "postconditions": [
+        "The 'tasks' table exists in the connected database with columns: id (SERIAL PK), title (VARCHAR(500) NOT NULL), completed (BOOLEAN NOT NULL DEFAULT FALSE), created_at (TIMESTAMPTZ NOT NULL DEFAULT NOW()).",
+        "A reusable database connection or connection factory is available for subsequent operations."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server via DATABASE_URL",
+          "description": "Opens a TCP connection to PostgreSQL and executes DDL to create the tasks table if it does not exist."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_db_connection",
+      "description": "Returns a psycopg2 connection object connected to the PostgreSQL database specified by DATABASE_URL. Used as a FastAPI dependency or utility to obtain a connection for each request. The connection uses RealDictCursor for dict-based row access.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [
+        {
+          "name": "connection_failed",
+          "condition": "PostgreSQL is unreachable or the connection pool is exhausted.",
+          "error_type": "psycopg2.OperationalError",
+          "error_data": {
+            "detail": "Database connection unavailable."
+          }
+        }
+      ],
+      "preconditions": [
+        "init_db has been called successfully at least once.",
+        "DATABASE_URL is set and the database is reachable."
+      ],
+      "postconditions": [
+        "Returns an open psycopg2 connection configured with RealDictCursor cursor factory.",
+        "The connection is in autocommit mode or the caller is responsible for commit/rollback."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server via DATABASE_URL",
+          "description": "Opens or retrieves a TCP connection to PostgreSQL."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "create_task",
+      "description": "Inserts a new task row into the tasks table with the given title, completed=FALSE, and created_at=NOW(). Uses INSERT ... RETURNING to retrieve the full row. Returns the created Task.",
+      "inputs": [
+        {
+          "name": "title",
+          "type_ref": "TaskTitle",
+          "required": true,
+          "default": "",
+          "description": "Title for the new task. Must be 1-500 characters.",
+          "validators": []
+        }
+      ],
+      "output_type": "Task",
+      "error_cases": [
+        {
+          "name": "database_error",
+          "condition": "The INSERT query fails due to a database error (connection lost, constraint violation).",
+          "error_type": "psycopg2.Error",
+          "error_data": {
+            "detail": "Failed to create task."
+          }
+        }
+      ],
+      "preconditions": [
+        "A valid database connection is available.",
+        "title is a non-empty string of at most 500 characters."
+      ],
+      "postconditions": [
+        "A new row exists in the tasks table with the given title, completed=FALSE, and a server-generated id and created_at.",
+        "The returned Task object contains the exact values stored in the database."
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "INSERT INTO tasks (title) VALUES (%s) RETURNING id, title, completed, created_at"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 50,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "list_tasks",
+      "description": "Queries the tasks table and returns all tasks, optionally filtered by completion status. If completed is None, returns all rows. If completed is True or False, adds a WHERE completed = %s clause. Returns rows ordered by created_at or id (implementation choice).",
+      "inputs": [
+        {
+          "name": "completed",
+          "type_ref": "CompletedFilter",
+          "required": false,
+          "default": "None",
+          "description": "Optional boolean filter. None returns all tasks; True returns only completed; False returns only active.",
+          "validators": []
+        }
+      ],
+      "output_type": "TaskList",
+      "error_cases": [
+        {
+          "name": "database_error",
+          "condition": "The SELECT query fails due to a database error.",
+          "error_type": "psycopg2.Error",
+          "error_data": {
+            "detail": "Failed to list tasks."
+          }
+        }
+      ],
+      "preconditions": [
+        "A valid database connection is available."
+      ],
+      "postconditions": [
+        "Returns a list of Task objects matching the filter criteria.",
+        "If completed is None, all rows in the tasks table are returned.",
+        "If completed is True, only rows where completed=TRUE are returned.",
+        "If completed is False, only rows where completed=FALSE are returned.",
+        "The returned list may be empty if no tasks match."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL tasks table",
+          "description": "SELECT id, title, completed, created_at FROM tasks [WHERE completed = %s]"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 100,
+        "max_memory_mb": null,
+        "complexity": "O(n)"
+      }
+    },
+    {
+      "name": "update_task",
+      "description": "Updates the completed field of an existing task identified by id. Uses UPDATE ... WHERE id = %s RETURNING to retrieve the updated row. Returns the updated Task or None if the task does not exist.",
+      "inputs": [
+        {
+          "name": "task_id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "The ID of the task to update.",
+          "validators": []
+        },
+        {
+          "name": "completed",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "New completion status.",
+          "validators": []
+        }
+      ],
+      "output_type": "Task",
+      "error_cases": [
+        {
+          "name": "task_not_found",
+          "condition": "No task with the given id exists in the tasks table.",
+          "error_type": "ValueError",
+          "error_data": {
+            "detail": "Task not found"
+          }
+        },
+        {
+          "name": "database_error",
+          "condition": "The UPDATE query fails due to a database error.",
+          "error_type": "psycopg2.Error",
+          "error_data": {
+            "detail": "Failed to update task."
+          }
+        }
+      ],
+      "preconditions": [
+        "A valid database connection is available.",
+        "task_id is a positive integer."
+      ],
+      "postconditions": [
+        "If a task with the given id exists, its completed field is updated to the new value and the updated row is returned.",
+        "If no task with the given id exists, returns None (caller is responsible for raising 404).",
+        "The title, id, and created_at fields of the task are unchanged."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "UPDATE tasks SET completed = %s WHERE id = %s RETURNING id, title, completed, created_at"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 50,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "delete_task",
+      "description": "Deletes a task row identified by id from the tasks table. Returns True if a row was deleted, False if no row with that id existed.",
+      "inputs": [
+        {
+          "name": "task_id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "The ID of the task to delete.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "task_not_found",
+          "condition": "No task with the given id exists in the tasks table.",
+          "error_type": "ValueError",
+          "error_data": {
+            "detail": "Task not found"
+          }
+        },
+        {
+          "name": "database_error",
+          "condition": "The DELETE query fails due to a database error.",
+          "error_type": "psycopg2.Error",
+          "error_data": {
+            "detail": "Failed to delete task."
+          }
+        }
+      ],
+      "preconditions": [
+        "A valid database connection is available.",
+        "task_id is a positive integer."
+      ],
+      "postconditions": [
+        "If a task with the given id existed, it is removed from the tasks table and True is returned.",
+        "If no task with the given id existed, no rows are affected and False is returned."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "DELETE FROM tasks WHERE id = %s"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 50,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "handle_serve_index",
+      "description": "FastAPI route handler for GET /. Serves the static/index.html file as a FileResponse. Returns 200 with text/html content type.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [
+        {
+          "name": "file_not_found",
+          "condition": "The static/index.html file does not exist on disk.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "500",
+            "detail": "Frontend file not found."
+          }
+        }
+      ],
+      "preconditions": [
+        "The file static/index.html exists relative to the application root."
+      ],
+      "postconditions": [
+        "Returns a FileResponse with the contents of static/index.html and content type text/html."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "reads_file",
+          "target": "static/index.html",
+          "description": "Reads the static HTML frontend file from disk to serve to the client."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "handle_create_task",
+      "description": "FastAPI route handler for POST /tasks. Accepts a CreateTaskRequest JSON body, calls create_task, and returns the created Task with HTTP 201 status.",
+      "inputs": [
+        {
+          "name": "body",
+          "type_ref": "CreateTaskRequest",
+          "required": true,
+          "default": "",
+          "description": "JSON request body containing the task title.",
+          "validators": []
+        }
+      ],
+      "output_type": "Task",
+      "error_cases": [
+        {
+          "name": "validation_error",
+          "condition": "Request body is missing, malformed, or title fails validation (empty or > 500 chars).",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "422",
+            "detail": "Validation error"
+          }
+        },
+        {
+          "name": "database_error",
+          "condition": "Database INSERT fails.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "500",
+            "detail": "Internal server error."
+          }
+        }
+      ],
+      "preconditions": [
+        "Request body is valid JSON conforming to CreateTaskRequest schema.",
+        "Database connection is available."
+      ],
+      "postconditions": [
+        "A new task is persisted in the database.",
+        "Response status is 201 Created.",
+        "Response body is the created Task as JSON."
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "Delegates to create_task to INSERT a new row."
+        },
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server",
+          "description": "Executes INSERT query via psycopg2 connection."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "handle_list_tasks",
+      "description": "FastAPI route handler for GET /tasks. Accepts an optional 'completed' query parameter (bool or None). Calls list_tasks and returns the TaskList with HTTP 200 status.",
+      "inputs": [
+        {
+          "name": "completed",
+          "type_ref": "CompletedFilter",
+          "required": false,
+          "default": "None",
+          "description": "Optional query parameter to filter by completion status.",
+          "validators": []
+        }
+      ],
+      "output_type": "TaskList",
+      "error_cases": [
+        {
+          "name": "database_error",
+          "condition": "Database SELECT fails.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "500",
+            "detail": "Internal server error."
+          }
+        }
+      ],
+      "preconditions": [
+        "Database connection is available."
+      ],
+      "postconditions": [
+        "Response status is 200 OK.",
+        "Response body is a JSON array of Task objects matching the filter."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server",
+          "description": "Delegates to list_tasks to SELECT rows from the tasks table."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 150,
+        "max_memory_mb": null,
+        "complexity": "O(n)"
+      }
+    },
+    {
+      "name": "handle_update_task",
+      "description": "FastAPI route handler for PATCH /tasks/{id}. Accepts a TaskId path parameter and an UpdateTaskRequest JSON body. Calls update_task and returns the updated Task with HTTP 200 status, or raises 404 if the task does not exist.",
+      "inputs": [
+        {
+          "name": "task_id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "Path parameter: the ID of the task to update.",
+          "validators": []
+        },
+        {
+          "name": "body",
+          "type_ref": "UpdateTaskRequest",
+          "required": true,
+          "default": "",
+          "description": "JSON request body containing the new completion status.",
+          "validators": []
+        }
+      ],
+      "output_type": "Task",
+      "error_cases": [
+        {
+          "name": "task_not_found",
+          "condition": "No task with the given id exists.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "404",
+            "detail": "Task not found"
+          }
+        },
+        {
+          "name": "validation_error",
+          "condition": "Request body is missing, malformed, or id path param is not a valid integer.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "422",
+            "detail": "Validation error"
+          }
+        },
+        {
+          "name": "database_error",
+          "condition": "Database UPDATE fails.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "500",
+            "detail": "Internal server error."
+          }
+        }
+      ],
+      "preconditions": [
+        "task_id is a positive integer.",
+        "Request body is valid JSON conforming to UpdateTaskRequest schema.",
+        "Database connection is available."
+      ],
+      "postconditions": [
+        "If the task exists, its completed field is updated and the full updated Task is returned with status 200.",
+        "If the task does not exist, an ErrorResponse with status 404 and detail 'Task not found' is returned."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "Delegates to update_task to UPDATE the completed column."
+        },
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server",
+          "description": "Executes UPDATE query via psycopg2 connection."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 50,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "handle_delete_task",
+      "description": "FastAPI route handler for DELETE /tasks/{id}. Accepts a TaskId path parameter. Calls delete_task and returns HTTP 204 No Content on success, or raises 404 if the task does not exist.",
+      "inputs": [
+        {
+          "name": "task_id",
+          "type_ref": "TaskId",
+          "required": true,
+          "default": "",
+          "description": "Path parameter: the ID of the task to delete.",
+          "validators": []
+        }
+      ],
+      "output_type": "None",
+      "error_cases": [
+        {
+          "name": "task_not_found",
+          "condition": "No task with the given id exists.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "404",
+            "detail": "Task not found"
+          }
+        },
+        {
+          "name": "validation_error",
+          "condition": "id path param is not a valid positive integer.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "422",
+            "detail": "Validation error"
+          }
+        },
+        {
+          "name": "database_error",
+          "condition": "Database DELETE fails.",
+          "error_type": "HTTPException",
+          "error_data": {
+            "status_code": "500",
+            "detail": "Internal server error."
+          }
+        }
+      ],
+      "preconditions": [
+        "task_id is a positive integer.",
+        "Database connection is available."
+      ],
+      "postconditions": [
+        "If the task existed, it is removed from the database and a 204 No Content response is returned with an empty body.",
+        "If the task did not exist, an ErrorResponse with status 404 and detail 'Task not found' is returned."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "PostgreSQL tasks table",
+          "description": "Delegates to delete_task to DELETE the row."
+        },
+        {
+          "kind": "network_call",
+          "target": "PostgreSQL server",
+          "description": "Executes DELETE query via psycopg2 connection."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 50,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "All SQL queries use parameterized placeholders (%s) — no string interpolation or f-string SQL construction.",
+    "All INSERT and UPDATE statements use RETURNING to retrieve the full row, avoiding a separate SELECT.",
+    "The tasks table schema is immutable after init_db: id SERIAL PRIMARY KEY, title VARCHAR(500) NOT NULL, completed BOOLEAN NOT NULL DEFAULT FALSE, created_at TIMESTAMPTZ NOT NULL DEFAULT NOW().",
+    "RealDictCursor is used for all cursor operations so rows are returned as dicts keyed by column name.",
+    "No ORM is used; all database interaction is via raw SQL through psycopg2.",
+    "The backend is a single Python file: src/root/main.py.",
+    "The frontend is a single HTML file with inline CSS and JS: src/root/static/index.html.",
+    "No authentication or authorization is applied to any endpoint.",
+    "No pagination is applied to GET /tasks; all matching rows are returned.",
+    "Error responses conform to the {\"detail\": \"message\"} JSON structure.",
+    "DELETE /tasks/{id} returns exactly 204 with an empty body on success, never a JSON body.",
+    "POST /tasks returns exactly 201 on success.",
+    "The DATABASE_URL environment variable must be set before the application starts."
+  ],
+  "requires": [],
+  "processing_register": "pragmatic-implementation",
+  "data_access": {
+    "reads": [
+      "INTERNAL"
+    ],
+    "writes": [
+      "INTERNAL"
+    ],
+    "rationale": "Reads and writes rows in the PostgreSQL 'tasks' table (columns: id, title, completed, created_at). Task data is application-internal with no PII. Reads occur on GET /tasks and GET /tasks?completed=... to list tasks, and during PATCH/DELETE to verify existence. Writes occur on POST /tasks (INSERT), PATCH /tasks/{id} (UPDATE), and DELETE /tasks/{id} (DELETE). The DATABASE_URL environment variable is read once at startup to establish the connection.",
+    "side_effects": [
+      {
+        "type": "db_read",
+        "classification": "INTERNAL",
+        "fields": [
+          "tasks.id",
+          "tasks.title",
+          "tasks.completed",
+          "tasks.created_at"
+        ],
+        "rationale": "SELECT queries against the tasks table to list tasks or verify task existence before update/delete."
+      },
+      {
+        "type": "db_write",
+        "classification": "INTERNAL",
+        "fields": [
+          "tasks.id",
+          "tasks.title",
+          "tasks.completed",
+          "tasks.created_at"
+        ],
+        "rationale": "INSERT, UPDATE, and DELETE statements against the tasks table to create, modify, or remove task records."
+      },
+      {
+        "type": "env_read",
+        "classification": "INTERNAL",
+        "fields": [
+          "DATABASE_URL"
+        ],
+        "rationale": "Reads the DATABASE_URL environment variable at startup to obtain the PostgreSQL connection string."
+      },
+      {
+        "type": "file_read",
+        "classification": "INTERNAL",
+        "fields": [
+          "static/index.html"
+        ],
+        "rationale": "Serves the static frontend HTML file in response to GET / requests."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "tasks"
+    ],
+    "rationale": "This is the sole component in the system and owns the 'tasks' data domain end-to-end: it defines the schema, performs all CRUD operations, and is the single source of truth for task records in the PostgreSQL tasks table."
+  }
+}
