@@ -1,0 +1,13 @@
+{
+  "components": {
+    "root": {
+      "component_id": "root",
+      "contract_path": "contracts/root/interface.json",
+      "test_path": "tests/root",
+      "source_path": "src/root",
+      "language": "python",
+      "last_registered": "2026-04-30T17:57:41.014279",
+      "pact_project": "."
+    }
+  }
+}

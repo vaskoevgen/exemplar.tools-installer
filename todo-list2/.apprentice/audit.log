@@ -1,0 +1,1 @@
+{"timestamp":"2026-04-30T23:59:46.092892+00:00","task_name":"calculator_eval","event_type":"request_routed","details":{"request_id":"20c664dd-83c4-406c-a62c-5a0fe222d4d7","phase":"PHASE_1","confidence":0.0,"intended_action":"REMOTE_ONLY","actual_action":"REMOTE_ONLY","total_cost_usd":0.0,"total_latency_ms":731.0629159910604,"is_degraded":false,"is_fallback":false}}

@@ -1,0 +1,100 @@
+{
+  "task_summary": "Implement a 'Main' component for a task management system in Python 3.12+ using only stdlib. The component encompasses CRUD operations (create, list, get, update, delete), validation logic, serialization (task_to_dict / task_from_dict), and endpoint contract definitions. It uses typed primitives (TaskUUID, TaskTitle, Priority, DateString, etc.), structs, unions, and enums. No external dependencies.",
+  "findings": [
+    {
+      "topic": "Validation pattern for Create/Update requests",
+      "finding": "The ValidationResult is typed as a union, strongly suggesting a Result/Either pattern: return either a validated success value or a structured error. Best practice is to make validation pure (no side effects), return all errors at once (not fail-fast), and keep validation separate from business logic. Python's dataclasses or NamedTuples are idiomatic for the success/error variants. Avoid raising exceptions for expected validation failures—reserve exceptions for truly exceptional conditions.",
+      "source": "Domain-driven design patterns; Parse-don't-validate (Alexis King, 2019); functional core / imperative shell",
+      "relevance": "validate_create_task and validate_update_task must return ValidationResult (union), so the success/error union pattern is directly required.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "UUID handling for TaskUUID",
+      "finding": "Python stdlib uuid.UUID is sufficient. Use uuid.uuid4() for generation. For validation, uuid.UUID(str) in a try/except ValueError is the canonical check. Store as string internally for JSON-friendliness but validate format on input boundaries. The TaskUUID primitive likely wraps or aliases uuid.UUID or str.",
+      "source": "Python stdlib uuid module documentation; OWASP input validation guidelines",
+      "relevance": "TaskUUID is a core primitive used in get_task, update_task, delete_task. Proper validation prevents injection and lookup errors.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "In-memory storage pattern",
+      "finding": "Since there are no external dependencies and tests must run without external services, storage must be in-memory. A dict[str, Task] keyed by task_id is the standard O(1) lookup pattern. For list_tasks(), iterate values. Use composition: inject or compose a storage object rather than using module-level mutable state. This aligns with the 'prefer composition over inheritance' directive and makes testing deterministic.",
+      "source": "Repository pattern (Fowler, PoEAA); project operating procedures",
+      "relevance": "Directly required: CRUD operations need a backing store, and tests must be isolated/repeatable.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Serialization with task_to_dict / task_from_dict",
+      "finding": "Use dataclasses.asdict() as a starting point for task_to_dict, but handle special types explicitly: UUID → str, datetime/timestamp → ISO 8601 string, enums → .value. For task_from_dict, validate and reconstruct—this is a deserialization boundary and must reject malformed input. Avoid pickle or eval. Optional fields (OptionalDateString) must handle None/missing keys gracefully. The round-trip property task_from_dict(task_to_dict(t)) == t should hold and is an excellent contract test.",
+      "source": "Python dataclasses docs; JSON serialization best practices",
+      "relevance": "task_to_dict and task_from_dict are explicit API functions; correctness here is critical for any persistence or API layer.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Endpoint contracts pattern",
+      "finding": "get_endpoint_contracts() returning list[EndpointContract] is a self-describing API metadata pattern (similar to OpenAPI/Swagger introspection). Each EndpointContract likely defines method, path, request/response types, and status codes. Best practice: define contracts as data (list of dataclass instances), not as decorators or dynamic code. This enables contract testing: iterate contracts and assert each one holds.",
+      "source": "Consumer-driven contract testing (Pact); design-by-contract (Meyer); OpenAPI specification patterns",
+      "relevance": "The operating procedures state 'No task is done until its contract tests pass.' get_endpoint_contracts() is the mechanism for defining those contracts.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Type annotations and Python 3.12+ features",
+      "finding": "Python 3.12+ supports type parameter syntax (PEP 695), type statement for aliases, and improved generics. Use type TaskUUID = str (or NewType) for primitive type aliases. For the ValidationResult union, use type aliases with the | operator: type ValidationResult = ValidationSuccess | ValidationError. dataclasses with slots=True improve memory and attribute-access performance. All public functions require annotations per operating procedures.",
+      "source": "PEP 695; PEP 681; Python 3.12 release notes; project operating procedures",
+      "relevance": "Directly mandated: 'Type annotations on all public functions.' Python 3.12 features should be leveraged for cleaner type definitions.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Priority and DateString validation",
+      "finding": "Priority as a primitive suggests constrained values (e.g., 'low', 'medium', 'high' or 1-5). Validate at input boundaries. DateString likely represents ISO 8601 date (YYYY-MM-DD); validate with datetime.date.fromisoformat() which is stdlib. TimestampTZ suggests timezone-aware datetime; use datetime.datetime.fromisoformat() (Python 3.11+ handles timezone suffixes). OptionalDateString must accept None. Common pitfall: accepting naive datetimes when timezone-aware is expected.",
+      "source": "Python datetime module; ISO 8601; OWASP input validation",
+      "relevance": "These are core domain primitives used in Task, CreateTaskRequest, UpdateTaskRequest. Improper validation is a top source of bugs.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Sentinel enum for update semantics",
+      "finding": "The Sentinel enum is a well-known pattern for distinguishing 'field not provided' from 'field set to None' in update/PATCH operations. Common implementation: class Sentinel(enum.Enum): MISSING = 'MISSING'. UpdateTaskRequest fields default to Sentinel.MISSING. During update, only overwrite fields that are not MISSING. This avoids the ambiguity of using None for both 'unset this field' and 'field not in request.'",
+      "source": "PATCH semantics (RFC 7396 - JSON Merge Patch); Python sentinel pattern discussions (PEP 661)",
+      "relevance": "Directly relevant to update_task and validate_update_task—UpdateTaskRequest likely uses Sentinel for optional partial updates.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Error handling: ApiErrorResponse and HttpStatusCode",
+      "finding": "ApiErrorResponse struct + HttpStatusCode enum suggest the component models HTTP-layer error semantics. Best practice: raise domain-specific exceptions internally, translate to ApiErrorResponse at the boundary. Common status codes needed: 400 (validation), 404 (not found), 409 (conflict). Keep error messages informative but avoid leaking internal details (security). delete_task and get_task returning Task implies they raise/error on not-found rather than returning None.",
+      "source": "REST API design guidelines (Microsoft, Google); OWASP error handling cheat sheet",
+      "relevance": "get_task, update_task, delete_task must handle missing task_id. ApiErrorResponse is the structured error type.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "File size and module decomposition",
+      "finding": "Operating procedures mandate files under 300 lines. With ~10 functions, multiple types (structs, enums, unions, primitives), and their tests, a single file will exceed 300 lines. Decompose into: (1) types/models module for all type definitions, (2) validation module, (3) storage/repository module, (4) main operations module (CRUD + serialization), (5) contracts module. Tests mirror this structure.",
+      "source": "Project operating procedures; clean architecture; Python packaging conventions",
+      "relevance": "Hard constraint from operating procedures. Must plan file decomposition before implementation.",
+      "confidence": 0.95
+    }
+  ],
+  "recommended_approach": "Decompose into 4-5 modules under 300 lines each:\n\n1. **models.py** — All type definitions: TaskUUID/TaskTitle/Priority/DateString as NewType or type aliases, Sentinel enum, HttpStatusCode enum, Task/CreateTaskRequest/UpdateTaskRequest/ApiErrorResponse/EndpointContract/ValidationResult as dataclasses. Use Python 3.12 type alias syntax. Use `slots=True` on dataclasses.\n\n2. **validation.py** — `validate_create_task` and `validate_update_task`. Pure functions, collect all errors, return ValidationResult union (success variant with parsed data or error variant with list of issues). Validate UUID format, title non-empty, priority in allowed set, dates via `date.fromisoformat()`.\n\n3. **storage.py** — A `TaskStore` class using `dict[str, Task]` internally. Methods: add, get, list, update, delete. Raises domain exceptions (TaskNotFound) on missing keys. Composed into the main module.\n\n4. **operations.py** — `create_task`, `list_tasks`, `get_task`, `update_task`, `delete_task`, `task_to_dict`, `task_from_dict`, `get_endpoint_contracts`. Composes TaskStore. Uses Sentinel-aware merge for updates. Generates UUID and timestamps on creation.\n\n5. **contracts.py** (or inline in operations) — `get_endpoint_contracts()` returns list of EndpointContract instances describing each CRUD endpoint.\n\nKey implementation details:\n- `create_task`: validate → generate uuid4 + utcnow timestamp → store → return Task\n- `update_task`: validate → get existing → merge non-Sentinel fields → store → return Task  \n- `delete_task`: get existing → remove from store → return deleted Task\n- `task_to_dict`: handle UUID→str, datetime→isoformat, enum→value, None passthrough\n- `task_from_dict`: inverse with validation; use as deserialization boundary\n- ValidationResult: two dataclass variants (e.g., `ValidationSuccess` and `ValidationFailure`), aliased as a union type",
+  "alternatives_considered": [
+    "Using third-party libraries (pydantic, attrs, marshmallow) for validation and serialization — rejected per 'prefer stdlib over third-party libraries' directive.",
+    "Raising exceptions for validation failures instead of returning ValidationResult union — rejected because the type signature explicitly returns a union, and exceptions for expected failures are an anti-pattern here.",
+    "Single-file implementation — rejected because 300-line file limit will be exceeded given the number of types and functions.",
+    "Using TypedDict instead of dataclasses for structs — viable but dataclasses provide better ergonomics (defaults, __post_init__, slots, eq) and are more idiomatic for domain objects.",
+    "Using module-level dict for storage — rejected in favor of a composable storage class for testability and adherence to 'prefer composition' directive."
+  ],
+  "risks": [
+    "Ambiguity in type definitions (e.g., exact fields of Task, CreateTaskRequest, UpdateTaskRequest are inferred not specified) — may require iteration once full spec is clarified.",
+    "ValidationResult union semantics: Python has no native tagged unions; must rely on isinstance checks or a discriminator field, which is less ergonomic than algebraic types.",
+    "Sentinel pattern can confuse type checkers — fields typed as `T | Sentinel` require careful handling; mypy/pyright may need explicit type narrowing.",
+    "Timestamp timezone handling: must ensure TimestampTZ is consistently timezone-aware (use datetime.now(timezone.utc), not datetime.utcnow() which is deprecated in 3.12).",
+    "Thread safety of in-memory dict store is not guaranteed if used in concurrent context — acceptable for test/single-threaded use but should be documented.",
+    "File size constraint (300 lines) may be tight if endpoint contracts are verbose — monitor and split further if needed."
+  ],
+  "compliance_notes": [
+    "All public functions will have full type annotations (operating procedure: mandatory).",
+    "No inheritance used for domain models — composition via TaskStore injected/composed into operations (operating procedure: prefer composition).",
+    "All stdlib: uuid, datetime, dataclasses, enum, typing — no third-party libraries (operating procedure: prefer stdlib).",
+    "Every function will have at least one pytest test; tests use in-memory store with no external services (operating procedure: verification requirements).",
+    "All files will be kept under 300 lines via module decomposition (operating procedure: file size limit).",
+    "Contract tests will be written against get_endpoint_contracts() output and must pass before completion (operating procedure: contract tests).",
+    "datetime.utcnow() is deprecated in Python 3.12 — will use datetime.now(timezone.utc) instead for TimestampTZ fields."
+  ]
+}

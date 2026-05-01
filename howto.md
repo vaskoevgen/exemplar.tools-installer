@@ -197,7 +197,11 @@ source ../exemplar.tools/constrain/.venv/bin/activate.fish
 **Set your API key:**
 
 ```bash
+# bash / zsh
 export ANTHROPIC_API_KEY=sk-...
+
+# fish
+set -x ANTHROPIC_API_KEY sk-...
 ```
 
 **Run from your project directory:**
@@ -205,6 +209,19 @@ export ANTHROPIC_API_KEY=sk-...
 ```bash
 constrain
 ```
+
+> **First run tip:** Constrain prints `Add '.constrain/' to your .gitignore` on startup — do it:
+> ```bash
+> echo '.constrain/' >> .gitignore
+> ```
+
+> **On startup:** Constrain asks `Prime with documents before starting? [y/N]`. Answer `n` for a fresh interactive session, or `y` to feed it a description file (see non-interactive mode below).
+
+> **Transmogrifier warning:** A `UserWarning: Field name "register" shadows an attribute in parent "BaseModel"` appears on every run. It is safe to ignore — it comes from an upstream dependency.
+
+> **Three phases:** Constrain runs `understand` (asks questions) → `challenge` (stress-tests your answers) → `synthesize` (generates artifacts). You cannot skip phases but you can answer briefly — Constrain moves on when it has enough information.
+
+> **Accepting artifacts:** At the end Constrain shows a `Feedback>` prompt. Review the generated files shown in the terminal, then press **Enter** to accept and write them to disk.
 
 **Non-interactive mode** — skip the interview entirely by priming with a description document and setting both round counts to 0:
 
@@ -269,28 +286,66 @@ backends:
 **Create a schema YAML** in `schemas/`:
 
 ```yaml
-# schemas/links.yaml
-name: links          # required
+# schemas/tasks.yaml
+name: tasks          # required
 version: 1           # required — integer, not "1.0"
 
 fields:
-  - name: short_code
-    field_type: varchar(6)   # key is field_type, not type
+  - name: id
+    field_type: uuid
     classification: PUBLIC
     nullable: false
     annotations:
       - name: immutable      # annotations are dicts with 'name' key — not bare strings
       - name: not_null
+
+  - name: title
+    field_type: varchar(255)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: completed
+    field_type: boolean
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: priority
+    field_type: integer
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: due_date
+    field_type: date
+    classification: PUBLIC
+    nullable: true
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
 ```
 
 > Valid `classification` values: `PUBLIC`, `PII`, `FINANCIAL`, `AUTH`, `COMPLIANCE`.
 
+> Valid `field_type` values follow SQL conventions: `uuid`, `varchar(n)`, `boolean`, `integer`, `date`, `timestamptz`, etc. The key is `field_type`, not `type`.
+
 **Register and validate the schema:**
 
 ```bash
-ledger schema add schemas/links.yaml   # exits 0; validation happens at config load
-ledger schema validate                 # exits 0 silently if valid
+ledger schema add schemas/tasks.yaml   # exits 0; no output on success
+ledger schema validate                 # exits 0; no output if valid
 ```
+
+> Both commands are silent on success — no output means it worked.
 
 **Explore the built-in annotation catalogue:**
 
@@ -303,8 +358,13 @@ ledger builtins show immutable
 
 ```bash
 ledger export --format pact
+# {'contracts': []}
+
 ledger export --format arbiter
+# {'contracts': []}
 ```
+
+> The `{'contracts': []}` output is expected — export is not yet implemented. The commands exit 0.
 
 ```bash
 deactivate
@@ -333,7 +393,7 @@ docker run -d \
   -p 5432:5432 \
   arm64v8/postgres:17-alpine
 
-# Wait for it to be ready (usually < 5 seconds)
+# Wait for it to be ready (usually < 5 seconds) in ZSH
 until docker exec pact-test-pg pg_isready -U pact; do sleep 1; done
 ```
 
@@ -381,8 +441,9 @@ Then start the daemon:
 
 ```bash
 source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
-pact daemon start
 ```
+
+It is ready for `pact` stage
 
 ---
 
@@ -422,7 +483,9 @@ set -x ANTHROPIC_API_KEY sk-...
 pact init .
 ```
 
-> Run `pact init .` in your project directory. Pact creates `task.md`, `pact.yaml`, and `sops.md` in place. If Constrain artifacts (`prompt.md`, `constraints.yaml`, etc.) are already present, Pact picks them up automatically.
+> Run `pact init .` in your **project root directory** (e.g. `todo-list2/`), not a subdirectory. Pact creates `task.md`, `pact.yaml`, and `sops.md` in place. If Constrain artifacts (`prompt.md`, `constraints.yaml`, etc.) are already present, Pact picks them up automatically.
+
+> **`pact init .` creates a partial `pact.yaml`** with only `budget: 10.0`. You must add the remaining required fields (see below) before running the daemon.
 
 **Edit `task.md`** — describe what to build. Be specific. Example:
 
@@ -443,9 +506,11 @@ ones are unreachable.
 
 > Constraints like "single file under 300 lines" in `task.md` are guidance to the agent, not hard limits — the implementation may exceed them. To enforce a constraint mechanically, add it to `sops.md` or ensure the generated contract tests cover it.
 
-**Edit `sops.md`** — coding standards (style, language, constraints). Leave blank to use defaults.
+**Edit `sops.md`** — coding standards (style, language, constraints).
 
-**Create `pact.yaml` before running** — this configuration is required:
+> **Critical:** `pact init .` writes a default `sops.md` containing `Language: Python 3.12+` and `Testing: pytest`. If your app is **not** Python (e.g. Node.js, TypeScript, Go), update `sops.md` to match your stack **before** running the daemon. If `sops.md` says Python, Pact will generate Python regardless of what `task.md` says.
+
+**Edit `pact.yaml`** — add the required fields to the file created by `pact init .`:
 
 ```yaml
 budget: 10.0
@@ -462,6 +527,8 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
+> **`build_mode: unary`** builds the entire app as a single component named `root`. This is the only stable mode. It collapses multi-tier architectures (frontend + backend + database) into one unit — the generated code will use in-memory storage instead of a real database. A real multi-component build mode is not yet available.
+
 > Pact always writes `access_graph.json` at the end of the build — used by Arbiter in Step 3.
 
 **Run the daemon:**
@@ -469,6 +536,8 @@ role_backends:
 ```bash
 pact daemon .
 ```
+
+> **Transmogrifier warning:** A `UserWarning: Field name "register" shadows an attribute` appears when the daemon starts. Safe to ignore — it comes from an upstream dependency.
 
 Monitor progress in a second terminal:
 
@@ -514,6 +583,8 @@ Then signal the daemon:
 ```bash
 pact approve .
 ```
+
+> `pact approve .` may print "Already approved. Daemon signaled to continue." — this is expected, not an error.
 
 **Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning. These are false positives caused by four known bugs in the health checker (PR open: [jmcentire/pact#2](https://github.com/jmcentire/pact/pull/2)). Resume each time it pauses:
 
@@ -571,22 +642,22 @@ source ../exemplar.tools/advocate/.venv/bin/activate.fish
 **Set your API key:**
 
 ```bash
+# bash / zsh
 export ANTHROPIC_API_KEY=sk-...
+
+# fish
+set -x ANTHROPIC_API_KEY sk-...
 ```
 
-**Review the built source:**
+> **Transmogrifier warning:** A `UserWarning: Field name "register" shadows an attribute` appears on startup. Safe to ignore.
+
+**Run the review** — save findings to JSON and HTML in one command:
 
 ```bash
-advocate review src/
+advocate review src/ -o findings.json --html review-report.html
 ```
 
-**Save results for sharing or CI:**
-
-```bash
-advocate review src/ \
-  -o findings.json \
-  --html review-report.html
-```
+> Each persona prints its findings to the terminal in real time as it finishes. The full review takes ~30 seconds in parallel mode. **The HTML report is easier to read than the JSON** — open `review-report.html` in a browser after the run.
 
 **Focus on specific personas:**
 
@@ -628,7 +699,7 @@ deactivate
 > - `arbiter watch` / `arbiter serve` (live sidecar) are not yet implemented
 > - Pact writes `access_graph.json` using a `components` schema; Arbiter `register` expects a `nodes` schema — these don't match yet
 >
-> Once the integration is complete, the workflow will be:
+> **For now: run `arbiter init` to confirm the tool works, then skip ahead to Step 4.** The `register` command will always fail at this stage.
 
 **Activate:**
 
@@ -644,38 +715,40 @@ source ../exemplar.tools/arbiter/.venv/bin/activate.fish
 
 ```bash
 arbiter init
+# Creates: .arbiter/registry/trust_ledger.jsonl
+#          arbiter.yaml
 ```
 
-**Register the access graph produced by Pact** (once schemas are aligned):
+**Attempt to register the access graph** — this will fail with the error below, which is expected:
 
 ```bash
 arbiter register access_graph.json
-# Registered: N nodes, N authority domains.
+# Error: Graph contains no nodes
 ```
 
-**Inject canaries and verify no data escapes:**
-
-```bash
-arbiter canary inject --tiers PUBLIC
-arbiter canary results --run <run_id>
-```
-
-> If a canary escapes, the node's trust score drops to 0. Recovery requires human review:
-> ```bash
-> arbiter trust reset-taint <node_id> --review <ticket_id>
-> ```
-
-**After traffic flows**, check trust and generate reports:
-
-```bash
-arbiter trust show <node_id>
-arbiter report --run <run_id>
-arbiter blast-radius <node_id> <version>
-```
+> This error means the `access_graph.json` schema Pact writes (`components`) does not match what Arbiter `register` expects (`nodes`). It is a known upstream bug — not something you did wrong. Move on to Step 4.
 
 ```bash
 deactivate
 ```
+
+---
+
+> **Future workflow** (once schemas are aligned):
+>
+> ```bash
+> arbiter register access_graph.json
+> arbiter canary inject --tiers PUBLIC
+> arbiter canary results --run <run_id>
+> arbiter trust show <node_id>
+> arbiter report --run <run_id>
+> arbiter blast-radius <node_id> <version>
+> ```
+>
+> If a canary escapes, the node's trust score drops to 0. Recovery requires human review:
+> ```bash
+> arbiter trust reset-taint <node_id> --review <ticket_id>
+> ```
 
 ### Key concepts
 
@@ -693,15 +766,31 @@ deactivate
 
 Baton orchestrates deployment as a self-healing circuit topology using the `component_map.yaml` from Constrain.
 
-**Activate:**
-
-**Generate `baton.yaml` from your Pact project:**
+**Step 1 — Generate `baton.yaml` using the Pact venv:**
 
 ```bash
+# bash / zsh
 source ../exemplar.tools/pact/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/pact/.venv/bin/activate.fish
+
 pact deploy .
 deactivate
 ```
+
+Expected output:
+```
+Generated baton.yaml: <your-project>/baton.yaml
+  Nodes: 1
+  Edges: 0
+  Observability: jsonl
+  Canary thresholds: error_rate < 5.0%, p95 < 500.0ms
+```
+
+> `pact deploy .` generates a `baton.yaml` with one node named `root` on port 3000. It does **not** use `component_map.yaml` — the multi-component topology from Constrain is ignored. You must edit the file before use.
+
+**Step 2 — Activate Baton:**
 
 ```bash
 # bash / zsh
@@ -711,41 +800,65 @@ source ../exemplar.tools/baton/.venv/bin/activate
 source ../exemplar.tools/baton/.venv/bin/activate.fish
 ```
 
-This generates `baton.yaml` in your project folder with one node per component.
-
-**Edit `baton.yaml`** — add `role: ingress` to your entry-point node and set the correct port:
+**Step 3 — Edit `baton.yaml`** — add `role: ingress`, set the correct port, and fix the health check endpoint:
 
 ```yaml
 nodes:
 - name: root
-  port: 8000
-  role: ingress        # ← required on entry-point nodes
+  port: 3001             # ← change from default 3000 to your app's actual port
+  role: ingress          # ← required on entry-point nodes
   metadata:
-    health_check: http://127.0.0.1:8000/tasks
+    health_check: http://127.0.0.1:3001/tasks   # ← use a real endpoint, not /health
     canary_error_rate_pct: '5.0'
     canary_p95_ms: '500.0'
 ```
 
-**Start your app** (Baton is a proxy — your app must be running separately):
+**Step 4 — Verify the circuit loaded correctly:**
 
 ```bash
-python src/root/root.py   # starts on port 8000
+baton status
 ```
 
-**Boot the circuit:**
+Expected output:
+```
+Circuit: root (v1)
+Nodes:   1
+Edges:   0
+
+  Name       Role       Port   Mode   Contract
+  ─────────────────────────────────────────────
+  root       [ingress]  3001   http   —
+```
+
+**Step 5 — Boot in mock mode** (no live app needed):
 
 ```bash
-baton status     # verify circuit loaded correctly
-baton up --mock  # boot with mock responses (no live app needed for testing)
-baton up         # boot as live proxy to your running app
+baton up --mock
 ```
 
-**Check signals and metrics:**
+Expected output:
+```
+Circuit 'root' is up (1 nodes)
+  root: active
+
+Entry points:
+  root: 127.0.0.1:3001
+
+Press Ctrl+C to stop
+```
+
+Visit `http://127.0.0.1:3001` in your browser — you'll see `{"status": "mock", "port": 23001}`. Press **Ctrl+C** to stop.
+
+> **To run with a live app:** start your application in a separate terminal first, then run `baton up` (without `--mock`). Note that Pact generates `src/root/root.py` as a pure Python library with no HTTP server — you need to wrap it in FastAPI/Flask before Baton can proxy to it.
+
+**Step 6 — Check signals and metrics:**
 
 ```bash
 baton signals    # recent request signals
 baton metrics    # persistent metrics
 ```
+
+> In mock mode, both commands return "No signal data found" / "No metrics data found" — this is expected. Mock mode serves fixed responses without generating telemetry.
 
 **Hot-swap a component without downtime:**
 
@@ -775,15 +888,40 @@ source ../exemplar.tools/sentinel/.venv/bin/activate
 source ../exemplar.tools/sentinel/.venv/bin/activate.fish
 ```
 
-**Initialize and register components from your Pact project:**
+**Initialize** (run from your project directory):
 
 ```bash
-# Run from your working directory (creates sentinel.yaml + .sentinel/)
 sentinel init
-sentinel register .          # imports PACT keys from the current project
-sentinel report               # recent incidents and fix history
-sentinel serve                # start HTTP API (watches logs + webhooks)
+# Created sentinel.yaml
+# Initialized .sentinel/
 ```
+
+**Register Pact components** — imports PACT keys from `src/`:
+
+```bash
+sentinel register .
+#   Registered: root
+#
+# Registered 1 components from .
+```
+
+**View incident report:**
+
+```bash
+sentinel report
+# No incidents recorded.
+```
+
+> `No incidents recorded.` is the expected output on a fresh project with no live traffic. This is not an error.
+
+**Optionally start the log watcher** — blocks until Ctrl+C:
+
+```bash
+sentinel serve
+# (press Ctrl+C to stop)
+```
+
+> `sentinel serve` starts an HTTP API that watches your application logs in real time. When it sees an error, it matches it to the PACT key embedded in the source code (e.g. `PACT:481349:root:create_task`), attributes it to the responsible component, and records it as an incident. **Skip this if your app is not running** — there are no logs to watch.
 
 ```bash
 deactivate
@@ -806,7 +944,11 @@ Chronicler sits between your running services and the pattern-learning layer. It
 **Activate:**
 
 ```bash
+# bash / zsh
 source ../exemplar.tools/chronicler/.venv/bin/activate
+
+# fish
+source ../exemplar.tools/chronicler/.venv/bin/activate.fish
 ```
 
 **Create `chronicler.yaml` in your project folder:**
@@ -871,10 +1013,26 @@ Rules:   ['request_story', 'service_story', 'journey_story']
 
 ```bash
 chronicler --help
-chronicler start --help
-chronicler stories --help
-chronicler replay --help
 ```
+
+Expected output:
+```
+usage: chronicler [-h] {start,status,stories,replay} ...
+
+Chronicler event collector
+
+positional arguments:
+  {start,status,stories,replay}
+    start               Start the Chronicler engine
+    status              Show engine status
+    stories             Story management
+    replay              Replay JSONL events
+
+options:
+  -h, --help            show this help message and exit
+```
+
+> All four subcommands parse correctly but return immediately without side effects — the runtime is not yet wired up.
 
 **Deactivate when done:**
 
@@ -927,7 +1085,7 @@ It runs without an LLM key — the default `stub` provider uses deterministic he
 **Activate:**
 
 ```bash
-source ../exemplar.tools/stigmergy/.venv/bin/activate
+source ../exemplar.tools/stigmergy/.venv/bin/activate.fish
 ```
 
 **Initialize (interactive setup):**
@@ -936,9 +1094,7 @@ source ../exemplar.tools/stigmergy/.venv/bin/activate
 stigmergy init
 ```
 
-The wizard auto-discovers git repos and config files in the workspace. Accept defaults to get started quickly. It writes `.stigmergy/config.yaml`.
-
-For a non-interactive setup, answer the prompts as follows (press Enter to accept defaults):
+If `ANTHROPIC_API_KEY` is not set, the wizard prints `env ANTHROPIC_API_KEY not set (will use stub LLM)` — that is expected. Answer prompts as follows:
 
 | Prompt | Recommended value for testing |
 |---|---|
@@ -951,38 +1107,44 @@ For a non-interactive setup, answer the prompts as follows (press Enter to accep
 | LLM provider | `stub` *(no API key needed)* |
 | Daily cap / Hourly cap | *(Enter — keep defaults)* |
 
+Expected confirmation:
+
+```
+Config written to .stigmergy/config.yaml
+  16 GitHub repos, 0 Linear teams, provider=stub
+Run `stigmergy run --once` to process signals.
+```
+
 **Run one batch (mock data, no API key):**
 
 ```bash
 stigmergy run --once
 ```
 
-Expected output includes:
-- Signals fetched from mock GitHub
-- Mesh topology showing signal workers
-- Key Findings — parallel activity, coordination gaps
-- Portfolio Risk Clusters
-- Run archived to `.stigmergy/runs/`
+Expected output (trimmed):
 
-**Check connectivity (live mode, before using real sources):**
+```
+Mesh initialized: 3 workers, 2 agents, 16 repos, 0 packages, 0 edges
 
-```bash
-# Requires: gh auth login
-stigmergy check --github
+Connecting github  (mock)...
+  github: 7 signals fetched
 
-# Requires: LINEAR_API_KEY env var
-stigmergy check --linear
+Routing 7 signals through mesh...
+  [1/7] $0.00 spent   [GITHUB]  acme-org/backend  @alice.chen
+  ...
+  >> PARALLEL ACTIVITY  61%  @bob.martinez and @alice.chen in same signal space
 
-# Requires: SLACK_BOT_TOKEN env var
-stigmergy check --slack
+Mesh Session Summary
+  Signals processed:  7
+  Accepted:           7
+  Total cost:         $0.0000
+
+  Persisted 3 insights to .stigmergy/insights.jsonl
 ```
 
-**Run with real GitHub data:**
+All findings are mock data from the built-in stub. The run is archived to `.stigmergy/runs/`.
 
-```bash
-# Requires: gh auth login
-stigmergy run --once --live
-```
+> **Note:** The agent intelligence report will show `WARNING: 2 agents running without LLM — mechanical heuristics producing noise`. This is expected in stub mode — findings are still written to disk.
 
 **View status from last run:**
 
@@ -990,20 +1152,12 @@ stigmergy run --once --live
 stigmergy status
 ```
 
-**Adjust config after init:**
+**To use real Anthropic analysis:**
 
 ```bash
-stigmergy config show
-stigmergy config set llm.provider anthropic
-stigmergy config set budget.daily_cap_usd 10.00
-```
-
-**Provide feedback on a finding (calibrates the attention model):**
-
-```bash
-# The finding hash is shown in the Key Findings output
-stigmergy feedback --finding <hash> --response already_knew
-stigmergy feedback --finding <hash> --response had_no_idea
+# fish shell
+set -x ANTHROPIC_API_KEY your-key
+stigmergy init   # re-run and choose 'anthropic' for LLM provider
 ```
 
 **Deactivate when done:**
@@ -1018,7 +1172,6 @@ deactivate
 |---|---|---|
 | GitHub | `mock` (default) or `live` | `gh auth login` for live |
 | Linear | `mock` or `live` | `LINEAR_API_KEY` for live |
-| Slack | `mock` or `live` | `SLACK_BOT_TOKEN` for live |
 | Grafana | `mock` or `live` | `GRAFANA_API_KEY` for live |
 
 #### LLM providers
@@ -1028,17 +1181,19 @@ deactivate
 | `stub` (default) | Free | Deterministic heuristics |
 | `anthropic` | ~$0.01/run | LLM-enhanced assessments (Haiku) |
 
-To use Anthropic:
-```bash
-export ANTHROPIC_API_KEY=your-key
-stigmergy config set llm.provider anthropic
-```
-
 ---
 
 ## Step 6 — Learn: Apprentice
 
 Apprentice routes every request to the frontier API (Claude, GPT, etc.), collects the responses as training examples, fine-tunes a local model, then progressively shifts traffic to it — while continuously verifying quality. The goal: replace expensive API calls with a $0 local model that produces equivalent results for your specific tasks.
+
+> **Prerequisite:** Ollama must be installed and running with the base model pulled:
+> ```bash
+> brew install ollama
+> ollama pull llama3.1:8b
+> ollama serve   # keep running in background
+> ```
+> Skip this step if you do not have Ollama — `apprentice serve` will start but fine-tuning will not trigger.
 
 **Three phases, all automatic:**
 
@@ -1051,7 +1206,14 @@ Apprentice routes every request to the frontier API (Claude, GPT, etc.), collect
 **Activate:**
 
 ```bash
-source ../exemplar.tools/apprentice/.venv/bin/activate
+source ../exemplar.tools/apprentice/.venv/bin/activate.fish
+```
+
+**Set your API key (required before `serve`):**
+
+```bash
+# fish shell
+set -x ANTHROPIC_API_KEY your-key
 ```
 
 **Initialize — create `apprentice.yaml`:**
@@ -1060,89 +1222,77 @@ source ../exemplar.tools/apprentice/.venv/bin/activate
 apprentice init
 ```
 
-The wizard walks through 4 steps: task definition, remote provider (Claude/GPT), local model (Ollama endpoint), and budget caps. It writes `apprentice.yaml` and creates `.apprentice/` directories.
+The wizard walks through 4 steps: task definition, remote provider (Claude/GPT), local model (Ollama endpoint), and budget caps. Answer prompts:
 
-For a minimal calculator task, the generated config looks like:
+| Prompt | Example answer |
+|---|---|
+| Task name | `calculator_eval` |
+| Description | *(Enter — keep default)* |
+| Prompt template | `Given an arithmetic expression, return the numeric result.`<br>`Input: {expression}`<br>*(blank line to finish)* |
+| Input fields | *(Enter — keep default `text` for now — see warning below)* |
+| Output fields | `result` |
+| Evaluator | *(Enter — keep `exact_match`)* |
+| Provider | `anthropic` |
+| Model | `claude-haiku-4-5-20251001` |
+| Ollama URL / Base model / Budget | *(Enter — keep defaults)* |
 
-```yaml
-provider:
-  api_base_url: https://api.anthropic.com
-  api_key: "env:ANTHROPIC_API_KEY"
-  model: "claude-haiku-4-5-20251001"
-  timeout_seconds: 30
+> **Wizard bug:** The wizard ignores your prompt template's `{expression}` variable and always writes `name: text` to `input_schema` in `apprentice.yaml`. After `init`, open `apprentice.yaml` and change:
+> ```yaml
+> # wrong (wizard default)
+> input_schema:
+>   - name: text
+>
+> # correct
+> input_schema:
+>   - name: expression
+>     type: string
+>     required: true
+> ```
+> If you skip this fix, `apprentice serve` will exit with a validation error about unknown input_schema properties.
 
-local_model:
-  endpoint: "http://localhost:11434"
-  model_name: "llama3.1:8b"
-  timeout_seconds: 60
-
-tasks:
-  - task_name: calculator_eval
-    prompt_template: |
-      Given an arithmetic expression, return the numeric result.
-      Input: {expression}
-    input_schema:
-      - name: expression
-        type: string
-        required: true
-    output_schema:
-      - name: result
-        type: string
-        required: true
-    evaluators:
-      - type: exact_match
-        match_fields:
-          - name: result
-            weight: 1.0
-            case_sensitive: true
-    thresholds:
-      local_ready: 0.7
-      local_only: 0.85
-      degraded_threshold: 0.3
-    sampling_rate_initial: 1.0
-    min_training_examples: 100
-
-budget:
-  max_daily_cost_usd: 10.00
-  max_monthly_cost_usd: 150.00
-  budget_state_path: .apprentice/budget_state.json
-
-finetuning:
-  backend: local_lora
-  model_base: "llama3.1:8b"
-  output_dir: .apprentice/models/
-
-audit:
-  log_path: .apprentice/audit.log
-  log_level: INFO
-
-training_data:
-  storage_dir: .apprentice/training_data/
-  max_examples_per_task: 50000
-```
-
-**Start the HTTP daemon (required for `run`):**
+**Start the HTTP daemon:**
 
 ```bash
-apprentice serve --config apprentice.yaml
+apprentice serve
 ```
 
-Apprentice exposes an HTTP API. `run` sends requests through it.
+Note: the `--config` flag does not exist. `serve` always reads `./apprentice.yaml` from the current directory.
 
-**Execute a task (in another terminal):**
-
-```bash
-apprentice run calculator_eval --input '{"expression": "2 + 2"}'
+Expected output:
+```
+Loading config from ./apprentice.yaml...
+Apprentice serving on 127.0.0.1:8710
+  Health:          http://127.0.0.1:8710/health
+  Run:             POST http://127.0.0.1:8710/v1/run
+  Status:          http://127.0.0.1:8710/v1/status
+  Report:          http://127.0.0.1:8710/v1/report
+  Pipeline interval: 300s
 ```
 
-Returns the result plus metadata: which model answered (`remote`, `local`, or `dual`), cost, and current phase.
+`serve` is blocking — open a second terminal for the commands below.
 
 **Check current phase and training progress:**
 
 ```bash
 apprentice status
-apprentice status --task calculator_eval
 ```
+
+Expected output (task starts in `bootstrapping` with confidence `0.00`):
+```
+Task: calculator_eval
+  Phase: bootstrapping
+  Confidence: 0.00
+  Local Primary: True
+  Budget: 0.00 / 10.00
+```
+
+**Execute a task:**
+
+```bash
+apprentice run calculator_eval --input '{"expression": "2 + 2"}'
+```
+
+> **Known bug:** `apprentice run` crashes immediately with `Error: 'TaskResponse' object has no attribute 'success'`. The task never executes. No CLI workaround — the HTTP API at `POST http://127.0.0.1:8710/v1/run` may work directly via `curl`. See `UPSTREAM_BUGS.md`.
 
 **Generate a full report:**
 
@@ -1150,15 +1300,7 @@ apprentice status --task calculator_eval
 apprentice report
 ```
 
-Shows per-task correlation scores, phase history, cost breakdown, and training data counts.
-
-**Bulk-load existing training examples:**
-
-```bash
-apprentice ingest --task calculator_eval examples.jsonl
-```
-
-Useful for bootstrapping with historical data to skip Cold Start faster.
+> **Known bug:** `apprentice report` crashes with `Error: 'SystemReport' object has no attribute 'tasks'`. See `UPSTREAM_BUGS.md`.
 
 **Deactivate when done:**
 
@@ -1183,12 +1325,6 @@ Apprentice includes built-in PII scrubbing before data reaches models or trainin
 ```bash
 pip install -e ".[ml]"
 ```
-
-#### Prerequisites for local fine-tuning
-
-- **Ollama** running locally with the base model pulled (`ollama pull llama3.1:8b`)
-- Fine-tuning only triggers after `min_training_examples` are collected
-- For GKE-based LoRA training, install the `gke` extra and configure Kubernetes credentials
 
 ---
 

@@ -1,0 +1,24 @@
+{
+  "packages": [
+    "pydantic>=2.0",
+    "pytest"
+  ],
+  "shared_types": {},
+  "conventions": [
+    "Language: Python 3.12+",
+    "Testing: pytest",
+    "Type annotations on all public functions",
+    "Prefer composition over inheritance",
+    "All functions must have at least one test",
+    "Tests must be runnable without external services",
+    "No task is done until its contract tests pass",
+    "Prefer stdlib over third-party libraries",
+    "Keep files under 300 lines"
+  ],
+  "validators": [
+    "length(min=1)",
+    "range(min=1)"
+  ],
+  "tools": [],
+  "mocks": {}
+}

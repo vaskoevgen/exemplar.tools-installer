@@ -1,0 +1,11 @@
+2026-04-30 18:36:48,042 INFO stigmergy.cli.budget: Budget pricing: $0.80/$4.00 per M tokens (model: claude-haiku-4-5-20251001)
+2026-04-30 18:36:48,057 INFO stigmergy.identity.resolver: Identity provider linear-users not available, skipping
+2026-04-30 18:36:48,057 INFO stigmergy.identity.resolver: Identity provider slack-users not available, skipping
+2026-04-30 18:36:48,060 INFO stigmergy.mesh.caucus:   Caucus: worker 18f2d0b1 seeded with 2 signals (24 terms)
+2026-04-30 18:36:48,060 INFO stigmergy.mesh.caucus:   Caucus: worker af7d7c3f seeded with 2 signals (27 terms)
+2026-04-30 18:36:48,060 INFO stigmergy.mesh.caucus:   Caucus: worker ba622a0c seeded with 2 signals (15 terms)
+2026-04-30 18:36:48,210 INFO stigmergy.mesh.corroboration: Phase 2 corroboration: 3 findings → 6 routes → 2 workers → 3 quorum (0 met threshold)
+2026-04-30 18:36:48,211 INFO stigmergy.mesh.insight_store: Persisted 3 insights to .stigmergy/insights.jsonl (run f477d5aa)
+2026-04-30 18:36:48,215 INFO stigmergy.graph.graph: Saved communication graph: 3 nodes, 3 edges to .stigmergy/graph.json
+2026-04-30 18:36:48,215 INFO stigmergy.mesh.stability: Wrote 7 stability entries to .stigmergy/stability.jsonl
+2026-04-30 18:36:48,215 INFO stigmergy.mesh.state_store: Saved mesh state: 3 workers, 2 agents, 0 compression keys

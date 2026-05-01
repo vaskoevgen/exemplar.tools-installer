@@ -1,0 +1,104 @@
+{
+  "task_summary": "Define the interface contract for the root 'Main' component of a personal task management app. This involves establishing the canonical type system, API contract surface, error handling conventions, and serialization formats that bind the React frontend, Express/Node.js backend, and PostgreSQL database layers together. The contract must align with the provided canonical type registry and project operating procedures (Python 3.12+, pytest, composition over inheritance, stdlib preference).",
+  "findings": [
+    {
+      "topic": "Type System Design for Cross-Layer Contracts",
+      "finding": "The canonical type registry defines value types (UUID, DateString, TimestampTZ, Priority) as branded/constrained primitives and composite types (Task, CreateTaskRequest, UpdateTaskRequest) as structs. Best practice is to define these in a single source-of-truth module and derive layer-specific representations (DB row, API JSON, frontend model) via explicit mapping functions rather than implicit coercion. This prevents drift between layers.",
+      "source": "Domain-Driven Design (Evans), API design best practices (Google API Design Guide)",
+      "relevance": "The root component owns all types in the registry. The contract must enforce that all child components reference these exact definitions, not redefinitions.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Python Dataclass / TypedDict Patterns for Contract Types",
+      "finding": "Python 3.12+ supports dataclasses with slots=True and kw_only=True for immutable value objects, and TypedDict with Required/NotRequired for JSON-shaped data. For contract testing, dataclasses provide runtime validation via __post_init__, while TypedDict aligns more naturally with JSON serialization. Given the stdlib preference, dataclasses are the idiomatic choice for domain types; TypedDict for wire-format types.",
+      "source": "Python 3.12 documentation, PEP 589 (TypedDict), PEP 681 (dataclass transforms)",
+      "relevance": "Directly applicable — the contract module must define Task, CreateTaskRequest, UpdateTaskRequest, ApiErrorResponse as Python types with full annotations.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Optional vs Nullable Field Semantics in PATCH Endpoints",
+      "finding": "A common pitfall in PATCH semantics is conflating 'field not provided' (absent from JSON) with 'field explicitly set to null'. For UpdateTaskRequest, all fields are optional — but due_date being OptionalDateString means it can be explicitly set to null (clear the date) or omitted (leave unchanged). The standard approach is: absent key = no change; present key with null value = set to null; present key with value = update. Python's sentinel pattern (UNSET = object()) or a wrapper like Optional[T | None] distinguishes these cases.",
+      "source": "JSON Merge Patch (RFC 7396), Google API Design Guide partial updates",
+      "relevance": "Critical for UpdateTaskRequest contract — the type system must distinguish 'not provided' from 'null' for the due_date field specifically.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "HTTP Status Code Contract and Error Response Shape",
+      "finding": "The API uses a closed enum of status codes (200, 201, 400, 404). Best practice is to define the error response as a discriminated union keyed on status code, where success responses carry the Task/TaskList payload and error responses carry ApiErrorResponse. This makes contract tests exhaustive — every endpoint maps inputs to a known (status, body_type) pair.",
+      "source": "OpenAPI 3.x response object patterns, HTTP API design conventions",
+      "relevance": "The root contract must specify the exact mapping: POST /tasks → 201+Task | 400+ApiErrorResponse; GET /tasks → 200+TaskList; GET /tasks/:id → 200+Task | 404+ApiErrorResponse; PATCH /tasks/:id → 200+Task | 404+ApiErrorResponse; DELETE /tasks/:id → 200+{} | 404+ApiErrorResponse.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Serialization Format Conventions",
+      "finding": "JSON is the wire format. Key conventions: (1) snake_case field names in JSON to match the DB schema and Python convention — this is consistent with the registry (due_date, created_at). (2) UUID serialized as lowercase hyphenated string. (3) DateString as YYYY-MM-DD. (4) TimestampTZ as ISO 8601 with Z suffix. (5) Priority as bare integer. (6) Booleans as JSON true/false. The contract should include explicit serialization examples to prevent ambiguity.",
+      "source": "JSON:API spec, ISO 8601, RFC 4122 (UUID format)",
+      "relevance": "Directly defines the wire contract between frontend and backend.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Validation Rules and 400 Error Conditions",
+      "finding": "The spec mandates 400 if title is empty or missing on POST. Common missed edge cases: (1) title is whitespace-only — should this be treated as empty? Best practice: yes, trim and reject. (2) priority is zero or negative — the registry says 1 = default/lowest, implying ≥1 constraint. (3) due_date is malformed string — should return 400. (4) Extra/unknown fields in request body — convention is to ignore (permissive) or reject (strict); permissive is more common for REST APIs. (5) PATCH with empty body — valid no-op or 400? RFC 5789 allows empty patches; convention is to return 200 with unchanged resource.",
+      "source": "REST API validation patterns, Postel's Law, JSON Schema validation",
+      "relevance": "The contract must enumerate validation rules to make contract tests deterministic.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Contract Testing with pytest",
+      "finding": "Contract tests verify that each layer honors the shared type definitions and endpoint semantics. Pattern: (1) Define type constructors/factories that produce valid instances. (2) Define property-based invariants (e.g., serializing then deserializing a Task yields the same Task). (3) Use parametrized tests for each endpoint's success and error paths. (4) Mock the database layer to keep tests runnable without external services (per operating procedures).",
+      "source": "Contract testing patterns (Pact), pytest parametrize, operating procedures",
+      "relevance": "Operating procedures require all functions have tests, tests run without external services, and no task is done until contract tests pass.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Composition Over Inheritance for Type Hierarchy",
+      "finding": "The operating procedures mandate composition over inheritance. For the type system this means: don't create a BaseTask superclass with CreateTask/UpdateTask subclasses. Instead, Task is a standalone dataclass; CreateTaskRequest and UpdateTaskRequest are independent structs that compose primitive types. Conversion between them is handled by factory functions (e.g., Task.from_create_request()), not inheritance chains.",
+      "source": "Operating procedures, composition patterns in Python",
+      "relevance": "Directly constrains the implementation approach for type definitions.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "File Organization and Size Constraints",
+      "finding": "Operating procedures require files under 300 lines. For the root contract, this suggests splitting into: (1) types.py — canonical type definitions (~80-120 lines), (2) contracts.py — endpoint contracts and response mappings (~60-80 lines), (3) validators.py — validation logic (~50-70 lines), (4) test_contracts.py — contract tests (~100-150 lines). Each stays well under 300 lines.",
+      "source": "Operating procedures",
+      "relevance": "Directly constrains file structure of the deliverable.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "DELETE Response Body Convention",
+      "finding": "The spec says DELETE /tasks/:id returns 200 if found, 404 if not. Common ambiguity: what is the 200 response body? Options: (1) empty body with 204 No Content, (2) the deleted task entity with 200, (3) a confirmation message with 200. Since the spec says 200 (not 204), returning the deleted Task entity is the most informative and testable choice.",
+      "source": "REST API conventions, HTTP 204 vs 200 semantics",
+      "relevance": "Must be specified in the contract to avoid ambiguity between frontend and backend implementations.",
+      "confidence": 0.85
+    }
+  ],
+  "recommended_approach": "Define the root contract in Python 3.12+ using stdlib dataclasses (frozen=True, slots=True, kw_only=True) for all canonical types from the registry. Use a dedicated Sentinel/UNSET marker only if PATCH null-vs-absent distinction is needed beyond due_date; otherwise adopt JSON Merge Patch semantics (RFC 7396) where absent=unchanged and null=clear.\n\nStructure:\n1. **types.py** — Frozen dataclasses for Task, CreateTaskRequest, UpdateTaskRequest, ApiErrorResponse. Constrained type aliases for UUID, DateString, TimestampTZ, Priority, OptionalDateString. Enum for HttpStatusCode.\n2. **contracts.py** — Endpoint contract definitions mapping (method, path, request_type) → (status_code, response_type) for all 5 endpoints and their success/error branches. DELETE 200 returns the deleted Task.\n3. **validators.py** — Pure validation functions (validate_create_task, validate_update_task) returning either a validated request or an error string. Title validation: strip whitespace, reject if empty. Priority validation: must be ≥1 integer. DateString validation: must parse as YYYY-MM-DD.\n4. **test_contracts.py** — pytest-parametrized contract tests covering: type construction, serialization round-trips, validation accept/reject cases, endpoint contract exhaustiveness.\n\nAll JSON uses snake_case keys. UUID as lowercase hyphenated string. Timestamps as ISO 8601 with Z. Dates as YYYY-MM-DD. Priority as integer. No envelope/wrapper — response body is the type directly (Task, TaskList, or ApiErrorResponse).",
+  "alternatives_considered": [
+    "TypedDict for all types (closer to JSON shape, but lacks runtime validation and __post_init__ hooks; less idiomatic for domain modeling)",
+    "Pydantic for type validation (powerful but violates stdlib preference in operating procedures)",
+    "attrs library for value objects (excellent but third-party; violates stdlib preference)",
+    "Inheritance-based type hierarchy (BaseTask → Task, CreateTaskRequest extends BaseTask minus fields; violates composition-over-inheritance mandate)",
+    "204 No Content for DELETE success (valid HTTP convention but spec explicitly lists 200, not 204)",
+    "JSON:API envelope format with 'data' wrapper (adds complexity for a single-user app; flat JSON is simpler and sufficient)",
+    "Sentinel-based UNSET pattern for PATCH fields (more precise but adds complexity; JSON Merge Patch semantics with absent=unchanged, null=clear is simpler and standard)"
+  ],
+  "risks": [
+    "PATCH absent-vs-null ambiguity: If not explicitly specified, frontend and backend may disagree on whether sending {\"due_date\": null} clears the date or is ignored. Mitigated by adopting RFC 7396 JSON Merge Patch semantics explicitly in the contract.",
+    "Priority range validation: Registry says '1 = default/lowest, higher = more urgent' but doesn't specify an upper bound. Without a cap, arbitrarily large integers could cause UI rendering issues. Mitigated by documenting 1-5 as the recommended range but accepting any positive integer.",
+    "Title whitespace edge case: 'empty' vs 'whitespace-only' is ambiguous. If backend trims but frontend doesn't, validation behavior diverges. Mitigated by specifying trim-then-validate in the contract.",
+    "created_at timezone handling: PostgreSQL timestamptz stores UTC internally but clients may send local times. Contract must specify UTC normalization. Mitigated by requiring Z-suffix ISO 8601 in all API responses.",
+    "Test isolation from PostgreSQL: Operating procedures require tests without external services. Contract tests must use in-memory mocks, not a test database. This is achievable but means integration tests are out of scope for this contract layer.",
+    "Cross-language type drift: Types are defined in Python but consumed by JavaScript (Express/React). Without code generation, the Python contract and JS implementation can diverge. Mitigated by making contract tests the single source of truth that both layers must satisfy."
+  ],
+  "compliance_notes": [
+    "Python 3.12+ required — using dataclasses with slots=True, kw_only=True and type alias syntax (type UUID = str).",
+    "Type annotations on all public functions — enforced by design; all validators, constructors, and serializers are fully annotated.",
+    "Composition over inheritance — no base classes; Task, CreateTaskRequest, and UpdateTaskRequest are independent dataclasses composed from primitive type aliases.",
+    "Prefer stdlib over third-party — using dataclasses, enum, uuid, datetime, json from stdlib only. No Pydantic, attrs, or marshmallow.",
+    "Files under 300 lines — four-file split (types, contracts, validators, tests) keeps each well under limit.",
+    "All functions must have at least one test — contract test file covers every public function.",
+    "Tests runnable without external services — all tests use in-memory data; no database or network calls.",
+    "No task done until contract tests pass — contract tests are the gate for this deliverable.",
+    "Canonical type registry types used exactly as defined — field names, types, and optionality match the registry verbatim."
+  ]
+}

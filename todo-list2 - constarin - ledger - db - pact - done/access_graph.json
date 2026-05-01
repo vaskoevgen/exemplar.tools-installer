@@ -1,0 +1,57 @@
+{
+  "version": "1.0",
+  "generated_by": "pact",
+  "project": "todo-list2",
+  "timestamp": "2026-04-30T14:12:14.112424",
+  "components": [
+    {
+      "id": "root",
+      "name": "Main",
+      "data_access": {
+        "reads": [
+          "INTERNAL"
+        ],
+        "writes": [
+          "INTERNAL"
+        ],
+        "side_effects": [
+          {
+            "type": "db_read",
+            "classification": "INTERNAL",
+            "fields": [
+              "id",
+              "title",
+              "completed",
+              "priority",
+              "due_date",
+              "created_at"
+            ],
+            "rationale": "SELECT queries against the tasks table to list all tasks or retrieve a single task by UUID."
+          },
+          {
+            "type": "db_write",
+            "classification": "INTERNAL",
+            "fields": [
+              "id",
+              "title",
+              "completed",
+              "priority",
+              "due_date",
+              "created_at"
+            ],
+            "rationale": "INSERT, UPDATE, and DELETE operations against the tasks table for task lifecycle management."
+          }
+        ]
+      },
+      "authority": {
+        "domains": [
+          "tasks"
+        ],
+        "rationale": "This is the sole root component for the task management application. It is the single source of truth for the Task domain model, all task CRUD operations, validation rules, and REST endpoint contracts. The backend is authoritative \u2014 no client-side caching of state."
+      },
+      "contract_hash": "3fdd7b3db26f63c7f01607175f9525e9d09e2ec37f4f3928272be0ddbbb61a4b",
+      "test_hash": "419e29444d9ed976d0b9a108d146e8671de46aecea11219f8b85afb24fd08e3e"
+    }
+  ],
+  "edges": []
+}
