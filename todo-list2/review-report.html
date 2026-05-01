@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Advocate Review — /Users/yevhenvasko/source/exemplar.tools-installer/todo-list2/src</title>
+<style>
+  :root { --bg: #0d1117; --fg: #c9d1d9; --accent: #58a6ff; --red: #f85149;
+          --green: #3fb950; --yellow: #d29922; --border: #30363d; --card: #161b22; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+         background: var(--bg); color: var(--fg); line-height: 1.6; padding: 2rem; max-width: 1200px; margin: 0 auto; }
+  h1 { color: var(--accent); margin-bottom: 0.25rem; }
+  h2 { color: var(--fg); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin: 2rem 0 1rem; }
+  h3 { margin: 1rem 0 0.5rem; }
+  .meta { color: #8b949e; margin-bottom: 2rem; }
+  .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1rem; }
+  .card .label { color: #8b949e; font-size: 0.85rem; text-transform: uppercase; }
+  .card .value { font-size: 1.8rem; font-weight: 600; }
+  .green { color: var(--green); } .red { color: var(--red); } .yellow { color: var(--yellow); }
+  table { width: 100%; border-collapse: collapse; margin: 1rem 0; }
+  th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+  th { color: #8b949e; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; }
+  .badge { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 3px; font-size: 0.8rem; font-weight: 600; }
+  .sev-critical { background: rgba(255,64,64,0.15); color: #ff4040; }
+  .sev-high { background: rgba(248,81,73,0.15); color: var(--red); }
+  .sev-medium { background: rgba(210,153,34,0.15); color: var(--yellow); }
+  .sev-low { background: rgba(139,148,158,0.15); color: #8b949e; }
+  .sev-info { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .persona-card { background: var(--card); border: 1px solid var(--border); border-radius: 6px; padding: 1.25rem; margin-bottom: 1.5rem; }
+  .persona-header { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .persona-tagline { color: #8b949e; font-style: italic; margin-bottom: 1rem; }
+  .persona-summary { color: #8b949e; margin-top: 1rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .finding { margin: 0.5rem 0; padding: 0.5rem; border-left: 3px solid var(--border); }
+  .finding-title { font-weight: 600; }
+  .finding-detail { color: #8b949e; font-size: 0.9rem; margin-top: 0.25rem; }
+  .finding-rec { color: var(--green); font-size: 0.9rem; margin-top: 0.25rem; }
+  .tension { background: var(--card); border: 1px solid var(--yellow); border-radius: 6px; padding: 1rem; margin: 0.5rem 0; }
+  footer { margin-top: 3rem; padding-top: 1rem; border-top: 1px solid var(--border); color: #8b949e; font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+<h1>Advocate Review</h1>
+<div class="meta">
+  <strong>/Users/yevhenvasko/source/exemplar.tools-installer/todo-list2/src</strong> (directory)<br>
+  ID: 20260430T192832-9d7514fe | 2026-04-30T19:28:32.793885+00:00
+</div>
+
+<div class="summary-grid">
+  <div class="card"><div class="label">Findings</div>
+    <div class="value red">38</div></div>
+  <div class="card"><div class="label">Personas</div><div class="value">6</div></div>
+  <div class="card"><div class="label">Disagreements</div>
+    <div class="value ">0</div></div>
+  <div class="card"><div class="label">Cost</div><div class="value">$0.2355</div></div>
+</div>
+
+
+<div class="persona-card">
+  <div class="persona-header">Red Team</div>
+  <div class="persona-tagline">It's vulnerable; harden. — Success: The thing survives assault.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[race_conditions]</span>
+    <span class="finding-title">Global store concurrent access without synchronization</span>
+    <div class="finding-detail">The _store global variable is accessed concurrently by async operations without any locking or synchronization. Multiple concurrent requests can corrupt the internal dictionary state, leading to data loss, inconsistent reads, or crashes.</div>
+    <div class="finding-detail"><code>_store = _TaskStore() with methods like add(), get(), update(), delete() that directly manipulate self._tasks dict without locks, called from async functions like create_task(), update_task()</code></div>
+    <div class="finding-rec">-> Add async locks around all store operations or use a thread-safe data structure. Consider using asyncio.Lock() to protect critical sections.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[data_corruption]</span>
+    <span class="finding-title">Task ID collision enables data corruption</span>
+    <div class="finding-detail">The create_task function generates UUIDs using uuid4() but doesn't check for collisions before adding to store. While UUID4 collisions are rare, they can occur and would silently overwrite existing tasks.</div>
+    <div class="finding-detail"><code>task_id = str(_uuid_mod.uuid4()) followed by _store.add(task) which does self._tasks[task.id] = task without checking if the ID already exists</code></div>
+    <div class="finding-rec">-> Check for existing task ID before insertion, or use a collision-safe ID generation strategy.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[injection]</span>
+    <span class="finding-title">Log injection through PACT key logging</span>
+    <div class="finding-detail">The _log function directly interpolates user-controlled data into log messages without sanitization. An attacker could inject malicious content into logs by manipulating task titles or other user inputs that get logged.</div>
+    <div class="finding-detail"><code>_log function uses f-string: f"[{_PACT_KEY}] {msg}" where msg could contain user input, and PACT_KEY is also interpolated</code></div>
+    <div class="finding-rec">-> Sanitize log messages and use structured logging instead of string interpolation to prevent log injection attacks.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[data_corruption]</span>
+    <span class="finding-title">TimestampTZ validation bypass allows invalid timestamps</span>
+    <div class="finding-detail">The TimestampTZ class accepts any string value without validating it's a proper ISO 8601 timestamp with timezone. This can lead to storing invalid timestamp data that breaks downstream processing.</div>
+    <div class="finding-detail"><code>TimestampTZ.__init__ only checks isinstance(value, str) but doesn't validate the timestamp format like DateString does</code></div>
+    <div class="finding-rec">-> Add proper ISO 8601 timestamp validation in TimestampTZ.__init__ similar to DateString validation.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[race_conditions]</span>
+    <span class="finding-title">Test fixture race condition with store clearing</span>
+    <div class="finding-detail">The _reset_store fixture clears the store before and after each test, but if tests run concurrently, the clear() operation can interfere with running tests, causing flaky test results or data corruption.</div>
+    <div class="finding-detail"><code>_reset_store fixture calls _store.clear() both before yield and after, while async tests might be accessing the same global _store</code></div>
+    <div class="finding-rec">-> Use test-isolated store instances instead of a global store, or ensure tests run sequentially.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-low">low</span>
+    <span style="color:#8b949e;">[data_corruption]</span>
+    <span class="finding-title">Priority integer overflow not handled</span>
+    <div class="finding-detail">The Priority class accepts any integer >= 1 without upper bounds checking. Extremely large integers could cause memory issues or overflow problems in downstream systems.</div>
+    <div class="finding-detail"><code>Priority.__init__ only checks value >= 1 but has no maximum value validation</code></div>
+    <div class="finding-rec">-> Add reasonable upper bounds for priority values (e.g., max 1000000) to prevent resource exhaustion.</div>
+  </div>
+  
+  
+  <div class="persona-summary">This codebase has significant concurrency vulnerabilities that could lead to data corruption in a multi-user environment. The global store operations are completely unsynchronized, creating race conditions that could cause data loss or inconsistent state. The ID collision handling and input validati</div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">22888ms | $0.0374 | 8504 tokens</div>
+</div>
+
+<div class="persona-card">
+  <div class="persona-header">Adversarial</div>
+  <div class="persona-tagline">It's wrong; defend. — Success: The argument holds under direct challenge.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[failure_modes]</span>
+    <span class="finding-title">Global state corruption in concurrent environments</span>
+    <div class="finding-detail">The module uses a global `_store` instance that is shared across all imports. In web applications with concurrent requests, this creates race conditions where one request's operations can interfere with another's. The `_reset_store()` fixture in tests also demonstrates this is a known issue - clearing global state between tests indicates the design is fundamentally flawed for concurrent access.</div>
+    <div class="finding-detail"><code>_store = _TaskStore() at module level, and conftest.py fixture that clears _store.clear() between tests</code></div>
+    <div class="finding-rec">-> Use dependency injection or request-scoped storage instead of global state</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[edge_cases]</span>
+    <span class="finding-title">UUID collision handling missing</span>
+    <div class="finding-detail">The `create_task()` function generates UUID v4 without checking for collisions in the store. While UUID v4 collisions are extremely rare, they are theoretically possible. The store will silently overwrite an existing task if a collision occurs, leading to data loss.</div>
+    <div class="finding-detail"><code>task_id = str(_uuid_mod.uuid4()) followed immediately by _store.add(task) with no collision check</code></div>
+    <div class="finding-rec">-> Check for existing ID in store and regenerate if collision detected</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[wrong_assumptions]</span>
+    <span class="finding-title">TimestampTZ validation completely missing</span>
+    <div class="finding-detail">TimestampTZ class accepts any string without validation that it's actually a valid ISO 8601 timestamp with timezone. This violates the contract that it represents 'an ISO 8601 timestamp string with timezone' and will cause failures when the timestamp is actually used.</div>
+    <div class="finding-detail"><code>TimestampTZ.__init__ only checks isinstance(value, str) but does no format or datetime parsing validation</code></div>
+    <div class="finding-rec">-> Add datetime.fromisoformat() validation like DateString does</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[edge_cases]</span>
+    <span class="finding-title">Memory exhaustion from unbounded store growth</span>
+    <div class="finding-detail">The in-memory store has no size limits or cleanup mechanisms. In a long-running application, tasks accumulate indefinitely leading to memory exhaustion. There's no LRU eviction, no maximum capacity, no cleanup of old tasks.</div>
+    <div class="finding-detail"><code>_TaskStore._tasks dictionary with no size limits and only clear() method for cleanup</code></div>
+    <div class="finding-rec">-> Implement store size limits, LRU eviction, or TTL-based cleanup</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[edge_cases]</span>
+    <span class="finding-title">Unicode normalization issues in TaskTitle</span>
+    <div class="finding-detail">TaskTitle validation doesn't handle Unicode normalization. Different Unicode representations of the same visual string (like é vs e+combining-accent) will be treated as different titles. This can lead to apparent duplicates and confused users.</div>
+    <div class="finding-detail"><code>TaskTitle.__init__ only checks len(value) and value.strip() but no unicodedata.normalize()</code></div>
+    <div class="finding-rec">-> Normalize Unicode to NFC form before validation and storage</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[wrong_assumptions]</span>
+    <span class="finding-title">Date validation assumes Gregorian calendar only</span>
+    <div class="finding-detail">DateString validation uses date.fromisoformat() which assumes Gregorian calendar. This may not handle all edge cases correctly for dates near calendar transitions or in different locales, though ISO 8601 does specify Gregorian.</div>
+    <div class="finding-detail"><code>date.fromisoformat(value) in DateString.__init__ with no explicit calendar specification</code></div>
+    <div class="finding-rec">-> Document Gregorian assumption or add explicit calendar validation</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[failure_modes]</span>
+    <span class="finding-title">Event handler exceptions can crash operations</span>
+    <div class="finding-detail">All async CRUD functions call event_handler() without exception handling. If the event handler throws an exception, it will propagate and crash the operation, even though event handling should be non-critical side-effect.</div>
+    <div class="finding-detail"><code>_emit() calls throughout async functions with no try/except wrapping</code></div>
+    <div class="finding-rec">-> Wrap event handler calls in try/except to prevent handler failures from affecting core operations</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-low">low</span>
+    <span style="color:#8b949e;">[backward_compatibility]</span>
+    <span class="finding-title">Frozen dataclasses prevent future field additions</span>
+    <div class="finding-detail">All dataclasses use frozen=True, which prevents adding new fields through inheritance or monkey-patching. This makes it difficult to extend the API schema in backward-compatible ways without breaking changes.</div>
+    <div class="finding-detail"><code>@dataclass(frozen=True, slots=True, kw_only=True) on Task, CreateTaskRequest, etc.</code></div>
+    <div class="finding-rec">-> Consider whether frozen=True is necessary for all dataclasses or if some should allow extension</div>
+  </div>
+  
+  
+  <div class="persona-summary">This code has several critical flaws that make it unsuitable for production use. The global state design is fundamentally broken for concurrent environments - any web server handling multiple requests simultaneously will experience race conditions and data corruption. The UUID collision handling is </div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">29379ms | $0.0417 | 8780 tokens</div>
+</div>
+
+<div class="persona-card">
+  <div class="persona-header">Sage</div>
+  <div class="persona-tagline">It's complicated; simplify. — Success: A smart person can explain it simply.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Duplicate type systems serving identical purpose</span>
+    <div class="finding-detail">The code implements two complete type systems for the same data: primitive wrapper classes (TaskUUID, TaskTitle, Priority, DateString) with full validation, AND separate validation functions that duplicate all the same logic. This is pure redundancy - you're validating the same constraints twice in different ways.</div>
+    <div class="finding-detail"><code>TaskTitle class validates non-empty strings ≤500 chars, then validate_create_task() does identical validation on title field. Same pattern for Priority, DateString, etc.</code></div>
+    <div class="finding-rec">-> Pick one approach. Either use the wrapper types throughout (and skip separate validation), or use simple validation functions and drop the wrapper classes entirely.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Over-engineered sentinel pattern for optional updates</span>
+    <div class="finding-detail">Using a custom Sentinel enum with UNSET values adds cognitive overhead for a problem Python's None/Optional already solves elegantly. The validation logic becomes more complex to handle three states (UNSET, None, value) when two states would suffice.</div>
+    <div class="finding-detail"><code>UpdateTaskRequest uses Sentinel.UNSET as default, then validation must check 'if title is not Sentinel.UNSET' before processing. Standard Optional[T] pattern would be clearer.</code></div>
+    <div class="finding-rec">-> Use None as the default for optional update fields. Differentiate between 'not provided' and 'clear field' through separate request models or explicit nullable fields.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Unnecessary async everywhere</span>
+    <div class="finding-detail">All CRUD operations are declared async but perform zero async operations - they just call synchronous in-memory store methods. This adds complexity and misleads about the actual behavior.</div>
+    <div class="finding-detail"><code>Functions like 'async def create_task()' and 'async def list_tasks()' contain no await statements and only call synchronous _store methods.</code></div>
+    <div class="finding-rec">-> Make functions synchronous unless they actually perform async I/O. If you need async compatibility for a future database, add it when you add the database.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[concept]</span>
+    <span class="finding-title">Domain logic mixed with instrumentation noise</span>
+    <div class="finding-detail">Every business function is cluttered with event emission boilerplate that obscures the actual logic. The _emit calls with identical empty classifications suggest this instrumentation isn't providing value yet.</div>
+    <div class="finding-detail"><code>Each CRUD function has 6+ lines of _emit() calls with empty input_classification, output_classification arrays, making the actual business logic hard to follow.</code></div>
+    <div class="finding-rec">-> Extract instrumentation to a decorator or middleware layer. Keep business logic functions focused on business logic only.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[blast_radius]</span>
+    <span class="finding-title">Global mutable state with no isolation</span>
+    <div class="finding-detail">The global _store instance means all parts of the application share the same mutable state. Any corruption or unexpected modification affects everything, and testing requires careful cleanup coordination.</div>
+    <div class="finding-detail"><code>_store = _TaskStore() is a module-level global, and conftest.py shows the need for manual cleanup between tests with _store.clear().</code></div>
+    <div class="finding-rec">-> Inject the store as a dependency or use a factory pattern. This enables different store instances for testing vs production and reduces coupling.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-low">low</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Unused abstraction overhead</span>
+    <div class="finding-detail">Several classes and types are defined but serve no clear purpose: 'boolean' and 'string' stub classes, EndpointContract dataclass that's only used to return static data, PactFormatter that's defined but not used.</div>
+    <div class="finding-detail"><code>Classes 'boolean' and 'string' have docstrings saying 'Auto-stubbed type' but no implementation. EndpointContract is only used in get_endpoint_contracts() to return static configuration.</code></div>
+    <div class="finding-rec">-> Remove unused types. If EndpointContract is for future API documentation generation, comment that intent. Otherwise, a simple list of dicts suffices.</div>
+  </div>
+  
+  
+  <div class="persona-summary">This code suffers from severe over-engineering. You've built two complete validation systems for the same data, added async complexity where none exists, and buried simple CRUD operations under layers of instrumentation boilerplate. The core concept - a task management system - is sound and simple, </div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">29670ms | $0.0392 | 8615 tokens</div>
+</div>
+
+<div class="persona-card">
+  <div class="persona-header">User</div>
+  <div class="persona-tagline">It's unintuitive; clarify. — Success: Someone unfamiliar can navigate it without a guide.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[concept]</span>
+    <span class="finding-title">No clear purpose or entry point documentation</span>
+    <div class="finding-detail">A new user has no idea what this code does, how to use it, or where to start. There's no README, no module docstring explaining the purpose, and no usage examples. The only clue is 'personal task management web app' buried in a docstring.</div>
+    <div class="finding-detail"><code>The root module docstring mentions 'personal task management web app' but there's no explanation of how to actually run it, what the API endpoints are, or how to interact with it.</code></div>
+    <div class="finding-rec">-> Add a comprehensive README with purpose, installation, usage examples, and API documentation. Add module-level examples showing how to create and use tasks.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[concept]</span>
+    <span class="finding-title">Confusing primitive wrapper types with unclear value</span>
+    <div class="finding-detail">The code defines wrapper classes like TaskUUID, TaskTitle, Priority that essentially duplicate built-in validation but aren't used consistently. The actual Task dataclass uses plain str/int types, making these wrappers seem pointless.</div>
+    <div class="finding-detail"><code>TaskUUID class exists but Task.id is typed as 'str'. TaskTitle exists but Task.title is 'str'. The wrapper types are defined but not used in the main data structures.</code></div>
+    <div class="finding-rec">-> Either use the wrapper types consistently throughout (Task should use TaskUUID for id field) or remove them entirely if plain types with validation functions are sufficient.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Mysterious auto-stubbed types break understanding</span>
+    <div class="finding-detail">The code defines placeholder classes 'boolean' and 'string' described as 'Auto-stubbed type — referenced but not defined in contract'. This is confusing and suggests the code is incomplete or generated incorrectly.</div>
+    <div class="finding-detail"><code>class boolean: "Auto-stubbed type — referenced but not defined in contract 'root'" and class string: "Auto-stubbed type — referenced but not defined in contract 'root'"</code></div>
+    <div class="finding-rec">-> Remove these placeholder classes or explain their purpose. If they're artifacts from code generation, clean them up before presenting to users.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Inconsistent typing makes API contracts unclear</span>
+    <div class="finding-detail">Request classes use 'Any' type for all fields, making it impossible to understand what types are expected. The validation happens at runtime, but there's no static type guidance for users.</div>
+    <div class="finding-detail"><code>CreateTaskRequest uses 'title: Any = None, priority: Any = 1, due_date: Any = None' and UpdateTaskRequest uses 'Any' with Sentinel.UNSET defaults.</code></div>
+    <div class="finding-rec">-> Use proper types (str, int, Optional[str]) with defaults, or provide clear documentation about expected types. The 'Any' typing provides no guidance to users.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[edge_cases]</span>
+    <span class="finding-title">Cryptic PACT logging system with no explanation</span>
+    <div class="finding-detail">The code is littered with PACT logging and event emission that a new user won't understand. There's no explanation of what PACT is or why these logs matter.</div>
+    <div class="finding-detail"><code>_PACT_KEY = "PACT:481349:root" and extensive event emission in every async function with pact_key fields.</code></div>
+    <div class="finding-rec">-> Add documentation explaining the PACT system or make it optional/removable for basic usage. Provide a way to disable this instrumentation for simple use cases.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Validation error messages are user-unfriendly</span>
+    <div class="finding-detail">Validation functions return generic error strings that don't help users understand how to fix their input. For example, 'Title is required and must not be empty' when the real issue might be wrong type.</div>
+    <div class="finding-detail"><code>validate_create_task returns strings like 'Title is required and must not be empty.' even when title is the wrong type, and 'Priority must be a positive integer >= 1.' without explaining what was actu</code></div>
+    <div class="finding-rec">-> Include the actual invalid value in error messages and provide specific guidance: 'Title must be a string, got int: 42' or 'Priority must be integer >= 1, got: "high"'.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[edge_cases]</span>
+    <span class="finding-title">No guidance on how to actually run or deploy this</span>
+    <div class="finding-detail">The code defines async CRUD operations but provides no web server, no CLI, no examples of how to actually use these functions. A user can't figure out how to make HTTP requests to this API.</div>
+    <div class="finding-detail"><code>Functions like create_task() are defined as async but there's no FastAPI app, no Flask routes, no server setup - just the business logic floating in isolation.</code></div>
+    <div class="finding-rec">-> Provide a simple server setup example (FastAPI/Flask) or CLI interface that demonstrates how to actually interact with these functions. Show complete request/response examples.</div>
+  </div>
+  
+  
+  <div class="persona-summary">This codebase suffers from a severe documentation and usability gap. While the underlying task management logic appears sound, a new user would be completely lost trying to understand what this does or how to use it. The code reads more like internal library code than something designed for external</div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">32417ms | $0.0423 | 8832 tokens</div>
+</div>
+
+<div class="persona-card">
+  <div class="persona-header">Subject Matter Expert</div>
+  <div class="persona-tagline">Peer-review. — Success: A peer would sign off on it.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[wrong_assumptions]</span>
+    <span class="finding-title">Timestamp monotonicity assumption violated</span>
+    <div class="finding-detail">The code assumes timestamps can be safely generated using datetime.now() for ordering and traceability. However, system clocks can go backwards due to NTP adjustments, leap seconds, or manual changes. This breaks assumptions about task creation ordering and audit trails.</div>
+    <div class="finding-detail"><code>now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")</code></div>
+    <div class="finding-rec">-> Use time.time_ns() or a monotonic clock for ordering, and consider adding a sequence number. Store both wall-clock time (for display) and monotonic time (for ordering).</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Mixing validation concerns with business logic</span>
+    <div class="finding-detail">The validation functions return either validated objects OR error strings, forcing callers to type-check results. This violates single responsibility and makes error handling fragile. The ValidationResult union type obscures the actual error handling contract.</div>
+    <div class="finding-detail"><code>ValidationResult = Union[CreateTaskRequest, UpdateTaskRequest, str]
+validated = validate_create_task(request)
+if isinstance(validated, str):</code></div>
+    <div class="finding-rec">-> Use Result types, exceptions, or separate validation from transformation. Return validation errors as structured objects, not strings.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[wrong_assumptions]</span>
+    <span class="finding-title">UUID uniqueness assumption in single-process context</span>
+    <div class="finding-detail">The code assumes UUID4 generation provides sufficient uniqueness for task IDs, but uses Python's uuid.uuid4() without considering collision probability in high-throughput scenarios or distributed systems. While mathematically sound, this can fail under specific conditions.</div>
+    <div class="finding-detail"><code>task_id = str(_uuid_mod.uuid4())</code></div>
+    <div class="finding-rec">-> For production systems, consider UUIDv7 for better temporal ordering, or add collision detection in the store.add() method.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Inconsistent type safety between wrapper types and core entities</span>
+    <div class="finding-detail">The code defines strict wrapper types (TaskUUID, TaskTitle, etc.) with comprehensive validation, but the core Task dataclass uses primitive types (str, int) instead of these wrappers. This creates a validation gap where invalid data can bypass the type safety.</div>
+    <div class="finding-detail"><code>class TaskUUID: ... class Task: id: str  # Should be TaskUUID, title: str  # Should be TaskTitle</code></div>
+    <div class="finding-rec">-> Use the wrapper types consistently in the Task dataclass, or remove the wrapper types if they're not being used.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[backward_compatibility]</span>
+    <span class="finding-title">REST API violates HTTP semantics</span>
+    <div class="finding-detail">DELETE /tasks/:id returns the deleted task with 200 OK, but RFC 7231 suggests 204 No Content for successful deletions. Also, the API uses PATCH but doesn't follow RFC 7396 JSON Merge Patch semantics properly (uses sentinel values instead of JSON null handling).</div>
+    <div class="finding-detail"><code>method="DELETE", success_status=200, success_response_type="Task" and UpdateTaskRequest with Sentinel.UNSET</code></div>
+    <div class="finding-rec">-> Return 204 for DELETE operations, or document why 200+body is needed. For PATCH, either implement proper JSON Merge Patch or use PUT for full updates.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-low">low</span>
+    <span style="color:#8b949e;">[design]</span>
+    <span class="finding-title">Event emission pattern adds complexity without clear benefit</span>
+    <div class="finding-detail">Every async function includes event_handler and log_handler parameters with complex emission logic, but the events contain mostly empty classifications and duplicate information. This pattern adds significant code complexity for unclear observability benefits.</div>
+    <div class="finding-detail"><code>_emit({"pact_key": ..., "event": "invoked", "input_classification": [], "output_classification": [], "side_effects": [], "ts": time.time_ns()})</code></div>
+    <div class="finding-rec">-> Simplify observability by using decorators, structured logging, or a proper tracing framework instead of manual event emission.</div>
+  </div>
+  
+  
+  <div class="persona-summary">This code shows solid engineering fundamentals but has several critical assumptions that could cause problems in production. The timestamp generation issue is the most serious - system clocks aren't monotonic, which breaks ordering guarantees. The validation design mixing success/error returns in un</div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">25450ms | $0.0393 | 8631 tokens</div>
+</div>
+
+<div class="persona-card">
+  <div class="persona-header">Good Friend</div>
+  <div class="persona-tagline">The harsh truth you need to hear. — Success: You'd rather know now than later.</div>
+  
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[three_am_test]</span>
+    <span class="finding-title">Global singleton store will corrupt data in production</span>
+    <div class="finding-detail">The `_store = _TaskStore()` global singleton will share state across all requests in a web server. When multiple users create/update tasks simultaneously, they'll see each other's data and operations will interfere with each other. This is a fundamental concurrency bug that will cause data corruption.</div>
+    <div class="finding-detail"><code>_store = _TaskStore() # Global singleton that all requests will share</code></div>
+    <div class="finding-rec">-> Pass store instances explicitly or use proper database/session isolation. Never use global mutable state in web applications.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-critical">critical</span>
+    <span style="color:#8b949e;">[blast_radius]</span>
+    <span class="finding-title">In-memory storage means all data lost on restart</span>
+    <div class="finding-detail">Every server restart, crash, or deployment will delete all user tasks permanently. No persistence, no backups, no recovery. This will destroy user trust immediately and make the application unusable in any real scenario.</div>
+    <div class="finding-detail"><code>class _TaskStore: def __init__(self) -> None: self._tasks: dict[str, Task] = {}</code></div>
+    <div class="finding-rec">-> Implement persistent storage (database, file system with atomic writes) before any real usage.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[three_am_test]</span>
+    <span class="finding-title">Silent validation failures will confuse users</span>
+    <div class="finding-detail">When validation fails, the API returns a generic 'VALIDATION_ERROR' without explaining what was wrong. Users won't know if it's title length, invalid date format, or something else. You'll get support tickets and frustrated users.</div>
+    <div class="finding-detail"><code>result = ApiErrorResponse(status=400, error="VALIDATION_ERROR") # Loses the specific error message</code></div>
+    <div class="finding-rec">-> Return the actual validation error message to users: ApiErrorResponse(status=400, error=validated)</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-high">high</span>
+    <span style="color:#8b949e;">[failure_modes]</span>
+    <span class="finding-title">No error handling for datetime operations</span>
+    <div class="finding-detail">The datetime.now() call in create_task can fail in edge cases (system clock issues, timezone problems). When it fails, the entire task creation fails with an unclear error.</div>
+    <div class="finding-detail"><code>now = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")</code></div>
+    <div class="finding-rec">-> Wrap datetime operations in try/catch and provide sensible fallbacks or clear error messages.</div>
+  </div>
+  
+  <div class="finding">
+    <span class="badge sev-medium">medium</span>
+    <span style="color:#8b949e;">[financial_risk]</span>
+    <span class="finding-title">Elaborate type system adds complexity without persistence benefits</span>
+    <div class="finding-detail">You've built custom wrapper types (TaskUUID, TaskTitle, Priority, etc.) that enforce validation, but since you're using in-memory storage, this complexity provides no durability benefits. The validation happens anyway in the request handlers.</div>
+    <div class="finding-detail"><code>Complex wrapper classes like TaskUUID with regex validation, but _store just uses basic dict[str, Task]</code></div>
+    <div class="finding-rec">-> Either simplify to basic types or implement proper persistence that benefits from the type safety.</div>
+  </div>
+  
+  
+  <div class="persona-summary">Look, this will probably work for a demo, but if you're planning to show this to anyone or use it for real tasks, you're going to hit problems fast. The global store issue is the killer - it's not just a bug, it's a fundamental architecture problem that will make multi-user scenarios completely brok</div>
+  
+  <div style="color:#8b949e;font-size:0.8rem;margin-top:0.5rem;">20623ms | $0.0357 | 8469 tokens</div>
+</div>
+
+
+
+
+<footer>Generated by <strong>Advocate</strong> v0.1.0</footer>
+</body>
+</html>

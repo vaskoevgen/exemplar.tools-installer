@@ -1,0 +1,1 @@
+{"input": "Given an arithmetic expression, return the numeric result.\nInput: 2 + 2\n", "output": "# Result\n\n2 + 2 = **4**", "task_type": "calculator_eval", "timestamp": "2026-04-30T23:59:46.091720+00:00", "metadata": {"request_id": "20c664dd-83c4-406c-a62c-5a0fe222d4d7", "example_type": "REMOTE_RESPONSE_EXAMPLE", "phase": "PHASE_1"}}

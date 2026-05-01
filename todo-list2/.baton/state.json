@@ -1,0 +1,11 @@
+{
+  "circuit_name": "root",
+  "collapse_level": "full_mock",
+  "live_nodes": [],
+  "adapters": {},
+  "mock_pid": 0,
+  "custodian_pid": 0,
+  "owner_pid": 17013,
+  "started_at": "2026-04-30T19:50:40.200481+00:00",
+  "updated_at": "2026-04-30T19:51:35.601949+00:00"
+}

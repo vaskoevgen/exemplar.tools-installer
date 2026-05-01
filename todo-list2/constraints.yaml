@@ -1,0 +1,63 @@
+constraints:
+  - id: C001
+    boundary: API responses
+    condition: All API endpoints must return appropriate HTTP status codes (200/201 for success, 400 for validation errors, 404 for missing resources)
+    violation: Incorrect status codes returned, breaking REST conventions
+    severity: must
+    rationale: Core learning objective for REST API design
+    classification_tier: null
+    affected_components: [backend]
+
+  - id: C002
+    boundary: Data operations
+    condition: Backend must be authoritative source for all task data operations
+    violation: Frontend directly modifies data or bypasses backend validation
+    severity: must
+    rationale: Enforces proper three-tier architecture patterns
+    classification_tier: PUBLIC
+    affected_components: [frontend, backend]
+
+  - id: C003
+    boundary: Database schema
+    condition: Task table must have normalized structure with appropriate constraints
+    violation: Denormalized data or missing constraints leading to data integrity issues
+    severity: must
+    rationale: Database design learning objective
+    classification_tier: PUBLIC
+    affected_components: [database]
+
+  - id: C004
+    boundary: Schema migration
+    condition: Priority column addition must include NOT NULL constraint, default value, and index
+    violation: Migration fails or creates inconsistent schema state
+    severity: must
+    rationale: Schema evolution learning objective
+    classification_tier: PUBLIC
+    affected_components: [database]
+
+  - id: C005
+    boundary: API communication
+    condition: All frontend-backend communication must use REST API endpoints
+    violation: Direct database access or non-REST communication patterns
+    severity: must
+    rationale: Proper separation of concerns and API design learning
+    classification_tier: PUBLIC
+    affected_components: [frontend, backend]
+
+  - id: C006
+    boundary: Error handling
+    condition: Frontend must handle all API error responses gracefully
+    violation: Unhandled errors or poor user experience during error states
+    severity: should
+    rationale: Complete full-stack error handling learning
+    classification_tier: null
+    affected_components: [frontend]
+
+  - id: C007
+    boundary: CRUD completeness
+    condition: All four CRUD operations (Create, Read, Update, Delete) must be implemented end-to-end
+    violation: Missing CRUD operations or incomplete implementation
+    severity: must
+    rationale: Core learning objective for full CRUD functionality
+    classification_tier: PUBLIC
+    affected_components: [frontend, backend, database]

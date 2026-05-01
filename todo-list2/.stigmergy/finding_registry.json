@@ -1,0 +1,71 @@
+{
+  "fad1c419ee7b90cf": {
+    "finding_hash": "fad1c419ee7b90cf",
+    "type": "parallel_activity",
+    "summary": "@bob.martinez and @alice.chen in same signal space (spectral similarity 100%)",
+    "actors": [],
+    "first_seen": "2026-04-30T23:36:48.211464+00:00",
+    "last_seen": "2026-04-30T23:36:48.211464+00:00",
+    "times_surfaced": 1,
+    "run_ids": [
+      "f477d5aa"
+    ],
+    "has_state_change": false,
+    "max_confidence": 0.6120000000000001,
+    "max_score": 0.045033586640702984,
+    "decay_stage": "active",
+    "signal_ids": [
+      "27700638-7ff1-4898-b92c-aa83f4896e8f",
+      "e9c3a326-e245-49f2-9277-ada602dedfff"
+    ],
+    "classification": "unknown",
+    "compression_index": 0.2,
+    "action_correlation": -1.0
+  },
+  "83f828bbc33b496f": {
+    "finding_hash": "83f828bbc33b496f",
+    "type": "parallel_activity",
+    "summary": "@bob.martinez and @carol.park in same signal space (spectral similarity 100%)",
+    "actors": [],
+    "first_seen": "2026-04-30T23:36:48.211464+00:00",
+    "last_seen": "2026-04-30T23:36:48.211464+00:00",
+    "times_surfaced": 1,
+    "run_ids": [
+      "f477d5aa"
+    ],
+    "has_state_change": false,
+    "max_confidence": 0.6120000000000001,
+    "max_score": 0.045033586640702984,
+    "decay_stage": "active",
+    "signal_ids": [
+      "a407f1e7-6763-47a4-85ef-5b5f5a993ced",
+      "664ab032-4431-46c8-8136-2b0289acf170"
+    ],
+    "classification": "unknown",
+    "compression_index": 0.2,
+    "action_correlation": -1.0
+  },
+  "34c40c338b254362": {
+    "finding_hash": "34c40c338b254362",
+    "type": "parallel_activity",
+    "summary": "@github-actions and @dave.kim in same signal space (spectral similarity 100%)",
+    "actors": [],
+    "first_seen": "2026-04-30T23:36:48.211464+00:00",
+    "last_seen": "2026-04-30T23:36:48.211464+00:00",
+    "times_surfaced": 1,
+    "run_ids": [
+      "f477d5aa"
+    ],
+    "has_state_change": false,
+    "max_confidence": 0.6120000000000001,
+    "max_score": 0.045033586640702984,
+    "decay_stage": "active",
+    "signal_ids": [
+      "aed8bba0-cd56-4149-981b-ef90f7b97dca",
+      "097324a0-930f-4788-8872-662500f84838"
+    ],
+    "classification": "unknown",
+    "compression_index": 0.2,
+    "action_correlation": -1.0
+  }
+}

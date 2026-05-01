@@ -1,0 +1,51 @@
+version: "1.0"
+generated_by: constrain
+session_id: learning_exercise_001
+
+storage_backends:
+  - owner_component: "database"
+    type: postgres
+    description: "Primary storage for task data with schema evolution support"
+
+field_hints:
+  - backend_owner: "database"
+    field_description: "Task identifier for unique record identification"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "Primary key field should be immutable once created"
+
+  - backend_owner: "database"
+    field_description: "Task title or description text"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Basic task content for personal use, no sensitive data"
+
+  - backend_owner: "database"
+    field_description: "Task completion status boolean"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Simple status tracking, no sensitivity"
+
+  - backend_owner: "database"
+    field_description: "Task priority level for advanced schema practice"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Priority metadata added during schema migration learning exercise"
+
+  - backend_owner: "database"
+    field_description: "Task due date for advanced functionality"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Scheduling feature for expanded learning objectives"
+
+  - backend_owner: "database"
+    field_description: "Record creation timestamp"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable, audit_field]
+    rationale: "Audit trail for learning proper timestamp handling"
+
+  - backend_owner: "database"
+    field_description: "Record last updated timestamp"
+    likely_classification: PUBLIC
+    likely_annotations: [audit_field]
+    rationale: "Audit trail for tracking modifications"

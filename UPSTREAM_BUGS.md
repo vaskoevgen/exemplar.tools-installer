@@ -42,6 +42,37 @@ deactivate
 
 ---
 
+## ledger — `ledger backend add` crashes with wrong argument count
+
+**Repo:** `https://github.com/jmcentire/ledger`
+**File:** CLI handler for `backend add` subcommand
+**Status:** PR open — https://github.com/jmcentire/ledger/pull/2
+
+### Problem
+
+Running `ledger backend add <name>` raises:
+
+```
+TypeError: BackendConfig.__init__() takes 3 positional arguments but 4 were given
+```
+
+The CLI passes 4 arguments to a constructor that only accepts 3. The backend is never registered.
+
+### Workaround
+
+Register backends directly in `ledger.yaml` instead of using the CLI:
+
+```yaml
+# ledger.yaml
+backends:
+  - name: my_db        # required
+    base_url: ""       # optional, default ""
+```
+
+Valid model fields: `name`, `enabled`, `base_url`, `timeout_ms`. There is no `owner` or `type` field.
+
+---
+
 ## pact — health check fires before any code generation (planning ratio = 0.00x)
 
 **Repo:** `https://github.com/jmcentire/pact`
@@ -131,3 +162,30 @@ source exemplar.tools/advocate/.venv/bin/activate
 pip install -e "exemplar.tools/advocate/.[all]" -q
 deactivate
 ```
+
+---
+
+## apprentice — `run` and `report` crash with missing attributes on response objects
+
+**Repo:** `https://github.com/jmcentire/apprentice`
+**Status:** No PR yet.
+
+### Problem
+
+Two CLI commands crash immediately:
+
+**`apprentice run <task> --input ...`** raises:
+```
+Error: 'TaskResponse' object has no attribute 'success'
+```
+
+**`apprentice report`** raises:
+```
+Error: 'SystemReport' object has no attribute 'tasks'
+```
+
+The task never executes ($0.00 spent, stuck in `bootstrapping` phase). The CLI display layer references attributes that don't exist on the response dataclasses.
+
+### Workaround
+
+None available. `apprentice status` works and shows phase/confidence, but no tasks can be run or reported via the CLI. The HTTP API endpoints (`POST /v1/run`, `GET /v1/report`) may work directly via `curl` — not tested.

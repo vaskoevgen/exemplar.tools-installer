@@ -7,3 +7,8 @@ exemplar.tools/
 
 # Python virtual environments
 .venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo

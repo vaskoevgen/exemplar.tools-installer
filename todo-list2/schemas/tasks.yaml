@@ -1,0 +1,45 @@
+name: tasks
+version: 1
+
+fields:
+  - name: id
+    field_type: uuid
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
+
+  - name: title
+    field_type: varchar(255)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: completed
+    field_type: boolean
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: priority
+    field_type: integer
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: due_date
+    field_type: date
+    classification: PUBLIC
+    nullable: true
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null

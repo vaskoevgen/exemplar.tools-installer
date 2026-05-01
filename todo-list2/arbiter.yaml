@@ -1,0 +1,33 @@
+# Arbiter configuration -- auto-generated defaults
+config_version: 1
+registry:
+  path: ./registry
+  append_only: true
+trust:
+  floor: 0.1
+  authority_override_floor: 0.4
+  decay_lambda: 0.05
+  conflict_trust_delta_threshold: 0.2
+  taint_lock_tiers:
+  - RESTRICTED
+  - CRITICAL
+soak:
+  base_durations:
+    PUBLIC: 3600
+    INTERNAL: 7200
+    CONFIDENTIAL: 14400
+    RESTRICTED: 28800
+    CRITICAL: 86400
+  target_requests: 1000
+otlp:
+  listen_port: 4317
+  http_port: 4318
+api:
+  port: 7700
+classification_registry:
+  path: ./classification_registry.yaml
+human_gate:
+  webhook_url: null
+  block_on_gate: true
+ledger:
+  checksum_interval: 100
