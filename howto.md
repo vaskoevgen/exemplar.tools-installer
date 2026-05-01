@@ -13,7 +13,26 @@ Step 4 — Baton       deploy it → running circuit of services
 Everything else (Ledger, Advocate, Arbiter, Sentinel, Kindex) adds governance,
 quality, and observability on top. You don't need them to ship.
 
-> **See it in action:** [todo-list2/README.md](todo-list2/README.md) — a complete walkthrough with real terminal output, costs, and gotchas from a full stack run.
+> **See it in action:** [todo-list2/README.md](todo-list2/README.md) — a complete walkthrough with real terminal output, costs, and gotchas from a full stack run (~$2.79 total).
+
+### Session logs & videos
+
+Raw terminal logs and video recordings for each step of the todo-list2 example:
+
+| Step | Terminal log | Video |
+|------|-------------|-------|
+| 1a — Constrain | [1a-Constrain.md](todo-list2/terminal-logs/1a-Constrain.md) | https://youtu.be/wkQeCPhlQD0 |
+| 1b — Ledger | [1b — Ledger.md](todo-list2/terminal-logs/1b%20%E2%80%94%20Ledger.md) | https://youtu.be/yZn64yO87VM |
+| 2a — Pact (DB setup) | [2a-Pact install db.md](todo-list2/terminal-logs/2a-Pact%20install%20db.md) | — |
+| 2a — Pact | [2a-Pact.md](todo-list2/terminal-logs/2a-Pact.md) | https://youtu.be/vwHyrU13Cds |
+| 2b — Advocate | [2b-Advocate.md](todo-list2/terminal-logs/2b-Advocate.md) | https://youtu.be/sKOM3NvW7lY |
+| 3 — Arbiter | [3-Arbiter.md](todo-list2/terminal-logs/3-Arbiter.md) | https://youtu.be/4f5uqWGs2ws |
+| 4 — Baton | [4-Baton.md](todo-list2/terminal-logs/4-Baton.md) | https://youtu.be/XGu3XTfvG1c |
+| 4 — Baton test run | [4-Baton-test-run.md](todo-list2/terminal-logs/4-Baton-test-run.md) | https://youtu.be/nPcB7BjvWoo |
+| 5a — Sentinel | [5a-Sentinel.md](todo-list2/terminal-logs/5a-Sentinel.md) | https://youtu.be/k8RVrSnEw6I |
+| 5b — Chronicler | [5b-Chronicler.md](todo-list2/terminal-logs/5b-Chronicler.md) | https://youtu.be/a94Kpf0bYVg |
+| 5c — Stigmergy | [5c-Stigmergy.md](todo-list2/terminal-logs/5c-Stigmergy.md) | https://youtu.be/4z7--TKIvQ4 |
+| 6 — Apprentice | [6-Apprentice.md](todo-list2/terminal-logs/6-Apprentice.md) | https://youtu.be/BhltpaigLTo |
 
 ---
 
