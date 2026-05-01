@@ -55,6 +55,9 @@ cd your-project
 
 ---
 
+<details>
+<summary><strong>Step 0 — Cartographer (existing projects only)</strong></summary>
+
 ## Step 0 — Cartographer (existing projects only)
 
 Cartographer scans an existing codebase and produces draft artifacts for every tool in the stack. Use this step **instead of Step 1** when onboarding a project that already has code — it replaces the Constrain interview with automated discovery.
@@ -176,9 +179,14 @@ deactivate
 | **medium** | Pattern matching, heuristics | Review before adopting |
 | **low** | Name-based guessing | Must verify — do not adopt blindly |
 
+</details>
+
 ---
 
 ## Step 1 — Specify
+
+<details>
+<summary><strong>1a — Constrain (Boundaries &amp; components)</strong></summary>
 
 ### 1a — Constrain (Boundaries & components)
 
@@ -247,7 +255,12 @@ Constrain will interview you about what you want to build. When it finishes, it 
 deactivate
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>1b — Ledger (Schema obligations) — optional</strong></summary>
 
 ### 1b — Ledger (Schema obligations) — optional
 
@@ -370,7 +383,12 @@ ledger export --format arbiter
 deactivate
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>1c — Database setup (required before Pact if your app uses PostgreSQL)</strong></summary>
 
 ### 1c — Database setup (required before Pact if your app uses PostgreSQL)
 
@@ -445,9 +463,14 @@ source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
 
 It is ready for `pact` stage
 
+</details>
+
 ---
 
 ## Step 2 — Build
+
+<details>
+<summary><strong>2a — Pact</strong></summary>
 
 ### 2a — Pact
 
@@ -623,7 +646,12 @@ PYTHONPATH=src/<component> \
 deactivate
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>2b — Advocate (Review gate)</strong></summary>
 
 ### 2b — Advocate (Review gate)
 
@@ -691,7 +719,12 @@ deactivate
 
 **Typical cost:** ~$0.15–0.30 per review, ~30 seconds in parallel mode.
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Step 3 — Govern: Arbiter</strong></summary>
 
 ## Step 3 — Govern: Arbiter
 
@@ -760,7 +793,12 @@ deactivate
 | **Blast radius** | Impact surface of a change: affected nodes × data tiers × soak requirement |
 | **Canary** | Synthetic fingerprinted data injected to detect leakage across component boundaries |
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Step 4 — Deploy: Baton</strong></summary>
 
 ## Step 4 — Deploy: Baton
 
@@ -870,9 +908,14 @@ baton swap <node-name> --image <new-image>
 deactivate
 ```
 
+</details>
+
 ---
 
 ## Step 5 — Observe
+
+<details>
+<summary><strong>5a — Sentinel</strong></summary>
 
 ### 5a — Sentinel
 
@@ -927,7 +970,12 @@ sentinel serve
 deactivate
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>5b — Chronicler</strong></summary>
 
 ### 5b — Chronicler
 
@@ -1074,7 +1122,12 @@ kindex:
   event_type_filters: ["span", "incident"]
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>5c — Stigmergy</strong></summary>
 
 ### 5c — Stigmergy
 
@@ -1181,7 +1234,12 @@ deactivate
 | `stub` (default) | Free | Deterministic heuristics |
 | `anthropic` | ~$0.01/run | LLM-enhanced assessments (Haiku) |
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Step 6 — Learn: Apprentice</strong></summary>
 
 ## Step 6 — Learn: Apprentice
 
@@ -1326,7 +1384,12 @@ Apprentice includes built-in PII scrubbing before data reaches models or trainin
 pip install -e ".[ml]"
 ```
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Step 7 — Knowledge: Kindex</strong></summary>
 
 ## Step 7 — Knowledge: Kindex
 
@@ -1361,25 +1424,42 @@ claude mcp add --scope user --transport stdio kindex -- kin-mcp
 deactivate
 ```
 
+</details>
+
 ---
 
 ## Optional Tools
+
+<details>
+<summary><strong>Webprobe</strong></summary>
 
 ### Webprobe
 
 > **Coming soon.** Webprobe maps any website as a directed graph, captures per-node metrics, scans for security vulnerabilities, and uses LLM agents to discover visual and behavioural defects. Useful for auditing deployed services.
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Signet</strong></summary>
 
 ### Signet
 
 > **Coming soon.** Signet is a cryptographic identity vault and MCP server. It manages credentials, generates zero-knowledge proofs, and enforces privacy policies — data flows one-way: vault → agent → service.
 
+</details>
+
 ---
+
+<details>
+<summary><strong>Tessera</strong></summary>
 
 ### Tessera
 
 > **Coming soon.** Tessera is a self-validating executable document format. Every document carries its schema, state, history, and cryptographic signatures — the chain can be verified without an external authority.
+
+</details>
 
 ---
 
