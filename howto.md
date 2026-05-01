@@ -190,6 +190,8 @@ deactivate
 
 ### 1a — Constrain (Boundaries & components)
 
+> **Video walkthrough (2026-04-30):** https://youtu.be/wkQeCPhlQD0
+
 Constrain runs an **interactive AI interview** about your problem. It asks clarifying questions and resolves ambiguities before producing structured artifacts. Expect 5–15 minutes of back-and-forth. Answer the questions directly — Constrain will stop when it has enough to proceed.
 
 **Activate:**
@@ -264,6 +266,8 @@ deactivate
 
 ### 1b — Ledger (Schema obligations) — optional
 
+> **Video walkthrough (2026-04-30):** https://youtu.be/yZn64yO87VM
+
 Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
 > **Integration status:** `ledger init` and `ledger builtins list/show` are fully implemented. `ledger backend add` has a bug (TypeError: 4 args to 3-arg function) — register backends directly in `ledger.yaml` instead. `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but schema validation runs implicitly at config load time. Track progress at [jmcentire/ledger#2](https://github.com/jmcentire/ledger/pull/2).
@@ -319,32 +323,10 @@ fields:
     annotations:
       - name: not_null
 
-  - name: completed
-    field_type: boolean
-    classification: PUBLIC
-    nullable: false
-    annotations:
-      - name: not_null
-
-  - name: priority
-    field_type: integer
-    classification: PUBLIC
-    nullable: false
-    annotations:
-      - name: not_null
-
   - name: due_date
     field_type: date
     classification: PUBLIC
     nullable: true
-
-  - name: created_at
-    field_type: timestamptz
-    classification: PUBLIC
-    nullable: false
-    annotations:
-      - name: immutable
-      - name: not_null
 ```
 
 > Valid `classification` values: `PUBLIC`, `PII`, `FINANCIAL`, `AUTH`, `COMPLIANCE`.
@@ -473,6 +455,9 @@ It is ready for `pact` stage
 <summary><strong>2a — Pact</strong></summary>
 
 ### 2a — Pact
+
+> **Video walkthrough:** https://youtu.be/S6FEOl9cJuk
+> **Video walkthrough (2026-04-30):** https://youtu.be/vwHyrU13Cds
 
 Pact builds the software using the artifacts produced by Constrain. It decomposes your task into components, writes contracts and tests, then implements each component via the Anthropic API.
 
@@ -655,6 +640,8 @@ deactivate
 
 ### 2b — Advocate (Review gate)
 
+> **Video walkthrough (2026-04-30):** https://youtu.be/sKOM3NvW7lY
+
 Advocate runs a 6-persona adversarial review of the code produced by Pact. Six AI reviewers attack the code simultaneously from different angles and surface issues before you deploy.
 
 **Activate:**
@@ -728,6 +715,8 @@ deactivate
 
 ## Step 3 — Govern: Arbiter
 
+> **Video walkthrough (2026-04-30):** https://youtu.be/4f5uqWGs2ws
+
 > **Integration in progress.** Arbiter CLI commands (`init`, `canary`, `trust`, `report`) work. However, the Pact → Arbiter integration is not yet complete:
 > - `arbiter watch` / `arbiter serve` (live sidecar) are not yet implemented
 > - Pact writes `access_graph.json` using a `components` schema; Arbiter `register` expects a `nodes` schema — these don't match yet
@@ -765,24 +754,6 @@ arbiter register access_graph.json
 deactivate
 ```
 
----
-
-> **Future workflow** (once schemas are aligned):
->
-> ```bash
-> arbiter register access_graph.json
-> arbiter canary inject --tiers PUBLIC
-> arbiter canary results --run <run_id>
-> arbiter trust show <node_id>
-> arbiter report --run <run_id>
-> arbiter blast-radius <node_id> <version>
-> ```
->
-> If a canary escapes, the node's trust score drops to 0. Recovery requires human review:
-> ```bash
-> arbiter trust reset-taint <node_id> --review <ticket_id>
-> ```
-
 ### Key concepts
 
 | Concept | What it means |
@@ -801,6 +772,9 @@ deactivate
 <summary><strong>Step 4 — Deploy: Baton</strong></summary>
 
 ## Step 4 — Deploy: Baton
+
+> **Video walkthrough (2026-04-30):** https://youtu.be/XGu3XTfvG1c
+> **Video — test run (2026-04-30):** https://youtu.be/nPcB7BjvWoo
 
 Baton orchestrates deployment as a self-healing circuit topology using the `component_map.yaml` from Constrain.
 
@@ -896,14 +870,6 @@ baton signals    # recent request signals
 baton metrics    # persistent metrics
 ```
 
-> In mock mode, both commands return "No signal data found" / "No metrics data found" — this is expected. Mock mode serves fixed responses without generating telemetry.
-
-**Hot-swap a component without downtime:**
-
-```bash
-baton swap <node-name> --image <new-image>
-```
-
 ```bash
 deactivate
 ```
@@ -918,6 +884,8 @@ deactivate
 <summary><strong>5a — Sentinel</strong></summary>
 
 ### 5a — Sentinel
+
+> **Video walkthrough (2026-04-30):** https://youtu.be/k8RVrSnEw6I
 
 Sentinel watches production logs, attributes errors to Pact components via embedded PACT keys, and tightens contracts so each bug class becomes non-recurring.
 
@@ -978,6 +946,8 @@ deactivate
 <summary><strong>5b — Chronicler</strong></summary>
 
 ### 5b — Chronicler
+
+> **Video walkthrough (2026-04-30):** https://youtu.be/a94Kpf0bYVg
 
 Chronicler sits between your running services and the pattern-learning layer. It collects events (OTLP spans, webhooks, Sentinel incidents, log files), groups them into **stories** at three granularities, and forwards completed stories to Stigmergy and Apprentice.
 
@@ -1099,29 +1069,6 @@ deactivate
 
 Only the `disk` sink is fully implemented. Use it to capture stories locally while the network sinks are in progress.
 
-#### Adding Stigmergy / Apprentice / Kindex sinks (future)
-
-When these tools are running, add them to `chronicler.yaml`:
-
-```yaml
-sinks:
-  - type: disk
-    output_dir: .chronicler/stories
-
-  - type: stigmergy
-    url: http://localhost:8400
-
-  - type: apprentice
-    url: http://localhost:8401
-
-  - type: kindex
-    url: http://localhost:8402
-
-kindex:
-  noteworthiness_threshold: 0.7
-  event_type_filters: ["span", "incident"]
-```
-
 </details>
 
 ---
@@ -1130,6 +1077,8 @@ kindex:
 <summary><strong>5c — Stigmergy</strong></summary>
 
 ### 5c — Stigmergy
+
+> **Video walkthrough:** https://youtu.be/4z7--TKIvQ4
 
 Stigmergy ingests signals from GitHub, Linear, Slack, and Grafana, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and parallel activity that could become conflicts.
 
@@ -1364,24 +1313,6 @@ apprentice report
 
 ```bash
 deactivate
-```
-
-#### Evaluator types
-
-| Type | What it checks |
-|---|---|
-| `exact_match` | Field values must match exactly |
-| `semantic_similarity` | Embedding cosine similarity above threshold |
-| `llm_judge` | A second LLM call scores the local output |
-| `regex_match` | Output must match a regex pattern |
-| `json_schema_match` | Output must conform to a JSON schema |
-
-#### PII protection
-
-Apprentice includes built-in PII scrubbing before data reaches models or training stores. Default mode uses regex patterns (emails, phones, SSNs, credit cards, API keys). Enable NER-based detection for unstructured text by installing the `ml` extra:
-
-```bash
-pip install -e ".[ml]"
 ```
 
 </details>
