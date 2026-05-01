@@ -23,7 +23,7 @@ Raw terminal logs and video recordings for each step of the todo-list2 example:
 |------|-------------|-------|
 | 1a — Constrain | [1a-Constrain.md](todo-list2/terminal-logs/1a-Constrain.md) | https://youtu.be/wkQeCPhlQD0 |
 | 1b — Ledger | [1b — Ledger.md](todo-list2/terminal-logs/1b%20%E2%80%94%20Ledger.md) | https://youtu.be/yZn64yO87VM |
-| 2a — Pact (DB setup) | [2a-Pact install db.md](todo-list2/terminal-logs/2a-Pact%20install%20db.md) | — |
+| 2a — Pact (DB setup) | [2a-Pact install db.md](todo-list2/terminal-logs/2a-Pact%20install%20db.md) | https://youtu.be/S6FEOl9cJuk |
 | 2a — Pact | [2a-Pact.md](todo-list2/terminal-logs/2a-Pact.md) | https://youtu.be/vwHyrU13Cds |
 | 2b — Advocate | [2b-Advocate.md](todo-list2/terminal-logs/2b-Advocate.md) | https://youtu.be/sKOM3NvW7lY |
 | 3 — Arbiter | [3-Arbiter.md](todo-list2/terminal-logs/3-Arbiter.md) | https://youtu.be/4f5uqWGs2ws |
