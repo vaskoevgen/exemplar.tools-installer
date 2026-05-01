@@ -13,6 +13,8 @@ Step 4 — Baton       deploy it → running circuit of services
 Everything else (Ledger, Advocate, Arbiter, Sentinel, Kindex) adds governance,
 quality, and observability on top. You don't need them to ship.
 
+> **See it in action:** [todo-list2/README.md](todo-list2/README.md) — a complete walkthrough with real terminal output, costs, and gotchas from a full stack run.
+
 ---
 
 ## Prerequisites
@@ -1191,6 +1193,8 @@ deactivate
 <summary><strong>Step 6 — Learn: Apprentice</strong></summary>
 
 ## Step 6 — Learn: Apprentice
+
+> **Video walkthrough (2026-04-30):** https://youtu.be/BhltpaigLTo
 
 Apprentice routes every request to the frontier API (Claude, GPT, etc.), collects the responses as training examples, fine-tunes a local model, then progressively shifts traffic to it — while continuously verifying quality. The goal: replace expensive API calls with a $0 local model that produces equivalent results for your specific tasks.
 

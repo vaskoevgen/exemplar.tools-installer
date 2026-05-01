@@ -1,8 +1,0 @@
-project_name: todo-list2
-schemas_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list2/schemas
-changelog_path: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list2/changelog.yaml
-plans_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list2/plans
-backends:
-  - name: postgres
-    base_url: ""
-custom_annotations: []
