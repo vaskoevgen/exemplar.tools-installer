@@ -430,6 +430,105 @@ deactivate
 
 If your project connects to a database, spin it up **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks. Set `DATABASE_URL` and `TEST_DATABASE_URL` in the shell before starting the daemon.
 
+#### macOS (Docker Desktop) — port 5432 is mandatory
+
+Docker Desktop on macOS only proxies PostgreSQL SCRAM-SHA-256 authentication correctly through the **standard port 5432**. Other ports (5433, 5434, etc.) fail with `fe_sendauth: no password supplied` or `FATAL: password authentication failed` regardless of pg_hba.conf settings.
+
+```bash
+# Check if port 5432 is already in use
+lsof -i :5432 | grep LISTEN
+
+# If free, start a postgres container on 5432
+docker run -d \
+  --name pact-test-pg \
+  -e POSTGRES_USER=pact \
+  -e POSTGRES_PASSWORD=pact \
+  -e POSTGRES_DB=<yourapp>_test \
+  -p 5432:5432 \
+  arm64v8/postgres:17-alpine
+
+# Wait for it to be ready (usually < 5 seconds)
+# bash / zsh
+until docker exec pact-test-pg pg_isready -U pact; do sleep 1; done
+
+# fish
+while not docker exec pact-test-pg pg_isready -U pact; sleep 1; end
+```
+
+> Use `arm64v8/postgres:17-alpine` on Apple Silicon. The plain `postgres:17-alpine` image may silently pull the wrong architecture and misbehave.
+
+#### Create the schema
+
+**Option A — interactive psql session (recommended):**
+
+```bash
+docker exec -it pact-test-pg psql -U pact -d <yourapp>_test
+```
+
+You'll get a `<yourapp>_test=#` prompt. Paste your `CREATE TABLE` statements, then verify with `\dt` and exit with `\q`.
+
+**Option B — heredoc (non-interactive):**
+
+```bash
+docker exec -i pact-test-pg psql -U pact -d <yourapp>_test << 'SQL'
+-- paste your CREATE TABLE statements here
+SQL
+```
+
+#### Set DATABASE_URL and TEST_DATABASE_URL
+
+Both variables must be set in the shell that starts the Pact daemon:
+
+```bash
+# bash / zsh
+export DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+export TEST_DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+
+# fish
+set -x DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+set -x TEST_DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
+```
+
+> Pact passes these to the test harness as-is. Both should point to the same test database — Pact does not use a separate application database during testing.
+
+#### Create a project venv and install dependencies
+
+Pact's test runner calls `python3` from the system PATH. Your project dependencies (FastAPI, psycopg2, etc.) must be installed in a venv that is on PATH before the daemon starts.
+
+Create the venv and install dependencies:
+
+```bash
+# bash / zsh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install fastapi psycopg2-binary uvicorn pytest httpx
+deactivate
+
+# fish
+python3 -m venv .venv
+source .venv/bin/activate.fish
+pip install fastapi psycopg2-binary uvicorn pytest httpx
+deactivate
+```
+
+Then prepend the venv to PATH:
+
+```bash
+# bash / zsh
+export PATH="/absolute/path/to/your/project/.venv/bin:$PATH"
+
+# fish
+fish_add_path --prepend /absolute/path/to/your/project/.venv/bin
+```
+
+Then activate Pact and start the daemon:
+
+```bash
+source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
+```
+
+It is ready for `pact` stage
+
 </details>
 
 ---
