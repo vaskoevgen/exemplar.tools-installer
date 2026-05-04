@@ -81,6 +81,8 @@ cd your-project
 
 ## Step 0 — Cartographer (existing projects only)
 
+> **Before starting:** check `exemplar.tools/cartographer/README.md` — the upstream README is the authoritative source for current CLI flags, config format, and known limitations. Commands in this guide may differ from the README if the tool has been updated.
+
 Cartographer scans an existing codebase and produces draft artifacts for every tool in the stack. Use this step **instead of Step 1** when onboarding a project that already has code — it replaces the Constrain interview with automated discovery.
 
 **Activate:**
@@ -211,6 +213,8 @@ deactivate
 
 ### 1a — Constrain (Boundaries & components)
 
+> **Before starting:** check `exemplar.tools/constrain/README.md` for current CLI flags and schema format.
+
 > **Video walkthrough (2026-04-30):** https://youtu.be/wkQeCPhlQD0
 
 Constrain runs an **interactive AI interview** about your problem. It asks clarifying questions and resolves ambiguities before producing structured artifacts. Expect 5–15 minutes of back-and-forth. Answer the questions directly — Constrain will stop when it has enough to proceed.
@@ -225,14 +229,10 @@ source ../exemplar.tools/constrain/.venv/bin/activate
 source ../exemplar.tools/constrain/.venv/bin/activate.fish
 ```
 
-**Set your API key:**
+**Set your API key** (if not already set as a universal variable — see Pact section for one-time setup):
 
-```bash
-# bash / zsh
-export ANTHROPIC_API_KEY=sk-...
-
-# fish
-set -x ANTHROPIC_API_KEY sk-...
+```fish
+source /path/to/.env
 ```
 
 **Run from your project directory:**
@@ -287,11 +287,13 @@ deactivate
 
 ### 1b — Ledger (Schema obligations) — optional
 
+> **Before starting:** check `exemplar.tools/ledger/README.md` for current CLI flags and schema format. Note: the README schema format has been corrected to match the validator — see `UPSTREAM_BUGS.md` for details.
+
 > **Video walkthrough (2026-04-30):** https://youtu.be/yZn64yO87VM
 
 Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
-> **Integration status:** `ledger init` and `ledger builtins list/show` are fully implemented. `ledger backend add` has a bug (TypeError: 4 args to 3-arg function) — register backends directly in `ledger.yaml` instead. `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but schema validation runs implicitly at config load time. Track progress at [jmcentire/ledger#2](https://github.com/jmcentire/ledger/pull/2).
+> **Integration status:** `ledger init`, `ledger backend add`, and `ledger builtins list/show` are fully implemented (three bugs in `ledger backend add` were fixed locally — see `UPSTREAM_BUGS.md`). `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but do nothing. Schema files are documentation only until the registry implementation ships.
 
 **Activate:**
 
@@ -307,34 +309,33 @@ source ../exemplar.tools/ledger/.venv/bin/activate.fish
 
 ```bash
 ledger init
-# Creates: ledger.yaml, schemas/, plans/, changelog.yaml
+# Creates: ledger.yaml, schemas/, plans/, changelog.yaml, .ledger/ (registry dir)
 ```
 
-**Register a backend** — add directly to `ledger.yaml` (`ledger backend add` has a bug):
+**Register a backend** using the CLI:
 
-```yaml
-# ledger.yaml
-backends:
-  - name: my_db        # required
-    base_url: ""       # optional, default ""
+```bash
+ledger backend add tasks-db --type postgres --owner fastapi-backend
+# Silent on success. Silent on duplicate (idempotent).
 ```
 
-> Backend model fields: `name`, `enabled`, `base_url`, `timeout_ms`. There is no `owner` or `type` field.
+> Valid `--type` values: `postgres`, `mysql`, `sqlite`, `redis`, `s3`, `dynamodb`, `kafka`, `custom`.
 
 **Create a schema YAML** in `schemas/`:
 
 ```yaml
 # schemas/tasks.yaml
-name: tasks          # required
-version: 1           # required — integer, not "1.0"
+name: tasks
+version: 1
 
 fields:
   - name: id
-    field_type: uuid
+    field_type: integer
     classification: PUBLIC
     nullable: false
     annotations:
-      - name: immutable      # annotations are dicts with 'name' key — not bare strings
+      - name: primary_key
+      - name: immutable
       - name: not_null
 
   - name: title
@@ -344,15 +345,41 @@ fields:
     annotations:
       - name: not_null
 
-  - name: due_date
-    field_type: date
+  - name: description
+    field_type: text
     classification: PUBLIC
     nullable: true
+
+  - name: status
+    field_type: varchar(20)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
+      - name: audit_field
+
+  - name: updated_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+      - name: audit_field
 ```
 
 > Valid `classification` values: `PUBLIC`, `PII`, `FINANCIAL`, `AUTH`, `COMPLIANCE`.
 
 > Valid `field_type` values follow SQL conventions: `uuid`, `varchar(n)`, `boolean`, `integer`, `date`, `timestamptz`, etc. The key is `field_type`, not `type`.
+
+> **README mismatch:** The jmcentire/ledger README shows a different schema format (`schemas:` list, `type` key, annotations as bare strings). That format is wrong — the actual validator (`config/config.py`) requires `name`, `version`, `fields` at top level, `field_type` key, and annotations as dicts with a `name` key. A PR has been opened to fix the README.
 
 **Register and validate the schema:**
 
@@ -390,6 +417,8 @@ deactivate
 
 ---
 
+## Step 2 — Build
+
 <details>
 <summary><strong>1c — Database setup (required before Pact if your app uses PostgreSQL)</strong></summary>
 
@@ -414,15 +443,27 @@ docker run -d \
   -p 5432:5432 \
   arm64v8/postgres:17-alpine
 
-# Wait for it to be ready (usually < 5 seconds) in ZSH
+# Wait for it to be ready (usually < 5 seconds)
+# bash / zsh
 until docker exec pact-test-pg pg_isready -U pact; do sleep 1; done
+
+# fish
+while not docker exec pact-test-pg pg_isready -U pact; sleep 1; end
 ```
 
 > Use `arm64v8/postgres:17-alpine` on Apple Silicon. The plain `postgres:17-alpine` image may silently pull the wrong architecture and misbehave.
 
 #### Create the schema
 
-Run your migration SQL before pact so the tables exist for the test harness:
+**Option A — interactive psql session (recommended):**
+
+```bash
+docker exec -it pact-test-pg psql -U pact -d <yourapp>_test
+```
+
+You'll get a `<yourapp>_test=#` prompt. Paste your `CREATE TABLE` statements, then verify with `\dt` and exit with `\q`.
+
+**Option B — heredoc (non-interactive):**
 
 ```bash
 docker exec -i pact-test-pg psql -U pact -d <yourapp>_test << 'SQL'
@@ -446,19 +487,37 @@ set -x TEST_DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
 
 > Pact passes these to the test harness as-is. Both should point to the same test database — Pact does not use a separate application database during testing.
 
-#### Also add your project venv to PATH
+#### Create a project venv and install dependencies
 
-Pact's test runner calls `python3` from the system PATH. If your project depends on third-party libraries (FastAPI, psycopg2, etc.), your project venv must be on PATH before the daemon starts:
+Pact's test runner calls `python3` from the system PATH. Your project dependencies (FastAPI, psycopg2, etc.) must be installed in a venv that is on PATH before the daemon starts.
+
+Create the venv and install dependencies:
 
 ```bash
-# bash / zsh — prepend your project venv
+# bash / zsh
+python3 -m venv .venv
+source .venv/bin/activate
+pip install fastapi psycopg2-binary uvicorn pytest httpx
+deactivate
+
+# fish
+python3 -m venv .venv
+source .venv/bin/activate.fish
+pip install fastapi psycopg2-binary uvicorn pytest httpx
+deactivate
+```
+
+Then prepend the venv to PATH:
+
+```bash
+# bash / zsh
 export PATH="/absolute/path/to/your/project/.venv/bin:$PATH"
 
 # fish
 fish_add_path --prepend /absolute/path/to/your/project/.venv/bin
 ```
 
-Then start the daemon:
+Then activate Pact and start the daemon:
 
 ```bash
 source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
@@ -470,12 +529,12 @@ It is ready for `pact` stage
 
 ---
 
-## Step 2 — Build
-
 <details>
 <summary><strong>2a — Pact</strong></summary>
 
 ### 2a — Pact
+
+> **Before starting:** check `exemplar.tools/pact/README.md` for current `pact.yaml` config keys, `build_mode` options, and `role_backends` format.
 
 > **Video walkthrough:** https://youtu.be/S6FEOl9cJuk
 > **Video walkthrough (2026-04-30):** https://youtu.be/vwHyrU13Cds
@@ -496,15 +555,26 @@ source ../exemplar.tools/pact/.venv/bin/activate.fish
 
 **Set your API key:**
 
-```bash
-# bash / zsh
-export ANTHROPIC_API_KEY=sk-...
+Store the key in a `.env` file (never hardcode it):
 
-# fish
-set -x ANTHROPIC_API_KEY sk-...
+```
+# .env
+export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-> In fish shell, `export VAR=value` is not valid — use `set -x` instead.
+Then make it permanent in fish using a universal variable (run once, persists across all terminals):
+
+```fish
+set -Ux ANTHROPIC_API_KEY (grep ANTHROPIC_API_KEY /path/to/.env | cut -d= -f2)
+```
+
+Or source the `.env` in the same shell before running the daemon:
+
+```fish
+source /path/to/.env && pact daemon .
+```
+
+> In fish shell, `export VAR=value` is not valid syntax — use `set -x` (session) or `set -Ux` (permanent universal variable) instead.
 
 **Initialize the project** (run from your project folder):
 
@@ -544,7 +614,7 @@ ones are unreachable.
 ```yaml
 budget: 10.0
 shaping: false
-build_mode: unary
+build_mode: auto
 backend: anthropic
 model: claude-opus-4-6
 role_backends:
@@ -556,7 +626,9 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
-> **`build_mode: unary`** builds the entire app as a single component named `root`. This is the only stable mode. It collapses multi-tier architectures (frontend + backend + database) into one unit — the generated code will use in-memory storage instead of a real database. A real multi-component build mode is not yet available.
+> **`build_mode`** accepts `unary`, `auto`, or `hierarchy`. Use `auto` (the default) — Pact decides whether to decompose into multiple components or implement as a single unit. Use `unary` only if you want to force a single component (collapses all tiers into one, uses in-memory storage instead of a real database). Use `hierarchy` to always force multi-component decomposition.
+
+> **`sops.md`** — the default says "Tests must be runnable without external services". If your app uses PostgreSQL, change this line to allow database connections via `DATABASE_URL`. Pact respects `sops.md` literally and will generate mock-only tests if this line is left unchanged.
 
 > Pact always writes `access_graph.json` at the end of the build — used by Arbiter in Step 3.
 
@@ -575,45 +647,13 @@ pact status .        # current phase and cost
 pact log .           # full audit trail
 ```
 
-**Interview phase** — Pact pauses after generating questions. Answer by editing two files:
+**Interview phase** — Pact pauses after generating questions. Review `decomposition/interview.json` to read the questions and assumptions Pact generated, then approve:
 
-**1. `decomposition/interview.json`** — find the `"questions"` array, add a `"user_answers"` field with your answers, and set `"approved": true` at the top level:
-
-```json
-{
-  "approved": true,
-  "questions": [...],
-  "user_answers": {
-    "1": "In-memory storage, no persistence needed",
-    "2": "Python stdlib only, no third-party libraries",
-    "3": "..."
-  }
-}
-```
-
-**2. `.pact/state.json`** — set `"status": "active"`, `"approved": true`, and add an `"interview_result"` key that mirrors the answers:
-
-```json
-{
-  "status": "active",
-  "approved": true,
-  "interview_result": {
-    "approved": true,
-    "user_answers": {
-      "1": "In-memory storage, no persistence needed",
-      "2": "Python stdlib only, no third-party libraries",
-      "3": "..."
-    }
-  }
-}
-```
-
-Then signal the daemon:
 ```bash
 pact approve .
 ```
 
-> `pact approve .` may print "Already approved. Daemon signaled to continue." — this is expected, not an error.
+`pact approve .` auto-answers all questions from the generated assumptions, sets `approved: true` in the interview file, and signals the daemon to continue — no manual file editing needed.
 
 **Health gate** — Pact may pause mid-run with a "dysmemic pressure" health warning. These are false positives caused by four known bugs in the health checker (PR open: [jmcentire/pact#2](https://github.com/jmcentire/pact/pull/2)). Resume each time it pauses:
 
@@ -637,7 +677,7 @@ pact resume .
 > pact resume .
 > ```
 
-> If the daemon process exits entirely (rather than just pausing), check that `ANTHROPIC_API_KEY` is set in the shell that runs `pact daemon .`. If the state ends up as `"status": "failed"` in `.pact/state.json`, reset it manually: set `"status"` back to `"active"` and clear `"completed_at"` and `"pause_reason"`, then rerun `pact daemon .`.
+> If the daemon process exits entirely (rather than just pausing), check that `ANTHROPIC_API_KEY` is set in the shell that runs `pact daemon .`. If the state ends up as `"status": "failed"` in `.pact/state.json`, reset it manually: set `"status"` back to `"active"`, clear `"completed_at"` and `"pause_reason"`, and if the failure happened after the interview set `"interview_result.approved"` to `true`, then rerun `pact daemon .`.
 
 **Verify the build — run contract tests:**
 
@@ -661,6 +701,8 @@ deactivate
 
 ### 2b — Advocate (Review gate)
 
+> **Before starting:** check `exemplar.tools/advocate/README.md` for current CLI flags and persona list.
+
 > **Video walkthrough (2026-04-30):** https://youtu.be/sKOM3NvW7lY
 
 Advocate runs a 6-persona adversarial review of the code produced by Pact. Six AI reviewers attack the code simultaneously from different angles and surface issues before you deploy.
@@ -675,14 +717,10 @@ source ../exemplar.tools/advocate/.venv/bin/activate
 source ../exemplar.tools/advocate/.venv/bin/activate.fish
 ```
 
-**Set your API key:**
+**Set your API key** (if not already set as a universal variable — see Pact section for one-time setup):
 
-```bash
-# bash / zsh
-export ANTHROPIC_API_KEY=sk-...
-
-# fish
-set -x ANTHROPIC_API_KEY sk-...
+```fish
+source /path/to/.env
 ```
 
 > **Transmogrifier warning:** A `UserWarning: Field name "register" shadows an attribute` appears on startup. Safe to ignore.
@@ -735,6 +773,8 @@ deactivate
 <summary><strong>Step 3 — Govern: Arbiter</strong></summary>
 
 ## Step 3 — Govern: Arbiter
+
+> **Before starting:** check `exemplar.tools/arbiter/README.md` for current CLI commands and integration status.
 
 > **Video walkthrough (2026-04-30):** https://youtu.be/4f5uqWGs2ws
 
@@ -793,6 +833,8 @@ deactivate
 <summary><strong>Step 4 — Deploy: Baton</strong></summary>
 
 ## Step 4 — Deploy: Baton
+
+> **Before starting:** check `exemplar.tools/baton/README.md` for current `baton.yaml` format and CLI commands.
 
 > **Video walkthrough (2026-04-30):** https://youtu.be/XGu3XTfvG1c
 > **Video — test run (2026-04-30):** https://youtu.be/nPcB7BjvWoo
@@ -906,6 +948,8 @@ deactivate
 
 ### 5a — Sentinel
 
+> **Before starting:** check `exemplar.tools/sentinel/README.md` for current CLI commands and config format.
+
 > **Video walkthrough (2026-04-30):** https://youtu.be/k8RVrSnEw6I
 
 Sentinel watches production logs, attributes errors to Pact components via embedded PACT keys, and tightens contracts so each bug class becomes non-recurring.
@@ -967,6 +1011,8 @@ deactivate
 <summary><strong>5b — Chronicler</strong></summary>
 
 ### 5b — Chronicler
+
+> **Before starting:** check `exemplar.tools/chronicler/README.md` for current config format and sink types.
 
 > **Video walkthrough (2026-04-30):** https://youtu.be/a94Kpf0bYVg
 
@@ -1099,6 +1145,8 @@ Only the `disk` sink is fully implemented. Use it to capture stories locally whi
 
 ### 5c — Stigmergy
 
+> **Before starting:** check `exemplar.tools/stigmergy/README.md` for current CLI commands and signal source config.
+
 > **Video walkthrough:** https://youtu.be/4z7--TKIvQ4
 
 Stigmergy ingests signals from GitHub, Linear, Slack, and Grafana, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and parallel activity that could become conflicts.
@@ -1212,6 +1260,8 @@ deactivate
 <summary><strong>Step 6 — Learn: Apprentice</strong></summary>
 
 ## Step 6 — Learn: Apprentice
+
+> **Before starting:** check `exemplar.tools/apprentice/README.md` for current CLI commands and `apprentice.yaml` format. See also `UPSTREAM_BUGS.md` for known bugs in `apprentice run` and `apprentice report`.
 
 > **Video walkthrough (2026-04-30):** https://youtu.be/BhltpaigLTo
 
