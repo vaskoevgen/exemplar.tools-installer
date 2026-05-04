@@ -293,7 +293,7 @@ deactivate
 
 Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. **Skip this step if your project has no database schemas.**
 
-> **Integration status:** `ledger init`, `ledger backend add`, and `ledger builtins list/show` are fully implemented (three bugs in `ledger backend add` were fixed locally — see `UPSTREAM_BUGS.md`). `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but do nothing. Schema files are documentation only until the registry implementation ships.
+> **Integration status:** `ledger init`, `ledger backend add`, and `ledger builtins list/show` are fully implemented (three bugs were fixed — PR #2 open on `jmcentire/ledger`, use branch `vaskoevgen:fix/init-config-stub` until merged — see `UPSTREAM_BUGS.md`). `ledger schema add`, `ledger schema validate`, and `ledger export` are stubs — they exit 0 but do nothing. Schema files are documentation only until the registry implementation ships.
 
 **Activate:**
 
