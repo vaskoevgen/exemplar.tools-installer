@@ -769,7 +769,9 @@ deactivate
 
 > **Disagreements are valuable.** When two personas rate the same issue differently (e.g. Sage: HIGH, SME: INFO), that tension reveals a real tradeoff worth examining.
 
-**Typical cost:** ~$0.15–0.30 per review, ~30 seconds in parallel mode.
+**Typical cost:** ~$0.15–0.30 for a single file or small project. Multi-component projects (4+ components, 8+ files) cost ~$0.50–1.00.
+
+**After the review:** Fix CRITICAL and HIGH findings before proceeding to Step 3. Not all findings are code bugs — some reflect how Pact decomposed the project rather than errors in the code.
 
 </details>
 
@@ -869,7 +871,7 @@ Generated baton.yaml: <your-project>/baton.yaml
   Canary thresholds: error_rate < 5.0%, p95 < 500.0ms
 ```
 
-> `pact deploy .` generates a `baton.yaml` with one node named `root` on port 3000. It does **not** use `component_map.yaml` — the multi-component topology from Constrain is ignored. You must edit the file before use.
+> `pact deploy .` generates one Baton node per deployable component (excluding the root integration layer). Single-component projects get one node named `root` on port 3000; multi-component projects get one node per leaf component starting at port 3000. Edges are inferred from contract side-effects. You must edit the file before use (add `role: ingress`, verify ports).
 
 **Step 2 — Activate Baton:**
 
@@ -930,7 +932,14 @@ Press Ctrl+C to stop
 
 Visit `http://127.0.0.1:3001` in your browser — you'll see `{"status": "mock", "port": 23001}`. Press **Ctrl+C** to stop.
 
-> **To run with a live app:** start your application in a separate terminal first, then run `baton up` (without `--mock`). Note that Pact generates `src/root/root.py` as a pure Python library with no HTTP server — you need to wrap it in FastAPI/Flask before Baton can proxy to it.
+> **To run with a live app:** use `baton slot` instead of `baton up`. Baton manages the service port automatically via `$BATON_SERVICE_PORT` (node.port + 20000). The slot command boots the circuit, starts your service, wires mocks for the other nodes, and blocks until Ctrl+C.
+> ```bash
+> baton slot --skip-validate backend \
+>   "bash -c 'DATABASE_URL=... PYTHONPATH=... uvicorn app.main:app --port \$BATON_SERVICE_PORT'"
+> ```
+> **Important:** Use absolute paths for the interpreter and working directory when not running from the project dir. The `\$BATON_SERVICE_PORT` must be escaped so the shell (not your terminal) expands it. Do not use `baton up --mock` + `baton slot` in separate processes — the adapters live in-process and will conflict. `baton slot` is the all-in-one command.
+>
+> **Known bug (upstream):** `baton slot` without a prior local fix has three CLI issues: the `command` positional arg clobbered the argparse subcommand dispatch key, the command exited immediately killing adapters, and the mock server bound the live service port. Fix branch: `fix/baton-slot-command` in the baton repo.
 
 **Step 6 — Check signals and metrics:**
 
