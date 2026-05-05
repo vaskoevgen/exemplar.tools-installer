@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Task Manager</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f5f5f5;
+      color: #1a1a1a;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+    }
+
+    .container { max-width: 640px; margin: 0 auto; }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      color: #111;
+    }
+
+    /* Add form */
+    .add-form {
+      background: #fff;
+      border-radius: 10px;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+    }
+    .add-form input, .add-form textarea {
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: .55rem .75rem;
+      font-size: .95rem;
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .add-form input:focus, .add-form textarea:focus { border-color: #4f46e5; }
+    .add-form textarea { resize: vertical; min-height: 60px; }
+    .add-form button {
+      align-self: flex-end;
+      background: #4f46e5;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: .55rem 1.2rem;
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .add-form button:hover { background: #4338ca; }
+    .add-form button:disabled { background: #a5b4fc; cursor: not-allowed; }
+
+    /* Task list */
+    #task-list { display: flex; flex-direction: column; gap: .6rem; }
+
+    .task {
+      background: #fff;
+      border-radius: 10px;
+      padding: .85rem 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,.08);
+      display: flex;
+      align-items: flex-start;
+      gap: .8rem;
+    }
+    .task.done { opacity: .6; }
+
+    .task-body { flex: 1; min-width: 0; }
+    .task-title {
+      font-weight: 600;
+      font-size: .95rem;
+      word-break: break-word;
+    }
+    .task.done .task-title { text-decoration: line-through; }
+    .task-desc {
+      color: #666;
+      font-size: .82rem;
+      margin-top: .2rem;
+      word-break: break-word;
+    }
+
+    .task-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+
+    .btn-status {
+      border: 1px solid #e5e7eb;
+      border-radius: 5px;
+      padding: .3rem .6rem;
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+      background: #f9fafb;
+      white-space: nowrap;
+      transition: background .1s, color .1s;
+    }
+    .btn-status[data-status="pending"]     { color: #b45309; border-color: #fcd34d; background: #fffbeb; }
+    .btn-status[data-status="in_progress"] { color: #1d4ed8; border-color: #93c5fd; background: #eff6ff; }
+    .btn-status[data-status="done"]        { color: #15803d; border-color: #86efac; background: #f0fdf4; }
+    .btn-status:hover { filter: brightness(.95); }
+
+    .btn-delete {
+      border: none;
+      background: none;
+      color: #d1d5db;
+      cursor: pointer;
+      font-size: 1.1rem;
+      line-height: 1;
+      padding: .2rem;
+      border-radius: 4px;
+      transition: color .1s;
+    }
+    .btn-delete:hover { color: #ef4444; }
+
+    .empty {
+      text-align: center;
+      color: #9ca3af;
+      padding: 2rem 0;
+      font-size: .95rem;
+    }
+
+    .error-msg {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      color: #b91c1c;
+      border-radius: 6px;
+      padding: .6rem .9rem;
+      font-size: .85rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Task Manager</h1>
+
+    <div id="error-banner" class="error-msg" style="display:none"></div>
+
+    <form class="add-form" id="add-form">
+      <input id="title-input" type="text" placeholder="Task title" required maxlength="200">
+      <textarea id="desc-input" placeholder="Description (optional)" maxlength="2000"></textarea>
+      <button type="submit" id="add-btn">Add task</button>
+    </form>
+
+    <div id="task-list"></div>
+  </div>
+
+  <script>
+    const API = '';  // same origin
+
+    const NEXT_STATUS = { pending: 'in_progress', in_progress: 'done', done: 'pending' };
+    const STATUS_LABEL = { pending: 'Pending', in_progress: 'In progress', done: 'Done' };
+
+    async function api(method, path, body) {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body !== undefined) opts.body = JSON.stringify(body);
+      const r = await fetch(API + path, opts);
+      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+      if (r.status === 204) return null;
+      return r.json();
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-banner');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 4000);
+    }
+
+    function renderTask(task) {
+      const div = document.createElement('div');
+      div.className = 'task' + (task.status === 'done' ? ' done' : '');
+      div.dataset.id = task.id;
+
+      div.innerHTML = `
+        <div class="task-body">
+          <div class="task-title">${esc(task.title)}</div>
+          ${task.description ? `<div class="task-desc">${esc(task.description)}</div>` : ''}
+        </div>
+        <div class="task-actions">
+          <button class="btn-status" data-status="${task.status}">${STATUS_LABEL[task.status]}</button>
+          <button class="btn-delete" title="Delete">✕</button>
+        </div>`;
+
+      div.querySelector('.btn-status').addEventListener('click', async () => {
+        const next = NEXT_STATUS[task.status];
+        try {
+          const updated = await api('PUT', `/tasks/${task.id}`, { status: next });
+          div.replaceWith(renderTask(updated));
+        } catch (e) { showError('Update failed: ' + e.message); }
+      });
+
+      div.querySelector('.btn-delete').addEventListener('click', async () => {
+        try {
+          await api('DELETE', `/tasks/${task.id}`);
+          div.remove();
+          if (!document.querySelector('.task')) showEmpty();
+        } catch (e) { showError('Delete failed: ' + e.message); }
+      });
+
+      return div;
+    }
+
+    function showEmpty() {
+      const list = document.getElementById('task-list');
+      if (!list.querySelector('.task')) {
+        list.innerHTML = '<div class="empty">No tasks yet — add one above.</div>';
+      }
+    }
+
+    function esc(s) {
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    async function loadTasks() {
+      try {
+        const tasks = await api('GET', '/tasks');
+        const list = document.getElementById('task-list');
+        list.innerHTML = '';
+        if (tasks.length === 0) { showEmpty(); return; }
+        tasks.forEach(t => list.appendChild(renderTask(t)));
+      } catch (e) { showError('Failed to load tasks: ' + e.message); }
+    }
+
+    document.getElementById('add-form').addEventListener('submit', async e => {
+      e.preventDefault();
+      const title = document.getElementById('title-input').value.trim();
+      const description = document.getElementById('desc-input').value.trim() || null;
+      if (!title) return;
+      const btn = document.getElementById('add-btn');
+      btn.disabled = true;
+      try {
+        const task = await api('POST', '/tasks', { title, description, status: 'pending' });
+        const list = document.getElementById('task-list');
+        const empty = list.querySelector('.empty');
+        if (empty) empty.remove();
+        list.prepend(renderTask(task));
+        document.getElementById('title-input').value = '';
+        document.getElementById('desc-input').value = '';
+      } catch (e) { showError('Failed to add task: ' + e.message); }
+      finally { btn.disabled = false; }
+    });
+
+    loadTasks();
+  </script>
+</body>
+</html>
