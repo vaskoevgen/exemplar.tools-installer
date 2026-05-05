@@ -1,0 +1,480 @@
+{
+  "project_id": "todo-list3",
+  "tasks": [
+    {
+      "id": "T001",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Initialize project directory structure",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "scaffold"
+    },
+    {
+      "id": "T002",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Verify environment and dependencies",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T001"
+      ],
+      "category": "scaffold"
+    },
+    {
+      "id": "T003",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: DatabaseURL",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T004",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: DeleteConfirmation",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T005",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ErrorResponse",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T006",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: HealthResponse",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T007",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ISOTimestamp",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T008",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: OptionalString",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T009",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskCreateRequest",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T010",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskId",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T011",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskListResponse",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T012",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskResponse",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T013",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskStatus",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T014",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskTitle",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T015",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: TaskUpdateRequest",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T016",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ValidationErrorResponse",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T017",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: string",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T018",
+      "phase": "component",
+      "component_id": "database",
+      "description": "Review contract for PostgreSQL Database Schema",
+      "file_path": "contracts/database/interface.json",
+      "status": "completed",
+      "parallel": true,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T019",
+      "phase": "component",
+      "component_id": "database",
+      "description": "Set up test harness for PostgreSQL Database Schema",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T018"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T020",
+      "phase": "component",
+      "component_id": "database",
+      "description": "Write contract tests for PostgreSQL Database Schema",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T019"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T021",
+      "phase": "component",
+      "component_id": "database",
+      "description": "Implement PostgreSQL Database Schema",
+      "file_path": "implementations/database/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T020"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T022",
+      "phase": "component",
+      "component_id": "database",
+      "description": "Run tests and verify PostgreSQL Database Schema",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T021"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T023",
+      "phase": "component",
+      "component_id": "backend",
+      "description": "Review contract for FastAPI Backend API",
+      "file_path": "contracts/backend/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T024",
+      "phase": "component",
+      "component_id": "backend",
+      "description": "Set up test harness for FastAPI Backend API",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T023"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T025",
+      "phase": "component",
+      "component_id": "backend",
+      "description": "Write contract tests for FastAPI Backend API",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T024"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T026",
+      "phase": "component",
+      "component_id": "backend",
+      "description": "Implement FastAPI Backend API",
+      "file_path": "implementations/backend/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T025"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T027",
+      "phase": "component",
+      "component_id": "backend",
+      "description": "Run tests and verify FastAPI Backend API",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T026"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T028",
+      "phase": "component",
+      "component_id": "frontend",
+      "description": "Review contract for React Frontend SPA",
+      "file_path": "contracts/frontend/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T029",
+      "phase": "component",
+      "component_id": "frontend",
+      "description": "Set up test harness for React Frontend SPA",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T028"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T030",
+      "phase": "component",
+      "component_id": "frontend",
+      "description": "Write contract tests for React Frontend SPA",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T029"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T031",
+      "phase": "component",
+      "component_id": "frontend",
+      "description": "Implement React Frontend SPA",
+      "file_path": "implementations/frontend/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T030"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T032",
+      "phase": "component",
+      "component_id": "frontend",
+      "description": "Run tests and verify React Frontend SPA",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T031"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T033",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Review integration contract for Root",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T034",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Write integration tests for Root",
+      "file_path": "",
+      "status": "completed",
+      "parallel": true,
+      "depends_on": [],
+      "category": "test_write"
+    },
+    {
+      "id": "T035",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Wire children for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T027",
+        "T022",
+        "T032"
+      ],
+      "category": "integrate"
+    },
+    {
+      "id": "T036",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Run integration tests for Root",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T035"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T037",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Run full contract validation gate",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T038",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Cross-artifact analysis",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T039",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Update design document",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "document"
+    }
+  ],
+  "checkpoints": [
+    {
+      "after_phase": "component",
+      "description": "All leaf components verified",
+      "validation": "All leaf contract tests pass"
+    },
+    {
+      "after_phase": "integration",
+      "description": "All integrations verified",
+      "validation": "All integration tests pass"
+    }
+  ],
+  "generated_at": "2026-05-04T18:25:38.579166",
+  "version": 1
+}

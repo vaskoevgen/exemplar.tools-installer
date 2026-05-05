@@ -1,0 +1,751 @@
+{
+  "component_id": "backend",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_create_task_unique_ids",
+      "description": "Each created task must receive a distinct server-generated id; the id must not be hardcoded or reused across calls",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Two separate POST /tasks requests with the same title",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response1.id != response2.id",
+        "both ids are valid UUID v4"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_in_progress_status",
+      "description": "Creating a task with status 'in_progress' should persist that status, not silently default to 'pending'",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Progress task",
+        "status": "in_progress"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status == 'in_progress'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_done_status",
+      "description": "Creating a task with status 'done' should persist that status exactly",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Done task",
+        "status": "done"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status == 'done'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_description_preserved",
+      "description": "A non-empty, non-whitespace description must be stored and returned verbatim, not normalized to None",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Desc test",
+        "description": "This is a real description"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description == 'This is a real description'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_description_with_inner_whitespace",
+      "description": "A description with leading/trailing whitespace but non-empty content should preserve its inner content (normalization only targets fully-empty/whitespace-only)",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Inner ws",
+        "description": "  has content  "
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description is not None",
+        "response.description contains 'has content'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_tab_only_description_normalized",
+      "description": "Description consisting only of tab characters should be normalized to None, not just spaces",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Tab desc",
+        "description": "\t\t\t"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_newline_only_description_normalized",
+      "description": "Description consisting only of newline characters should be normalized to None",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Newline desc",
+        "description": "\n\n\n"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_title_single_char",
+      "description": "A single non-whitespace character title should be accepted as a valid minimum-length title",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "X"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201",
+        "response.title == 'X'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_title_199_chars",
+      "description": "A title of 199 characters (one below TaskTitle max) should be accepted",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "a * 199"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201",
+        "len(response.title) == 199"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_title_201_chars_rejected",
+      "description": "A title of 201 characters (one above TaskTitle max of 200) should still be accepted at the API level if under 255, verifying the two different length limits are correctly layered",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "a * 201"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201",
+        "len(response.title) == 201"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_title_254_chars",
+      "description": "A title of 254 characters (one below API max of 255) should be accepted",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "a * 254"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_title_256_chars_rejected",
+      "description": "A title of 256 characters (one above API max of 255) should be rejected with 422",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "a * 256"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 422"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_status_only",
+      "description": "Updating only the status field should preserve the original title and description unchanged",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task with title+description, then PUT with only status='done'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.title == original.title",
+        "response.description == original.description",
+        "response.status == 'done'"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_description_only",
+      "description": "Updating only the description field should preserve the original title and status unchanged",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, then PUT with only description='Updated desc'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.title == original.title",
+        "response.status == original.status",
+        "response.description == 'Updated desc'"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_description_to_null",
+      "description": "Setting description to empty string via update should normalize it to None",
+      "function": "update_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task with description, then PUT with description=''",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_description_whitespace_normalized",
+      "description": "Setting description to whitespace-only via update should normalize it to None",
+      "function": "update_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task with description, then PUT with description='   '",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_title_stripped",
+      "description": "Title provided in update with leading/trailing whitespace should be stripped in the response",
+      "function": "update_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, then PUT with title='  Updated Title  '",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.title == 'Updated Title'"
+      ]
+    },
+    {
+      "id": "goodhart_get_task_returns_correct_task",
+      "description": "GET /tasks/{id} must return the specific task matching the requested id, not any arbitrary task",
+      "function": "get_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create two tasks with different titles, then GET each by id",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "get(id1).title == title1",
+        "get(id2).title == title2",
+        "get(id1).id == id1",
+        "get(id2).id == id2"
+      ]
+    },
+    {
+      "id": "goodhart_list_tasks_contains_created_task",
+      "description": "A task created via POST should appear in the subsequent GET /tasks listing",
+      "function": "list_tasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create a task with a unique title, then list tasks and search for it",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created task appears in list",
+        "task fields match what was created"
+      ]
+    },
+    {
+      "id": "goodhart_list_tasks_order_with_three_tasks",
+      "description": "Listing tasks should return them ordered by created_at DESC regardless of how many tasks exist",
+      "function": "list_tasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create three tasks sequentially, then GET /tasks",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks[0].created_at >= tasks[1].created_at >= tasks[2].created_at"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_idempotent_404",
+      "description": "Deleting an already-deleted task should return 404, confirming hard delete and no phantom state",
+      "function": "delete_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, delete it (200), then delete same id again",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "first delete returns 200",
+        "second delete returns 404"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_removes_from_list",
+      "description": "After deleting a task, it should no longer appear in GET /tasks listing",
+      "function": "delete_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, delete it, then GET /tasks",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "deleted task id not in list response"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_response_has_all_fields",
+      "description": "The create response must include all six TaskResponse fields: id, title, description, status, created_at, updated_at",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Field check"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'id' in response",
+        "'title' in response",
+        "'description' in response",
+        "'status' in response",
+        "'created_at' in response",
+        "'updated_at' in response"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_no_extra_fields",
+      "description": "The create response should not contain unexpected extra fields beyond the TaskResponse schema",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Extra fields check"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response keys are subset of {id, title, description, status, created_at, updated_at}"
+      ]
+    },
+    {
+      "id": "goodhart_health_check_no_db_needed",
+      "description": "Health check must succeed even when no database connection is available, confirming no database interaction",
+      "function": "health_check",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "database": "unavailable/not configured"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 200",
+        "response.body == {'status': 'ok'}"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_missing_title_rejected",
+      "description": "Omitting the title field entirely from the request body should be rejected, not silently defaulted",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "description": "no title provided"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 422"
+      ]
+    },
+    {
+      "id": "goodhart_get_task_timestamps_iso8601",
+      "description": "GET /tasks/{id} response timestamps must be ISO 8601 with timezone offset, not just for create but also for read",
+      "function": "get_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create a task, then GET it by id and validate timestamp format",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at matches ISO 8601 with timezone regex",
+        "updated_at matches ISO 8601 with timezone regex"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_timestamps_iso8601",
+      "description": "PUT /tasks/{id} response timestamps must be ISO 8601 with timezone offset",
+      "function": "update_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create a task, update it, validate timestamp format in response",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at matches ISO 8601 with timezone regex",
+        "updated_at matches ISO 8601 with timezone regex"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_mixed_whitespace_title_stripped",
+      "description": "Title with mixed whitespace types (tabs, newlines, spaces) at edges should be stripped to clean content",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "\t\n  Real Title \n\t "
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.title == 'Real Title'"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_unicode_title",
+      "description": "Titles with unicode characters should be accepted and stored correctly",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "任务标题 🎉 café"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201",
+        "response.title == '任务标题 🎉 café'"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_response_id_matches",
+      "description": "The id in the DeleteConfirmation response must match the id that was requested for deletion",
+      "function": "delete_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create a task, note its id, delete it, verify response.id matches",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.id == requested_id"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_response_detail_nonempty",
+      "description": "The detail field in DeleteConfirmation must be a non-empty string, not null or empty",
+      "function": "delete_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create and delete a task, check detail field",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isinstance(response.detail, str)",
+        "len(response.detail) > 0"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_all_fields_simultaneously",
+      "description": "Updating title, description, and status simultaneously should change all three fields in one request",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task with defaults, then PUT with all three fields changed",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.title == new_title",
+        "response.description == new_description",
+        "response.status == new_status"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_empty_body_rejected",
+      "description": "Sending an empty JSON body {} to POST /tasks should be rejected since title is required",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 422"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_whitespace_only_title_rejected",
+      "description": "Updating a task with a whitespace-only title should be rejected with 422, same as creation",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, then PUT with title='\\t\\n  '",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 422"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_status_case_sensitive",
+      "description": "Status values are case-sensitive; 'Pending', 'PENDING', 'In_Progress' should all be rejected",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Case test",
+        "status": "Pending"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 422"
+      ]
+    },
+    {
+      "id": "goodhart_get_task_404_has_detail",
+      "description": "404 response for non-existent task must include a 'detail' field with a meaningful message",
+      "function": "get_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "GET /tasks/{random_uuid} for a UUID that doesn't exist",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 404",
+        "'detail' in response.body",
+        "response.body['detail'] is a non-empty string"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_404_has_detail",
+      "description": "404 response for updating a non-existent task must include a 'detail' field",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "PUT /tasks/{random_uuid} with valid body for a UUID that doesn't exist",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 404",
+        "'detail' in response.body"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_404_has_detail",
+      "description": "404 response for deleting a non-existent task must include a 'detail' field",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "DELETE /tasks/{random_uuid} for a UUID that doesn't exist",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 404",
+        "'detail' in response.body"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_created_at_equals_updated_at",
+      "description": "On creation, created_at and updated_at should be equal (or very close) since both are set by NOW()",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Timestamp equality check"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.created_at == response.updated_at or within 1 second"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_multiple_times_updated_at_advances",
+      "description": "Updating a task multiple times should keep advancing updated_at while created_at remains unchanged",
+      "function": "update_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create task, update twice with small delay, verify updated_at1 <= updated_at2 and created_at unchanged",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at unchanged across all operations",
+        "updated_at after second update >= updated_at after first update"
+      ]
+    },
+    {
+      "id": "goodhart_list_tasks_after_delete_excludes_deleted",
+      "description": "After creating multiple tasks and deleting one, list should return only the non-deleted tasks",
+      "function": "list_tasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Create 3 tasks, delete the middle one, GET /tasks",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(response) == initial_count - 1 (relative to test data)",
+        "deleted task id not in response"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_id_is_valid_uuid",
+      "description": "The id returned from task creation must be a valid UUID format, not an integer or arbitrary string",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "UUID format check"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "uuid.UUID(response.id) does not raise",
+        "response.id matches UUID regex pattern"
+      ]
+    },
+    {
+      "id": "goodhart_task_title_boundary_whitespace_padding_over_max",
+      "description": "A title that is within 255 chars after stripping but exceeds 255 chars before stripping should be accepted (stripping happens first)",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "spaces(30) + a*200 + spaces(30)"
+      },
+      "input_description": "Title with 200 chars of content padded by whitespace to exceed 255 raw chars",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status_code == 201",
+        "response.title == 'a' * 200"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nGoodhart adversarial hidden tests for FastAPI Backend API.\n\nThese tests detect implementations that pass visible tests through shortcuts\n(hardcoded returns, missing validation, etc.) rather than truly satisfying the contract.\n\"\"\"\nimport os\nimport re\nimport json\nimport time\nimport uuid\nimport pytest\nfrom datetime import datetime\n\n# Skip all tests if DATABASE_URL is not set\npytestmark = pytest.mark.skipif(\n    not os.environ.get(\"DATABASE_URL\"),\n    reason=\"DATABASE_URL not set — skipping contract tests\"\n)\n\n# Attempt imports — adjust based on actual project structure\ntry:\n    from fastapi.testclient import TestClient\n    from src.backend.main import app\n    client = TestClient(app)\nexcept ImportError:\n    try:\n        from fastapi.testclient import TestClient\n        from main import app\n        client = TestClient(app)\n    except ImportError:\n        client = None\n\nISO_TZ_REGEX = r\"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$\"\n\n\ndef _create_task(title=\"Test Task\", description=None, status=None):\n    \"\"\"Helper to create a task and return the response.\"\"\"\n    body = {\"title\": title}\n    if description is not None:\n        body[\"description\"] = description\n    if status is not None:\n        body[\"status\"] = status\n    return client.post(\"/tasks\", json=body)\n\n\ndef _cleanup_task(task_id):\n    \"\"\"Best-effort cleanup of a task.\"\"\"\n    try:\n        client.delete(f\"/tasks/{task_id}\")\n    except Exception:\n        pass\n\n\nclass TestGoodhartCreateTask:\n\n    def test_goodhart_create_task_unique_ids(self):\n        \"\"\"Each created task must receive a distinct server-generated id; ids cannot be hardcoded or reused.\"\"\"\n        resp1 = _create_task(title=\"Unique ID Test 1\")\n        resp2 = _create_task(title=\"Unique ID Test 2\")\n        try:\n            assert resp1.status_code == 201\n            assert resp2.status_code == 201\n            id1 = resp1.json()[\"id\"]\n            id2 = resp2.json()[\"id\"]\n            assert id1 != id2, \"Two created tasks must have different ids\"\n            # Both must be valid UUIDs\n            uuid.UUID(str(id1))\n            uuid.UUID(str(id2))\n        finally:\n            _cleanup_task(resp1.json().get(\"id\"))\n            _cleanup_task(resp2.json().get(\"id\"))\n\n    def test_goodhart_create_task_in_progress_status(self):\n        \"\"\"Creating a task with status 'in_progress' must persist that exact status, not default to 'pending'.\"\"\"\n        resp = _create_task(title=\"Progress task\", status=\"in_progress\")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"status\"] == \"in_progress\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_done_status(self):\n        \"\"\"Creating a task with status 'done' must persist that exact status.\"\"\"\n        resp = _create_task(title=\"Done task\", status=\"done\")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"status\"] == \"done\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_description_preserved(self):\n        \"\"\"A non-empty, non-whitespace description must be stored and returned verbatim, not normalized to None.\"\"\"\n        desc = \"This is a meaningful description with details\"\n        resp = _create_task(title=\"Desc test\", description=desc)\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"description\"] == desc\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_description_with_inner_whitespace(self):\n        \"\"\"Description with leading/trailing whitespace but non-empty content should not be normalized to None.\"\"\"\n        resp = _create_task(title=\"Inner ws\", description=\"  has content  \")\n        try:\n            assert resp.status_code == 201\n            data = resp.json()\n            assert data[\"description\"] is not None\n            assert \"has content\" in data[\"description\"]\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_tab_only_description_normalized(self):\n        \"\"\"Description consisting only of tab characters must be normalized to None.\"\"\"\n        resp = _create_task(title=\"Tab desc\", description=\"\\t\\t\\t\")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"description\"] is None\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_newline_only_description_normalized(self):\n        \"\"\"Description consisting only of newline characters must be normalized to None.\"\"\"\n        resp = _create_task(title=\"Newline desc\", description=\"\\n\\n\\n\")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"description\"] is None\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_title_single_char(self):\n        \"\"\"A single non-whitespace character title should be accepted as valid minimum-length title.\"\"\"\n        resp = _create_task(title=\"X\")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"title\"] == \"X\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_title_199_chars(self):\n        \"\"\"A title of 199 characters (adjacent to 200-char TaskTitle boundary) must be accepted.\"\"\"\n        title = \"a\" * 199\n        resp = _create_task(title=title)\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"title\"] == title\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_title_254_chars(self):\n        \"\"\"A title of 254 characters (one below API max of 255) must be accepted.\"\"\"\n        title = \"b\" * 254\n        resp = _create_task(title=title)\n        try:\n            assert resp.status_code == 201\n            assert len(resp.json()[\"title\"]) == 254\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_title_256_chars_rejected(self):\n        \"\"\"A title of 256 characters (one above API max of 255) must be rejected with 422.\"\"\"\n        title = \"c\" * 256\n        resp = _create_task(title=title)\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_missing_title_rejected(self):\n        \"\"\"Omitting the title field entirely must be rejected — title is required.\"\"\"\n        resp = client.post(\"/tasks\", json={\"description\": \"no title provided\"})\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_empty_body_rejected(self):\n        \"\"\"An empty JSON body {} must be rejected since title is required.\"\"\"\n        resp = client.post(\"/tasks\", json={})\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_status_case_sensitive_pending(self):\n        \"\"\"Status 'Pending' (capitalized) must be rejected — values are case-sensitive.\"\"\"\n        resp = _create_task(title=\"Case test\", status=\"Pending\")\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_status_case_sensitive_upper(self):\n        \"\"\"Status 'DONE' (all caps) must be rejected — values are case-sensitive.\"\"\"\n        resp = _create_task(title=\"Case test 2\", status=\"DONE\")\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_status_case_sensitive_in_progress(self):\n        \"\"\"Status 'In_Progress' (mixed case) must be rejected — values are case-sensitive.\"\"\"\n        resp = _create_task(title=\"Case test 3\", status=\"In_Progress\")\n        assert resp.status_code == 422\n\n    def test_goodhart_create_task_response_has_all_fields(self):\n        \"\"\"Create response must include all six TaskResponse fields and no extras.\"\"\"\n        resp = _create_task(title=\"Field completeness check\")\n        try:\n            assert resp.status_code == 201\n            data = resp.json()\n            required_keys = {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\n            assert required_keys.issubset(set(data.keys())), f\"Missing keys: {required_keys - set(data.keys())}\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_no_extra_fields(self):\n        \"\"\"Create response must not contain unexpected extra fields beyond the TaskResponse schema.\"\"\"\n        resp = _create_task(title=\"Extra fields check\")\n        try:\n            assert resp.status_code == 201\n            data = resp.json()\n            allowed_keys = {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\n            extra = set(data.keys()) - allowed_keys\n            assert not extra, f\"Unexpected fields in response: {extra}\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_created_at_equals_updated_at(self):\n        \"\"\"On creation, created_at and updated_at should be equal or within 1 second of each other.\"\"\"\n        resp = _create_task(title=\"Timestamp equality check\")\n        try:\n            assert resp.status_code == 201\n            data = resp.json()\n            # Parse both timestamps - they should be very close\n            created = data[\"created_at\"]\n            updated = data[\"updated_at\"]\n            # At minimum they should both exist and be valid\n            assert re.match(ISO_TZ_REGEX, created)\n            assert re.match(ISO_TZ_REGEX, updated)\n            # They should be equal (set by same NOW() call)\n            assert created == updated, f\"created_at ({created}) != updated_at ({updated}) on creation\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_id_is_valid_uuid(self):\n        \"\"\"The id returned from task creation must be a parseable UUID, not an integer or arbitrary string.\"\"\"\n        resp = _create_task(title=\"UUID format check\")\n        try:\n            assert resp.status_code == 201\n            task_id = resp.json()[\"id\"]\n            # Must not raise\n            parsed = uuid.UUID(str(task_id))\n            assert str(parsed) == str(task_id).lower().strip()\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_mixed_whitespace_title_stripped(self):\n        \"\"\"Title with tabs, newlines, and spaces at edges should be stripped to clean content.\"\"\"\n        resp = _create_task(title=\"\\t\\n  Real Title \\n\\t \")\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"title\"] == \"Real Title\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_unicode_title(self):\n        \"\"\"Titles with unicode characters (CJK, emoji, accents) should be accepted and stored correctly.\"\"\"\n        title = \"任务标题 🎉 café\"\n        resp = _create_task(title=title)\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"title\"] == title\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_create_task_whitespace_padded_title_over_255_raw(self):\n        \"\"\"A title within 255 chars after stripping but exceeding 255 raw chars due to whitespace should be accepted.\"\"\"\n        inner = \"a\" * 200\n        padded = \" \" * 30 + inner + \" \" * 30  # 260 raw chars\n        resp = _create_task(title=padded)\n        try:\n            assert resp.status_code == 201\n            assert resp.json()[\"title\"] == inner\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n\nclass TestGoodhartGetTask:\n\n    def test_goodhart_get_task_returns_correct_task(self):\n        \"\"\"GET /tasks/{id} must return the specific task matching the requested id, not any arbitrary task.\"\"\"\n        resp1 = _create_task(title=\"Unique Title Alpha 12345\")\n        resp2 = _create_task(title=\"Unique Title Beta 67890\")\n        try:\n            id1 = resp1.json()[\"id\"]\n            id2 = resp2.json()[\"id\"]\n\n            get1 = client.get(f\"/tasks/{id1}\")\n            get2 = client.get(f\"/tasks/{id2}\")\n\n            assert get1.status_code == 200\n            assert get2.status_code == 200\n            assert get1.json()[\"id\"] == str(id1) or get1.json()[\"id\"] == id1\n            assert get1.json()[\"title\"] == \"Unique Title Alpha 12345\"\n            assert get2.json()[\"id\"] == str(id2) or get2.json()[\"id\"] == id2\n            assert get2.json()[\"title\"] == \"Unique Title Beta 67890\"\n        finally:\n            _cleanup_task(resp1.json().get(\"id\"))\n            _cleanup_task(resp2.json().get(\"id\"))\n\n    def test_goodhart_get_task_timestamps_iso8601(self):\n        \"\"\"GET /tasks/{id} response timestamps must be ISO 8601 with timezone offset.\"\"\"\n        resp = _create_task(title=\"Timestamp format on read\")\n        try:\n            task_id = resp.json()[\"id\"]\n            get_resp = client.get(f\"/tasks/{task_id}\")\n            assert get_resp.status_code == 200\n            data = get_resp.json()\n            assert re.match(ISO_TZ_REGEX, data[\"created_at\"]), f\"created_at not ISO 8601+tz: {data['created_at']}\"\n            assert re.match(ISO_TZ_REGEX, data[\"updated_at\"]), f\"updated_at not ISO 8601+tz: {data['updated_at']}\"\n        finally:\n            _cleanup_task(resp.json().get(\"id\"))\n\n    def test_goodhart_get_task_404_has_detail(self):\n        \"\"\"404 response for non-existent task must include a 'detail' field with a meaningful message.\"\"\"\n        fake_id = str(uuid.uuid4())\n        resp = client.get(f\"/tasks/{fake_id}\")\n        assert resp.status_code == 404\n        data = resp.json()\n        assert \"detail\" in data\n        assert isinstance(data[\"detail\"], str)\n        assert len(data[\"detail\"]) > 0\n\n\nclass TestGoodhartUpdateTask:\n\n    def test_goodhart_update_task_status_only(self):\n        \"\"\"Updating only the status field must preserve the original title and description.\"\"\"\n        create_resp = _create_task(title=\"Original Title\", description=\"Original Desc\", status=\"pending\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"status\": \"done\"})\n            assert update_resp.status_code == 200\n            data = update_resp.json()\n            assert data[\"status\"] == \"done\"\n            assert data[\"title\"] == \"Original Title\"\n            assert data[\"description\"] == \"Original Desc\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_description_only(self):\n        \"\"\"Updating only the description must preserve original title and status.\"\"\"\n        create_resp = _create_task(title=\"Keep Title\", status=\"in_progress\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"description\": \"New description\"})\n            assert update_resp.status_code == 200\n            data = update_resp.json()\n            assert data[\"title\"] == \"Keep Title\"\n            assert data[\"status\"] == \"in_progress\"\n            assert data[\"description\"] == \"New description\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_description_to_empty_normalized(self):\n        \"\"\"Setting description to empty string via update must normalize it to None.\"\"\"\n        create_resp = _create_task(title=\"Desc to empty\", description=\"Has content\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"description\": \"\"})\n            assert update_resp.status_code == 200\n            assert update_resp.json()[\"description\"] is None\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_description_whitespace_normalized(self):\n        \"\"\"Setting description to whitespace-only via update must normalize it to None.\"\"\"\n        create_resp = _create_task(title=\"Desc to ws\", description=\"Has content\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"description\": \"   \\t\\n  \"})\n            assert update_resp.status_code == 200\n            assert update_resp.json()[\"description\"] is None\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_title_stripped(self):\n        \"\"\"Title provided in update with leading/trailing whitespace must be stripped in response.\"\"\"\n        create_resp = _create_task(title=\"Original\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"  Updated Title  \"})\n            assert update_resp.status_code == 200\n            assert update_resp.json()[\"title\"] == \"Updated Title\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_all_fields_simultaneously(self):\n        \"\"\"Updating title, description, and status simultaneously must change all three fields.\"\"\"\n        create_resp = _create_task(title=\"Old Title\", description=\"Old Desc\", status=\"pending\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\n                \"title\": \"New Title\",\n                \"description\": \"New Description\",\n                \"status\": \"done\"\n            })\n            assert update_resp.status_code == 200\n            data = update_resp.json()\n            assert data[\"title\"] == \"New Title\"\n            assert data[\"description\"] == \"New Description\"\n            assert data[\"status\"] == \"done\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_whitespace_only_title_rejected(self):\n        \"\"\"Updating with whitespace-only title (tabs+newlines) must be rejected with 422.\"\"\"\n        create_resp = _create_task(title=\"Valid Title\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"\\t\\n  \"})\n            assert update_resp.status_code == 422\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_timestamps_iso8601(self):\n        \"\"\"PUT /tasks/{id} response timestamps must be ISO 8601 with timezone offset.\"\"\"\n        create_resp = _create_task(title=\"TS format update\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            update_resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"Updated TS\"})\n            assert update_resp.status_code == 200\n            data = update_resp.json()\n            assert re.match(ISO_TZ_REGEX, data[\"created_at\"]), f\"created_at not ISO 8601+tz: {data['created_at']}\"\n            assert re.match(ISO_TZ_REGEX, data[\"updated_at\"]), f\"updated_at not ISO 8601+tz: {data['updated_at']}\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_multiple_times_updated_at_advances(self):\n        \"\"\"Updating a task multiple times must keep advancing updated_at while created_at remains unchanged.\"\"\"\n        create_resp = _create_task(title=\"Multi update\")\n        try:\n            task_id = create_resp.json()[\"id\"]\n            original_created = create_resp.json()[\"created_at\"]\n\n            time.sleep(0.1)\n            update1 = client.put(f\"/tasks/{task_id}\", json={\"title\": \"Update 1\"})\n            assert update1.status_code == 200\n            updated_at_1 = update1.json()[\"updated_at\"]\n            assert update1.json()[\"created_at\"] == original_created\n\n            time.sleep(0.1)\n            update2 = client.put(f\"/tasks/{task_id}\", json={\"title\": \"Update 2\"})\n            assert update2.status_code == 200\n            updated_at_2 = update2.json()[\"updated_at\"]\n            assert update2.json()[\"created_at\"] == original_created\n\n            assert updated_at_2 >= updated_at_1, \"updated_at should advance on subsequent updates\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_update_task_404_has_detail(self):\n        \"\"\"404 response for updating a non-existent task must include a 'detail' field.\"\"\"\n        fake_id = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{fake_id}\", json={\"title\": \"Ghost\"})\n        assert resp.status_code == 404\n        data = resp.json()\n        assert \"detail\" in data\n        assert isinstance(data[\"detail\"], str)\n        assert len(data[\"detail\"]) > 0\n\n\nclass TestGoodhartDeleteTask:\n\n    def test_goodhart_delete_task_idempotent_404(self):\n        \"\"\"Deleting an already-deleted task must return 404 on the second attempt.\"\"\"\n        create_resp = _create_task(title=\"Delete twice\")\n        task_id = create_resp.json()[\"id\"]\n\n        first_delete = client.delete(f\"/tasks/{task_id}\")\n        assert first_delete.status_code == 200\n\n        second_delete = client.delete(f\"/tasks/{task_id}\")\n        assert second_delete.status_code == 404\n\n    def test_goodhart_delete_task_removes_from_list(self):\n        \"\"\"After deleting a task, it must no longer appear in GET /tasks listing.\"\"\"\n        create_resp = _create_task(title=\"Delete from list test\")\n        task_id = create_resp.json()[\"id\"]\n\n        delete_resp = client.delete(f\"/tasks/{task_id}\")\n        assert delete_resp.status_code == 200\n\n        list_resp = client.get(\"/tasks\")\n        assert list_resp.status_code == 200\n        task_ids = [t[\"id\"] for t in list_resp.json()]\n        assert task_id not in task_ids and str(task_id) not in [str(tid) for tid in task_ids]\n\n    def test_goodhart_delete_task_response_id_matches(self):\n        \"\"\"The id in DeleteConfirmation must match the requested deletion id.\"\"\"\n        create_resp = _create_task(title=\"Delete id match\")\n        task_id = create_resp.json()[\"id\"]\n\n        delete_resp = client.delete(f\"/tasks/{task_id}\")\n        assert delete_resp.status_code == 200\n        data = delete_resp.json()\n        assert str(data[\"id\"]) == str(task_id)\n\n    def test_goodhart_delete_task_response_detail_nonempty(self):\n        \"\"\"The detail field in DeleteConfirmation must be a non-empty string.\"\"\"\n        create_resp = _create_task(title=\"Delete detail check\")\n        task_id = create_resp.json()[\"id\"]\n\n        delete_resp = client.delete(f\"/tasks/{task_id}\")\n        assert delete_resp.status_code == 200\n        data = delete_resp.json()\n        assert \"detail\" in data\n        assert isinstance(data[\"detail\"], str)\n        assert len(data[\"detail\"]) > 0\n\n    def test_goodhart_delete_task_404_has_detail(self):\n        \"\"\"404 response for deleting a non-existent task must include a 'detail' field.\"\"\"\n        fake_id = str(uuid.uuid4())\n        resp = client.delete(f\"/tasks/{fake_id}\")\n        assert resp.status_code == 404\n        data = resp.json()\n        assert \"detail\" in data\n        assert isinstance(data[\"detail\"], str)\n        assert len(data[\"detail\"]) > 0\n\n\nclass TestGoodhartListTasks:\n\n    def test_goodhart_list_tasks_contains_created_task(self):\n        \"\"\"A task created via POST must appear in the subsequent GET /tasks listing with matching fields.\"\"\"\n        unique_title = f\"Findable Task {uuid.uuid4().hex[:8]}\"\n        create_resp = _create_task(title=unique_title, status=\"in_progress\")\n        try:\n            assert create_resp.status_code == 201\n            task_id = create_resp.json()[\"id\"]\n\n            list_resp = client.get(\"/tasks\")\n            assert list_resp.status_code == 200\n            tasks = list_resp.json()\n            found = [t for t in tasks if str(t[\"id\"]) == str(task_id)]\n            assert len(found) == 1, f\"Created task {task_id} not found in listing\"\n            assert found[0][\"title\"] == unique_title\n            assert found[0][\"status\"] == \"in_progress\"\n        finally:\n            _cleanup_task(create_resp.json().get(\"id\"))\n\n    def test_goodhart_list_tasks_order_with_three_tasks(self):\n        \"\"\"Listing three sequentially created tasks should return them in created_at DESC order.\"\"\"\n        created_ids = []\n        try:\n            for i in range(3):\n                resp = _create_task(title=f\"Order test {i} {uuid.uuid4().hex[:8]}\")\n                assert resp.status_code == 201\n                created_ids.append(resp.json()[\"id\"])\n                time.sleep(0.05)  # ensure distinct timestamps\n\n            list_resp = client.get(\"/tasks\")\n            assert list_resp.status_code == 200\n            tasks = list_resp.json()\n\n            # Verify DESC ordering of all tasks in the list\n            for i in range(len(tasks) - 1):\n                assert tasks[i][\"created_at\"] >= tasks[i + 1][\"created_at\"], \\\n                    f\"Tasks not in created_at DESC order: {tasks[i]['created_at']} < {tasks[i+1]['created_at']}\"\n        finally:\n            for tid in created_ids:\n                _cleanup_task(tid)\n\n    def test_goodhart_list_tasks_after_delete_excludes_deleted(self):\n        \"\"\"After creating 3 tasks and deleting one, list should not include the deleted task.\"\"\"\n        created_ids = []\n        try:\n            for i in range(3):\n                resp = _create_task(title=f\"Del list test {i} {uuid.uuid4().hex[:8]}\")\n                assert resp.status_code == 201\n                created_ids.append(resp.json()[\"id\"])\n\n            # Delete the middle one\n            delete_id = created_ids[1]\n            del_resp = client.delete(f\"/tasks/{delete_id}\")\n            assert del_resp.status_code == 200\n\n            list_resp = client.get(\"/tasks\")\n            assert list_resp.status_code == 200\n            listed_ids = [str(t[\"id\"]) for t in list_resp.json()]\n            assert str(delete_id) not in listed_ids\n        finally:\n            for tid in created_ids:\n                _cleanup_task(tid)\n\n\nclass TestGoodhartHealthCheck:\n\n    def test_goodhart_health_check_response_exact(self):\n        \"\"\"Health check must return exactly {'status': 'ok'} with no additional fields.\"\"\"\n        resp = client.get(\"/health\")\n        assert resp.status_code == 200\n        data = resp.json()\n        assert data == {\"status\": \"ok\"}, f\"Expected exactly {{'status': 'ok'}}, got {data}\"\n        # Ensure no extra keys\n        assert set(data.keys()) == {\"status\"}\n"
+}

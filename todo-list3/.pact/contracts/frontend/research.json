@@ -1,0 +1,103 @@
+{
+  "task_summary": "Define the interface contract for the React Frontend SPA component (id: frontend) — a React + Vite + TypeScript single-page application that consumes a FastAPI REST backend. The contract must specify TypeScript type definitions mirroring the canonical type registry, typed fetch wrapper signatures (api.ts), component props interfaces, error handling conventions, and serialization expectations. The SPA communicates exclusively via HTTP REST using VITE_API_URL.",
+  "findings": [
+    {
+      "topic": "TypeScript type mirroring of backend schemas",
+      "finding": "The canonical registry defines Task, TaskCreateRequest, TaskUpdateRequest, ErrorResponse, DeleteConfirmation, and HealthResponse. In TypeScript, these should be declared as `interface` (not `type` alias) to preserve structural extensibility and match the struct semantics of the registry. TaskStatus must be a union literal type `'pending' | 'in_progress' | 'done'` — not a TypeScript enum — to avoid runtime overhead and ensure JSON string values round-trip without transformation. TaskId should be a branded or plain `number` type alias. OptionalString maps to `string | null`. Timestamp maps to `string` (ISO 8601); parsing to Date should occur only at the presentation layer, never mutating the wire type.",
+      "source": "TypeScript handbook — utility types, union types; React community conventions for API-layer typing",
+      "relevance": "Directly governs types.ts and ensures 1:1 fidelity with the canonical registry without redefinition",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Typed fetch wrapper patterns (api.ts)",
+      "finding": "Best practice for a thin REST client layer: (1) export one async function per endpoint, each with explicit return type; (2) centralize base URL resolution (`VITE_API_URL ?? 'http://localhost:8000'`) in a single `const BASE_URL`; (3) use `fetch` directly (no axios) to minimize dependencies — the app is simple enough; (4) every function should throw a typed error or return a discriminated result. A common pattern is to check `response.ok`, and if false, parse the body as `ErrorResponse` and throw a custom `ApiError` class carrying status code + detail. This avoids silent failures and gives components a single catch path.",
+      "source": "React Query documentation patterns; Kent C. Dodds fetch-wrapper recommendations; Vite env variable documentation",
+      "relevance": "Defines the contract surface of api.ts — the only module that touches the network",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Vite environment variable handling",
+      "finding": "Vite exposes env vars prefixed with `VITE_` on `import.meta.env`. The variable `VITE_API_URL` must be accessed as `import.meta.env.VITE_API_URL`. It is a `string | undefined` at runtime, so the contract must specify a fallback default of `'http://localhost:8000'`. Vite performs static replacement at build time for `import.meta.env.*`, so dynamic construction of the key name is not possible. Type-safe access requires augmenting `ImportMetaEnv` in a `vite-env.d.ts` or `env.d.ts` file.",
+      "source": "Vite documentation — Env Variables and Modes",
+      "relevance": "Critical for AC20 compliance and correct base URL resolution in api.ts",
+      "confidence": 0.98
+    },
+    {
+      "topic": "Component props interface design",
+      "finding": "Each component should export a named Props interface (e.g., `TaskItemProps`, `TaskListProps`, `TaskFormProps`). Callback props should use specific signatures rather than generic `Function` types — e.g., `onDelete: (id: TaskId) => void`, `onUpdate: (id: TaskId, data: TaskUpdateRequest) => Promise<void>`, `onCreate: (data: TaskCreateRequest) => Promise<void>`. This makes the contract between parent (App.tsx) and children explicit. The inline edit toggle in TaskItem implies local state (`isEditing: boolean`) managed internally, but persistence callbacks must be injected via props.",
+      "source": "React TypeScript Cheatsheet; composition-over-inheritance principle from project standards",
+      "relevance": "Defines inter-component contracts and enforces type safety at component boundaries",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Handling null vs undefined for OptionalString fields",
+      "finding": "The canonical registry specifies OptionalString as `string | null`, and AC12 mandates sending `null` (not omitting the field) for empty description. TypeScript's `?:` syntax produces `T | undefined`, which is semantically different from `T | null`. The TaskCreateRequest and TaskUpdateRequest interfaces must use `description: string | null` (not `description?: string`). For TaskUpdateRequest, since it uses PATCH semantics with optional fields, the correct pattern is `description?: string | null` — where absence means 'do not change' and explicit `null` means 'set to null'. This distinction is critical and frequently missed.",
+      "source": "JSON specification (null is a value, undefined is absent); FastAPI Pydantic Optional vs None semantics",
+      "relevance": "Directly impacts wire format correctness. Mishandling causes backend validation errors or silent data corruption.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Error handling and UI feedback patterns",
+      "finding": "A custom `ApiError` class extending `Error` with `status: number` and `detail: string` fields provides a single catch surface. For 404 on delete/update (task already gone), the UI should handle gracefully — remove from local state or show transient notification. For network errors (fetch throws TypeError), surface a generic connectivity message. The delete operation (AC19) specifies immediate UI removal on success — this implies optimistic or success-confirmed removal. Given the simplicity, success-confirmed (remove from state array after 200 response) is safer and avoids rollback complexity.",
+      "source": "React error boundary patterns; HTTP API client best practices",
+      "relevance": "Defines error contract between api.ts and consuming components",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Date formatting at presentation layer",
+      "finding": "Timestamp arrives as ISO 8601 string. Formatting should use `Intl.DateTimeFormat` or `new Date(timestamp).toLocaleDateString()` — not a library like moment/date-fns for this simple case. The formatting should happen in TaskItem (presentation), not in api.ts (transport) or types.ts (schema). This keeps the wire type (`string`) clean and avoids serialization side effects.",
+      "source": "MDN Intl.DateTimeFormat documentation; separation-of-concerns principle",
+      "relevance": "AC16 requires formatted created date display; must not pollute the type contract",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Status badge color mapping",
+      "finding": "AC15-AC16 specify grey=pending, blue=in_progress, green=done. This mapping should be defined as a constant record `Record<TaskStatus, string>` in the component layer (TaskItem or a shared constants file), not in types.ts. Using a Record type ensures exhaustiveness — adding a new status variant causes a compile error if the map is incomplete.",
+      "source": "TypeScript Record utility type documentation; exhaustiveness checking patterns",
+      "relevance": "Ensures visual contract for status badges is type-safe and maintainable",
+      "confidence": 0.94
+    },
+    {
+      "topic": "State management with useState/useEffect for CRUD",
+      "finding": "A11 mandates useState/useEffect. The standard pattern: App.tsx holds `tasks: Task[]` state, fetches on mount via useEffect, and passes mutation callbacks down. After each mutation (create/update/delete), either re-fetch the full list or patch local state with the response. Patching local state is preferable for responsiveness: POST returns the new Task (prepend to array), PUT returns updated Task (replace in array by id), DELETE 200 means remove by id. This avoids unnecessary GET /tasks round-trips.",
+      "source": "React hooks documentation; SPA state management patterns",
+      "relevance": "Defines state flow contract between App.tsx and child components",
+      "confidence": 0.95
+    },
+    {
+      "topic": "File size constraint and module boundaries",
+      "finding": "AC25 mandates files under 300 lines. With the prescribed structure (App.tsx, TaskList.tsx, TaskItem.tsx, TaskForm.tsx, api.ts, types.ts), each module has a well-scoped responsibility. TaskItem.tsx is the highest risk for exceeding 300 lines because it handles both display mode and edit mode. Mitigation: keep form elements simple, avoid over-abstracting CSS-in-JS. If TaskItem grows, the edit form portion could be extracted to a TaskEditForm.tsx, but this should only happen if needed.",
+      "source": "Project operating procedures AC25",
+      "relevance": "Structural constraint affecting module decomposition decisions",
+      "confidence": 0.92
+    }
+  ],
+  "recommended_approach": "Define the frontend interface contract across six prescribed modules with the following structure:\n\n**types.ts** — Mirror the canonical type registry exactly: `TaskId` as `number`, `TaskStatus` as `'pending' | 'in_progress' | 'done'` union literal, `Task` interface with all six fields using exact canonical names and types, `TaskCreateRequest` and `TaskUpdateRequest` with careful null/optional distinction, `ErrorResponse`, `DeleteConfirmation`, `HealthResponse`. Add a frontend-specific `ApiError` class.\n\n**api.ts** — Export five typed async functions: `fetchTasks(): Promise<Task[]>`, `createTask(data: TaskCreateRequest): Promise<Task>`, `updateTask(id: TaskId, data: TaskUpdateRequest): Promise<Task>`, `deleteTask(id: TaskId): Promise<DeleteConfirmation>`, `healthCheck(): Promise<HealthResponse>`. All functions resolve `BASE_URL` from `import.meta.env.VITE_API_URL ?? 'http://localhost:8000'`. All non-ok responses throw `ApiError` with parsed `ErrorResponse.detail`.\n\n**Component Props Interfaces** — Define in each component file: `TaskListProps { tasks: Task[]; onUpdate: ...; onDelete: ... }`, `TaskItemProps { task: Task; onUpdate: ...; onDelete: ... }`, `TaskFormProps { onCreate: ... }`. Callbacks use specific typed signatures.\n\n**App.tsx** — Holds `tasks: Task[]` state, fetches on mount, orchestrates mutations by calling api.ts functions and patching local state with responses. Passes typed callbacks to children.\n\n**Env type augmentation** — Declare `VITE_API_URL` in ImportMetaEnv for compile-time safety.\n\nThis approach ensures strict type fidelity with the canonical registry, clean separation of transport/presentation/state concerns, and compliance with all acceptance criteria.",
+  "alternatives_considered": [
+    "Using axios instead of native fetch for api.ts — rejected because fetch is sufficient for this scope, avoids an additional dependency, and Vite/modern browsers support it natively.",
+    "Using TypeScript `enum` for TaskStatus — rejected because string literal unions serialize correctly to/from JSON without transformation, whereas TS enums introduce runtime objects and potential mismatch with wire format.",
+    "Using React Query / TanStack Query for server state — rejected because A11 mandates useState/useEffect explicitly, and the app's CRUD scope doesn't justify the dependency.",
+    "Defining a discriminated union result type (Result<T, E>) for api.ts returns instead of throwing — considered viable but rejected for simplicity; thrown ApiError with try/catch in components is more idiomatic for this scale.",
+    "Optimistic UI updates for delete — rejected in favor of success-confirmed removal to avoid rollback complexity and potential inconsistency.",
+    "Using Zod for runtime validation of API responses — adds safety but unnecessary dependency for a controlled backend; TypeScript compile-time types plus ApiError on non-ok responses is sufficient."
+  ],
+  "risks": [
+    "null vs undefined confusion in description field: TypeScript's optional chaining and JSON.stringify treat undefined and null differently. `JSON.stringify({description: undefined})` omits the key, while `JSON.stringify({description: null})` emits `null`. Misuse will violate AC12 or cause unintended PATCH behavior.",
+    "CORS misconfiguration: The frontend on port 5173 calls the backend on port 8000. If the backend's CORS middleware doesn't allow origin http://localhost:5173, all fetch calls will fail silently in the browser. This is a backend responsibility but the frontend contract must document the assumption.",
+    "Stale state after concurrent edits: If two browser tabs edit the same task, the last PUT wins with no conflict detection. Acceptable for this scope but worth noting.",
+    "Vite env var not available at runtime in production builds: VITE_API_URL is baked in at build time. If the production deployment uses a different API URL, the app must be rebuilt. This is a known Vite constraint.",
+    "TaskItem inline edit form losing unsaved changes on re-render: If App.tsx re-fetches the task list while a user is mid-edit, React will re-render TaskItem and potentially reset local form state. Mitigation: use task.updated_at as a key or guard re-render during edit mode."
+  ],
+  "compliance_notes": [
+    "AC12: Empty description must be serialized as `null` in JSON body, not omitted. TypeScript types must use `string | null`, not optional `string | undefined`.",
+    "AC15-AC16: Status badge colors (grey/blue/green) and formatted date are presentation-layer concerns; types.ts carries raw TaskStatus and ISO string Timestamp.",
+    "AC17: Create form requires title (enforced client-side), optional description and status dropdown.",
+    "AC18: Inline edit-in-place per row via toggle; persists via PUT /tasks/{id} with TaskUpdateRequest body.",
+    "AC19: Delete button per row; UI removal on successful DELETE (HTTP 200 with DeleteConfirmation).",
+    "AC20: VITE_API_URL env var with default http://localhost:8000. Must augment ImportMetaEnv for type safety.",
+    "AC25: All files under 300 lines.",
+    "AC26: No shared code with backend — types.ts is frontend-only, independently defined to mirror the canonical registry.",
+    "A7: Edit persists via PUT (not PATCH) endpoint, but with PATCH semantics (only provided fields updated) per canonical TaskUpdateRequest definition.",
+    "A11: State managed via useState/useEffect — no external state management libraries."
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "task_summary": "Implement a PostgreSQL database schema for a task management system, including an init script executor (`execute_init_script`) and a schema verifier (`verify_schema`). The schema must support types: TaskStatus (enum), TaskId, TaskTitle, TaskDescription (optional), Timestamptz, TaskRow, ConnectionConfig, and InitScriptResult. The implementation uses psycopg2 with Python 3.12+ and FastAPI, and must be fully tested via pytest with contract tests against a live PostgreSQL instance.",
+  "findings": [
+    {
+      "topic": "PostgreSQL enum type creation",
+      "finding": "Use `CREATE TYPE ... AS ENUM` for TaskStatus. Critical pattern: always guard with `DO $$ BEGIN ... EXCEPTION WHEN duplicate_object THEN null; END $$;` or use `IF NOT EXISTS` (PG 9.1+ for types lacks IF NOT EXISTS natively; the DO-block pattern is required until PG 12 where `CREATE TYPE IF NOT EXISTS` is still unsupported). The idiomatic approach is a conditional DO block or checking `pg_type` catalog before creation.",
+      "source": "PostgreSQL documentation (CREATE TYPE), community best practices",
+      "relevance": "Init script must be idempotent — re-running should not fail on pre-existing enum types",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Idempotent schema initialization",
+      "finding": "Use `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS` for all DDL. Wrap the entire init script in a single transaction (psycopg2 autocommit=False by default, then explicit conn.commit()). This ensures atomicity — partial schema creation is rolled back on failure. For enum alterations (adding values), note that `ALTER TYPE ... ADD VALUE` cannot run inside a transaction in PG < 12; in PG 12+ it can but is not transactionally safe in all edge cases.",
+      "source": "PostgreSQL documentation, psycopg2 documentation",
+      "relevance": "execute_init_script must be safe to call multiple times without error or data loss",
+      "confidence": 0.95
+    },
+    {
+      "topic": "psycopg2 connection management",
+      "finding": "Construct connection via `psycopg2.connect(dsn=connection_config.database_url)` or keyword arguments. Always use context managers (`with conn:` for transaction, `with conn.cursor() as cur:` for cursor). For schema DDL, set `conn.autocommit = True` only if required by specific statements (e.g., `CREATE DATABASE`); otherwise keep default transactional mode for atomicity. Close connections explicitly or via context manager to avoid leaked file descriptors.",
+      "source": "psycopg2 documentation",
+      "relevance": "ConnectionConfig struct likely wraps a DATABASE_URL; proper connection lifecycle is critical for both init and verify functions",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Schema verification approach",
+      "finding": "Query `information_schema.tables`, `information_schema.columns`, and `pg_type`/`pg_enum` to verify table existence, column names/types, and enum values. This is more robust than attempting DDL and catching exceptions. Compare expected schema (table names, column names, column types, NOT NULL constraints, defaults) against actual catalog state. Return a structured InitScriptResult indicating pass/fail with specific discrepancies.",
+      "source": "PostgreSQL information_schema documentation, schema migration tool patterns (Alembic, Flyway)",
+      "relevance": "verify_schema must programmatically confirm the schema matches expectations without mutating state",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Task table design best practices",
+      "finding": "Recommended schema: `id` as UUID or BIGSERIAL PRIMARY KEY (UUID preferred for distributed systems, SERIAL for simplicity); `title` as VARCHAR with a reasonable limit (e.g., 255) and NOT NULL; `description` as TEXT, nullable; `status` using the custom enum type with a DEFAULT value (e.g., 'pending'); `created_at` and `updated_at` as TIMESTAMPTZ with DEFAULT now(). Always use TIMESTAMPTZ over TIMESTAMP to avoid timezone ambiguity. Add an index on `status` if filtering by status is a primary query pattern.",
+      "source": "PostgreSQL best practices, domain modeling conventions",
+      "relevance": "Directly maps to TaskRow struct fields: TaskId, TaskTitle, TaskDescription (optional), TaskStatus, Timestamptz",
+      "confidence": 0.94
+    },
+    {
+      "topic": "SQL injection prevention in DDL scripts",
+      "finding": "For parameterized DML, use psycopg2's `%s` placeholders. However, DDL statements (CREATE TABLE, etc.) use fixed strings — no user input should be interpolated into DDL. If dynamic identifiers are needed, use `psycopg2.sql.Identifier` and `psycopg2.sql.SQL` for safe composition. For this use case, the init script should be a static SQL string with no dynamic components.",
+      "source": "psycopg2 documentation (sql module), OWASP SQL injection guidelines",
+      "relevance": "Security: init script should be a hardcoded SQL string, not constructed from user input",
+      "confidence": 0.98
+    },
+    {
+      "topic": "Contract testing with PostgreSQL",
+      "finding": "Use `DATABASE_URL` environment variable per project spec. Tests should: (1) skip gracefully if DATABASE_URL is unset (pytest.mark.skipif or fixture that skips), (2) run init script in a test transaction or use a dedicated test database/schema, (3) tear down created objects after tests (DROP TABLE/TYPE in reverse order, or use a transaction rollback for read-only verification). Consider using a pytest fixture with scope='module' that initializes schema once, runs all verification tests, then cleans up.",
+      "source": "pytest documentation, contract testing patterns",
+      "relevance": "Project verification rules require contract tests that connect to PostgreSQL via DATABASE_URL",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Python type modeling for schema types",
+      "finding": "Model TaskStatus as `enum.Enum` in Python (e.g., `class TaskStatus(str, enum.Enum)` for JSON serialization compatibility with FastAPI). TaskId as `uuid.UUID` or `int` (NewType for type safety). TaskRow as a `dataclass` or `pydantic.BaseModel`. ConnectionConfig as a `dataclass` or `BaseModel` with a `database_url: str` field. InitScriptResult should convey success/failure plus details (e.g., `success: bool`, `message: str`, `tables_created: list[str]`).",
+      "source": "Python typing best practices, FastAPI/Pydantic conventions",
+      "relevance": "Project mandates type annotations on all public functions; these types are the function signatures' building blocks",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Common pitfall: enum type + table dependency ordering",
+      "finding": "The enum type MUST be created before the table that references it. If using DROP CASCADE for teardown, dropping the enum will cascade-drop columns that use it, potentially causing data loss. In init scripts, order matters: (1) create enums, (2) create tables, (3) create indexes. In teardown: (1) drop tables, (2) drop enums.",
+      "source": "PostgreSQL documentation on type dependencies",
+      "relevance": "Init script ordering is critical for correctness",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Common pitfall: TIMESTAMPTZ default and storage",
+      "finding": "Always use `DEFAULT now()` (or `CURRENT_TIMESTAMP`) rather than application-side timestamps to avoid clock skew between app servers and DB. Store as TIMESTAMPTZ; PostgreSQL internally normalizes to UTC. When reading via psycopg2, values are returned as `datetime.datetime` with `tzinfo` set — ensure Python code handles timezone-aware datetimes.",
+      "source": "PostgreSQL documentation on date/time types",
+      "relevance": "Timestamptz type in the spec; correct default and handling is essential",
+      "confidence": 0.96
+    }
+  ],
+  "recommended_approach": "1. **Define Python types first**: TaskStatus as `str, enum.Enum` with values matching the PG enum. TaskId as `int` (SERIAL) or `uuid.UUID`. TaskRow as a `dataclass` with fields: id (TaskId), title (str), description (str | None), status (TaskStatus), created_at (datetime), updated_at (datetime). ConnectionConfig as a dataclass with `database_url: str`. InitScriptResult as a dataclass with `success: bool`, `message: str`, and optional detail fields.\n\n2. **Write static SQL init script** as a Python constant string, ordered: (a) CREATE TYPE task_status AS ENUM (guarded with DO-block), (b) CREATE TABLE IF NOT EXISTS tasks, (c) CREATE INDEX IF NOT EXISTS on status column. All timestamp columns use TIMESTAMPTZ with DEFAULT now().\n\n3. **Implement `execute_init_script`**: Accept ConnectionConfig, connect via psycopg2 using `database_url`, execute the SQL in a single transaction, commit, return InitScriptResult. Handle exceptions (psycopg2.Error) and return failure result with message.\n\n4. **Implement `verify_schema`**: Connect, query information_schema.tables for table existence, information_schema.columns for column names/types/nullability, pg_type+pg_enum for enum values. Compare against expected schema definition. Return InitScriptResult with success=True if all checks pass, or success=False with specific discrepancy messages.\n\n5. **Write contract tests**: pytest fixtures that read DATABASE_URL, skip if absent. Test cases: (a) execute_init_script succeeds on clean DB, (b) execute_init_script is idempotent (run twice without error), (c) verify_schema passes after init, (d) verify_schema fails on empty DB. Teardown fixture drops table and enum type after test module.\n\n6. **Keep all files under 300 lines** — split types into a `models.py`, SQL into a `schema.py`, functions into `database.py`, tests into `test_database.py`.",
+  "alternatives_considered": [
+    "Using Alembic for migration management — rejected because this is a single-schema init, not an evolving migration chain; adds unnecessary dependency and complexity for the current scope",
+    "Using UUID for TaskId — viable but SERIAL/BIGSERIAL is simpler and sufficient unless distributed ID generation is required; recommend SERIAL for now with easy migration path to UUID later",
+    "Using psycopg3 (psycopg) instead of psycopg2 — rejected because project spec explicitly mandates psycopg2",
+    "Using SQLAlchemy Core for DDL generation — rejected to avoid ORM coupling and keep the schema layer thin; raw SQL is more transparent and the schema is small enough to manage directly",
+    "Storing TaskStatus as VARCHAR instead of PG enum — rejected because PG enums provide type safety at the database level and are more storage-efficient; the enum set is small and stable"
+  ],
+  "risks": [
+    "Enum type modification is non-trivial: ALTER TYPE ADD VALUE has transactional limitations in PG < 12; adding new TaskStatus values later requires careful migration",
+    "psycopg2.connect with a DSN string may fail if DATABASE_URL uses non-standard formats (e.g., `postgresql+psycopg2://`); must ensure raw `postgresql://` format is expected or strip prefixes",
+    "Contract tests against a shared PostgreSQL instance risk interference if multiple test runs execute concurrently; mitigate by using unique schema names or a dedicated test database",
+    "If the init script partially succeeds (e.g., enum created but table creation fails), subsequent idempotent runs may behave differently than a clean run — transactional wrapping mitigates this but the DO-block for enum creation may commit outside the transaction scope if autocommit is misconfigured"
+  ],
+  "compliance_notes": [
+    "All public functions (execute_init_script, verify_schema, type constructors) must have full type annotations per project standards",
+    "Contract tests must connect via DATABASE_URL environment variable per project verification rules",
+    "No task is complete until contract tests pass — must implement and verify tests as part of this component",
+    "Files must remain under 300 lines — plan file decomposition accordingly",
+    "Prefer composition over inheritance — use dataclasses/structs, not class hierarchies, for type modeling"
+  ]
+}

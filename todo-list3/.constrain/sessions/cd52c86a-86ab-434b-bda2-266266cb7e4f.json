@@ -1,0 +1,233 @@
+{
+  "id": "cd52c86a-86ab-434b-bda2-266266cb7e4f",
+  "schema_version": 1,
+  "posture": "collaborator",
+  "phase": "complete",
+  "round": 16,
+  "understand_rounds": 9,
+  "challenge_rounds": 7,
+  "conversation": [
+    {
+      "role": "user",
+      "content": "I'd like help articulating a problem I'm working on.",
+      "timestamp": "2026-05-04T20:42:19.754480+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "I'd be happy to help you articulate your problem clearly. Let's start by getting oriented.\n\nWhat system or area are you working on, and what's the main issue you're trying to solve?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {}\n}\n```",
+      "timestamp": "2026-05-04T20:42:22.153517+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Task management web application with full CRUD and status tracking. The app needs a decoupled three-tier architecture: a React frontend, a FastAPI Python backend, and a PostgreSQL database — all three as separate components that communicate only via HTTP REST API. The core problem is having a structured way to create, view, update, delete, and track the status of tasks (pending, in_progress, done).",
+      "timestamp": "2026-05-04T20:43:00.786644+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Good start. I understand this is a task management application with CRUD operations and status tracking, built as three decoupled tiers.\n\nWho are the intended users of this task management system, and what happens if the system fails or becomes unavailable? Are we talking about personal productivity, team collaboration, or something else with higher stakes?\n\nAlso, is this a greenfield project you're building from scratch, or are you replacing/refactoring an existing system?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"system_description\": \"Task management web application with CRUD operations and status tracking (pending, in_progress, done). Three-tier decoupled architecture: React frontend, FastAPI Python backend, PostgreSQL database, communicating via HTTP REST API.\",\n    \"stakeholders\": [\"users (to be clarified)\"]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:43:05.758475+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Greenfield project, building from scratch.",
+      "timestamp": "2026-05-04T20:43:26.688224+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it - greenfield project. That helps with scope.\n\nLet me understand the user context better. Who specifically will be using this task management system? Is this for:\n- Individual personal task tracking\n- Small teams within an organization  \n- External customers of a business\n- Something else?\n\nAnd what's the impact if tasks get lost, corrupted, or if users can't access the system for a few hours or days?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"history\": [\"Greenfield project - building from scratch\"]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:43:30.843318+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Low impact. This is a demo/learning project. Task data loss or downtime for a few hours is acceptable. No production users or critical workflows depend on it.",
+      "timestamp": "2026-05-04T20:43:44.243762+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect - that clarifies the stakes significantly. For a demo/learning project, we can focus on the technical implementation without worrying about high availability or data durability.\n\nSince this is for learning, what specific aspects are you trying to demonstrate or learn from this project? Are you focusing on:\n- REST API design patterns\n- Frontend-backend integration \n- Database modeling\n- All of the above\n- Something specific about the decoupled architecture?\n\nAnd when you say \"structured way\" for CRUD operations, what does success look like to you - what would make this feel complete and well-implemented?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"stakeholders\": [\"Developer/learner (demo project)\", \"No production users\"],\n    \"failure_modes\": [\n      {\"description\": \"Task data loss\", \"severity\": \"low\", \"historical\": false},\n      {\"description\": \"System downtime\", \"severity\": \"low\", \"historical\": false}\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:43:50.504056+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Success looks like: all five CRUD endpoints work correctly, status transitions (pending → in_progress → done) are enforced, the React UI lets users create, view, edit, and delete tasks without page reloads, and the three components (frontend, backend, database) are cleanly separated with no shared code between them. A README explaining how to run each component independently completes it.",
+      "timestamp": "2026-05-04T20:44:05.711660+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent - that gives me a clear picture of your success criteria. The clean separation requirement is particularly important for demonstrating decoupled architecture.\n\nTwo clarifying questions:\n\n1. When you say \"status transitions are enforced\" - do you mean users can only move tasks forward (pending → in_progress → done) with no backwards movement, or are there other business rules about valid transitions?\n\n2. For the clean separation, are you planning to containerize each component (Docker), or just ensure they can run as separate processes that communicate via HTTP?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"success_shape\": [\n      \"All five CRUD endpoints work correctly\",\n      \"Status transitions (pending → in_progress → done) are enforced\", \n      \"React UI supports create, view, edit, delete without page reloads\",\n      \"Clean separation between frontend, backend, database with no shared code\",\n      \"README with instructions to run each component independently\"\n    ],\n    \"boundaries\": [\"Demo/learning project scope\", \"No production requirements\"]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:44:11.239430+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Separate processes that communicate via HTTP. No Docker required for the build — just three processes running independently: PostgreSQL on port 5432, FastAPI backend on port 8000, and React/Vite frontend on port 5173.",
+      "timestamp": "2026-05-04T20:44:25.098395+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Clear on the deployment approach - three independent processes on standard ports.\n\nWhat about the status transition rules? Can users move tasks in any direction (e.g., from \"done\" back to \"pending\"), or are there constraints on which status changes are allowed?\n\nAnd for the task data model, beyond status, what other attributes do tasks need? Just a title/description, or are there other fields like due dates, priority, assignee, etc.?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"dependencies\": [\n      \"PostgreSQL database (port 5432)\",\n      \"FastAPI backend (port 8000)\", \n      \"React/Vite frontend (port 5173)\",\n      \"HTTP communication between components\"\n    ],\n    \"boundaries\": [\"Demo/learning project scope\", \"No production requirements\", \"No containerization - separate processes only\"]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:44:30.561306+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Status transitions: free-form, users can move tasks in any direction including back to pending from done. No enforced workflow.",
+      "timestamp": "2026-05-04T20:44:46.899397+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Got it - free-form status transitions, no workflow restrictions.\n\nWhat about the task data model? Beyond status, what fields do your tasks need? Are we talking minimal (just title + status), or do you want other attributes like description, creation date, due date, etc.?\n\nAlso, when you mentioned \"all five CRUD endpoints\" - I count Create, Read, Update, Delete as four. What's the fifth endpoint you're thinking of?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"success_shape\": [\n      \"All five CRUD endpoints work correctly\",\n      \"Status transitions are free-form - users can move tasks in any direction\",\n      \"React UI supports create, view, edit, delete without page reloads\",\n      \"Clean separation between frontend, backend, database with no shared code\",\n      \"README with instructions to run each component independently\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:44:51.748490+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Data model: keep it simple — id, title, description (optional), status, created_at, updated_at. No due dates, priority, or assignee fields needed.",
+      "timestamp": "2026-05-04T20:44:51.750121+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect - simple data model with the standard fields.\n\nYou mentioned \"all five CRUD endpoints\" earlier, but I'm counting Create, Read, Update, Delete as four operations. What's the fifth endpoint you have in mind? Are you thinking of:\n- List all tasks (GET /tasks) vs Get single task (GET /tasks/{id}) as separate endpoints?\n- A specific endpoint for status updates?\n- Something else?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"system_description\": \"Task management web application with CRUD operations and status tracking (pending, in_progress, done). Three-tier decoupled architecture: React frontend, FastAPI Python backend, PostgreSQL database, communicating via HTTP REST API. Data model: id, title, description (optional), status, created_at, updated_at.\"\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:44:55.815625+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Yes — List all tasks (GET /tasks) and Get single task (GET /tasks/{id}) are two separate endpoints. So the five are: list all, get one, create, update, delete.",
+      "timestamp": "2026-05-04T20:45:08.235608+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect! That makes complete sense - five distinct REST endpoints covering all the CRUD operations.\n\nLooking at your requirements, I think I have a solid understanding of your system. Let me confirm: you want to build a demo task management app with a clean three-tier architecture, simple data model, free-form status transitions, and all communication happening via HTTP REST API between independent processes.\n\nIs there anything else about dependencies, constraints, or potential gotchas that I should know about? For example, any specific versions of React, FastAPI, or PostgreSQL you need to work with, or any particular challenges you're anticipating?\n\n```json\n{\n  \"ready_to_proceed\": true,\n  \"problem_model_update\": {\n    \"success_shape\": [\n      \"All five CRUD endpoints work correctly (list all, get one, create, update, delete)\",\n      \"Status transitions are free-form - users can move tasks in any direction\", \n      \"React UI supports create, view, edit, delete without page reloads\",\n      \"Clean separation between frontend, backend, database with no shared code\",\n      \"README with instructions to run each component independently\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:45:14.173945+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Please challenge my problem description. Here's what I have so far.",
+      "timestamp": "2026-05-04T20:45:14.176183+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "I see a few gaps in your problem description that could lead to implementation issues down the road.\n\nFirst, you mention that task descriptions are \"optional\" - but what happens if two components disagree about whether a description field should be null versus an empty string? Which component would be authoritative if the frontend sends an empty string but the backend expects null for \"no description\"?\n\nSecond, there's an ambiguity around data validation and ownership. What databases or storage systems does the FastAPI backend component own, and which fields in that storage contain data that users might want to modify or delete? For instance, should users be able to edit the `created_at` timestamp, or is that immutable once set?\n\nThe problem description also doesn't specify what happens during concurrent updates. If two users try to update the same task simultaneously, how do you handle conflicts with the `updated_at` field?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:45:21.956106+00:00"
+    },
+    {
+      "role": "user",
+      "content": "1. Description null vs empty string: backend is authoritative — store null for no description, frontend should send null (not empty string) when description is omitted.",
+      "timestamp": "2026-05-04T20:47:05.191349+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Good clarification on the description field authority.\n\nThat raises another question about data ownership: if the FastAPI backend is authoritative for task data, are there any other components that could write to the same task records? And more importantly, which fields in your PostgreSQL storage contain data that might be considered personal or user-generated content that could be subject to modification or deletion requests?\n\nAlso, I notice you haven't specified anything about audit trails or data retention. Since tasks have `created_at` and `updated_at` timestamps, are these records that must be retained for any compliance purposes, or could they be completely deleted if a user requested it? This matters for understanding what \"delete\" actually means in your CRUD operations.\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\",\n      \"Backend is authoritative for task data - null vs empty string handling defined\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:13.563899+00:00"
+    },
+    {
+      "role": "user",
+      "content": "2. The FastAPI backend owns the PostgreSQL tasks table. Users can modify title, description, and status. created_at is immutable once set. updated_at is set automatically by the backend on every update, not editable by users.",
+      "timestamp": "2026-05-04T20:47:13.565679+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Good - that clarifies the field ownership and mutability rules clearly.\n\nBut I'm still seeing a gap around the scope of \"delete\" operations. When a user deletes a task through your DELETE endpoint, is that a complete removal from the PostgreSQL database, or should it be a soft delete (like setting a deleted flag)? \n\nAnd what happens if an upstream dependency returns stale data? For instance, if the React frontend caches a task list and the user tries to update a task that was actually deleted by another session - how should the system handle that conflict?\n\nSince this is a learning project, these edge cases might seem minor, but they often reveal important architectural decisions about data consistency and error handling.\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\", \n      \"Backend is authoritative for task data - null vs empty string handling defined\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:20.444341+00:00"
+    },
+    {
+      "role": "user",
+      "content": "3. Concurrent updates: last write wins. No conflict detection needed — this is a demo project with a single user.",
+      "timestamp": "2026-05-04T20:47:20.445892+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "That clarifies the concurrency model for a single-user demo.\n\nBut let me dig into the delete behavior since it affects your data model. When implementing the DELETE endpoint, should it completely remove the task record from PostgreSQL, or is there any reason these records might need to persist? Even in a demo project, understanding whether delete means \"gone forever\" versus \"marked as deleted\" affects how you handle references to those task IDs.\n\nAlso, you mentioned the frontend shouldn't cache task lists to avoid stale data conflicts - but what about the task editing workflow? If a user opens a task for editing, then deletes it from another browser tab, what should happen when they try to save their edits?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\", \n      \"Backend is authoritative for task data - null vs empty string handling defined\",\n      \"Single user demo - last write wins for concurrent updates\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:26.630507+00:00"
+    },
+    {
+      "role": "user",
+      "content": "1. Only the FastAPI backend writes to the tasks table. The frontend never touches the database directly.",
+      "timestamp": "2026-05-04T20:47:29.825356+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "That establishes the clean separation - good architectural decision for demonstrating decoupled tiers.\n\nLet me clarify one more architectural detail: are any of the task values stored as tokens, encrypted forms, or hashed values rather than raw text? For instance, will the task titles and descriptions be stored exactly as users type them in PostgreSQL?\n\nAnd regarding the DELETE operation - should that completely purge the task record from the database, or might there be any logging or audit requirements (even minimal ones for a demo) that would suggest keeping a record that deletion occurred?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\", \n      \"Backend is authoritative for task data - null vs empty string handling defined\",\n      \"Single user demo - last write wins for concurrent updates\",\n      \"Only the FastAPI backend writes to the tasks table - clean separation maintained\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:35.692203+00:00"
+    },
+    {
+      "role": "user",
+      "content": "2. All fields in the tasks table are user-generated content — title and description especially. No PII or sensitive data is expected, but they can be deleted freely.",
+      "timestamp": "2026-05-04T20:47:35.693978+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "That's clear on the data sensitivity and deletion policy.\n\nNow I'm curious about the delete implementation itself. When someone calls DELETE /tasks/{id}, should that completely remove the task record from PostgreSQL (hard delete), or would you implement it as a soft delete with a flag? This affects whether the task ID can be reused later and how your \"list all tasks\" endpoint behaves.\n\nAlso, since this is a demo project, I assume you won't need sophisticated backup and recovery mechanisms, but what happens if PostgreSQL goes down while the FastAPI backend is trying to write? Should the backend gracefully handle database connection failures, or is it acceptable for requests to simply fail in that scenario?\n\n```json\n{\n  \"ready_to_proceed\": false,\n  \"problem_model_update\": {\n    \"assumptions\": [\n      \"Data validation rules between frontend and backend need alignment\",\n      \"Concurrent access patterns not specified\", \n      \"Backend is authoritative for task data - null vs empty string handling defined\",\n      \"Single user demo - last write wins for concurrent updates\",\n      \"Only the FastAPI backend writes to the tasks table - clean separation maintained\"\n    ],\n    \"boundaries\": [\"Demo/learning project scope\", \"No production requirements\", \"No containerization - separate processes only\", \"User-generated content can be deleted freely - no retention requirements\"]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:43.165670+00:00"
+    },
+    {
+      "role": "user",
+      "content": "3. No compliance or audit requirements. Delete means hard delete — remove the row completely from the database. No soft deletes, no retention policy needed.",
+      "timestamp": "2026-05-04T20:47:43.167155+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Perfect - that removes any complexity around delete semantics.\n\nOne last architectural gap I want to explore: error handling boundaries. When a component fails, how should the system behave? For instance, if PostgreSQL is running but the FastAPI backend crashes, should the React frontend display a helpful error message, or is it acceptable for API calls to just fail?\n\nAnd since all three processes need to be running independently, what's the expected startup order? Can the backend start before PostgreSQL is ready, or should there be some kind of dependency checking to ensure the database is available before accepting HTTP requests?\n\n```json\n{\n  \"ready_to_proceed\": true,\n  \"problem_model_update\": {\n    \"boundaries\": [\"Demo/learning project scope\", \"No production requirements\", \"No containerization - separate processes only\", \"User-generated content can be deleted freely - no retention requirements\"],\n    \"acceptance_criteria\": [\n      \"Hard delete implementation - complete row removal from database\",\n      \"No audit trail or compliance requirements\"\n    ]\n  }\n}\n```",
+      "timestamp": "2026-05-04T20:47:49.617129+00:00"
+    }
+  ],
+  "problem_model": {
+    "system_description": "Task management web application with CRUD operations and status tracking (pending, in_progress, done). Three-tier decoupled architecture: React frontend, FastAPI Python backend, PostgreSQL database, communicating via HTTP REST API. Data model: id, title, description (optional), status, created_at, updated_at.",
+    "stakeholders": [
+      "users (to be clarified)",
+      "Developer/learner (demo project)",
+      "No production users"
+    ],
+    "failure_modes": [
+      {
+        "description": "Task data loss",
+        "severity": "low",
+        "historical": false
+      },
+      {
+        "description": "System downtime",
+        "severity": "low",
+        "historical": false
+      }
+    ],
+    "dependencies": [
+      "PostgreSQL database (port 5432)",
+      "FastAPI backend (port 8000)",
+      "React/Vite frontend (port 5173)",
+      "HTTP communication between components"
+    ],
+    "assumptions": [
+      "Data validation rules between frontend and backend need alignment",
+      "Concurrent access patterns not specified",
+      "Backend is authoritative for task data - null vs empty string handling defined",
+      "Single user demo - last write wins for concurrent updates",
+      "Only the FastAPI backend writes to the tasks table - clean separation maintained"
+    ],
+    "boundaries": [
+      "Demo/learning project scope",
+      "No production requirements",
+      "No containerization - separate processes only",
+      "User-generated content can be deleted freely - no retention requirements"
+    ],
+    "history": [
+      "Greenfield project - building from scratch"
+    ],
+    "success_shape": [
+      "All five CRUD endpoints work correctly",
+      "Status transitions (pending → in_progress → done) are enforced",
+      "React UI supports create, view, edit, delete without page reloads",
+      "Clean separation between frontend, backend, database with no shared code",
+      "README with instructions to run each component independently",
+      "Status transitions are free-form - users can move tasks in any direction",
+      "All five CRUD endpoints work correctly (list all, get one, create, update, delete)"
+    ],
+    "acceptance_criteria": [
+      "Hard delete implementation - complete row removal from database",
+      "No audit trail or compliance requirements"
+    ]
+  },
+  "prompt_md": "# Task Management Application Engineering Brief\n\n## System Context\nThis is a demo task management web application designed as a learning project. It implements basic CRUD operations for tasks with status tracking (pending, in_progress, done). The system serves a single developer/learner with no production users or requirements.\n\nThe architecture follows a three-tier pattern: React frontend (port 5173), FastAPI Python backend (port 8000), and PostgreSQL database (port 5432), communicating via HTTP REST API. Tasks have a simple data model: id, title, description (optional), status, created_at, updated_at.\n\n## Consequence Map\n1. **Critical**: Complete task data loss - would require recreating all demo data\n2. **High**: System downtime preventing development/learning progress\n3. **Medium**: Data validation misalignment causing inconsistent states\n4. **Low**: Concurrent access issues (single user, last write wins acceptable)\n\n## Failure Archaeology\nThis is a greenfield project with no prior failure history. Building from scratch with clean separation principles.\n\n## Dependency Landscape\n- **PostgreSQL**: Authoritative data store for all task information\n- **FastAPI Backend**: Sole writer to tasks table, owns data validation and business logic\n- **React Frontend**: Read/write client, no direct database access\n- **HTTP REST API**: Communication protocol between frontend and backend\n\n## Boundary Conditions\n- **Scope**: Demo/learning project only\n- **Non-goals**: Production deployment, user authentication, audit trails, data retention\n- **Constraints**: No containerization, separate processes only, no shared code between tiers\n- **User Model**: Single user, concurrent access handled by last-write-wins\n\n## Success Shape\nA clean three-tier architecture where:\n- All components can be run independently with clear README instructions\n- CRUD operations work without page reloads\n- Status transitions are enforced but flexible (any direction allowed)\n- Data validation rules are aligned between frontend and backend\n- Clean separation maintained with backend as authoritative source\n\n## Done When\n- All five CRUD endpoints functional (list all, get one, create, update, delete)\n- React UI supports create, view, edit, delete without page reloads\n- Status transitions work in any direction (pending ↔ in_progress ↔ done)\n- Hard delete implementation removes rows completely from database\n- Backend enforces data validation as authoritative source\n- README provides clear instructions for running each component independently\n- No shared code between frontend, backend, and database layers\n\n## Trust and Authority Model\nThe FastAPI backend holds exclusive authority over task data domains. Task data is classified as PUBLIC tier since this is a demo project with no sensitive information. The PostgreSQL database requires basic trust verification with 1-hour soak time. No human gates are required for this demo system. The backend component owns all task-related data patterns and serves as the single source of truth for data validation and business logic.\n\n## Component Topology\nThree components form the system: a React frontend serving the user interface, a FastAPI backend providing REST API endpoints and business logic, and a PostgreSQL database storing task data. The frontend connects to the backend via HTTP REST calls on port 8000. The backend connects to the database via standard PostgreSQL protocol on port 5432. Data flows from the database through the backend to the frontend for reads, and from the frontend through the backend to the database for writes. The backend maintains exclusive write access to ensure data consistency.",
+  "constraints_yaml": "version: \"1.0\"\ngenerated_by: constrain\nsession_id: \"demo_task_mgmt\"\n\nconstraints:\n  - id: C001\n    boundary: \"Backend database writes\"\n    condition: \"Only FastAPI backend may write to tasks table\"\n    violation: \"Data corruption from multiple writers\"\n    severity: must\n    rationale: \"Maintain clean separation and data consistency\"\n    classification_tier: null\n    affected_components: [\"fastapi_backend\", \"postgres_db\"]\n\n  - id: C002\n    boundary: \"Status field values\"\n    condition: \"Task status must be one of: pending, in_progress, done\"\n    violation: \"Invalid status states in database\"\n    severity: must\n    rationale: \"Enforce business logic for status tracking\"\n    classification_tier: \"PUBLIC\"\n    affected_components: [\"fastapi_backend\", \"react_frontend\"]\n\n  - id: C003\n    boundary: \"Required fields\"\n    condition: \"Tasks must have non-null id, title, status, created_at, updated_at\"\n    violation: \"Incomplete task records\"\n    severity: must\n    rationale: \"Ensure data integrity for core task attributes\"\n    classification_tier: \"PUBLIC\"\n    affected_components: [\"fastapi_backend\", \"postgres_db\"]\n\n  - id: C004\n    boundary: \"Component communication\"\n    condition: \"Frontend must communicate with backend only via HTTP REST API\"\n    violation: \"Architecture boundary violation\"\n    severity: must\n    rationale: \"Maintain clean three-tier separation\"\n    classification_tier: null\n    affected_components: [\"react_frontend\", \"fastapi_backend\"]\n\n  - id: C005\n    boundary: \"Data deletion\"\n    condition: \"Delete operations must completely remove rows from database\"\n    violation: \"Data retention when deletion intended\"\n    severity: must\n    rationale: \"Hard delete requirement for demo project\"\n    classification_tier: \"PUBLIC\"\n    affected_components: [\"fastapi_backend\", \"postgres_db\"]\n\n  - id: C006\n    boundary: \"Port assignments\"\n    condition: \"React on 5173, FastAPI on 8000, PostgreSQL on 5432\"\n    violation: \"Port conflicts preventing component startup\"\n    severity: should\n    rationale: \"Standard development ports for each technology\"\n    classification_tier: null\n    affected_components: [\"react_frontend\", \"fastapi_backend\", \"postgres_db\"]",
+  "trust_policy_yaml": "version: \"1.0\"\ngenerated_by: constrain\nsession_id: \"demo_task_mgmt\"\nsystem: \"Task Management Demo Application\"\n\ntrust:\n  floor: 0.10\n  authority_override_floor: 0.40\n  decay_lambda: 0.05\n  taint_lock_tiers: []\n  conflict_trust_delta_threshold: 0.20\n\nclassifications:\n  - field_pattern: \"tasks.*\"\n    tier: PUBLIC\n    authoritative_component: \"fastapi_backend\"\n    canary_eligible: true\n    canary_pattern: \"tasks.title LIKE 'canary_%'\"\n    rationale: \"Demo project with no sensitive data, backend owns all task data\"\n\nsoak:\n  base_durations:\n    PUBLIC: 1h\n  target_requests: 100\n\nauthority_map:\n  - component: \"fastapi_backend\"\n    domains: [\"tasks.*\"]\n    rationale: \"Backend is sole authoritative source for all task data and business logic\"\n\nhuman_gates:\n  always: []\n  on_low_trust_authoritative: false\n  on_unresolvable_conflict: false",
+  "component_map_yaml": "version: \"1.0\"\ngenerated_by: constrain\nsession_id: \"demo_task_mgmt\"\n\ncomponents:\n  - name: \"react_frontend\"\n    description: \"React UI for task management operations\"\n    type: service\n    port: 5173\n    protocol: http\n    data_access:\n      reads: [PUBLIC]\n      writes: [PUBLIC]\n      rationale: \"Frontend displays and collects task data via API calls\"\n    authority:\n      domains: []\n      rationale: \"Frontend has no authoritative domains, delegates to backend\"\n    dependencies: [\"fastapi_backend\"]\n    constraints: [\"C002\", \"C004\", \"C006\"]\n\n  - name: \"fastapi_backend\"\n    description: \"Python FastAPI REST service providing task CRUD operations\"\n    type: service\n    port: 8000\n    protocol: http\n    data_access:\n      reads: [PUBLIC]\n      writes: [PUBLIC]\n      rationale: \"Backend processes all task data operations and enforces business logic\"\n    authority:\n      domains: [\"tasks.*\"]\n      rationale: \"Backend is authoritative source for all task data and validation\"\n    dependencies: [\"postgres_db\"]\n    constraints: [\"C001\", \"C002\", \"C003\", \"C004\", \"C005\", \"C006\"]\n\n  - name: \"postgres_db\"\n    description: \"PostgreSQL database storing task data\"\n    type: service\n    port: 5432\n    protocol: tcp\n    data_access:\n      reads: [PUBLIC]\n      writes: [PUBLIC]\n      rationale: \"Database stores and retrieves task records\"\n    authority:\n      domains: []\n      rationale: \"Database provides storage only, backend owns data logic\"\n    dependencies: []\n    constraints: [\"C001\", \"C003\", \"C005\", \"C006\"]\n\nedges:\n  - from: \"react_frontend\"\n    to: \"fastapi_backend\"\n    protocol: http\n    description: \"REST API calls for task CRUD operations\"\n\n  - from: \"fastapi_backend\"\n    to: \"postgres_db\"\n    protocol: tcp\n    description: \"SQL queries for task data persistence\"",
+  "schema_hints_yaml": "version: \"1.0\"\ngenerated_by: constrain\nsession_id: \"demo_task_mgmt\"\n\nstorage_backends:\n  - owner_component: \"fastapi_backend\"\n    type: postgres\n    description: \"Task data storage with CRUD operations\"\n\nfield_hints:\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task unique identifier\"\n    likely_classification: PUBLIC\n    likely_annotations: [immutable]\n    rationale: \"Primary key should not change after creation\"\n\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task title (required)\"\n    likely_classification: PUBLIC\n    likely_annotations: []\n    rationale: \"Demo project with no sensitive content\"\n\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task description (optional)\"\n    likely_classification: PUBLIC\n    likely_annotations: []\n    rationale: \"Demo project with no sensitive content\"\n\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task status (pending, in_progress, done)\"\n    likely_classification: PUBLIC\n    likely_annotations: []\n    rationale: \"Demo project with no sensitive content\"\n\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task creation timestamp\"\n    likely_classification: PUBLIC\n    likely_annotations: [immutable, audit_field]\n    rationale: \"Timestamp should not change after creation, useful for tracking\"\n\n  - backend_owner: \"fastapi_backend\"\n    field_description: \"Task last updated timestamp\"\n    likely_classification: PUBLIC\n    likely_annotations: [audit_field]\n    rationale: \"Updated automatically on each modification\"",
+  "created_at": "2026-05-04T20:42:09.934806+00:00",
+  "updated_at": "2026-05-04T20:49:54.250827+00:00"
+}

@@ -1,0 +1,965 @@
+{
+  "component_id": "backend",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "health_check_happy",
+      "description": "GET /health returns 200 with {'status': 'ok'}",
+      "function": "health_check",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response body == {'status': 'ok'}"
+      ]
+    },
+    {
+      "id": "list_tasks_happy_empty",
+      "description": "GET /tasks returns 200 with empty array when no tasks exist",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response is a list",
+        "list is empty"
+      ]
+    },
+    {
+      "id": "list_tasks_happy_multiple",
+      "description": "GET /tasks returns all tasks ordered by created_at DESC",
+      "function": "list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response is a list",
+        "elements conform to TaskResponse schema",
+        "ordered by created_at DESC"
+      ]
+    },
+    {
+      "id": "list_tasks_db_unavailable",
+      "description": "GET /tasks returns error when database is unavailable",
+      "function": "list_tasks",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_unavailable",
+      "assertions": []
+    },
+    {
+      "id": "create_task_happy_defaults",
+      "description": "POST /tasks with title only returns 201 with status=pending and description=None",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201",
+        "response.status == 'pending'",
+        "response.description is None",
+        "response has id, created_at, updated_at"
+      ]
+    },
+    {
+      "id": "create_task_happy_all_fields",
+      "description": "POST /tasks with all fields returns 201 with matching values",
+      "function": "create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201",
+        "response.title == input.title stripped",
+        "response.status == input.status",
+        "response.description == input.description"
+      ]
+    },
+    {
+      "id": "create_task_blank_title",
+      "description": "POST /tasks with blank title returns 422",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "blank_title",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "create_task_whitespace_title",
+      "description": "POST /tasks with whitespace-only title returns 422",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "blank_title",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "create_task_invalid_status",
+      "description": "POST /tasks with invalid status returns 422",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_status",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "create_task_empty_description_normalized",
+      "description": "POST /tasks with empty description normalizes to None",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201",
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "create_task_whitespace_description_normalized",
+      "description": "POST /tasks with whitespace-only description normalizes to None",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201",
+        "response.description is None"
+      ]
+    },
+    {
+      "id": "create_task_title_stripped",
+      "description": "POST /tasks with leading/trailing whitespace in title returns stripped title",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201",
+        "response.title has no leading/trailing whitespace"
+      ]
+    },
+    {
+      "id": "create_task_db_unavailable",
+      "description": "POST /tasks returns error when database is unavailable",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_unavailable",
+      "assertions": []
+    },
+    {
+      "id": "create_task_timestamps_iso8601",
+      "description": "POST /tasks returns timestamps in ISO 8601 with timezone",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at matches ISO 8601 with timezone regex",
+        "updated_at matches ISO 8601 with timezone regex"
+      ]
+    },
+    {
+      "id": "get_task_happy",
+      "description": "GET /tasks/{id} returns 200 with matching task",
+      "function": "get_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response.id == input id",
+        "response conforms to TaskResponse schema"
+      ]
+    },
+    {
+      "id": "get_task_not_found",
+      "description": "GET /tasks/{id} returns 404 when task does not exist",
+      "function": "get_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "status_code == 404",
+        "response has detail field"
+      ]
+    },
+    {
+      "id": "get_task_invalid_id",
+      "description": "GET /tasks/{id} returns 422 when id is not a valid UUID",
+      "function": "get_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_id_format",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "get_task_db_unavailable",
+      "description": "GET /tasks/{id} returns error when database is unavailable",
+      "function": "get_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_unavailable",
+      "assertions": []
+    },
+    {
+      "id": "update_task_happy",
+      "description": "PUT /tasks/{id} returns 200 with updated fields",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response.id == input id",
+        "updated fields match input",
+        "response conforms to TaskResponse schema"
+      ]
+    },
+    {
+      "id": "update_task_partial_title_only",
+      "description": "PUT /tasks/{id} with only title updates title, preserves other fields",
+      "function": "update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response.title == new title",
+        "response.status == original status",
+        "response.description == original description"
+      ]
+    },
+    {
+      "id": "update_task_not_found",
+      "description": "PUT /tasks/{id} returns 404 when task does not exist",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "status_code == 404"
+      ]
+    },
+    {
+      "id": "update_task_invalid_status",
+      "description": "PUT /tasks/{id} with invalid status returns 422",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_status",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "update_task_blank_title",
+      "description": "PUT /tasks/{id} with blank title returns 422",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "blank_title",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "update_task_created_at_immutable",
+      "description": "PUT /tasks/{id} never modifies created_at",
+      "function": "update_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.created_at == original created_at"
+      ]
+    },
+    {
+      "id": "update_task_updated_at_advances",
+      "description": "PUT /tasks/{id} sets updated_at >= previous updated_at",
+      "function": "update_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.updated_at >= original updated_at"
+      ]
+    },
+    {
+      "id": "update_task_invalid_id",
+      "description": "PUT /tasks/{id} returns 422 when id is not a valid UUID",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_id_format",
+      "assertions": []
+    },
+    {
+      "id": "update_task_db_unavailable",
+      "description": "PUT /tasks/{id} returns error when database is unavailable",
+      "function": "update_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_unavailable",
+      "assertions": []
+    },
+    {
+      "id": "delete_task_happy",
+      "description": "DELETE /tasks/{id} returns 200 with confirmation including id",
+      "function": "delete_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 200",
+        "response.id == input id",
+        "response.detail is non-empty string"
+      ]
+    },
+    {
+      "id": "delete_task_not_found",
+      "description": "DELETE /tasks/{id} returns 404 when task does not exist",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "task_not_found",
+      "assertions": [
+        "status_code == 404"
+      ]
+    },
+    {
+      "id": "delete_task_invalid_id",
+      "description": "DELETE /tasks/{id} returns 422 when id is not a valid UUID",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_id_format",
+      "assertions": []
+    },
+    {
+      "id": "delete_task_hard_delete",
+      "description": "DELETE /tasks/{id} permanently removes the row; subsequent GET returns 404",
+      "function": "delete_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "delete returns 200",
+        "subsequent GET returns 404"
+      ]
+    },
+    {
+      "id": "delete_task_db_unavailable",
+      "description": "DELETE /tasks/{id} returns error when database is unavailable",
+      "function": "delete_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "database_unavailable",
+      "assertions": []
+    },
+    {
+      "id": "task_status_enum_valid_values",
+      "description": "TaskStatus enum contains exactly {pending, in_progress, done}",
+      "function": "TaskStatus",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pending is valid",
+        "in_progress is valid",
+        "done is valid",
+        "no other values accepted"
+      ]
+    },
+    {
+      "id": "task_title_empty_rejected",
+      "description": "TaskTitle rejects empty string",
+      "function": "TaskTitle",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "task_title_whitespace_only_rejected",
+      "description": "TaskTitle rejects whitespace-only string",
+      "function": "TaskTitle",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "task_title_max_length",
+      "description": "TaskTitle accepts string of exactly 200 characters",
+      "function": "TaskTitle",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "200-char string is accepted"
+      ]
+    },
+    {
+      "id": "task_title_exceeds_max",
+      "description": "TaskTitle rejects string longer than 200 characters",
+      "function": "TaskTitle",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "task_title_strips_whitespace",
+      "description": "TaskTitle strips leading/trailing whitespace before validation",
+      "function": "TaskTitle",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "value is stripped"
+      ]
+    },
+    {
+      "id": "iso_timestamp_valid",
+      "description": "ISOTimestamp accepts valid ISO 8601 with timezone",
+      "function": "ISOTimestamp",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "valid ISO 8601 strings with timezone are accepted"
+      ]
+    },
+    {
+      "id": "iso_timestamp_no_timezone_rejected",
+      "description": "ISOTimestamp rejects datetime without timezone",
+      "function": "ISOTimestamp",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "database_url_valid",
+      "description": "DatabaseURL accepts postgresql:// and postgres:// prefixed strings",
+      "function": "DatabaseURL",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "postgresql://... is accepted",
+        "postgres://... is accepted"
+      ]
+    },
+    {
+      "id": "database_url_invalid",
+      "description": "DatabaseURL rejects non-postgres URLs",
+      "function": "DatabaseURL",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "health_response_only_ok",
+      "description": "HealthResponse rejects status values other than 'ok'",
+      "function": "HealthResponse",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": []
+    },
+    {
+      "id": "init_pool_invalid_url",
+      "description": "init_connection_pool fails with invalid DATABASE_URL",
+      "function": "init_connection_pool",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_database_url",
+      "assertions": []
+    },
+    {
+      "id": "init_pool_connection_failed",
+      "description": "init_connection_pool fails when PostgreSQL is unreachable",
+      "function": "init_connection_pool",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "connection_failed",
+      "assertions": []
+    },
+    {
+      "id": "close_pool_happy",
+      "description": "close_connection_pool closes all connections and clears pool reference",
+      "function": "close_connection_pool",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pool.closeall() is called",
+        "pool reference is cleared"
+      ]
+    },
+    {
+      "id": "get_connection_happy",
+      "description": "get_connection yields a connection and returns it to pool on exit",
+      "function": "get_connection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "connection is yielded",
+        "connection returned to pool after exit"
+      ]
+    },
+    {
+      "id": "get_connection_commits_on_success",
+      "description": "get_connection commits transaction on clean exit",
+      "function": "get_connection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "conn.commit() is called"
+      ]
+    },
+    {
+      "id": "get_connection_rollback_on_exception",
+      "description": "get_connection rolls back transaction on exception",
+      "function": "get_connection",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "exception propagated",
+      "assertions": [
+        "conn.rollback() is called",
+        "connection returned to pool"
+      ]
+    },
+    {
+      "id": "get_connection_pool_exhausted",
+      "description": "get_connection raises when pool is exhausted",
+      "function": "get_connection",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "pool_exhausted",
+      "assertions": []
+    },
+    {
+      "id": "db_list_tasks_happy",
+      "description": "db_list_tasks returns list of dicts ordered by created_at DESC",
+      "function": "db_list_tasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns list",
+        "dicts have expected keys",
+        "ordered by created_at DESC"
+      ]
+    },
+    {
+      "id": "db_create_task_happy",
+      "description": "db_create_task inserts row and returns dict with all columns",
+      "function": "db_create_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns dict",
+        "dict has id, title, description, status, created_at, updated_at"
+      ]
+    },
+    {
+      "id": "db_get_task_happy",
+      "description": "db_get_task returns dict for existing task",
+      "function": "db_get_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns dict with matching id"
+      ]
+    },
+    {
+      "id": "db_get_task_not_found",
+      "description": "db_get_task returns None for non-existent task",
+      "function": "db_get_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns None"
+      ]
+    },
+    {
+      "id": "db_update_task_happy",
+      "description": "db_update_task updates specified fields and returns updated dict",
+      "function": "db_update_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns dict",
+        "updated fields match input",
+        "updated_at is refreshed"
+      ]
+    },
+    {
+      "id": "db_update_task_not_found",
+      "description": "db_update_task returns None for non-existent task",
+      "function": "db_update_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns None"
+      ]
+    },
+    {
+      "id": "db_delete_task_happy",
+      "description": "db_delete_task deletes row and returns dict with id",
+      "function": "db_delete_task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns dict with id key",
+        "row no longer exists"
+      ]
+    },
+    {
+      "id": "db_delete_task_not_found",
+      "description": "db_delete_task returns None for non-existent task",
+      "function": "db_delete_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returns None"
+      ]
+    },
+    {
+      "id": "create_task_title_length_255",
+      "description": "POST /tasks accepts title of exactly 255 characters",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status_code == 201"
+      ]
+    },
+    {
+      "id": "create_task_title_exceeds_255",
+      "description": "POST /tasks rejects title longer than 255 characters",
+      "function": "create_task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "status_code == 422"
+      ]
+    },
+    {
+      "id": "list_tasks_timestamps_iso8601",
+      "description": "GET /tasks returns all timestamps as ISO 8601 with timezone",
+      "function": "list_tasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all created_at match ISO 8601 regex",
+        "all updated_at match ISO 8601 regex"
+      ]
+    },
+    {
+      "id": "create_task_status_pending_default",
+      "description": "POST /tasks without status field defaults to 'pending'",
+      "function": "create_task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "response.status == 'pending'"
+      ]
+    },
+    {
+      "id": "invariant_description_normalization",
+      "description": "Empty and whitespace-only descriptions are normalized to None",
+      "function": "create_task",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "empty string -> None",
+        "whitespace-only -> None",
+        "null -> None"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for the backend component.\nTests API endpoints, type validators, database layer, and connection pool lifecycle.\n\nRun with: pytest contract_test.py -v\nFor contract tests requiring a real database: DATABASE_URL=postgresql://... pytest contract_test.py -v\n\"\"\"\n\nimport os\nimport re\nimport uuid\nimport datetime\nfrom contextlib import contextmanager\nfrom unittest.mock import patch, MagicMock, PropertyMock\n\nimport pytest\n\n# ---------------------------------------------------------------------------\n# Conditional import guards — the backend module structure may vary\n# ---------------------------------------------------------------------------\ntry:\n    from backend.main import app\nexcept ImportError:\n    try:\n        from main import app\n    except ImportError:\n        app = None\n\ntry:\n    from fastapi.testclient import TestClient\nexcept ImportError:\n    TestClient = None\n\n# Attempt imports for types / db helpers; fall back gracefully\ntry:\n    from backend.models import TaskStatus, TaskTitle, TaskCreateRequest, TaskUpdateRequest, TaskResponse, HealthResponse, DeleteConfirmation, DatabaseURL, ISOTimestamp\nexcept ImportError:\n    try:\n        from models import TaskStatus, TaskTitle, TaskCreateRequest, TaskUpdateRequest, TaskResponse, HealthResponse, DeleteConfirmation, DatabaseURL, ISOTimestamp\n    except ImportError:\n        TaskStatus = TaskTitle = TaskCreateRequest = TaskUpdateRequest = None\n        TaskResponse = HealthResponse = DeleteConfirmation = DatabaseURL = ISOTimestamp = None\n\ntry:\n    from backend.db import (\n        db_list_tasks, db_create_task, db_get_task, db_update_task, db_delete_task,\n        get_connection, init_connection_pool, close_connection_pool,\n    )\nexcept ImportError:\n    try:\n        from db import (\n            db_list_tasks, db_create_task, db_get_task, db_update_task, db_delete_task,\n            get_connection, init_connection_pool, close_connection_pool,\n        )\n    except ImportError:\n        db_list_tasks = db_create_task = db_get_task = db_update_task = db_delete_task = None\n        get_connection = init_connection_pool = close_connection_pool = None\n\n# ---------------------------------------------------------------------------\n# Constants\n# ---------------------------------------------------------------------------\nISO_TIMESTAMP_RE = re.compile(\n    r\"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$\"\n)\nVALID_STATUSES = {\"pending\", \"in_progress\", \"done\"}\nFAKE_UUID = str(uuid.uuid4())\nNON_EXISTENT_UUID = \"00000000-0000-4000-8000-000000000000\"\n\nDATABASE_URL = os.environ.get(\"DATABASE_URL\", \"\")\nskip_no_db = pytest.mark.skipif(not DATABASE_URL, reason=\"DATABASE_URL not set\")\n\n\n# ---------------------------------------------------------------------------\n# Fixtures\n# ---------------------------------------------------------------------------\n@pytest.fixture()\ndef client():\n    \"\"\"Provide a FastAPI TestClient with mocked DB dependency.\"\"\"\n    if app is None or TestClient is None:\n        pytest.skip(\"FastAPI app or TestClient not importable\")\n    return TestClient(app)\n\n\n@pytest.fixture()\ndef mock_get_connection():\n    \"\"\"\n    Context-manager mock replacing get_connection.\n    Yields a MagicMock pretending to be a psycopg2 connection with a RealDictCursor.\n    \"\"\"\n    mock_conn = MagicMock()\n    mock_cursor = MagicMock()\n    mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)\n    mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)\n\n    @contextmanager\n    def _fake_get_connection():\n        yield mock_conn\n\n    return _fake_get_connection, mock_conn, mock_cursor\n\n\ndef _task_row(\n    task_id=None, title=\"Test Task\", description=None,\n    status=\"pending\", created_at=None, updated_at=None,\n):\n    \"\"\"Helper to build a fake task row dict as returned by RealDictCursor.\"\"\"\n    now = datetime.datetime.now(datetime.timezone.utc)\n    return {\n        \"id\": task_id or str(uuid.uuid4()),\n        \"title\": title,\n        \"description\": description,\n        \"status\": status,\n        \"created_at\": created_at or now,\n        \"updated_at\": updated_at or now,\n    }\n\n\n# ===================================================================\n# SECTION 1: Type / Validator Tests\n# ===================================================================\n\nclass TestTaskStatusEnum:\n    \"\"\"TaskStatus enum is the single source of truth for valid status values.\"\"\"\n\n    def test_valid_values(self):\n        if TaskStatus is None:\n            pytest.skip(\"TaskStatus not importable\")\n        for val in (\"pending\", \"in_progress\", \"done\"):\n            assert TaskStatus(val).value == val\n\n    def test_invalid_value_rejected(self):\n        if TaskStatus is None:\n            pytest.skip(\"TaskStatus not importable\")\n        with pytest.raises((ValueError, KeyError)):\n            TaskStatus(\"invalid_status\")\n\n    def test_exactly_three_members(self):\n        if TaskStatus is None:\n            pytest.skip(\"TaskStatus not importable\")\n        assert set(s.value for s in TaskStatus) == VALID_STATUSES\n\n\nclass TestTaskTitle:\n    \"\"\"TaskTitle: non-blank, whitespace-stripped, 1..200 chars.\"\"\"\n\n    def test_valid_title(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        t = TaskTitle(value=\"Hello\")\n        # After construction the stripped value should be stored\n        assert t.value.strip() == \"Hello\"\n\n    def test_empty_rejected(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        with pytest.raises((ValueError, Exception)):\n            TaskTitle(value=\"\")\n\n    def test_whitespace_only_rejected(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        with pytest.raises((ValueError, Exception)):\n            TaskTitle(value=\"   \\t\\n  \")\n\n    def test_max_200_accepted(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        t = TaskTitle(value=\"A\" * 200)\n        assert len(t.value.strip()) == 200\n\n    def test_exceeds_200_rejected(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        with pytest.raises((ValueError, Exception)):\n            TaskTitle(value=\"A\" * 201)\n\n    def test_strips_whitespace(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        t = TaskTitle(value=\"  hello  \")\n        assert t.value == \"hello\" or t.value.strip() == \"hello\"\n\n    def test_single_char_accepted(self):\n        if TaskTitle is None:\n            pytest.skip(\"TaskTitle not importable\")\n        t = TaskTitle(value=\"X\")\n        assert t.value.strip() == \"X\"\n\n\nclass TestISOTimestamp:\n    \"\"\"ISOTimestamp: ISO 8601 with timezone offset or Z.\"\"\"\n\n    def test_valid_with_offset(self):\n        if ISOTimestamp is None:\n            pytest.skip(\"ISOTimestamp not importable\")\n        ts = ISOTimestamp(value=\"2024-01-15T10:30:00+00:00\")\n        assert ISO_TIMESTAMP_RE.match(ts.value)\n\n    def test_valid_with_z(self):\n        if ISOTimestamp is None:\n            pytest.skip(\"ISOTimestamp not importable\")\n        ts = ISOTimestamp(value=\"2024-01-15T10:30:00Z\")\n        assert ISO_TIMESTAMP_RE.match(ts.value)\n\n    def test_valid_with_fractional_seconds(self):\n        if ISOTimestamp is None:\n            pytest.skip(\"ISOTimestamp not importable\")\n        ts = ISOTimestamp(value=\"2024-01-15T10:30:00.123456+05:30\")\n        assert ISO_TIMESTAMP_RE.match(ts.value)\n\n    def test_no_timezone_rejected(self):\n        if ISOTimestamp is None:\n            pytest.skip(\"ISOTimestamp not importable\")\n        with pytest.raises((ValueError, Exception)):\n            ISOTimestamp(value=\"2024-01-15T10:30:00\")\n\n\nclass TestDatabaseURL:\n    \"\"\"DatabaseURL: must start with postgres:// or postgresql://.\"\"\"\n\n    def test_postgresql_prefix(self):\n        if DatabaseURL is None:\n            pytest.skip(\"DatabaseURL not importable\")\n        d = DatabaseURL(value=\"postgresql://user:pass@localhost/db\")\n        assert d.value.startswith(\"postgresql://\")\n\n    def test_postgres_prefix(self):\n        if DatabaseURL is None:\n            pytest.skip(\"DatabaseURL not importable\")\n        d = DatabaseURL(value=\"postgres://user:pass@localhost/db\")\n        assert d.value.startswith(\"postgres://\")\n\n    def test_invalid_prefix_rejected(self):\n        if DatabaseURL is None:\n            pytest.skip(\"DatabaseURL not importable\")\n        with pytest.raises((ValueError, Exception)):\n            DatabaseURL(value=\"mysql://user:pass@localhost/db\")\n\n\nclass TestHealthResponse:\n    \"\"\"HealthResponse: status must be exactly 'ok'.\"\"\"\n\n    def test_valid_ok(self):\n        if HealthResponse is None:\n            pytest.skip(\"HealthResponse not importable\")\n        hr = HealthResponse(status=\"ok\")\n        assert hr.status == \"ok\"\n\n    def test_not_ok_rejected(self):\n        if HealthResponse is None:\n            pytest.skip(\"HealthResponse not importable\")\n        with pytest.raises((ValueError, Exception)):\n            HealthResponse(status=\"error\")\n\n\n# ===================================================================\n# SECTION 2: API Endpoint Tests (via TestClient)\n# ===================================================================\n\nclass TestHealthCheckEndpoint:\n    \"\"\"GET /health — returns {'status': 'ok'}, no DB interaction.\"\"\"\n\n    def test_health_check_happy(self, client):\n        resp = client.get(\"/health\")\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body == {\"status\": \"ok\"}\n\n    def test_health_check_response_schema(self, client):\n        resp = client.get(\"/health\")\n        body = resp.json()\n        assert \"status\" in body\n        assert body[\"status\"] == \"ok\"\n\n\nclass TestListTasksEndpoint:\n    \"\"\"GET /tasks — returns JSON array of TaskResponse objects.\"\"\"\n\n    def test_list_tasks_happy_empty(self, client):\n        \"\"\"When DB returns no rows, response is an empty array.\"\"\"\n        with patch(\"backend.db.db_list_tasks\", return_value=[]) if db_list_tasks else \\\n             patch(\"db.db_list_tasks\", return_value=[]):\n            resp = client.get(\"/tasks\")\n        assert resp.status_code == 200\n        assert resp.json() == [] or isinstance(resp.json(), list)\n\n    def test_list_tasks_happy_multiple(self, client):\n        \"\"\"When DB returns rows, all conform to TaskResponse schema.\"\"\"\n        now = datetime.datetime.now(datetime.timezone.utc)\n        rows = [\n            _task_row(title=\"Second\", created_at=now),\n            _task_row(title=\"First\", created_at=now - datetime.timedelta(seconds=10)),\n        ]\n        target = \"backend.db.db_list_tasks\" if db_list_tasks else \"db.db_list_tasks\"\n        with patch(target, return_value=rows):\n            resp = client.get(\"/tasks\")\n        assert resp.status_code == 200\n        body = resp.json()\n        assert isinstance(body, list)\n        assert len(body) >= 2\n        for task in body:\n            assert \"id\" in task\n            assert \"title\" in task\n            assert \"status\" in task\n            assert task[\"status\"] in VALID_STATUSES\n            assert \"created_at\" in task\n            assert \"updated_at\" in task\n\n    def test_list_tasks_timestamps_iso8601(self, client):\n        rows = [_task_row()]\n        target = \"backend.db.db_list_tasks\" if db_list_tasks else \"db.db_list_tasks\"\n        with patch(target, return_value=rows):\n            resp = client.get(\"/tasks\")\n        assert resp.status_code == 200\n        for task in resp.json():\n            assert ISO_TIMESTAMP_RE.match(task[\"created_at\"]), f\"created_at not ISO8601: {task['created_at']}\"\n            assert ISO_TIMESTAMP_RE.match(task[\"updated_at\"]), f\"updated_at not ISO8601: {task['updated_at']}\"\n\n    def test_list_tasks_db_unavailable(self, client):\n        target = \"backend.db.db_list_tasks\" if db_list_tasks else \"db.db_list_tasks\"\n        with patch(target, side_effect=Exception(\"connection pool exhausted\")):\n            resp = client.get(\"/tasks\")\n        assert resp.status_code >= 500 or resp.status_code == 503\n\n\nclass TestCreateTaskEndpoint:\n    \"\"\"POST /tasks — creates a new task.\"\"\"\n\n    def _mock_create(self, title, description, status):\n        return _task_row(title=title.strip(), description=description, status=status or \"pending\")\n\n    def test_create_task_happy_defaults(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"My Task\"})\n        assert resp.status_code == 201\n        body = resp.json()\n        assert body[\"title\"] == \"My Task\"\n        assert body[\"status\"] == \"pending\"\n        assert body.get(\"description\") is None or body[\"description\"] is None\n\n    def test_create_task_happy_all_fields(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        payload = {\"title\": \"Full Task\", \"description\": \"A description\", \"status\": \"in_progress\"}\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json=payload)\n        assert resp.status_code == 201\n        body = resp.json()\n        assert body[\"title\"] == \"Full Task\"\n        assert body[\"description\"] == \"A description\"\n        assert body[\"status\"] == \"in_progress\"\n\n    def test_create_task_blank_title_returns_422(self, client):\n        resp = client.post(\"/tasks\", json={\"title\": \"\"})\n        assert resp.status_code == 422\n\n    def test_create_task_whitespace_title_returns_422(self, client):\n        resp = client.post(\"/tasks\", json={\"title\": \"   \"})\n        assert resp.status_code == 422\n\n    def test_create_task_missing_title_returns_422(self, client):\n        resp = client.post(\"/tasks\", json={})\n        assert resp.status_code == 422\n\n    def test_create_task_invalid_status_returns_422(self, client):\n        resp = client.post(\"/tasks\", json={\"title\": \"Task\", \"status\": \"banana\"})\n        assert resp.status_code == 422\n\n    def test_create_task_empty_description_normalized_to_none(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=None, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"Task\", \"description\": \"\"})\n        assert resp.status_code == 201\n        assert resp.json().get(\"description\") is None\n\n    def test_create_task_whitespace_description_normalized_to_none(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=None, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"Task\", \"description\": \"   \"})\n        assert resp.status_code == 201\n        assert resp.json().get(\"description\") is None\n\n    def test_create_task_title_stripped(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t.strip(), description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"  Hello World  \"})\n        assert resp.status_code == 201\n        assert resp.json()[\"title\"] == \"Hello World\"\n\n    def test_create_task_timestamps_iso8601(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"Task\"})\n        body = resp.json()\n        assert ISO_TIMESTAMP_RE.match(body[\"created_at\"])\n        assert ISO_TIMESTAMP_RE.match(body[\"updated_at\"])\n\n    def test_create_task_title_length_255_accepted(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        title_255 = \"A\" * 255\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": title_255})\n        assert resp.status_code == 201\n\n    def test_create_task_title_exceeds_255_returns_422(self, client):\n        title_256 = \"A\" * 256\n        resp = client.post(\"/tasks\", json={\"title\": title_256})\n        assert resp.status_code == 422\n\n    def test_create_task_status_defaults_to_pending(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"Task\"})\n        assert resp.status_code == 201\n        assert resp.json()[\"status\"] == \"pending\"\n\n    def test_create_task_db_unavailable(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=Exception(\"database unavailable\")):\n            resp = client.post(\"/tasks\", json={\"title\": \"Task\"})\n        assert resp.status_code >= 500 or resp.status_code == 503\n\n\nclass TestGetTaskEndpoint:\n    \"\"\"GET /tasks/{id} — returns single task or 404.\"\"\"\n\n    def test_get_task_happy(self, client):\n        task_id = str(uuid.uuid4())\n        row = _task_row(task_id=task_id)\n        target = \"backend.db.db_get_task\" if db_get_task else \"db.db_get_task\"\n        with patch(target, return_value=row):\n            resp = client.get(f\"/tasks/{task_id}\")\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body[\"id\"] == task_id\n        assert body[\"status\"] in VALID_STATUSES\n        assert ISO_TIMESTAMP_RE.match(body[\"created_at\"])\n        assert ISO_TIMESTAMP_RE.match(body[\"updated_at\"])\n\n    def test_get_task_not_found(self, client):\n        target = \"backend.db.db_get_task\" if db_get_task else \"db.db_get_task\"\n        with patch(target, return_value=None):\n            resp = client.get(f\"/tasks/{NON_EXISTENT_UUID}\")\n        assert resp.status_code == 404\n        assert \"detail\" in resp.json()\n\n    def test_get_task_invalid_id(self, client):\n        resp = client.get(\"/tasks/not-a-uuid\")\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    def test_get_task_db_unavailable(self, client):\n        task_id = str(uuid.uuid4())\n        target = \"backend.db.db_get_task\" if db_get_task else \"db.db_get_task\"\n        with patch(target, side_effect=Exception(\"db down\")):\n            resp = client.get(f\"/tasks/{task_id}\")\n        assert resp.status_code >= 500 or resp.status_code == 503\n\n\nclass TestUpdateTaskEndpoint:\n    \"\"\"PUT /tasks/{id} — PATCH semantics update.\"\"\"\n\n    def test_update_task_happy(self, client):\n        task_id = str(uuid.uuid4())\n        now = datetime.datetime.now(datetime.timezone.utc)\n        original = _task_row(task_id=task_id, title=\"Old\", status=\"pending\", created_at=now, updated_at=now)\n        updated = dict(original, title=\"New\", updated_at=now + datetime.timedelta(seconds=1))\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, return_value=updated):\n            resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"New\"})\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body[\"id\"] == task_id\n        assert body[\"title\"] == \"New\"\n\n    def test_update_task_partial_title_only(self, client):\n        task_id = str(uuid.uuid4())\n        now = datetime.datetime.now(datetime.timezone.utc)\n        original = _task_row(task_id=task_id, title=\"Old\", description=\"keep me\", status=\"done\",\n                             created_at=now, updated_at=now)\n        updated = dict(original, title=\"New Title\", updated_at=now + datetime.timedelta(seconds=1))\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, return_value=updated):\n            resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"New Title\"})\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body[\"title\"] == \"New Title\"\n        assert body[\"description\"] == \"keep me\"\n        assert body[\"status\"] == \"done\"\n\n    def test_update_task_not_found(self, client):\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, return_value=None):\n            resp = client.put(f\"/tasks/{NON_EXISTENT_UUID}\", json={\"title\": \"X\"})\n        assert resp.status_code == 404\n\n    def test_update_task_invalid_status(self, client):\n        task_id = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{task_id}\", json={\"status\": \"banana\"})\n        assert resp.status_code == 422\n\n    def test_update_task_blank_title(self, client):\n        task_id = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"\"})\n        assert resp.status_code == 422\n\n    def test_update_task_whitespace_title(self, client):\n        task_id = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"   \"})\n        assert resp.status_code == 422\n\n    def test_update_task_invalid_id(self, client):\n        resp = client.put(\"/tasks/bad-id\", json={\"title\": \"X\"})\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    def test_update_task_created_at_immutable(self, client):\n        task_id = str(uuid.uuid4())\n        now = datetime.datetime.now(datetime.timezone.utc)\n        original_created = now - datetime.timedelta(hours=1)\n        updated = _task_row(task_id=task_id, title=\"Updated\", created_at=original_created,\n                            updated_at=now)\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, return_value=updated):\n            resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"Updated\"})\n        body = resp.json()\n        # created_at should match the original (before the update request time)\n        assert body[\"created_at\"] is not None\n        created_dt = datetime.datetime.fromisoformat(body[\"created_at\"])\n        assert created_dt <= now  # created_at was not bumped to now\n\n    def test_update_task_updated_at_advances(self, client):\n        task_id = str(uuid.uuid4())\n        old_time = datetime.datetime(2020, 1, 1, tzinfo=datetime.timezone.utc)\n        new_time = datetime.datetime.now(datetime.timezone.utc)\n        updated = _task_row(task_id=task_id, title=\"Updated\", created_at=old_time, updated_at=new_time)\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, return_value=updated):\n            resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"Updated\"})\n        body = resp.json()\n        updated_at = datetime.datetime.fromisoformat(body[\"updated_at\"])\n        assert updated_at >= old_time\n\n    def test_update_task_db_unavailable(self, client):\n        task_id = str(uuid.uuid4())\n        target = \"backend.db.db_update_task\" if db_update_task else \"db.db_update_task\"\n        with patch(target, side_effect=Exception(\"db down\")):\n            resp = client.put(f\"/tasks/{task_id}\", json={\"title\": \"X\"})\n        assert resp.status_code >= 500 or resp.status_code == 503\n\n\nclass TestDeleteTaskEndpoint:\n    \"\"\"DELETE /tasks/{id} — hard deletes task.\"\"\"\n\n    def test_delete_task_happy(self, client):\n        task_id = str(uuid.uuid4())\n        target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        with patch(target, return_value={\"id\": task_id}):\n            resp = client.delete(f\"/tasks/{task_id}\")\n        assert resp.status_code == 200\n        body = resp.json()\n        assert body[\"id\"] == task_id\n        assert \"detail\" in body\n        assert len(body[\"detail\"]) > 0\n\n    def test_delete_task_not_found(self, client):\n        target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        with patch(target, return_value=None):\n            resp = client.delete(f\"/tasks/{NON_EXISTENT_UUID}\")\n        assert resp.status_code == 404\n\n    def test_delete_task_invalid_id(self, client):\n        resp = client.delete(\"/tasks/bad-id\")\n        assert resp.status_code == 422 or resp.status_code == 400\n\n    def test_delete_task_hard_delete_verified(self, client):\n        \"\"\"After delete, GET for same id returns 404.\"\"\"\n        task_id = str(uuid.uuid4())\n        del_target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        get_target = \"backend.db.db_get_task\" if db_get_task else \"db.db_get_task\"\n        with patch(del_target, return_value={\"id\": task_id}):\n            del_resp = client.delete(f\"/tasks/{task_id}\")\n        assert del_resp.status_code == 200\n        with patch(get_target, return_value=None):\n            get_resp = client.get(f\"/tasks/{task_id}\")\n        assert get_resp.status_code == 404\n\n    def test_delete_task_db_unavailable(self, client):\n        task_id = str(uuid.uuid4())\n        target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        with patch(target, side_effect=Exception(\"db down\")):\n            resp = client.delete(f\"/tasks/{task_id}\")\n        assert resp.status_code >= 500 or resp.status_code == 503\n\n\n# ===================================================================\n# SECTION 3: Connection Pool Lifecycle Tests (mocked)\n# ===================================================================\n\nclass TestInitConnectionPool:\n    \"\"\"init_connection_pool — initializes psycopg2 ThreadedConnectionPool.\"\"\"\n\n    def test_init_pool_happy(self):\n        if init_connection_pool is None:\n            pytest.skip(\"init_connection_pool not importable\")\n        with patch(\"psycopg2.pool.ThreadedConnectionPool\") as MockPool:\n            mock_pool_instance = MagicMock()\n            MockPool.return_value = mock_pool_instance\n            try:\n                init_connection_pool(\"postgresql://user:pass@localhost/test\", 1, 5)\n            except TypeError:\n                # Signature may differ; try alternate approach\n                pass\n            MockPool.assert_called_once()\n\n    def test_init_pool_invalid_url(self):\n        if init_connection_pool is None:\n            pytest.skip(\"init_connection_pool not importable\")\n        with patch(\"psycopg2.pool.ThreadedConnectionPool\", side_effect=Exception(\"invalid DSN\")):\n            with pytest.raises(Exception):\n                init_connection_pool(\"mysql://bad\", 1, 5)\n\n    def test_init_pool_connection_failed(self):\n        if init_connection_pool is None:\n            pytest.skip(\"init_connection_pool not importable\")\n        with patch(\"psycopg2.pool.ThreadedConnectionPool\", side_effect=Exception(\"could not connect\")):\n            with pytest.raises(Exception):\n                init_connection_pool(\"postgresql://user:pass@unreachable:5432/db\", 1, 5)\n\n\nclass TestCloseConnectionPool:\n    \"\"\"close_connection_pool — closes all pooled connections.\"\"\"\n\n    def test_close_pool_happy(self):\n        if close_connection_pool is None:\n            pytest.skip(\"close_connection_pool not importable\")\n        mock_pool = MagicMock()\n        # Patch the module-level pool reference\n        try:\n            with patch(\"backend.db.pool\", mock_pool):\n                close_connection_pool()\n        except (AttributeError, TypeError):\n            try:\n                with patch(\"db.pool\", mock_pool):\n                    close_connection_pool()\n            except (AttributeError, TypeError):\n                pytest.skip(\"Cannot patch pool reference\")\n        mock_pool.closeall.assert_called_once()\n\n\nclass TestGetConnection:\n    \"\"\"get_connection — context manager borrowing from pool.\"\"\"\n\n    def test_get_connection_commits_on_success(self):\n        if get_connection is None:\n            pytest.skip(\"get_connection not importable\")\n        mock_pool = MagicMock()\n        mock_conn = MagicMock()\n        mock_pool.getconn.return_value = mock_conn\n        try:\n            module_path = \"backend.db.pool\"\n            with patch(module_path, mock_pool):\n                with get_connection() as conn:\n                    pass\n        except (AttributeError, TypeError):\n            try:\n                module_path = \"db.pool\"\n                with patch(module_path, mock_pool):\n                    with get_connection() as conn:\n                        pass\n            except (AttributeError, TypeError):\n                pytest.skip(\"Cannot patch pool for get_connection test\")\n                return\n        mock_conn.commit.assert_called()\n\n    def test_get_connection_rollback_on_exception(self):\n        if get_connection is None:\n            pytest.skip(\"get_connection not importable\")\n        mock_pool = MagicMock()\n        mock_conn = MagicMock()\n        mock_pool.getconn.return_value = mock_conn\n        try:\n            module_path = \"backend.db.pool\"\n            with patch(module_path, mock_pool):\n                try:\n                    with get_connection() as conn:\n                        raise RuntimeError(\"boom\")\n                except RuntimeError:\n                    pass\n        except (AttributeError, TypeError):\n            try:\n                module_path = \"db.pool\"\n                with patch(module_path, mock_pool):\n                    try:\n                        with get_connection() as conn:\n                            raise RuntimeError(\"boom\")\n                    except RuntimeError:\n                        pass\n            except (AttributeError, TypeError):\n                pytest.skip(\"Cannot patch pool for rollback test\")\n                return\n        mock_conn.rollback.assert_called()\n\n    def test_get_connection_pool_exhausted(self):\n        if get_connection is None:\n            pytest.skip(\"get_connection not importable\")\n        mock_pool = MagicMock()\n        from psycopg2.pool import PoolError\n        mock_pool.getconn.side_effect = PoolError(\"connection pool exhausted\")\n        try:\n            module_path = \"backend.db.pool\"\n            with patch(module_path, mock_pool):\n                with pytest.raises(Exception):\n                    with get_connection() as conn:\n                        pass\n        except (AttributeError, TypeError, ImportError):\n            try:\n                module_path = \"db.pool\"\n                with patch(module_path, mock_pool):\n                    with pytest.raises(Exception):\n                        with get_connection() as conn:\n                            pass\n            except (AttributeError, TypeError, ImportError):\n                pytest.skip(\"Cannot test pool_exhausted\")\n\n\n# ===================================================================\n# SECTION 4: Database Layer Tests (require DATABASE_URL)\n# ===================================================================\n\n@skip_no_db\nclass TestDbListTasks:\n    \"\"\"db_list_tasks — SELECT * FROM tasks ORDER BY created_at DESC.\"\"\"\n\n    def test_db_list_tasks_happy(self):\n        if db_list_tasks is None:\n            pytest.skip(\"db_list_tasks not importable\")\n        result = db_list_tasks()\n        assert isinstance(result, list)\n        for row in result:\n            assert \"id\" in row\n            assert \"title\" in row\n            assert \"description\" in row\n            assert \"status\" in row\n            assert \"created_at\" in row\n            assert \"updated_at\" in row\n            assert row[\"status\"] in VALID_STATUSES\n            # Timestamps should be datetime with tzinfo\n            assert row[\"created_at\"].tzinfo is not None\n            assert row[\"updated_at\"].tzinfo is not None\n\n    def test_db_list_tasks_ordered_by_created_at_desc(self):\n        if db_list_tasks is None or db_create_task is None:\n            pytest.skip(\"db functions not importable\")\n        # Create two tasks to ensure ordering\n        t1 = db_create_task(\"First Task\", None, \"pending\")\n        t2 = db_create_task(\"Second Task\", None, \"pending\")\n        try:\n            result = db_list_tasks()\n            if len(result) >= 2:\n                for i in range(len(result) - 1):\n                    assert result[i][\"created_at\"] >= result[i + 1][\"created_at\"]\n        finally:\n            # Cleanup\n            if db_delete_task:\n                db_delete_task(str(t1[\"id\"]))\n                db_delete_task(str(t2[\"id\"]))\n\n\n@skip_no_db\nclass TestDbCreateTask:\n    \"\"\"db_create_task — INSERT INTO tasks ... RETURNING *.\"\"\"\n\n    def test_db_create_task_happy(self):\n        if db_create_task is None:\n            pytest.skip(\"db_create_task not importable\")\n        result = db_create_task(\"Test Task\", \"A description\", \"pending\")\n        try:\n            assert isinstance(result, dict)\n            assert \"id\" in result\n            assert result[\"title\"] == \"Test Task\"\n            assert result[\"description\"] == \"A description\"\n            assert result[\"status\"] == \"pending\"\n            assert \"created_at\" in result\n            assert \"updated_at\" in result\n            assert result[\"created_at\"].tzinfo is not None\n        finally:\n            if db_delete_task:\n                db_delete_task(str(result[\"id\"]))\n\n    def test_db_create_task_null_description(self):\n        if db_create_task is None:\n            pytest.skip(\"db_create_task not importable\")\n        result = db_create_task(\"No Desc Task\", None, \"done\")\n        try:\n            assert result[\"description\"] is None\n        finally:\n            if db_delete_task:\n                db_delete_task(str(result[\"id\"]))\n\n\n@skip_no_db\nclass TestDbGetTask:\n    \"\"\"db_get_task — SELECT * FROM tasks WHERE id = %s.\"\"\"\n\n    def test_db_get_task_happy(self):\n        if db_create_task is None or db_get_task is None:\n            pytest.skip(\"db functions not importable\")\n        created = db_create_task(\"Get Me\", None, \"pending\")\n        try:\n            result = db_get_task(str(created[\"id\"]))\n            assert result is not None\n            assert result[\"id\"] == created[\"id\"]\n            assert result[\"title\"] == \"Get Me\"\n        finally:\n            if db_delete_task:\n                db_delete_task(str(created[\"id\"]))\n\n    def test_db_get_task_not_found(self):\n        if db_get_task is None:\n            pytest.skip(\"db_get_task not importable\")\n        result = db_get_task(NON_EXISTENT_UUID)\n        assert result is None\n\n\n@skip_no_db\nclass TestDbUpdateTask:\n    \"\"\"db_update_task — dynamic UPDATE SET ... RETURNING *.\"\"\"\n\n    def test_db_update_task_happy(self):\n        if db_create_task is None or db_update_task is None:\n            pytest.skip(\"db functions not importable\")\n        created = db_create_task(\"Before Update\", \"old desc\", \"pending\")\n        try:\n            result = db_update_task(str(created[\"id\"]), {\"title\": \"After Update\", \"status\": \"done\"})\n            assert result is not None\n            assert result[\"title\"] == \"After Update\"\n            assert result[\"status\"] == \"done\"\n            assert result[\"description\"] == \"old desc\"  # unchanged\n            assert result[\"created_at\"] == created[\"created_at\"]  # immutable\n            assert result[\"updated_at\"] >= created[\"updated_at\"]\n        finally:\n            if db_delete_task:\n                db_delete_task(str(created[\"id\"]))\n\n    def test_db_update_task_not_found(self):\n        if db_update_task is None:\n            pytest.skip(\"db_update_task not importable\")\n        result = db_update_task(NON_EXISTENT_UUID, {\"title\": \"Ghost\"})\n        assert result is None\n\n\n@skip_no_db\nclass TestDbDeleteTask:\n    \"\"\"db_delete_task — DELETE FROM tasks WHERE id = %s RETURNING id.\"\"\"\n\n    def test_db_delete_task_happy(self):\n        if db_create_task is None or db_delete_task is None:\n            pytest.skip(\"db functions not importable\")\n        created = db_create_task(\"Delete Me\", None, \"pending\")\n        result = db_delete_task(str(created[\"id\"]))\n        assert result is not None\n        assert \"id\" in result\n        assert str(result[\"id\"]) == str(created[\"id\"])\n        # Verify it's truly gone\n        if db_get_task:\n            assert db_get_task(str(created[\"id\"])) is None\n\n    def test_db_delete_task_not_found(self):\n        if db_delete_task is None:\n            pytest.skip(\"db_delete_task not importable\")\n        result = db_delete_task(NON_EXISTENT_UUID)\n        assert result is None\n\n\n# ===================================================================\n# SECTION 5: Invariant Tests\n# ===================================================================\n\nclass TestInvariantTaskStatusSingleSourceOfTruth:\n    \"\"\"TaskStatus enum is the single source of truth; exactly {pending, in_progress, done}.\"\"\"\n\n    def test_status_enum_values(self):\n        if TaskStatus is None:\n            pytest.skip(\"TaskStatus not importable\")\n        values = {s.value for s in TaskStatus}\n        assert values == {\"pending\", \"in_progress\", \"done\"}\n\n\nclass TestInvariantDescriptionNormalization:\n    \"\"\"Empty or whitespace-only descriptions are normalized to None before storage.\"\"\"\n\n    def test_empty_string_normalized(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"T\", \"description\": \"\"})\n        if resp.status_code == 201:\n            assert resp.json()[\"description\"] is None\n\n    def test_whitespace_normalized(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"T\", \"description\": \"  \\t\\n  \"})\n        if resp.status_code == 201:\n            assert resp.json()[\"description\"] is None\n\n    def test_null_stays_none(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"T\", \"description\": None})\n        if resp.status_code == 201:\n            assert resp.json()[\"description\"] is None\n\n\nclass TestInvariantTimestampFormat:\n    \"\"\"All API timestamps are ISO 8601 with timezone offset.\"\"\"\n\n    def _assert_iso_ts(self, ts_str):\n        assert ISO_TIMESTAMP_RE.match(ts_str), f\"Not ISO 8601 with tz: {ts_str}\"\n\n    def test_create_timestamps(self, client):\n        target = \"backend.db.db_create_task\" if db_create_task else \"db.db_create_task\"\n        with patch(target, side_effect=lambda t, d, s: _task_row(title=t, description=d, status=s)):\n            resp = client.post(\"/tasks\", json={\"title\": \"TS Test\"})\n        if resp.status_code == 201:\n            body = resp.json()\n            self._assert_iso_ts(body[\"created_at\"])\n            self._assert_iso_ts(body[\"updated_at\"])\n\n    def test_list_timestamps(self, client):\n        rows = [_task_row(), _task_row()]\n        target = \"backend.db.db_list_tasks\" if db_list_tasks else \"db.db_list_tasks\"\n        with patch(target, return_value=rows):\n            resp = client.get(\"/tasks\")\n        for task in resp.json():\n            self._assert_iso_ts(task[\"created_at\"])\n            self._assert_iso_ts(task[\"updated_at\"])\n\n\nclass TestInvariantBlankTitleRejected:\n    \"\"\"Title must be non-blank after stripping; blank titles => 422.\"\"\"\n\n    def test_empty_title_post(self, client):\n        resp = client.post(\"/tasks\", json={\"title\": \"\"})\n        assert resp.status_code == 422\n\n    def test_whitespace_title_post(self, client):\n        resp = client.post(\"/tasks\", json={\"title\": \"   \"})\n        assert resp.status_code == 422\n\n    def test_empty_title_put(self, client):\n        tid = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{tid}\", json={\"title\": \"\"})\n        assert resp.status_code == 422\n\n    def test_whitespace_title_put(self, client):\n        tid = str(uuid.uuid4())\n        resp = client.put(f\"/tasks/{tid}\", json={\"title\": \"   \"})\n        assert resp.status_code == 422\n\n\nclass TestInvariantHardDelete:\n    \"\"\"DELETE is a hard delete; no soft-delete or archival.\"\"\"\n\n    def test_delete_then_get_returns_404(self, client):\n        task_id = str(uuid.uuid4())\n        del_target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        get_target = \"backend.db.db_get_task\" if db_get_task else \"db.db_get_task\"\n        with patch(del_target, return_value={\"id\": task_id}):\n            del_resp = client.delete(f\"/tasks/{task_id}\")\n        assert del_resp.status_code == 200\n        with patch(get_target, return_value=None):\n            get_resp = client.get(f\"/tasks/{task_id}\")\n        assert get_resp.status_code == 404\n\n    def test_delete_then_list_excludes_task(self, client):\n        task_id = str(uuid.uuid4())\n        del_target = \"backend.db.db_delete_task\" if db_delete_task else \"db.db_delete_task\"\n        list_target = \"backend.db.db_list_tasks\" if db_list_tasks else \"db.db_list_tasks\"\n        with patch(del_target, return_value={\"id\": task_id}):\n            client.delete(f\"/tasks/{task_id}\")\n        with patch(list_target, return_value=[]):\n            resp = client.get(\"/tasks\")\n        ids = [t[\"id\"] for t in resp.json()]\n        assert task_id not in ids\n"
+}

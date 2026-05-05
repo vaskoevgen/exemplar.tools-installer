@@ -1,0 +1,45 @@
+{
+  "packages": [
+    "pydantic>=2.0",
+    "pytest"
+  ],
+  "shared_types": {
+    "TaskStatus": "enum(pending, in_progress, done)",
+    "TaskId": "primitive",
+    "TaskTitle": "struct(value: str)",
+    "TaskCreateRequest": "struct(title: string, description: OptionalString, status: TaskStatus)",
+    "TaskUpdateRequest": "struct(title: string, description: OptionalString, status: TaskStatus)",
+    "ErrorResponse": "struct(detail: string)",
+    "DeleteConfirmation": "struct(detail: string, id: TaskId)",
+    "HealthResponse": "struct(status: string)",
+    "OptionalString": "optional",
+    "string": "struct",
+    "ISOTimestamp": "struct(value: str)",
+    "TaskResponse": "struct(id: TaskId, title: TaskTitle, description: OptionalString, status: TaskStatus, created_at: ISOTimestamp, updated_at: ISOTimestamp)",
+    "TaskListResponse": "list",
+    "ValidationErrorResponse": "struct(detail: list)",
+    "DatabaseURL": "struct(value: str)"
+  },
+  "conventions": [
+    "Backend language: Python 3.12+",
+    "Backend framework: FastAPI",
+    "Backend database driver: psycopg2",
+    "Backend testing: pytest",
+    "Frontend language: TypeScript",
+    "Frontend framework: React + Vite",
+    "Type annotations on all public functions (Python backend)",
+    "Prefer composition over inheritance",
+    "All backend functions must have at least one test",
+    "Contract tests may connect to PostgreSQL via DATABASE_URL environment variable",
+    "No task is done until its contract tests pass",
+    "Keep files under 300 lines"
+  ],
+  "validators": [
+    "custom(value == 'ok')",
+    "length(1..255)",
+    "regex(^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$)",
+    "regex(^postgresql://)"
+  ],
+  "tools": [],
+  "mocks": {}
+}

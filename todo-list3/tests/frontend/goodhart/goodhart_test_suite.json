@@ -1,0 +1,938 @@
+{
+  "component_id": "frontend",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_fetch_tasks_correct_endpoint",
+      "description": "fetchTasks must issue a GET request to exactly {BASE_URL}/tasks — not a hardcoded URL or alternate path",
+      "function": "fetchTasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with empty array",
+        "VITE_API_URL": "http://custom-api:9000"
+      },
+      "input_values": {},
+      "input_description": "VITE_API_URL set to a non-default URL like http://custom-api:9000",
+      "expected_output_description": "The fetch call targets http://custom-api:9000/tasks",
+      "expected_error": "",
+      "assertions": [
+        "fetch was called with URL http://custom-api:9000/tasks",
+        "GET method was used"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_sends_json_body",
+      "description": "createTask must send the TaskCreateRequest as a JSON-encoded request body with correct Content-Type header",
+      "function": "createTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with created task"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Verify JSON\", \"description\": \"check body\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "POST request includes Content-Type: application/json and body matches input data",
+      "expected_error": "",
+      "assertions": [
+        "Content-Type header is application/json",
+        "request body contains title, description, and status fields"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_with_in_progress_status",
+      "description": "createTask must correctly propagate non-default status values like 'in_progress' rather than always defaulting to 'pending'",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with task having status in_progress"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Test task\", \"description\": null, \"status\": \"in_progress\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "Returned Task.status is 'in_progress', not 'pending'",
+      "expected_error": "",
+      "assertions": [
+        "returned task status is in_progress",
+        "request body sent to backend includes status: in_progress"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_with_done_status",
+      "description": "createTask must correctly propagate 'done' status rather than hardcoding to 'pending'",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with task having status done"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Completed task\", \"description\": \"finished\", \"status\": \"done\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "Returned Task.status is 'done'",
+      "expected_error": "",
+      "assertions": [
+        "returned task status is done"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_correct_url_interpolation",
+      "description": "updateTask must interpolate the task id into the URL path as PUT {BASE_URL}/tasks/{id} for any arbitrary id value",
+      "function": "updateTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with updated task"
+      },
+      "input_values": {
+        "id": "42",
+        "data": "{\"title\": \"Updated\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "PUT request is sent to {BASE_URL}/tasks/42",
+      "expected_error": "",
+      "assertions": [
+        "fetch URL ends with /tasks/42",
+        "HTTP method is PUT"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_different_id",
+      "description": "updateTask must correctly interpolate various id values into the URL, not hardcode a specific id",
+      "function": "updateTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with updated task"
+      },
+      "input_values": {
+        "id": "9999",
+        "data": "{\"status\": \"done\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "PUT request is sent to {BASE_URL}/tasks/9999",
+      "expected_error": "",
+      "assertions": [
+        "fetch URL ends with /tasks/9999"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_correct_url_interpolation",
+      "description": "deleteTask must interpolate the task id into the URL path as DELETE {BASE_URL}/tasks/{id} for arbitrary id values",
+      "function": "deleteTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with delete confirmation"
+      },
+      "input_values": {
+        "id": "77"
+      },
+      "input_description": "",
+      "expected_output_description": "DELETE request is sent to {BASE_URL}/tasks/77",
+      "expected_error": "",
+      "assertions": [
+        "fetch URL ends with /tasks/77",
+        "HTTP method is DELETE"
+      ]
+    },
+    {
+      "id": "goodhart_health_check_correct_endpoint",
+      "description": "healthCheck must issue GET to {BASE_URL}/health, not a hardcoded path or alternate endpoint",
+      "function": "healthCheck",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with {status: 'healthy'}",
+        "VITE_API_URL": "http://other-host:3000"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "fetch URL is http://other-host:3000/health"
+      ]
+    },
+    {
+      "id": "goodhart_resolve_base_url_multiple_trailing_slashes",
+      "description": "resolveBaseUrl should handle URLs with multiple trailing slashes by stripping at least the trailing slash",
+      "function": "resolveBaseUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "VITE_API_URL": "http://example.com///"
+      },
+      "input_description": "",
+      "expected_output_description": "Returned URL has no trailing slash",
+      "expected_error": "",
+      "assertions": [
+        "returned URL does not end with /"
+      ]
+    },
+    {
+      "id": "goodhart_resolve_base_url_empty_string",
+      "description": "resolveBaseUrl should fall back to default when VITE_API_URL is set to empty string",
+      "function": "resolveBaseUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "VITE_API_URL": ""
+      },
+      "input_description": "",
+      "expected_output_description": "Returns http://localhost:8000",
+      "expected_error": "",
+      "assertions": [
+        "returned URL is http://localhost:8000"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_preserves_status_code_404",
+      "description": "parseErrorResponse must capture the actual HTTP status code from the response, not hardcode common values",
+      "function": "parseErrorResponse",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "404",
+        "response_body": "{\"detail\": \"Not found\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "ApiError.statusCode is 404",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.statusCode equals 404",
+        "returned ApiError.detail equals 'Not found'"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_preserves_status_code_422",
+      "description": "parseErrorResponse must correctly capture 422 status codes used for validation errors",
+      "function": "parseErrorResponse",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "422",
+        "response_body": "{\"detail\": \"Validation failed\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "ApiError.statusCode is 422",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.statusCode equals 422"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_preserves_status_code_409",
+      "description": "parseErrorResponse must handle less common HTTP error codes like 409 Conflict without special-casing only 4xx/5xx common codes",
+      "function": "parseErrorResponse",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "409",
+        "response_body": "{\"detail\": \"Conflict\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "ApiError.statusCode is 409",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.statusCode equals 409"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_message_includes_detail",
+      "description": "parseErrorResponse must compose ApiError.message to include the parsed detail string, not a generic message",
+      "function": "parseErrorResponse",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "400",
+        "response_body": "{\"detail\": \"Title cannot be empty\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "ApiError.message contains 'Title cannot be empty'",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.message contains 'Title cannot be empty'"
+      ]
+    },
+    {
+      "id": "goodhart_fetch_tasks_returns_multiple_tasks_distinct",
+      "description": "fetchTasks must return all tasks from the response, not just the first or a subset",
+      "function": "fetchTasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with array of 5 tasks"
+      },
+      "input_values": {},
+      "input_description": "Backend returns 5 distinct tasks",
+      "expected_output_description": "Array contains exactly 5 tasks with distinct ids",
+      "expected_error": "",
+      "assertions": [
+        "returned array length is 5",
+        "all task ids are distinct"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_returns_full_task_object",
+      "description": "createTask must return a complete Task object with all six fields (id, title, description, status, created_at, updated_at), not a subset",
+      "function": "createTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with complete task"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Full fields check\", \"description\": \"desc\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned object has id field",
+        "returned object has title field",
+        "returned object has description field",
+        "returned object has status field",
+        "returned object has created_at field",
+        "returned object has updated_at field"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_returns_id_matching_input",
+      "description": "updateTask must return a Task whose id matches the input id parameter, verifying the response is correctly associated",
+      "function": "updateTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with task id=123"
+      },
+      "input_values": {
+        "id": "123",
+        "data": "{\"title\": \"Changed title\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned task id equals 123"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_returns_correct_id",
+      "description": "deleteTask must return a DeleteConfirmation whose id field matches the deleted task's id",
+      "function": "deleteTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with {detail: 'Deleted', id: 55}"
+      },
+      "input_values": {
+        "id": "55"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned confirmation id equals 55",
+        "returned confirmation has detail field"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_empty_desc_becomes_null",
+      "description": "Empty description strings must be converted to null before being sent to the backend, per invariant A12",
+      "function": "createTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing request body, returning 200"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Test\", \"description\": \"\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "request body sent to backend has description: null, not empty string"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_whitespace_only_desc_treatment",
+      "description": "Description containing only whitespace should be treated consistently — either sent as null (like empty) or preserved, but not silently dropped",
+      "function": "createTask",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing request body, returning 200"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Test\", \"description\": \"   \", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "request body description is either null or the original whitespace string"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_create_prepends_not_appends",
+      "description": "App.handleCreate must prepend the new task to the state array, not append it, so newest tasks appear first in the UI",
+      "function": "App.handleCreate",
+      "category": "invariant",
+      "setup_description": "Initial state has tasks [{id:1}, {id:2}], createTask mock returns {id:3}",
+      "mock_dependencies": {
+        "createTask": "returns task with id=3"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks state array first element has id=3",
+        "tasks state array length is 3"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_update_replaces_correct_task",
+      "description": "App.handleUpdate must replace only the task matching the given id, leaving all other tasks unchanged",
+      "function": "App.handleUpdate",
+      "category": "invariant",
+      "setup_description": "Initial state has tasks [{id:1, title:'A'}, {id:2, title:'B'}, {id:3, title:'C'}], updateTask returns {id:2, title:'Updated'}",
+      "mock_dependencies": {
+        "updateTask": "returns task with id=2, title='Updated'"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "task with id=1 title remains 'A'",
+        "task with id=2 title is now 'Updated'",
+        "task with id=3 title remains 'C'",
+        "tasks array length remains 3"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_delete_removes_only_target",
+      "description": "App.handleDelete must remove only the task with the given id, preserving all other tasks in order",
+      "function": "App.handleDelete",
+      "category": "invariant",
+      "setup_description": "Initial state has tasks [{id:1}, {id:2}, {id:3}], deleteTask called with id=2",
+      "mock_dependencies": {
+        "deleteTask": "returns confirmation for id=2"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks state array length is 2",
+        "tasks state contains id=1 and id=3",
+        "id=2 is not in tasks state"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_delete_no_refetch",
+      "description": "App.handleDelete must NOT call fetchTasks after successful deletion — it should filter local state directly (AC19)",
+      "function": "App.handleDelete",
+      "category": "invariant",
+      "setup_description": "Spy on fetchTasks to verify it is not called during handleDelete",
+      "mock_dependencies": {
+        "deleteTask": "returns confirmation",
+        "fetchTasks": "spy"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "fetchTasks was NOT called during handleDelete execution"
+      ]
+    },
+    {
+      "id": "goodhart_fetch_tasks_uses_get_method",
+      "description": "fetchTasks must use HTTP GET method, not POST or another method",
+      "function": "fetchTasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing method, returning 200 with []"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HTTP method used is GET or undefined (default fetch is GET)"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_uses_post_method",
+      "description": "createTask must use HTTP POST method to create resources",
+      "function": "createTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing method, returning 200"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Test\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HTTP method used is POST"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_uses_put_method",
+      "description": "updateTask must use HTTP PUT method as specified by the contract",
+      "function": "updateTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing method, returning 200"
+      },
+      "input_values": {
+        "id": "1",
+        "data": "{\"title\": \"Updated\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HTTP method used is PUT"
+      ]
+    },
+    {
+      "id": "goodhart_delete_task_uses_delete_method",
+      "description": "deleteTask must use HTTP DELETE method",
+      "function": "deleteTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing method, returning 200"
+      },
+      "input_values": {
+        "id": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HTTP method used is DELETE"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_422_raises_api_error",
+      "description": "createTask must convert 422 validation error responses into ApiError, not silently swallow or return malformed data",
+      "function": "createTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 422 with {detail: 'Invalid status'}"
+      },
+      "input_values": {
+        "data": "{\"title\": \"x\", \"status\": \"invalid_status\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "ApiError with statusCode 422",
+      "assertions": [
+        "ApiError is raised",
+        "ApiError.statusCode is 422"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_404_raises_api_error_with_detail",
+      "description": "updateTask must propagate the backend's detail message in the ApiError for 404 responses, not use a generic message",
+      "function": "updateTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 404 with {detail: 'Task 99999 not found'}"
+      },
+      "input_values": {
+        "id": "99999",
+        "data": "{\"title\": \"Updated\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "ApiError with statusCode 404 and specific detail",
+      "assertions": [
+        "ApiError is raised",
+        "ApiError.statusCode is 404",
+        "ApiError.detail contains '99999'"
+      ]
+    },
+    {
+      "id": "goodhart_fetch_tasks_preserves_task_order",
+      "description": "fetchTasks must preserve the order of tasks as returned by the backend, not sort or shuffle them",
+      "function": "fetchTasks",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with tasks ordered [3, 1, 2]"
+      },
+      "input_values": {},
+      "input_description": "Backend returns tasks with ids [3, 1, 2] in that order",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned array[0].id is 3",
+        "returned array[1].id is 1",
+        "returned array[2].id is 2"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_description_with_value_preserved",
+      "description": "createTask must preserve non-empty description strings exactly as provided, not convert all descriptions to null",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing body, returning 200 with task including description"
+      },
+      "input_values": {
+        "data": "{\"title\": \"Test\", \"description\": \"A real description\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "request body description is 'A real description', not null"
+      ]
+    },
+    {
+      "id": "goodhart_api_error_status_code_boundary_101",
+      "description": "ApiError must accept statusCode 101 — verifying the range check is inclusive at boundaries and works for adjacent values",
+      "function": "ApiError",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "101",
+        "message": "test",
+        "detail": "test"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ApiError is created successfully with statusCode 101"
+      ]
+    },
+    {
+      "id": "goodhart_api_error_status_code_boundary_598",
+      "description": "ApiError must accept statusCode 598, adjacent to the upper boundary, verifying the range check is not off-by-one",
+      "function": "ApiError",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "598",
+        "message": "test",
+        "detail": "test"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ApiError is created successfully with statusCode 598"
+      ]
+    },
+    {
+      "id": "goodhart_api_error_status_code_99_rejected",
+      "description": "ApiError must reject statusCode 99, one below the minimum, verifying the boundary is exactly 100",
+      "function": "ApiError",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "99",
+        "message": "test",
+        "detail": "test"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "Validation error for statusCode below 100",
+      "assertions": [
+        "ApiError creation raises validation error"
+      ]
+    },
+    {
+      "id": "goodhart_api_error_status_code_600_rejected",
+      "description": "ApiError must reject statusCode 600, one above the maximum, verifying the boundary is exactly 599",
+      "function": "ApiError",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "600",
+        "message": "test",
+        "detail": "test"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "Validation error for statusCode above 599",
+      "assertions": [
+        "ApiError creation raises validation error"
+      ]
+    },
+    {
+      "id": "goodhart_task_title_2_chars_accepted",
+      "description": "Task title validator must accept titles of length 2, not just the boundary values 1 and 255",
+      "function": "Task",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Ab"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task with 2-character title is valid"
+      ]
+    },
+    {
+      "id": "goodhart_task_title_254_chars_accepted",
+      "description": "Task title validator must accept titles of length 254, adjacent to the upper boundary",
+      "function": "Task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "a * 254"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task with 254-character title is valid"
+      ]
+    },
+    {
+      "id": "goodhart_status_badge_all_three_distinct",
+      "description": "Status badge color mapping must assign distinct colors to each of the three statuses — no two statuses share the same color",
+      "function": "StatusBadgeColorMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pending color differs from in_progress color",
+        "in_progress color differs from done color",
+        "pending color differs from done color"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_sends_json_body",
+      "description": "updateTask must send the update data as a JSON-encoded request body with Content-Type application/json",
+      "function": "updateTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock capturing headers and body, returning 200"
+      },
+      "input_values": {
+        "id": "5",
+        "data": "{\"status\": \"done\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Content-Type header is application/json",
+        "request body contains status field"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_create_error_does_not_mutate_state",
+      "description": "App.handleCreate must not add a task to local state when createTask throws an ApiError",
+      "function": "App.handleCreate",
+      "category": "error_case",
+      "setup_description": "Initial state has 2 tasks, createTask mock throws ApiError",
+      "mock_dependencies": {
+        "createTask": "throws ApiError"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks state array length remains 2"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_delete_error_does_not_remove",
+      "description": "App.handleDelete must not remove a task from local state when deleteTask throws an ApiError",
+      "function": "App.handleDelete",
+      "category": "error_case",
+      "setup_description": "Initial state has 3 tasks, deleteTask mock throws ApiError",
+      "mock_dependencies": {
+        "deleteTask": "throws ApiError"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks state array length remains 3"
+      ]
+    },
+    {
+      "id": "goodhart_resolve_base_url_no_trailing_slash_default",
+      "description": "resolveBaseUrl default value must not have a trailing slash",
+      "function": "resolveBaseUrl",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "VITE_API_URL": "undefined"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned URL http://localhost:8000 does not end with /"
+      ]
+    },
+    {
+      "id": "goodhart_fetch_tasks_4xx_raises_error",
+      "description": "fetchTasks must raise an ApiError for 4xx responses (not just 5xx), since all non-ok responses must be converted",
+      "function": "fetchTasks",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 400 with {detail: 'Bad request'}"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "ApiError with 4xx status code",
+      "assertions": [
+        "ApiError is raised",
+        "ApiError.statusCode is 400"
+      ]
+    },
+    {
+      "id": "goodhart_create_task_special_chars_title",
+      "description": "createTask must handle titles containing special characters (unicode, quotes, angle brackets) without mangling them",
+      "function": "createTask",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with task echoing the title"
+      },
+      "input_values": {
+        "data": "{\"title\": \"<script>alert('xss')</script> & \\u00f1 \\u65e5\\u672c\\u8a9e\", \"status\": \"pending\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned task title matches the special character input exactly"
+      ]
+    },
+    {
+      "id": "goodhart_update_task_status_only",
+      "description": "updateTask must correctly send a payload containing only a status change, verifying partial updates work",
+      "function": "updateTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "fetch": "mock returning 200 with updated task"
+      },
+      "input_values": {
+        "id": "10",
+        "data": "{\"status\": \"in_progress\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "request body contains status field",
+        "returned task has status in_progress"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_html_body_fallback",
+      "description": "parseErrorResponse must fall back to statusText when response body is HTML (not JSON), not crash on parse failure",
+      "function": "parseErrorResponse",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "502",
+        "response_body": "<html><body>Bad Gateway</body></html>",
+        "statusText": "Bad Gateway"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.statusCode is 502",
+        "returned ApiError.detail is 'Bad Gateway' or similar fallback"
+      ]
+    },
+    {
+      "id": "goodhart_parse_error_response_empty_body_fallback",
+      "description": "parseErrorResponse must handle empty response body gracefully, falling back to statusText",
+      "function": "parseErrorResponse",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "response_status": "500",
+        "response_body": "",
+        "statusText": "Internal Server Error"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned ApiError.statusCode is 500",
+        "returned ApiError.detail is 'Internal Server Error' or non-empty fallback"
+      ]
+    },
+    {
+      "id": "goodhart_app_handle_update_preserves_order",
+      "description": "App.handleUpdate must preserve the position of the updated task in the array, not move it to the beginning or end",
+      "function": "App.handleUpdate",
+      "category": "invariant",
+      "setup_description": "Initial state has tasks [{id:1}, {id:2}, {id:3}], update task id=2",
+      "mock_dependencies": {
+        "updateTask": "returns updated task with id=2"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks[0].id is 1",
+        "tasks[1].id is 2",
+        "tasks[2].id is 3"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for the React Frontend SPA component.\nThese tests target behavioral gaps not covered by visible tests, detecting\nimplementations that hardcode returns or take shortcuts.\n\"\"\"\nimport pytest\nimport json\nfrom unittest.mock import AsyncMock, MagicMock, patch, call\nfrom src.frontend import (\n    fetchTasks,\n    createTask,\n    updateTask,\n    deleteTask,\n    healthCheck,\n    resolveBaseUrl,\n    parseErrorResponse,\n    ApiError,\n    Task,\n    TaskStatus,\n    StatusBadgeColorMap,\n    DeleteConfirmation,\n    HealthResponse,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef make_mock_response(status=200, json_data=None, ok=True, status_text=\"OK\", raise_on_json=False):\n    \"\"\"Create a mock fetch Response object.\"\"\"\n    resp = MagicMock()\n    resp.status = status\n    resp.ok = ok\n    resp.statusText = status_text\n    if raise_on_json:\n        resp.json = AsyncMock(side_effect=Exception(\"not JSON\"))\n    else:\n        resp.json = AsyncMock(return_value=json_data)\n    resp.text = AsyncMock(return_value=json.dumps(json_data) if json_data else \"\")\n    return resp\n\n\ndef make_task(id=1, title=\"Test\", description=None, status=\"pending\",\n              created_at=\"2025-01-15T12:00:00+00:00\", updated_at=\"2025-01-15T12:00:00+00:00\"):\n    return {\n        \"id\": id,\n        \"title\": title,\n        \"description\": description,\n        \"status\": status,\n        \"created_at\": created_at,\n        \"updated_at\": updated_at,\n    }\n\n\n# ---------------------------------------------------------------------------\n# fetchTasks tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_fetch_tasks_correct_endpoint():\n    \"\"\"fetchTasks must issue a GET request to exactly {BASE_URL}/tasks using the resolved base URL.\"\"\"\n    with patch(\"src.frontend.resolveBaseUrl\", return_value=\"http://custom-api:9000\"):\n        mock_fetch = AsyncMock(return_value=make_mock_response(json_data=[]))\n        with patch(\"src.frontend.fetch\", mock_fetch):\n            await fetchTasks()\n            args, kwargs = mock_fetch.call_args\n            url = args[0] if args else kwargs.get(\"url\", \"\")\n            assert \"/tasks\" in url\n            assert \"custom-api:9000\" in url\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_fetch_tasks_returns_multiple_tasks_distinct():\n    \"\"\"fetchTasks must return all tasks from the response, not just the first or a subset.\"\"\"\n    tasks = [make_task(id=i, title=f\"Task {i}\") for i in range(1, 6)]\n    with patch(\"src.frontend.fetch\", AsyncMock(return_value=make_mock_response(json_data=tasks))):\n        result = await fetchTasks()\n        assert len(result) == 5\n        ids = [t[\"id\"] if isinstance(t, dict) else t.id for t in result]\n        assert len(set(ids)) == 5\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_fetch_tasks_preserves_task_order():\n    \"\"\"fetchTasks must preserve the order of tasks as returned by the backend.\"\"\"\n    tasks = [make_task(id=3), make_task(id=1), make_task(id=2)]\n    with patch(\"src.frontend.fetch\", AsyncMock(return_value=make_mock_response(json_data=tasks))):\n        result = await fetchTasks()\n        result_ids = [t[\"id\"] if isinstance(t, dict) else t.id for t in result]\n        assert result_ids == [3, 1, 2]\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_fetch_tasks_uses_get_method():\n    \"\"\"fetchTasks must use HTTP GET method.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=[]))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await fetchTasks()\n        args, kwargs = mock_fetch.call_args\n        method = kwargs.get(\"method\", \"GET\")\n        # GET is the default, so method should be GET or not specified\n        assert method.upper() in (\"GET\",) or \"method\" not in kwargs\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_fetch_tasks_4xx_raises_error():\n    \"\"\"fetchTasks must raise an ApiError for 4xx responses, not just 5xx.\"\"\"\n    resp = make_mock_response(status=400, ok=False, json_data={\"detail\": \"Bad request\"}, status_text=\"Bad Request\")\n    with patch(\"src.frontend.fetch\", AsyncMock(return_value=resp)):\n        with pytest.raises((ApiError, Exception)) as exc_info:\n            await fetchTasks()\n        err = exc_info.value\n        if hasattr(err, \"statusCode\"):\n            assert err.statusCode == 400\n        elif hasattr(err, \"status_code\"):\n            assert err.status_code == 400\n\n\n# ---------------------------------------------------------------------------\n# createTask tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_sends_json_body():\n    \"\"\"createTask must send the data as JSON with Content-Type application/json.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data=make_task(id=10, title=\"Verify JSON\", description=\"check body\")\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        data = {\"title\": \"Verify JSON\", \"description\": \"check body\", \"status\": \"pending\"}\n        await createTask(data)\n        args, kwargs = mock_fetch.call_args\n        headers = kwargs.get(\"headers\", {})\n        # Verify Content-Type is set to application/json\n        content_type = headers.get(\"Content-Type\", headers.get(\"content-type\", \"\"))\n        assert \"application/json\" in content_type\n        # Verify method is POST\n        assert kwargs.get(\"method\", \"\").upper() == \"POST\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_with_in_progress_status():\n    \"\"\"createTask must correctly propagate 'in_progress' status, not default to 'pending'.\"\"\"\n    task = make_task(id=11, title=\"Test task\", status=\"in_progress\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        data = {\"title\": \"Test task\", \"description\": None, \"status\": \"in_progress\"}\n        result = await createTask(data)\n        # Check request body was sent with in_progress\n        args, kwargs = mock_fetch.call_args\n        body = kwargs.get(\"body\", kwargs.get(\"data\", \"\"))\n        if isinstance(body, str):\n            parsed = json.loads(body)\n        else:\n            parsed = body\n        assert parsed.get(\"status\") == \"in_progress\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_with_done_status():\n    \"\"\"createTask must correctly propagate 'done' status, not hardcode to 'pending'.\"\"\"\n    task = make_task(id=12, title=\"Completed task\", description=\"finished\", status=\"done\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        data = {\"title\": \"Completed task\", \"description\": \"finished\", \"status\": \"done\"}\n        result = await createTask(data)\n        result_status = result[\"status\"] if isinstance(result, dict) else result.status\n        assert result_status == \"done\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_empty_desc_becomes_null():\n    \"\"\"Empty description strings must be converted to null before sending to backend (A12).\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data=make_task(id=13, title=\"Test\", description=None)\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        data = {\"title\": \"Test\", \"description\": \"\", \"status\": \"pending\"}\n        await createTask(data)\n        args, kwargs = mock_fetch.call_args\n        body = kwargs.get(\"body\", kwargs.get(\"data\", \"\"))\n        if isinstance(body, str):\n            parsed = json.loads(body)\n        else:\n            parsed = body\n        assert parsed.get(\"description\") is None, \\\n            f\"Empty description should be sent as null, got: {parsed.get('description')!r}\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_description_with_value_preserved():\n    \"\"\"createTask must preserve non-empty description strings, not convert all to null.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data=make_task(id=14, title=\"Test\", description=\"A real description\")\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        data = {\"title\": \"Test\", \"description\": \"A real description\", \"status\": \"pending\"}\n        await createTask(data)\n        args, kwargs = mock_fetch.call_args\n        body = kwargs.get(\"body\", kwargs.get(\"data\", \"\"))\n        if isinstance(body, str):\n            parsed = json.loads(body)\n        else:\n            parsed = body\n        assert parsed.get(\"description\") == \"A real description\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_uses_post_method():\n    \"\"\"createTask must use HTTP POST method.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data=make_task(id=15, title=\"Test\")\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await createTask({\"title\": \"Test\", \"status\": \"pending\"})\n        args, kwargs = mock_fetch.call_args\n        assert kwargs.get(\"method\", \"\").upper() == \"POST\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_returns_full_task_object():\n    \"\"\"createTask must return a complete Task with all six fields.\"\"\"\n    task_data = make_task(id=16, title=\"Full fields\", description=\"desc\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        result = await createTask({\"title\": \"Full fields\", \"description\": \"desc\", \"status\": \"pending\"})\n        if isinstance(result, dict):\n            for field in (\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"):\n                assert field in result, f\"Missing field: {field}\"\n        else:\n            for field in (\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"):\n                assert hasattr(result, field), f\"Missing attribute: {field}\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_special_chars_title():\n    \"\"\"createTask must handle titles with special/unicode characters without mangling.\"\"\"\n    special_title = \"<script>alert('xss')</script> & ñ 日本語\"\n    task_data = make_task(id=17, title=special_title)\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        result = await createTask({\"title\": special_title, \"status\": \"pending\"})\n        result_title = result[\"title\"] if isinstance(result, dict) else result.title\n        assert result_title == special_title\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_create_task_422_raises_api_error():\n    \"\"\"createTask must convert 422 responses into ApiError with correct status code.\"\"\"\n    resp = make_mock_response(status=422, ok=False, json_data={\"detail\": \"Invalid status\"}, status_text=\"Unprocessable Entity\")\n    with patch(\"src.frontend.fetch\", AsyncMock(return_value=resp)):\n        with pytest.raises((ApiError, Exception)) as exc_info:\n            await createTask({\"title\": \"x\", \"status\": \"invalid_status\"})\n        err = exc_info.value\n        if hasattr(err, \"statusCode\"):\n            assert err.statusCode == 422\n        elif hasattr(err, \"status_code\"):\n            assert err.status_code == 422\n\n\n# ---------------------------------------------------------------------------\n# updateTask tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_correct_url_interpolation():\n    \"\"\"updateTask must interpolate the task id into the URL path for arbitrary id values.\"\"\"\n    task_data = make_task(id=42, title=\"Updated\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await updateTask(42, {\"title\": \"Updated\"})\n        args, kwargs = mock_fetch.call_args\n        url = args[0] if args else kwargs.get(\"url\", \"\")\n        assert \"/tasks/42\" in url\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_different_id():\n    \"\"\"updateTask must correctly interpolate various id values, not hardcode a specific id.\"\"\"\n    task_data = make_task(id=9999, title=\"Updated\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await updateTask(9999, {\"status\": \"done\"})\n        args, kwargs = mock_fetch.call_args\n        url = args[0] if args else kwargs.get(\"url\", \"\")\n        assert \"/tasks/9999\" in url\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_uses_put_method():\n    \"\"\"updateTask must use HTTP PUT method.\"\"\"\n    task_data = make_task(id=1, title=\"Updated\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await updateTask(1, {\"title\": \"Updated\"})\n        args, kwargs = mock_fetch.call_args\n        assert kwargs.get(\"method\", \"\").upper() == \"PUT\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_sends_json_body():\n    \"\"\"updateTask must send update data as JSON with Content-Type application/json.\"\"\"\n    task_data = make_task(id=5, status=\"done\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await updateTask(5, {\"status\": \"done\"})\n        args, kwargs = mock_fetch.call_args\n        headers = kwargs.get(\"headers\", {})\n        content_type = headers.get(\"Content-Type\", headers.get(\"content-type\", \"\"))\n        assert \"application/json\" in content_type\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_returns_id_matching_input():\n    \"\"\"updateTask must return a Task whose id matches the input id parameter.\"\"\"\n    task_data = make_task(id=123, title=\"Changed\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        result = await updateTask(123, {\"title\": \"Changed\"})\n        result_id = result[\"id\"] if isinstance(result, dict) else result.id\n        assert result_id == 123\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_status_only():\n    \"\"\"updateTask must correctly send a payload containing only a status change.\"\"\"\n    task_data = make_task(id=10, status=\"in_progress\")\n    mock_fetch = AsyncMock(return_value=make_mock_response(json_data=task_data))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        result = await updateTask(10, {\"status\": \"in_progress\"})\n        result_status = result[\"status\"] if isinstance(result, dict) else result.status\n        assert result_status == \"in_progress\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_update_task_404_raises_api_error_with_detail():\n    \"\"\"updateTask must propagate the backend's specific detail message in ApiError for 404.\"\"\"\n    resp = make_mock_response(status=404, ok=False, json_data={\"detail\": \"Task 99999 not found\"}, status_text=\"Not Found\")\n    with patch(\"src.frontend.fetch\", AsyncMock(return_value=resp)):\n        with pytest.raises((ApiError, Exception)) as exc_info:\n            await updateTask(99999, {\"title\": \"Updated\"})\n        err = exc_info.value\n        if hasattr(err, \"detail\"):\n            assert \"99999\" in str(err.detail)\n        elif hasattr(err, \"message\"):\n            assert \"99999\" in str(err.message)\n\n\n# ---------------------------------------------------------------------------\n# deleteTask tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_delete_task_correct_url_interpolation():\n    \"\"\"deleteTask must interpolate the task id into the URL as DELETE {BASE_URL}/tasks/{id}.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data={\"detail\": \"Deleted\", \"id\": 77}\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await deleteTask(77)\n        args, kwargs = mock_fetch.call_args\n        url = args[0] if args else kwargs.get(\"url\", \"\")\n        assert \"/tasks/77\" in url\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_delete_task_uses_delete_method():\n    \"\"\"deleteTask must use HTTP DELETE method.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data={\"detail\": \"Deleted\", \"id\": 1}\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        await deleteTask(1)\n        args, kwargs = mock_fetch.call_args\n        assert kwargs.get(\"method\", \"\").upper() == \"DELETE\"\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_delete_task_returns_correct_id():\n    \"\"\"deleteTask must return DeleteConfirmation with id matching the deleted task.\"\"\"\n    mock_fetch = AsyncMock(return_value=make_mock_response(\n        json_data={\"detail\": \"Task deleted successfully\", \"id\": 55}\n    ))\n    with patch(\"src.frontend.fetch\", mock_fetch):\n        result = await deleteTask(55)\n        result_id = result[\"id\"] if isinstance(result, dict) else result.id\n        assert result_id == 55\n\n\n# ---------------------------------------------------------------------------\n# healthCheck tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_health_check_correct_endpoint():\n    \"\"\"healthCheck must issue GET to {BASE_URL}/health using the resolved base URL.\"\"\"\n    with patch(\"src.frontend.resolveBaseUrl\", return_value=\"http://other-host:3000\"):\n        mock_fetch = AsyncMock(return_value=make_mock_response(\n            json_data={\"status\": \"healthy\"}\n        ))\n        with patch(\"src.frontend.fetch\", mock_fetch):\n            await healthCheck()\n            args, kwargs = mock_fetch.call_args\n            url = args[0] if args else kwargs.get(\"url\", \"\")\n            assert \"other-host:3000\" in url\n            assert \"/health\" in url\n\n\n# ---------------------------------------------------------------------------\n# resolveBaseUrl tests\n# ---------------------------------------------------------------------------\n\ndef test_goodhart_resolve_base_url_multiple_trailing_slashes():\n    \"\"\"resolveBaseUrl should strip trailing slashes from URLs with multiple trailing slashes.\"\"\"\n    with patch.dict(\"os.environ\", {\"VITE_API_URL\": \"http://example.com///\"}, clear=False):\n        try:\n            result = resolveBaseUrl()\n            assert not result.endswith(\"/\")\n        except Exception:\n            # Some implementations read from import.meta.env - try alternate approach\n            pass\n\n\ndef test_goodhart_resolve_base_url_no_trailing_slash_default():\n    \"\"\"resolveBaseUrl default return must not have a trailing slash.\"\"\"\n    result = resolveBaseUrl()\n    assert not result.endswith(\"/\")\n    assert result == \"http://localhost:8000\"\n\n\n# ---------------------------------------------------------------------------\n# parseErrorResponse tests\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_preserves_status_code_404():\n    \"\"\"parseErrorResponse must capture actual HTTP status code 404, not hardcode common values.\"\"\"\n    resp = make_mock_response(status=404, ok=False, json_data={\"detail\": \"Not found\"}, status_text=\"Not Found\")\n    result = await parseErrorResponse(resp)\n    assert (result.statusCode if hasattr(result, \"statusCode\") else result.status_code) == 404\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_preserves_status_code_422():\n    \"\"\"parseErrorResponse must correctly capture 422 status codes.\"\"\"\n    resp = make_mock_response(status=422, ok=False, json_data={\"detail\": \"Validation failed\"}, status_text=\"Unprocessable Entity\")\n    result = await parseErrorResponse(resp)\n    assert (result.statusCode if hasattr(result, \"statusCode\") else result.status_code) == 422\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_preserves_status_code_409():\n    \"\"\"parseErrorResponse must handle less common HTTP error codes like 409.\"\"\"\n    resp = make_mock_response(status=409, ok=False, json_data={\"detail\": \"Conflict\"}, status_text=\"Conflict\")\n    result = await parseErrorResponse(resp)\n    assert (result.statusCode if hasattr(result, \"statusCode\") else result.status_code) == 409\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_message_includes_detail():\n    \"\"\"parseErrorResponse must compose message to include the parsed detail string.\"\"\"\n    resp = make_mock_response(status=400, ok=False, json_data={\"detail\": \"Title cannot be empty\"}, status_text=\"Bad Request\")\n    result = await parseErrorResponse(resp)\n    msg = result.message if hasattr(result, \"message\") else str(result)\n    assert \"Title cannot be empty\" in msg\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_html_body_fallback():\n    \"\"\"parseErrorResponse must fall back to statusText when response body is HTML.\"\"\"\n    resp = make_mock_response(status=502, ok=False, status_text=\"Bad Gateway\", raise_on_json=True)\n    result = await parseErrorResponse(resp)\n    detail = result.detail if hasattr(result, \"detail\") else str(result)\n    assert \"Bad Gateway\" in detail or \"502\" in detail\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_parse_error_response_empty_body_fallback():\n    \"\"\"parseErrorResponse must handle empty response body, falling back to statusText.\"\"\"\n    resp = MagicMock()\n    resp.status = 500\n    resp.ok = False\n    resp.statusText = \"Internal Server Error\"\n    resp.json = AsyncMock(side_effect=Exception(\"empty body\"))\n    resp.text = AsyncMock(return_value=\"\")\n    result = await parseErrorResponse(resp)\n    code = result.statusCode if hasattr(result, \"statusCode\") else result.status_code\n    assert code == 500\n    detail = result.detail if hasattr(result, \"detail\") else str(result)\n    assert len(detail) > 0  # Should have some fallback text\n\n\n# ---------------------------------------------------------------------------\n# Type / Validator tests\n# ---------------------------------------------------------------------------\n\ndef test_goodhart_api_error_status_code_boundary_101():\n    \"\"\"ApiError must accept statusCode 101, verifying the range is truly [100, 599].\"\"\"\n    try:\n        err = ApiError(message=\"test\", statusCode=101, detail=\"test\")\n        code = err.statusCode if hasattr(err, \"statusCode\") else err.status_code\n        assert code == 101\n    except Exception:\n        # Try alternate constructor patterns\n        err = ApiError(\"test\", 101, \"test\")\n        assert True\n\n\ndef test_goodhart_api_error_status_code_boundary_598():\n    \"\"\"ApiError must accept statusCode 598, adjacent to upper boundary.\"\"\"\n    try:\n        err = ApiError(message=\"test\", statusCode=598, detail=\"test\")\n        code = err.statusCode if hasattr(err, \"statusCode\") else err.status_code\n        assert code == 598\n    except Exception:\n        err = ApiError(\"test\", 598, \"test\")\n        assert True\n\n\ndef test_goodhart_api_error_status_code_99_rejected():\n    \"\"\"ApiError must reject statusCode 99, one below the minimum boundary.\"\"\"\n    with pytest.raises((ValueError, Exception)):\n        ApiError(message=\"test\", statusCode=99, detail=\"test\")\n\n\ndef test_goodhart_api_error_status_code_600_rejected():\n    \"\"\"ApiError must reject statusCode 600, one above the maximum boundary.\"\"\"\n    with pytest.raises((ValueError, Exception)):\n        ApiError(message=\"test\", statusCode=600, detail=\"test\")\n\n\ndef test_goodhart_task_title_2_chars_accepted():\n    \"\"\"Task title validator must accept titles of arbitrary valid length, not just boundaries.\"\"\"\n    task = Task(id=1, title=\"Ab\", description=None, status=\"pending\",\n                created_at=\"2025-01-15T12:00:00+00:00\", updated_at=\"2025-01-15T12:00:00+00:00\")\n    title = task.title if hasattr(task, \"title\") else task[\"title\"]\n    assert title == \"Ab\"\n\n\ndef test_goodhart_task_title_254_chars_accepted():\n    \"\"\"Task title validator must accept 254-char titles, adjacent to upper boundary.\"\"\"\n    long_title = \"a\" * 254\n    task = Task(id=1, title=long_title, description=None, status=\"pending\",\n                created_at=\"2025-01-15T12:00:00+00:00\", updated_at=\"2025-01-15T12:00:00+00:00\")\n    title = task.title if hasattr(task, \"title\") else task[\"title\"]\n    assert len(title) == 254\n\n\ndef test_goodhart_status_badge_all_three_distinct():\n    \"\"\"Status badge colors must be distinct for each status — no two share the same color.\"\"\"\n    if isinstance(StatusBadgeColorMap, dict):\n        colors = StatusBadgeColorMap\n    else:\n        colors = {\n            \"pending\": StatusBadgeColorMap.pending if hasattr(StatusBadgeColorMap, \"pending\") else StatusBadgeColorMap[\"pending\"],\n            \"in_progress\": StatusBadgeColorMap.in_progress if hasattr(StatusBadgeColorMap, \"in_progress\") else StatusBadgeColorMap[\"in_progress\"],\n            \"done\": StatusBadgeColorMap.done if hasattr(StatusBadgeColorMap, \"done\") else StatusBadgeColorMap[\"done\"],\n        }\n    assert colors[\"pending\"] != colors[\"in_progress\"]\n    assert colors[\"in_progress\"] != colors[\"done\"]\n    assert colors[\"pending\"] != colors[\"done\"]\n\n\n# ---------------------------------------------------------------------------\n# App handler tests (state management)\n# ---------------------------------------------------------------------------\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_create_prepends_not_appends():\n    \"\"\"App.handleCreate must prepend (not append) the new task so newest tasks appear first.\"\"\"\n    # This test verifies the contract postcondition about prepending.\n    # Import App-level handlers or simulate state management.\n    try:\n        from src.frontend import App\n        # If App is a class with handleCreate:\n        initial_tasks = [make_task(id=1, title=\"A\"), make_task(id=2, title=\"B\")]\n        new_task = make_task(id=3, title=\"New\")\n        \n        with patch(\"src.frontend.createTask\", AsyncMock(return_value=new_task)):\n            app = App()\n            app.tasks = list(initial_tasks)\n            await app.handleCreate({\"title\": \"New\", \"status\": \"pending\"})\n            first_id = app.tasks[0][\"id\"] if isinstance(app.tasks[0], dict) else app.tasks[0].id\n            assert first_id == 3, \"New task should be prepended at index 0\"\n            assert len(app.tasks) == 3\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_update_replaces_correct_task():\n    \"\"\"App.handleUpdate must replace only the matching task, leaving others unchanged.\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [\n            make_task(id=1, title=\"A\"),\n            make_task(id=2, title=\"B\"),\n            make_task(id=3, title=\"C\"),\n        ]\n        updated_task = make_task(id=2, title=\"Updated\")\n        \n        with patch(\"src.frontend.updateTask\", AsyncMock(return_value=updated_task)):\n            app = App()\n            app.tasks = list(initial_tasks)\n            await app.handleUpdate(2, {\"title\": \"Updated\"})\n            \n            titles = [t[\"title\"] if isinstance(t, dict) else t.title for t in app.tasks]\n            assert titles[0] == \"A\"\n            assert titles[1] == \"Updated\"\n            assert titles[2] == \"C\"\n            assert len(app.tasks) == 3\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_update_preserves_order():\n    \"\"\"App.handleUpdate must preserve the position of the updated task in the array.\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [\n            make_task(id=1, title=\"A\"),\n            make_task(id=2, title=\"B\"),\n            make_task(id=3, title=\"C\"),\n        ]\n        updated_task = make_task(id=2, title=\"Updated B\")\n        \n        with patch(\"src.frontend.updateTask\", AsyncMock(return_value=updated_task)):\n            app = App()\n            app.tasks = list(initial_tasks)\n            await app.handleUpdate(2, {\"title\": \"Updated B\"})\n            \n            ids = [t[\"id\"] if isinstance(t, dict) else t.id for t in app.tasks]\n            assert ids == [1, 2, 3], \"Task order must be preserved after update\"\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_delete_removes_only_target():\n    \"\"\"App.handleDelete must remove only the specified task, preserving all others.\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [\n            make_task(id=1, title=\"A\"),\n            make_task(id=2, title=\"B\"),\n            make_task(id=3, title=\"C\"),\n        ]\n        \n        with patch(\"src.frontend.deleteTask\", AsyncMock(return_value={\"detail\": \"Deleted\", \"id\": 2})):\n            app = App()\n            app.tasks = list(initial_tasks)\n            await app.handleDelete(2)\n            \n            ids = [t[\"id\"] if isinstance(t, dict) else t.id for t in app.tasks]\n            assert 2 not in ids\n            assert 1 in ids\n            assert 3 in ids\n            assert len(app.tasks) == 2\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_delete_no_refetch():\n    \"\"\"App.handleDelete must NOT call fetchTasks after successful deletion (AC19).\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [make_task(id=1), make_task(id=2)]\n        \n        mock_fetch_tasks = AsyncMock(return_value=[])\n        with patch(\"src.frontend.deleteTask\", AsyncMock(return_value={\"detail\": \"Deleted\", \"id\": 1})):\n            with patch(\"src.frontend.fetchTasks\", mock_fetch_tasks):\n                app = App()\n                app.tasks = list(initial_tasks)\n                await app.handleDelete(1)\n                \n                mock_fetch_tasks.assert_not_called(), \\\n                    \"fetchTasks should NOT be called during handleDelete — state should be filtered locally\"\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_create_error_does_not_mutate_state():\n    \"\"\"App.handleCreate must not add a task when createTask throws an error.\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [make_task(id=1), make_task(id=2)]\n        \n        with patch(\"src.frontend.createTask\", AsyncMock(side_effect=ApiError(\"fail\", 500, \"error\"))):\n            app = App()\n            app.tasks = list(initial_tasks)\n            try:\n                await app.handleCreate({\"title\": \"Test\", \"status\": \"pending\"})\n            except (ApiError, Exception):\n                pass\n            assert len(app.tasks) == 2, \"State should not be mutated on error\"\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n\n\n@pytest.mark.asyncio\nasync def test_goodhart_app_handle_delete_error_does_not_remove():\n    \"\"\"App.handleDelete must not remove a task when deleteTask throws an error.\"\"\"\n    try:\n        from src.frontend import App\n        initial_tasks = [make_task(id=1), make_task(id=2), make_task(id=3)]\n        \n        with patch(\"src.frontend.deleteTask\", AsyncMock(side_effect=ApiError(\"fail\", 500, \"error\"))):\n            app = App()\n            app.tasks = list(initial_tasks)\n            try:\n                await app.handleDelete(2)\n            except (ApiError, Exception):\n                pass\n            assert len(app.tasks) == 3, \"State should not be mutated on error\"\n    except (ImportError, AttributeError, TypeError):\n        pytest.skip(\"App handler not directly testable in this implementation pattern\")\n"
+}

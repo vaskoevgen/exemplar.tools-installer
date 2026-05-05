@@ -1,0 +1,34 @@
+version: "1.0"
+generated_by: constrain
+session_id: "demo_task_mgmt"
+system: "Task Management Demo Application"
+
+trust:
+  floor: 0.10
+  authority_override_floor: 0.40
+  decay_lambda: 0.05
+  taint_lock_tiers: []
+  conflict_trust_delta_threshold: 0.20
+
+classifications:
+  - field_pattern: "tasks.*"
+    tier: PUBLIC
+    authoritative_component: "fastapi_backend"
+    canary_eligible: true
+    canary_pattern: "tasks.title LIKE 'canary_%'"
+    rationale: "Demo project with no sensitive data, backend owns all task data"
+
+soak:
+  base_durations:
+    PUBLIC: 1h
+  target_requests: 100
+
+authority_map:
+  - component: "fastapi_backend"
+    domains: ["tasks.*"]
+    rationale: "Backend is sole authoritative source for all task data and business logic"
+
+human_gates:
+  always: []
+  on_low_trust_authoritative: false
+  on_unresolvable_conflict: false

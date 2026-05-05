@@ -1,0 +1,176 @@
+{
+  "risks": [
+    "CORS misconfiguration: The spec never mentions CORS. The React frontend on port 5173 will issue cross-origin requests to the backend on port 8000. Without explicit CORS middleware configuration in FastAPI, every browser request will fail silently. This is a near-certain implementation blocker.",
+    "psycopg2 connection management: The spec mandates psycopg2 (not asyncpg, not SQLAlchemy). Raw psycopg2 connections in a FastAPI async context risk thread-pool exhaustion under load. More critically, the spec says nothing about connection pooling, connection lifecycle, or error handling on lost connections — two engineers will make different choices (global connection, per-request connection, connection pool).",
+    "Database schema drift: The spec states 'the tasks table already exists' but also says each component must be startable independently. If the database is provisioned separately, there is no migration or schema-validation step defined. If the table does NOT exist or has drifted, the backend will crash at runtime with no actionable error.",
+    "No updated_at trigger or application-side guarantee on INSERT: The spec says 'updated_at is set automatically by the backend on every update' but is silent on whether updated_at should also be set on creation. The DB default handles INSERT, but if the backend explicitly sets updated_at on create, it may diverge from created_at. Inconsistency risk.",
+    "Status validation gap — POST /tasks accepts optional status defaulting to 'pending', but there is no explicit statement that POST must also validate status against the enum {pending, in_progress, done}. An engineer might only validate on PUT.",
+    "Race conditions on concurrent updates: No optimistic locking or versioning is specified. Two users editing the same task will silently overwrite each other's changes — a known data-loss scenario.",
+    "Frontend error handling is completely unspecified: What happens when the backend returns 500? When it's unreachable? When a 404 is returned on delete (task already deleted by another user)? Different engineers will produce wildly different UX.",
+    "Test infrastructure bootstrapping: SOPs require 'all backend functions must have at least one test' and 'contract tests may connect to PostgreSQL via DATABASE_URL'. This implies a live PostgreSQL instance for testing, but there is no guidance on test database provisioning, teardown, or isolation. Tests may corrupt each other's state.",
+    "Partial PUT semantics: PUT /tasks/{id} with 'optional title, description, and status fields' describes PATCH semantics (partial update), not PUT semantics (full replacement). This is an HTTP semantic violation that will confuse engineers and may cause bugs if someone implements true PUT (nullifying omitted fields)."
+  ],
+  "ambiguities": [
+    "PUT vs PATCH semantics: The spec defines PUT with all-optional fields. Should omitted fields be left unchanged (PATCH behavior) or set to null/default (true PUT behavior)? These produce opposite outcomes for the description field.",
+    "GET /tasks ordering: No sort order is specified. Should tasks be returned by id ASC, created_at DESC, or is ordering undefined? Frontend list rendering will differ.",
+    "GET /tasks pagination: No pagination is specified. For a 'task management' app, is it acceptable to return all tasks in a single response? At what scale does this become a problem, and should we defensively add pagination now?",
+    "DELETE /tasks/{id} response body: The spec says 'returns 404 if not found' but does not specify the success response. Should it return 204 No Content, 200 with the deleted task object, or 200 with a confirmation message?",
+    "POST /tasks response: Should it return the created task object (with server-assigned id, created_at, updated_at)? HTTP 201 or 200? The spec is silent.",
+    "PUT /tasks/{id} response: Should it return the updated task object? The spec does not say.",
+    "Frontend state management: No guidance on whether to use React Context, Redux, Zustand, or plain useState/useEffect. For a small app this may not matter, but it affects testability and code structure.",
+    "Inline editing UX: 'Edit button per task to update title, description, and status inline' — does 'inline' mean edit-in-place within the list row, or a modal/drawer, or expanding the row into a form? These are radically different implementations.",
+    "Timestamp display format: Task objects contain ISO timestamp strings. The frontend shows 'created date' — should this be rendered as a date only, date+time, relative time ('2 hours ago'), or localized?",
+    "Description field nullability: POST allows optional description (implying null in DB), but the frontend form includes a description field. Should the frontend send null, empty string, or omit the field when description is blank? The backend must handle all three consistently.",
+    "VITE_API_URL trailing slash handling: Should the env var include or exclude a trailing slash? Path concatenation bugs are common here."
+  ],
+  "questions": [
+    "Q1: PUT with optional fields — should omitted fields remain unchanged (PATCH semantics) or be reset to defaults/null (true PUT semantics)?",
+    "Q2: What is the expected response body and HTTP status code for successful POST (201 with task object?), PUT (200 with updated task?), and DELETE (204 no content? 200 with message?)?",
+    "Q3: Should GET /tasks return tasks in a specific order? If so, what field and direction?",
+    "Q4: Is pagination required for GET /tasks, or is returning all rows acceptable for the foreseeable scope?",
+    "Q5: Does 'inline editing' mean edit-in-place within the task list row, or is a separate form/modal acceptable?",
+    "Q6: Should the backend validate status on POST /tasks as well as PUT, rejecting invalid status values with a 422?",
+    "Q7: Is there a maximum length constraint on the description TEXT field at the application level?",
+    "Q8: Should the frontend display loading states, error toasts, or any specific feedback when API calls fail?",
+    "Q9: For testing, should we assume a dedicated test database, or should tests create/teardown their own schema? Is a dockerized PostgreSQL expected?",
+    "Q10: The spec says 'each component must be startable independently' — does the backend need to gracefully handle a missing database (retry logic, health check degradation), or is it acceptable to crash on startup if PostgreSQL is unavailable?"
+  ],
+  "assumptions": [
+    "A1: PUT with optional fields implements PATCH semantics — omitted fields are left unchanged. This is the only sane interpretation given 'optional' fields on PUT.",
+    "A2: POST /tasks returns HTTP 201 with the full task object including server-generated id, created_at, and updated_at. PUT returns 200 with the full updated task object. DELETE returns 200 with a JSON confirmation or 204 No Content.",
+    "A3: GET /tasks returns tasks ordered by created_at DESC (newest first) unless otherwise specified.",
+    "A4: No pagination — all tasks returned in a single array. Acceptable for an app of this scope.",
+    "A5: CORS middleware will be added to the FastAPI app allowing requests from the frontend origin (at minimum localhost:5173, ideally configurable).",
+    "A6: Status validation applies to both POST and PUT — invalid status values return HTTP 422 with a detail field.",
+    "A7: 'Inline editing' means edit-in-place within the list row, toggling between display and form mode on the same row.",
+    "A8: psycopg2 connections will be managed via a connection pool (psycopg2.pool) with per-request acquisition and release.",
+    "A9: The backend will use synchronous psycopg2 with FastAPI's thread-pool executor (def endpoints, not async def) since psycopg2 is blocking.",
+    "A10: Tests will rely on a DATABASE_URL pointing to a test PostgreSQL instance. Each test or test session will handle its own setup/teardown of test data.",
+    "A11: The frontend will use plain React state (useState/useEffect) without an external state management library, given the app's limited scope.",
+    "A12: Empty description from the frontend form will be sent as null (not empty string) and stored as NULL in the database."
+  ],
+  "acceptance_criteria": [
+    "AC1: PostgreSQL database is running on port 5432 with the tasks table matching the specified schema (id, title, description, status, created_at, updated_at) and correct types/defaults.",
+    "AC2: FastAPI backend starts on port 8000 and connects to PostgreSQL via DATABASE_URL environment variable.",
+    "AC3: GET /health returns HTTP 200 with JSON body {\"status\": \"ok\"}.",
+    "AC4: POST /tasks with {\"title\": \"Test\"} returns HTTP 201 with a complete task object containing server-assigned id, status='pending', non-null created_at and updated_at, and the provided title.",
+    "AC5: POST /tasks with an invalid status value (e.g., {\"title\": \"Test\", \"status\": \"invalid\"}) returns HTTP 422 with a JSON body containing a detail field.",
+    "AC6: POST /tasks without a title returns HTTP 422 with a JSON body containing a detail field.",
+    "AC7: GET /tasks returns HTTP 200 with a JSON array of all task objects in the database.",
+    "AC8: GET /tasks/{id} with a valid id returns HTTP 200 with the corresponding task object.",
+    "AC9: GET /tasks/{id} with a non-existent id returns HTTP 404 with JSON body containing a detail field.",
+    "AC10: PUT /tasks/{id} with partial fields updates only the provided fields, leaves others unchanged, updates updated_at, and returns the full updated task object.",
+    "AC11: PUT /tasks/{id} does NOT modify created_at under any circumstances.",
+    "AC12: DELETE /tasks/{id} with a valid id removes the row from the database and returns a success response.",
+    "AC13: DELETE /tasks/{id} with a non-existent id returns HTTP 404 with JSON body containing a detail field.",
+    "AC14: All timestamp fields in API responses are ISO 8601 formatted strings with timezone information.",
+    "AC15: React frontend starts on port 5173 and renders a list of all tasks fetched from the backend API.",
+    "AC16: Frontend task list displays title, a colored status badge (grey for pending, blue for in_progress, green for done), and the created date for each task.",
+    "AC17: Frontend provides a form to create a new task with title (required), description (optional), and status (optional) fields. Submitting the form adds the task to the list without a page reload.",
+    "AC18: Frontend provides an edit mechanism per task that allows modifying title, description, and status inline, persisting changes to the backend without a page reload.",
+    "AC19: Frontend provides a delete button per task that removes the task from the backend and the UI without a page reload.",
+    "AC20: Frontend communicates with the backend using the URL from VITE_API_URL environment variable, defaulting to http://localhost:8000.",
+    "AC21: CORS is configured on the backend to allow requests from the frontend origin.",
+    "AC22: All public Python functions in the backend have type annotations.",
+    "AC23: Every backend function has at least one corresponding pytest test.",
+    "AC24: Contract tests exercising all six endpoints pass against a live PostgreSQL instance.",
+    "AC25: No source file exceeds 300 lines.",
+    "AC26: Frontend, backend, and database can each be started independently (no shared code, no build-time coupling between frontend and backend)."
+  ],
+  "user_answers": {
+    "Q1: PUT with optional fields — should omitted fields remain unchanged (PATCH semantics) or be reset to defaults/null (true PUT semantics)?": "A1: PUT with optional fields implements PATCH semantics — omitted fields are left unchanged. This is the only sane interpretation given 'optional' fields on PUT.",
+    "Q2: What is the expected response body and HTTP status code for successful POST (201 with task object?), PUT (200 with updated task?), and DELETE (204 no content? 200 with message?)?": "A2: POST /tasks returns HTTP 201 with the full task object including server-generated id, created_at, and updated_at. PUT returns 200 with the full updated task object. DELETE returns 200 with a JSON confirmation or 204 No Content.",
+    "Q3: Should GET /tasks return tasks in a specific order? If so, what field and direction?": "A3: GET /tasks returns tasks ordered by created_at DESC (newest first) unless otherwise specified.",
+    "Q4: Is pagination required for GET /tasks, or is returning all rows acceptable for the foreseeable scope?": "A4: No pagination — all tasks returned in a single array. Acceptable for an app of this scope.",
+    "Q5: Does 'inline editing' mean edit-in-place within the task list row, or is a separate form/modal acceptable?": "A7: 'Inline editing' means edit-in-place within the list row, toggling between display and form mode on the same row.",
+    "Q6: Should the backend validate status on POST /tasks as well as PUT, rejecting invalid status values with a 422?": "A6: Status validation applies to both POST and PUT — invalid status values return HTTP 422 with a detail field.",
+    "Q7: Is there a maximum length constraint on the description TEXT field at the application level?": "A7: 'Inline editing' means edit-in-place within the list row, toggling between display and form mode on the same row.",
+    "Q8: Should the frontend display loading states, error toasts, or any specific feedback when API calls fail?": "A8: psycopg2 connections will be managed via a connection pool (psycopg2.pool) with per-request acquisition and release.",
+    "Q9: For testing, should we assume a dedicated test database, or should tests create/teardown their own schema? Is a dockerized PostgreSQL expected?": "A10: Tests will rely on a DATABASE_URL pointing to a test PostgreSQL instance. Each test or test session will handle its own setup/teardown of test data.",
+    "Q10: The spec says 'each component must be startable independently' — does the backend need to gracefully handle a missing database (retry logic, health check degradation), or is it acceptable to crash on startup if PostgreSQL is unavailable?": "A4: No pagination — all tasks returned in a single array. Acceptable for an app of this scope."
+  },
+  "approved": true,
+  "audited_answers": [
+    {
+      "question_id": "q_000",
+      "answer": "A1: PUT with optional fields implements PATCH semantics — omitted fields are left unchanged. This is the only sane interpretation given 'optional' fields on PUT.",
+      "source": "cli_approve",
+      "confidence": 0.5714285714285714,
+      "timestamp": "2026-05-04T22:18:36.651219+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_001",
+      "answer": "A2: POST /tasks returns HTTP 201 with the full task object including server-generated id, created_at, and updated_at. PUT returns 200 with the full updated task object. DELETE returns 200 with a JSON confirmation or 204 No Content.",
+      "source": "cli_approve",
+      "confidence": 0.5,
+      "timestamp": "2026-05-04T22:18:36.651359+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_002",
+      "answer": "A3: GET /tasks returns tasks ordered by created_at DESC (newest first) unless otherwise specified.",
+      "source": "cli_approve",
+      "confidence": 0.23076923076923078,
+      "timestamp": "2026-05-04T22:18:36.651363+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_003",
+      "answer": "A4: No pagination — all tasks returned in a single array. Acceptable for an app of this scope.",
+      "source": "cli_approve",
+      "confidence": 0.3,
+      "timestamp": "2026-05-04T22:18:36.651367+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_004",
+      "answer": "A7: 'Inline editing' means edit-in-place within the list row, toggling between display and form mode on the same row.",
+      "source": "cli_approve",
+      "confidence": 0.5,
+      "timestamp": "2026-05-04T22:18:36.651369+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_005",
+      "answer": "A6: Status validation applies to both POST and PUT — invalid status values return HTTP 422 with a detail field.",
+      "source": "cli_approve",
+      "confidence": 0.42857142857142855,
+      "timestamp": "2026-05-04T22:18:36.651371+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_006",
+      "answer": "A7: 'Inline editing' means edit-in-place within the list row, toggling between display and form mode on the same row.",
+      "source": "cli_approve",
+      "confidence": 0.5,
+      "timestamp": "2026-05-04T22:18:36.651373+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_007",
+      "answer": "A8: psycopg2 connections will be managed via a connection pool (psycopg2.pool) with per-request acquisition and release.",
+      "source": "cli_approve",
+      "confidence": 0.5,
+      "timestamp": "2026-05-04T22:18:36.651374+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_008",
+      "answer": "A10: Tests will rely on a DATABASE_URL pointing to a test PostgreSQL instance. Each test or test session will handle its own setup/teardown of test data.",
+      "source": "cli_approve",
+      "confidence": 0.25,
+      "timestamp": "2026-05-04T22:18:36.651376+00:00",
+      "matched_assumption": null
+    },
+    {
+      "question_id": "q_009",
+      "answer": "A4: No pagination — all tasks returned in a single array. Acceptable for an app of this scope.",
+      "source": "cli_approve",
+      "confidence": 0.08695652173913043,
+      "timestamp": "2026-05-04T22:18:36.651377+00:00",
+      "matched_assumption": null
+    }
+  ],
+  "processing_register": "rigorous-analytical"
+}

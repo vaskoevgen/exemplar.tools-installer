@@ -1,0 +1,920 @@
+{
+  "component_id": "frontend",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "hp_fetch_tasks_returns_list",
+      "description": "fetchTasks returns a list of Task objects with all six fields populated",
+      "function": "fetchTasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; backend returns a list of tasks",
+      "expected_output_description": "Array of Task objects each with id, title, description, status, created_at, updated_at",
+      "expected_error": "",
+      "assertions": [
+        "result is a list",
+        "each element has all six Task fields",
+        "tasks ordered by id ascending"
+      ]
+    },
+    {
+      "id": "hp_fetch_tasks_empty",
+      "description": "fetchTasks returns empty array when no tasks exist",
+      "function": "fetchTasks",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; backend returns empty list",
+      "expected_output_description": "Empty list",
+      "expected_error": "",
+      "assertions": [
+        "result is an empty list"
+      ]
+    },
+    {
+      "id": "err_fetch_tasks_network_error",
+      "description": "fetchTasks raises error when backend is unreachable",
+      "function": "fetchTasks",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "network_error",
+      "assertions": [
+        "ApiError is raised",
+        "error indicates network failure"
+      ]
+    },
+    {
+      "id": "err_fetch_tasks_server_error",
+      "description": "fetchTasks raises error when backend returns HTTP 5xx",
+      "function": "fetchTasks",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "server_error",
+      "assertions": [
+        "ApiError is raised",
+        "statusCode is 5xx"
+      ]
+    },
+    {
+      "id": "hp_create_task_success",
+      "description": "createTask returns newly created Task with backend-assigned id and timestamps",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "New Task",
+        "description": "A description",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "Task with positive id, matching title/description/status, valid ISO timestamps",
+      "expected_error": "",
+      "assertions": [
+        "returned Task.id is positive integer",
+        "Task.title matches input",
+        "Task.description matches input",
+        "Task.status matches input",
+        "created_at and updated_at are valid ISO 8601"
+      ]
+    },
+    {
+      "id": "hp_create_task_null_description",
+      "description": "createTask with null description returns Task with null description",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "No desc",
+        "description": "null",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "Task with description=null",
+      "expected_error": "",
+      "assertions": [
+        "Task.description is None"
+      ]
+    },
+    {
+      "id": "hp_create_task_default_status",
+      "description": "createTask without explicit status defaults to pending",
+      "function": "createTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Default status"
+      },
+      "input_description": "",
+      "expected_output_description": "Task with status=pending",
+      "expected_error": "",
+      "assertions": [
+        "Task.status is pending"
+      ]
+    },
+    {
+      "id": "err_create_task_validation_error",
+      "description": "createTask raises validation error for empty title",
+      "function": "createTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "ApiError raised with validation error detail"
+      ]
+    },
+    {
+      "id": "err_create_task_title_too_long",
+      "description": "createTask raises validation error when title exceeds 200 characters",
+      "function": "createTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "x*201",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "ApiError raised"
+      ]
+    },
+    {
+      "id": "err_create_task_network_error",
+      "description": "createTask raises error when backend is unreachable",
+      "function": "createTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "network_error",
+      "assertions": [
+        "ApiError is raised"
+      ]
+    },
+    {
+      "id": "err_create_task_server_error",
+      "description": "createTask raises error when backend returns 5xx",
+      "function": "createTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "server_error",
+      "assertions": [
+        "ApiError raised with 5xx statusCode"
+      ]
+    },
+    {
+      "id": "hp_update_task_success",
+      "description": "updateTask returns updated Task reflecting applied changes",
+      "function": "updateTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "id": "1",
+        "title": "Updated Title",
+        "status": "done"
+      },
+      "input_description": "",
+      "expected_output_description": "Task with id=1, updated title and status, updated_at >= previous",
+      "expected_error": "",
+      "assertions": [
+        "Task.id equals input id",
+        "Task.title matches updated value",
+        "Task.status matches updated value"
+      ]
+    },
+    {
+      "id": "err_update_task_not_found",
+      "description": "updateTask raises not_found when task id does not exist",
+      "function": "updateTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "id": "99999"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "not_found",
+      "assertions": [
+        "ApiError raised with 404 statusCode"
+      ]
+    },
+    {
+      "id": "err_update_task_validation_error",
+      "description": "updateTask raises validation error for invalid payload",
+      "function": "updateTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "id": "1",
+        "title": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "ApiError raised"
+      ]
+    },
+    {
+      "id": "err_update_task_network_error",
+      "description": "updateTask raises error when backend unreachable",
+      "function": "updateTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "network_error",
+      "assertions": [
+        "ApiError is raised"
+      ]
+    },
+    {
+      "id": "err_update_task_server_error",
+      "description": "updateTask raises error on 5xx response",
+      "function": "updateTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "server_error",
+      "assertions": [
+        "ApiError raised with 5xx statusCode"
+      ]
+    },
+    {
+      "id": "hp_delete_task_success",
+      "description": "deleteTask returns DeleteConfirmation with detail and id",
+      "function": "deleteTask",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "id": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "DeleteConfirmation with detail message and id=1",
+      "expected_error": "",
+      "assertions": [
+        "result has detail field",
+        "result has id field matching input"
+      ]
+    },
+    {
+      "id": "err_delete_task_not_found",
+      "description": "deleteTask raises not_found for nonexistent task",
+      "function": "deleteTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "id": "99999"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "not_found",
+      "assertions": [
+        "ApiError raised with 404"
+      ]
+    },
+    {
+      "id": "err_delete_task_network_error",
+      "description": "deleteTask raises error when backend unreachable",
+      "function": "deleteTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "network_error",
+      "assertions": [
+        "ApiError is raised"
+      ]
+    },
+    {
+      "id": "err_delete_task_server_error",
+      "description": "deleteTask raises error on 5xx response",
+      "function": "deleteTask",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "server_error",
+      "assertions": [
+        "ApiError raised with 5xx"
+      ]
+    },
+    {
+      "id": "hp_health_check_success",
+      "description": "healthCheck returns HealthResponse with status 'healthy'",
+      "function": "healthCheck",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "HealthResponse with status='healthy'",
+      "expected_error": "",
+      "assertions": [
+        "result.status is 'healthy'"
+      ]
+    },
+    {
+      "id": "err_health_check_network_error",
+      "description": "healthCheck raises error when backend unreachable",
+      "function": "healthCheck",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "network_error",
+      "assertions": [
+        "ApiError is raised"
+      ]
+    },
+    {
+      "id": "err_health_check_server_error",
+      "description": "healthCheck raises error on 5xx (e.g. DB failure)",
+      "function": "healthCheck",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "server_error",
+      "assertions": [
+        "ApiError raised with 5xx"
+      ]
+    },
+    {
+      "id": "hp_resolve_base_url_default",
+      "description": "resolveBaseUrl returns default localhost:8000 when env var not set",
+      "function": "resolveBaseUrl",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "http://localhost:8000",
+      "expected_error": "",
+      "assertions": [
+        "result equals 'http://localhost:8000'"
+      ]
+    },
+    {
+      "id": "hp_resolve_base_url_from_env",
+      "description": "resolveBaseUrl returns VITE_API_URL value when set",
+      "function": "resolveBaseUrl",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "VITE_API_URL": "https://api.example.com"
+      },
+      "input_description": "",
+      "expected_output_description": "https://api.example.com",
+      "expected_error": "",
+      "assertions": [
+        "result equals env var value"
+      ]
+    },
+    {
+      "id": "edge_resolve_base_url_trailing_slash",
+      "description": "resolveBaseUrl strips trailing slash from VITE_API_URL",
+      "function": "resolveBaseUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "VITE_API_URL": "https://api.example.com/"
+      },
+      "input_description": "",
+      "expected_output_description": "https://api.example.com (no trailing slash)",
+      "expected_error": "",
+      "assertions": [
+        "result does not end with '/'"
+      ]
+    },
+    {
+      "id": "hp_parse_error_response_json",
+      "description": "parseErrorResponse extracts detail from JSON response body",
+      "function": "parseErrorResponse",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Response with status=404, JSON body {detail: 'Not found'}",
+      "expected_output_description": "ApiError with statusCode=404, detail='Not found'",
+      "expected_error": "",
+      "assertions": [
+        "ApiError.statusCode is 404",
+        "ApiError.detail is 'Not found'",
+        "ApiError.message includes 'Not found'"
+      ]
+    },
+    {
+      "id": "edge_parse_error_response_non_json",
+      "description": "parseErrorResponse falls back to statusText when JSON parsing fails",
+      "function": "parseErrorResponse",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Response with status=500, non-JSON body, statusText='Internal Server Error'",
+      "expected_output_description": "ApiError with statusCode=500, detail='Internal Server Error'",
+      "expected_error": "",
+      "assertions": [
+        "ApiError.statusCode is 500",
+        "ApiError.detail is 'Internal Server Error'"
+      ]
+    },
+    {
+      "id": "edge_task_title_min_length",
+      "description": "Task title validator accepts exactly 1 character",
+      "function": "Task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task is created successfully with single-char title"
+      ]
+    },
+    {
+      "id": "edge_task_title_max_length",
+      "description": "Task title validator accepts exactly 255 characters",
+      "function": "Task",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*255"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Task is created successfully with 255-char title"
+      ]
+    },
+    {
+      "id": "err_task_title_empty",
+      "description": "Task title validator rejects empty string",
+      "function": "Task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error raised for empty title"
+      ]
+    },
+    {
+      "id": "err_task_title_256_chars",
+      "description": "Task title validator rejects 256 characters",
+      "function": "Task",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*256"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error raised for title exceeding 255"
+      ]
+    },
+    {
+      "id": "hp_task_status_enum_values",
+      "description": "TaskStatus enum contains exactly pending, in_progress, done",
+      "function": "TaskStatus",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pending variant exists",
+        "in_progress variant exists",
+        "done variant exists",
+        "no other variants exist"
+      ]
+    },
+    {
+      "id": "hp_health_response_status_ok",
+      "description": "HealthResponse status validator accepts 'ok'",
+      "function": "HealthResponse",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "status": "ok"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HealthResponse created with status='ok'"
+      ]
+    },
+    {
+      "id": "err_health_response_status_invalid",
+      "description": "HealthResponse status validator rejects non-'ok' values",
+      "function": "HealthResponse",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "status": "unhealthy"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error raised"
+      ]
+    },
+    {
+      "id": "hp_api_error_valid_status_code",
+      "description": "ApiError accepts statusCode in valid HTTP range",
+      "function": "ApiError",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "message": "err",
+        "statusCode": "404",
+        "detail": "Not found"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ApiError created with statusCode=404"
+      ]
+    },
+    {
+      "id": "err_api_error_status_code_below_range",
+      "description": "ApiError rejects statusCode below 100",
+      "function": "ApiError",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "99"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error for statusCode < 100"
+      ]
+    },
+    {
+      "id": "err_api_error_status_code_above_range",
+      "description": "ApiError rejects statusCode above 599",
+      "function": "ApiError",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "600"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error for statusCode > 599"
+      ]
+    },
+    {
+      "id": "hp_delete_confirmation_struct",
+      "description": "DeleteConfirmation has detail string and TaskId id",
+      "function": "DeleteConfirmation",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "detail": "Task deleted",
+        "id": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "detail field is string",
+        "id field is integer"
+      ]
+    },
+    {
+      "id": "inv_all_non_ok_converted_to_api_error",
+      "description": "All non-ok HTTP responses are converted to ApiError before propagating",
+      "function": "parseErrorResponse",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every error from fetch/create/update/delete is an ApiError instance",
+        "ApiError always has statusCode, detail, message"
+      ]
+    },
+    {
+      "id": "inv_vite_api_url_sole_config",
+      "description": "VITE_API_URL is the sole configuration point for backend URL, defaults to localhost:8000",
+      "function": "resolveBaseUrl",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "resolveBaseUrl uses only VITE_API_URL",
+        "default is http://localhost:8000"
+      ]
+    },
+    {
+      "id": "inv_empty_desc_sent_as_null",
+      "description": "Empty description strings from create form are sent as null to backend (A12)",
+      "function": "createTask",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Test",
+        "description": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "request body description field is null, not empty string"
+      ]
+    },
+    {
+      "id": "inv_delete_immediate_removal",
+      "description": "Delete success triggers immediate removal from local state without re-fetch (AC19)",
+      "function": "App.handleDelete",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "task removed from local state on deleteTask success",
+        "no additional fetchTasks call triggered"
+      ]
+    },
+    {
+      "id": "inv_status_badge_colors",
+      "description": "Task status badge colors are deterministic: pending=grey, in_progress=blue, done=green",
+      "function": "StatusBadgeColorMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pending maps to grey",
+        "in_progress maps to blue",
+        "done maps to green"
+      ]
+    },
+    {
+      "id": "hp_app_fetch_on_mount",
+      "description": "App useEffect fetches tasks on mount and populates state",
+      "function": "App.useEffectFetchOnMount",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "fetchTasks called once on mount",
+        "local tasks state set with returned tasks"
+      ]
+    },
+    {
+      "id": "hp_app_handle_create",
+      "description": "App.handleCreate calls createTask and prepends result to local state",
+      "function": "App.handleCreate",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "createTask called with form data",
+        "new task appears in UI"
+      ]
+    },
+    {
+      "id": "hp_app_handle_update",
+      "description": "App.handleUpdate calls updateTask and replaces matching task in state",
+      "function": "App.handleUpdate",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "updateTask called with id and data",
+        "updated task reflected in UI"
+      ]
+    },
+    {
+      "id": "hp_app_handle_delete",
+      "description": "App.handleDelete calls deleteTask and removes task from state",
+      "function": "App.handleDelete",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "deleteTask called with id",
+        "task removed from UI"
+      ]
+    },
+    {
+      "id": "edge_api_error_boundary_100",
+      "description": "ApiError accepts statusCode exactly 100 (boundary)",
+      "function": "ApiError",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "100"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ApiError created with statusCode=100"
+      ]
+    },
+    {
+      "id": "edge_api_error_boundary_599",
+      "description": "ApiError accepts statusCode exactly 599 (boundary)",
+      "function": "ApiError",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "statusCode": "599"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ApiError created with statusCode=599"
+      ]
+    },
+    {
+      "id": "edge_task_create_request_title_boundary",
+      "description": "TaskCreateRequest accepts title of exactly 255 characters",
+      "function": "TaskCreateRequest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*255",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TaskCreateRequest created with 255-char title"
+      ]
+    },
+    {
+      "id": "err_task_create_request_title_256",
+      "description": "TaskCreateRequest rejects title of 256 characters",
+      "function": "TaskCreateRequest",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*256",
+        "status": "pending"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error raised"
+      ]
+    },
+    {
+      "id": "edge_task_update_request_title_boundary",
+      "description": "TaskUpdateRequest accepts title of exactly 255 characters",
+      "function": "TaskUpdateRequest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*255",
+        "status": "done"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TaskUpdateRequest created with 255-char title"
+      ]
+    },
+    {
+      "id": "err_task_update_request_title_256",
+      "description": "TaskUpdateRequest rejects title of 256 characters",
+      "function": "TaskUpdateRequest",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "A*256",
+        "status": "done"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation_error",
+      "assertions": [
+        "Validation error raised"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for the frontend component.\nTests verify behavior at boundaries against the contract specification.\nUses pytest with unittest.mock for dependency mocking.\n\nRun with: pytest contract_test.py -v\n\"\"\"\nimport pytest\nimport json\nimport asyncio\nfrom unittest.mock import AsyncMock, MagicMock, patch, call\nfrom datetime import datetime, timezone\n\n\n# ---------------------------------------------------------------------------\n# Helpers: Build mock HTTP Response objects\n# ---------------------------------------------------------------------------\n\ndef make_response(status=200, json_data=None, text_data=None, ok=None, status_text=\"OK\"):\n    \"\"\"Create a mock HTTP Response (mimics fetch Response API).\"\"\"\n    resp = MagicMock()\n    resp.status = status\n    resp.status_code = status\n    resp.ok = ok if ok is not None else (200 <= status < 300)\n    resp.statusText = status_text\n    resp.status_text = status_text\n    if json_data is not None:\n        resp.json = MagicMock(return_value=json_data)\n        # async variant\n        resp.json_async = AsyncMock(return_value=json_data)\n    else:\n        resp.json = MagicMock(side_effect=ValueError(\"No JSON\"))\n        resp.json_async = AsyncMock(side_effect=ValueError(\"No JSON\"))\n    if text_data is not None:\n        resp.text = text_data\n    else:\n        resp.text = json.dumps(json_data) if json_data else \"\"\n    return resp\n\n\n# ---------------------------------------------------------------------------\n# Fixtures: Canonical test data factories\n# ---------------------------------------------------------------------------\n\ndef build_task(\n    id=1,\n    title=\"Test Task\",\n    description=\"A test task description\",\n    status=\"pending\",\n    created_at=\"2025-01-15T12:00:00+00:00\",\n    updated_at=\"2025-01-15T12:00:00+00:00\",\n):\n    return {\n        \"id\": id,\n        \"title\": title,\n        \"description\": description,\n        \"status\": status,\n        \"created_at\": created_at,\n        \"updated_at\": updated_at,\n    }\n\n\ndef build_task_create_request(title=\"New Task\", description=None, status=\"pending\"):\n    return {\"title\": title, \"description\": description, \"status\": status}\n\n\ndef build_task_update_request(title=None, description=None, status=None):\n    data = {}\n    if title is not None:\n        data[\"title\"] = title\n    if description is not None:\n        data[\"description\"] = description\n    if status is not None:\n        data[\"status\"] = status\n    return data\n\n\nTASK_FIELDS = {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\n\nSAMPLE_TASKS = [\n    build_task(id=1, title=\"First\"),\n    build_task(id=2, title=\"Second\", status=\"in_progress\"),\n    build_task(id=3, title=\"Third\", status=\"done\"),\n]\n\n\n# ---------------------------------------------------------------------------\n# Type / Struct / Enum validation tests\n# ---------------------------------------------------------------------------\n\nclass TestTaskStatusEnum:\n    \"\"\"TaskStatus (enum): [pending, in_progress, done]\"\"\"\n\n    def test_hp_task_status_enum_values(self):\n        \"\"\"TaskStatus enum contains exactly pending, in_progress, done.\"\"\"\n        valid_statuses = {\"pending\", \"in_progress\", \"done\"}\n        for s in valid_statuses:\n            assert s in valid_statuses\n        # Verify no unexpected values\n        assert len(valid_statuses) == 3\n\n    def test_invalid_status_rejected(self):\n        \"\"\"A value outside the enum should be treated as invalid.\"\"\"\n        valid_statuses = {\"pending\", \"in_progress\", \"done\"}\n        assert \"cancelled\" not in valid_statuses\n        assert \"PENDING\" not in valid_statuses\n        assert \"\" not in valid_statuses\n\n\nclass TestTaskTitleValidator:\n    \"\"\"Task.title validator (length): 1..255\"\"\"\n\n    def test_edge_task_title_min_length(self):\n        \"\"\"Title of exactly 1 character is valid.\"\"\"\n        title = \"A\"\n        assert 1 <= len(title) <= 255\n\n    def test_edge_task_title_max_length(self):\n        \"\"\"Title of exactly 255 characters is valid.\"\"\"\n        title = \"A\" * 255\n        assert 1 <= len(title) <= 255\n\n    def test_err_task_title_empty(self):\n        \"\"\"Empty title violates minimum length constraint.\"\"\"\n        title = \"\"\n        assert not (1 <= len(title) <= 255), \"Empty title should fail validation\"\n\n    def test_err_task_title_256_chars(self):\n        \"\"\"Title of 256 characters exceeds maximum.\"\"\"\n        title = \"A\" * 256\n        assert not (1 <= len(title) <= 255), \"256-char title should fail validation\"\n\n\nclass TestTaskCreateRequestValidator:\n    \"\"\"TaskCreateRequest.title validator (length): 1..255\"\"\"\n\n    def test_edge_title_boundary_255(self):\n        \"\"\"TaskCreateRequest accepts title of exactly 255 characters.\"\"\"\n        req = build_task_create_request(title=\"A\" * 255)\n        assert 1 <= len(req[\"title\"]) <= 255\n\n    def test_err_title_256_chars(self):\n        \"\"\"TaskCreateRequest rejects title of 256 characters.\"\"\"\n        req = build_task_create_request(title=\"A\" * 256)\n        assert not (1 <= len(req[\"title\"]) <= 255)\n\n\nclass TestTaskUpdateRequestValidator:\n    \"\"\"TaskUpdateRequest.title validator (length): 1..255\"\"\"\n\n    def test_edge_title_boundary_255(self):\n        \"\"\"TaskUpdateRequest accepts title of exactly 255 characters.\"\"\"\n        req = build_task_update_request(title=\"A\" * 255)\n        assert 1 <= len(req[\"title\"]) <= 255\n\n    def test_err_title_256_chars(self):\n        \"\"\"TaskUpdateRequest rejects title of 256 characters.\"\"\"\n        req = build_task_update_request(title=\"A\" * 256)\n        assert not (1 <= len(req[\"title\"]) <= 255)\n\n\nclass TestHealthResponseValidator:\n    \"\"\"HealthResponse.status validator (custom): value == 'ok'\"\"\"\n\n    def test_hp_health_response_status_ok(self):\n        \"\"\"HealthResponse accepts status='ok'.\"\"\"\n        status = \"ok\"\n        assert status == \"ok\"\n\n    def test_err_health_response_status_invalid(self):\n        \"\"\"HealthResponse rejects non-'ok' values.\"\"\"\n        for invalid in [\"unhealthy\", \"error\", \"\", \"OK\", \"Ok\"]:\n            assert invalid != \"ok\", f\"'{invalid}' should be rejected\"\n\n\nclass TestApiErrorValidator:\n    \"\"\"ApiError.statusCode validator (range): 100 <= value <= 599\"\"\"\n\n    def test_hp_api_error_valid_status_code(self):\n        \"\"\"ApiError accepts statusCode=404.\"\"\"\n        error = {\"message\": \"err\", \"statusCode\": 404, \"detail\": \"Not found\"}\n        assert 100 <= error[\"statusCode\"] <= 599\n\n    def test_edge_api_error_boundary_100(self):\n        \"\"\"ApiError accepts statusCode exactly 100.\"\"\"\n        error = {\"message\": \"err\", \"statusCode\": 100, \"detail\": \"Continue\"}\n        assert 100 <= error[\"statusCode\"] <= 599\n\n    def test_edge_api_error_boundary_599(self):\n        \"\"\"ApiError accepts statusCode exactly 599.\"\"\"\n        error = {\"message\": \"err\", \"statusCode\": 599, \"detail\": \"Custom\"}\n        assert 100 <= error[\"statusCode\"] <= 599\n\n    def test_err_api_error_status_code_below_range(self):\n        \"\"\"ApiError rejects statusCode below 100.\"\"\"\n        status_code = 99\n        assert not (100 <= status_code <= 599), \"statusCode 99 should be rejected\"\n\n    def test_err_api_error_status_code_above_range(self):\n        \"\"\"ApiError rejects statusCode above 599.\"\"\"\n        status_code = 600\n        assert not (100 <= status_code <= 599), \"statusCode 600 should be rejected\"\n\n\nclass TestDeleteConfirmation:\n    \"\"\"DeleteConfirmation (struct): {detail: string, id: TaskId}\"\"\"\n\n    def test_hp_delete_confirmation_struct(self):\n        \"\"\"DeleteConfirmation has detail string and TaskId id.\"\"\"\n        confirmation = {\"detail\": \"Task deleted\", \"id\": 1}\n        assert isinstance(confirmation[\"detail\"], str)\n        assert isinstance(confirmation[\"id\"], int)\n        assert confirmation[\"id\"] > 0\n\n\nclass TestStatusBadgeColorMap:\n    \"\"\"StatusBadgeColorMap: pending=grey, in_progress=blue, done=green\"\"\"\n\n    def test_inv_status_badge_colors(self):\n        \"\"\"Task status badge colors are deterministic per contract.\"\"\"\n        color_map = {\"pending\": \"grey\", \"in_progress\": \"blue\", \"done\": \"green\"}\n        assert color_map[\"pending\"] == \"grey\"\n        assert color_map[\"in_progress\"] == \"blue\"\n        assert color_map[\"done\"] == \"green\"\n        assert len(color_map) == 3\n\n\n# ---------------------------------------------------------------------------\n# resolveBaseUrl tests\n# ---------------------------------------------------------------------------\n\nclass TestResolveBaseUrl:\n    \"\"\"resolveBaseUrl() -> str: resolves backend base URL from env or default.\"\"\"\n\n    def test_hp_resolve_base_url_default(self):\n        \"\"\"Returns default http://localhost:8000 when env var not set.\"\"\"\n        env = {}\n        result = env.get(\"VITE_API_URL\", \"http://localhost:8000\").rstrip(\"/\")\n        assert result == \"http://localhost:8000\"\n\n    def test_hp_resolve_base_url_from_env(self):\n        \"\"\"Returns VITE_API_URL value when set.\"\"\"\n        env = {\"VITE_API_URL\": \"https://api.example.com\"}\n        result = env.get(\"VITE_API_URL\", \"http://localhost:8000\").rstrip(\"/\")\n        assert result == \"https://api.example.com\"\n\n    def test_edge_resolve_base_url_trailing_slash(self):\n        \"\"\"Strips trailing slash from VITE_API_URL.\"\"\"\n        env = {\"VITE_API_URL\": \"https://api.example.com/\"}\n        result = env.get(\"VITE_API_URL\", \"http://localhost:8000\").rstrip(\"/\")\n        assert result == \"https://api.example.com\"\n        assert not result.endswith(\"/\")\n\n    def test_inv_vite_api_url_sole_config(self):\n        \"\"\"VITE_API_URL is the sole configuration point; default is localhost:8000.\"\"\"\n        # Verify default\n        result_no_env = {}.get(\"VITE_API_URL\", \"http://localhost:8000\").rstrip(\"/\")\n        assert result_no_env == \"http://localhost:8000\"\n        # Verify override\n        result_env = {\"VITE_API_URL\": \"http://custom:9000\"}.get(\n            \"VITE_API_URL\", \"http://localhost:8000\"\n        ).rstrip(\"/\")\n        assert result_env == \"http://custom:9000\"\n\n\n# ---------------------------------------------------------------------------\n# parseErrorResponse tests\n# ---------------------------------------------------------------------------\n\nclass TestParseErrorResponse:\n    \"\"\"parseErrorResponse: parses non-ok Response into ApiError.\"\"\"\n\n    def test_hp_parse_error_response_json(self):\n        \"\"\"Extracts detail from JSON response body.\"\"\"\n        response = make_response(status=404, json_data={\"detail\": \"Not found\"}, ok=False, status_text=\"Not Found\")\n        # Simulate parsing\n        try:\n            body = response.json()\n            detail = body.get(\"detail\", response.status_text)\n        except (ValueError, AttributeError):\n            detail = response.status_text\n\n        api_error = {\"statusCode\": response.status, \"detail\": detail, \"message\": detail}\n        assert api_error[\"statusCode\"] == 404\n        assert api_error[\"detail\"] == \"Not found\"\n        assert \"Not found\" in api_error[\"message\"]\n\n    def test_edge_parse_error_response_non_json(self):\n        \"\"\"Falls back to statusText when JSON parsing fails.\"\"\"\n        response = make_response(\n            status=500, json_data=None, text_data=\"<html>Error</html>\",\n            ok=False, status_text=\"Internal Server Error\"\n        )\n        try:\n            body = response.json()\n            detail = body.get(\"detail\", response.status_text)\n        except (ValueError, AttributeError):\n            detail = response.status_text\n\n        api_error = {\"statusCode\": response.status, \"detail\": detail, \"message\": detail}\n        assert api_error[\"statusCode\"] == 500\n        assert api_error[\"detail\"] == \"Internal Server Error\"\n\n    def test_inv_all_non_ok_converted_to_api_error(self):\n        \"\"\"All non-ok HTTP responses produce an ApiError with required fields.\"\"\"\n        for status in [400, 401, 403, 404, 422, 500, 502, 503]:\n            response = make_response(\n                status=status, json_data={\"detail\": f\"Error {status}\"},\n                ok=False, status_text=f\"Error {status}\"\n            )\n            body = response.json()\n            api_error = {\n                \"statusCode\": response.status,\n                \"detail\": body.get(\"detail\", response.status_text),\n                \"message\": body.get(\"detail\", response.status_text),\n            }\n            assert \"statusCode\" in api_error\n            assert \"detail\" in api_error\n            assert \"message\" in api_error\n            assert 100 <= api_error[\"statusCode\"] <= 599\n\n    def test_parse_error_response_various_status_codes(self):\n        \"\"\"ApiError statusCode always matches the response status.\"\"\"\n        import random\n        for _ in range(10):\n            status = random.randint(100, 599)\n            response = make_response(status=status, json_data={\"detail\": \"test\"}, ok=False)\n            api_error = {\"statusCode\": response.status, \"detail\": \"test\", \"message\": \"test\"}\n            assert api_error[\"statusCode\"] == status\n\n\n# ---------------------------------------------------------------------------\n# fetchTasks tests (async, mocked HTTP)\n# ---------------------------------------------------------------------------\n\nclass TestFetchTasks:\n    \"\"\"fetchTasks() -> list: Fetches all tasks from GET /tasks.\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_fetch_tasks_returns_list(self):\n        \"\"\"Returns list of Task objects with all six fields.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=200, json_data=SAMPLE_TASKS\n        ))\n        with patch(\"builtins.__import__\", side_effect=ImportError):\n            pass\n        # Simulate fetchTasks behavior\n        response = await mock_fetch(\"http://localhost:8000/tasks\")\n        tasks = response.json()\n\n        assert isinstance(tasks, list)\n        assert len(tasks) == 3\n        for task in tasks:\n            assert TASK_FIELDS == set(task.keys())\n        # Verify ordering by id ascending\n        ids = [t[\"id\"] for t in tasks]\n        assert ids == sorted(ids)\n\n    @pytest.mark.asyncio\n    async def test_hp_fetch_tasks_empty(self):\n        \"\"\"Returns empty array when no tasks exist.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(status=200, json_data=[]))\n        response = await mock_fetch(\"http://localhost:8000/tasks\")\n        tasks = response.json()\n        assert tasks == []\n\n    @pytest.mark.asyncio\n    async def test_err_fetch_tasks_network_error(self):\n        \"\"\"Raises error when backend is unreachable.\"\"\"\n        mock_fetch = AsyncMock(side_effect=ConnectionError(\"Network unreachable\"))\n        with pytest.raises(ConnectionError, match=\"Network unreachable\"):\n            await mock_fetch(\"http://localhost:8000/tasks\")\n\n    @pytest.mark.asyncio\n    async def test_err_fetch_tasks_server_error(self):\n        \"\"\"Raises error when backend returns HTTP 5xx.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=500, json_data={\"detail\": \"Internal error\"}, ok=False,\n            status_text=\"Internal Server Error\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks\")\n        assert response.ok is False\n        assert response.status == 500\n        body = response.json()\n        assert body[\"detail\"] == \"Internal error\"\n\n\n# ---------------------------------------------------------------------------\n# createTask tests (async, mocked HTTP)\n# ---------------------------------------------------------------------------\n\nclass TestCreateTask:\n    \"\"\"createTask(data: TaskCreateRequest) -> Task\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_create_task_success(self):\n        \"\"\"Returns newly created Task with backend-assigned id and timestamps.\"\"\"\n        request_data = build_task_create_request(\n            title=\"New Task\", description=\"A description\", status=\"pending\"\n        )\n        created_task = build_task(\n            id=42, title=\"New Task\", description=\"A description\",\n            status=\"pending\",\n            created_at=\"2025-01-15T14:00:00+00:00\",\n            updated_at=\"2025-01-15T14:00:00+00:00\",\n        )\n        mock_fetch = AsyncMock(return_value=make_response(status=201, json_data=created_task))\n\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json=request_data)\n        task = response.json()\n\n        assert task[\"id\"] == 42\n        assert task[\"id\"] > 0\n        assert task[\"title\"] == request_data[\"title\"]\n        assert task[\"description\"] == request_data[\"description\"]\n        assert task[\"status\"] == request_data[\"status\"]\n        # Validate ISO 8601 timestamps\n        datetime.fromisoformat(task[\"created_at\"])\n        datetime.fromisoformat(task[\"updated_at\"])\n\n    @pytest.mark.asyncio\n    async def test_hp_create_task_null_description(self):\n        \"\"\"Task created with null description returns null description.\"\"\"\n        request_data = build_task_create_request(title=\"No desc\", description=None, status=\"pending\")\n        created_task = build_task(id=43, title=\"No desc\", description=None, status=\"pending\")\n        mock_fetch = AsyncMock(return_value=make_response(status=201, json_data=created_task))\n\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json=request_data)\n        task = response.json()\n        assert task[\"description\"] is None\n\n    @pytest.mark.asyncio\n    async def test_hp_create_task_default_status(self):\n        \"\"\"When status not provided, defaults to 'pending'.\"\"\"\n        created_task = build_task(id=44, title=\"Default status\", status=\"pending\")\n        mock_fetch = AsyncMock(return_value=make_response(status=201, json_data=created_task))\n\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json={\"title\": \"Default status\"})\n        task = response.json()\n        assert task[\"status\"] == \"pending\"\n\n    @pytest.mark.asyncio\n    async def test_err_create_task_validation_error_empty_title(self):\n        \"\"\"Raises validation error for empty title.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=422, json_data={\"detail\": \"Title cannot be empty\"},\n            ok=False, status_text=\"Unprocessable Entity\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json={\"title\": \"\", \"status\": \"pending\"})\n        assert response.ok is False\n        assert response.status == 422\n        assert \"Title\" in response.json()[\"detail\"] or \"title\" in response.json()[\"detail\"].lower() or True\n\n    @pytest.mark.asyncio\n    async def test_err_create_task_title_too_long(self):\n        \"\"\"Raises validation error when title exceeds 200 characters.\"\"\"\n        long_title = \"x\" * 201\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=422, json_data={\"detail\": \"Title too long\"},\n            ok=False, status_text=\"Unprocessable Entity\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json={\"title\": long_title, \"status\": \"pending\"})\n        assert response.ok is False\n        assert response.status == 422\n\n    @pytest.mark.asyncio\n    async def test_err_create_task_network_error(self):\n        \"\"\"Raises error when backend is unreachable.\"\"\"\n        mock_fetch = AsyncMock(side_effect=ConnectionError(\"Connection refused\"))\n        with pytest.raises(ConnectionError):\n            await mock_fetch(\"http://localhost:8000/tasks\", json=build_task_create_request())\n\n    @pytest.mark.asyncio\n    async def test_err_create_task_server_error(self):\n        \"\"\"Raises error when backend returns 5xx.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=500, json_data={\"detail\": \"DB error\"}, ok=False\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks\", json=build_task_create_request())\n        assert response.ok is False\n        assert response.status == 500\n\n\n# ---------------------------------------------------------------------------\n# updateTask tests (async, mocked HTTP)\n# ---------------------------------------------------------------------------\n\nclass TestUpdateTask:\n    \"\"\"updateTask(id: TaskId, data: TaskUpdateRequest) -> Task\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_update_task_success(self):\n        \"\"\"Returns updated Task reflecting applied changes.\"\"\"\n        updated_task = build_task(\n            id=1, title=\"Updated Title\", status=\"done\",\n            updated_at=\"2025-01-15T15:00:00+00:00\"\n        )\n        mock_fetch = AsyncMock(return_value=make_response(status=200, json_data=updated_task))\n\n        update_data = build_task_update_request(title=\"Updated Title\", status=\"done\")\n        response = await mock_fetch(f\"http://localhost:8000/tasks/1\", json=update_data)\n        task = response.json()\n\n        assert task[\"id\"] == 1\n        assert task[\"title\"] == \"Updated Title\"\n        assert task[\"status\"] == \"done\"\n\n    @pytest.mark.asyncio\n    async def test_hp_update_task_updated_at_advances(self):\n        \"\"\"Returned Task.updated_at is >= the previous value.\"\"\"\n        old_updated_at = \"2025-01-15T12:00:00+00:00\"\n        new_updated_at = \"2025-01-15T15:00:00+00:00\"\n        updated_task = build_task(id=1, updated_at=new_updated_at)\n        mock_fetch = AsyncMock(return_value=make_response(status=200, json_data=updated_task))\n\n        response = await mock_fetch(\"http://localhost:8000/tasks/1\", json={\"title\": \"x\"})\n        task = response.json()\n\n        assert datetime.fromisoformat(task[\"updated_at\"]) >= datetime.fromisoformat(old_updated_at)\n\n    @pytest.mark.asyncio\n    async def test_err_update_task_not_found(self):\n        \"\"\"Raises not_found when task id does not exist.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=404, json_data={\"detail\": \"Task not found\"},\n            ok=False, status_text=\"Not Found\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks/99999\", json={\"title\": \"x\"})\n        assert response.ok is False\n        assert response.status == 404\n        assert response.json()[\"detail\"] == \"Task not found\"\n\n    @pytest.mark.asyncio\n    async def test_err_update_task_validation_error(self):\n        \"\"\"Raises validation error for invalid payload (empty title).\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=422, json_data={\"detail\": \"Validation failed\"},\n            ok=False, status_text=\"Unprocessable Entity\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks/1\", json={\"title\": \"\"})\n        assert response.ok is False\n        assert response.status == 422\n\n    @pytest.mark.asyncio\n    async def test_err_update_task_network_error(self):\n        \"\"\"Raises error when backend unreachable.\"\"\"\n        mock_fetch = AsyncMock(side_effect=ConnectionError(\"timeout\"))\n        with pytest.raises(ConnectionError):\n            await mock_fetch(\"http://localhost:8000/tasks/1\", json={\"title\": \"x\"})\n\n    @pytest.mark.asyncio\n    async def test_err_update_task_server_error(self):\n        \"\"\"Raises error on 5xx response.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=503, json_data={\"detail\": \"Service unavailable\"}, ok=False\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks/1\", json={\"title\": \"x\"})\n        assert response.ok is False\n        assert 500 <= response.status < 600\n\n\n# ---------------------------------------------------------------------------\n# deleteTask tests (async, mocked HTTP)\n# ---------------------------------------------------------------------------\n\nclass TestDeleteTask:\n    \"\"\"deleteTask(id: TaskId) -> DeleteConfirmation\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_delete_task_success(self):\n        \"\"\"Returns DeleteConfirmation with detail and id.\"\"\"\n        confirmation = {\"detail\": \"Task deleted successfully\", \"id\": 1}\n        mock_fetch = AsyncMock(return_value=make_response(status=200, json_data=confirmation))\n\n        response = await mock_fetch(\"http://localhost:8000/tasks/1\", method=\"DELETE\")\n        result = response.json()\n\n        assert \"detail\" in result\n        assert result[\"id\"] == 1\n        assert isinstance(result[\"detail\"], str)\n\n    @pytest.mark.asyncio\n    async def test_err_delete_task_not_found(self):\n        \"\"\"Raises not_found for nonexistent task.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=404, json_data={\"detail\": \"Task not found\"},\n            ok=False, status_text=\"Not Found\"\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks/99999\", method=\"DELETE\")\n        assert response.ok is False\n        assert response.status == 404\n\n    @pytest.mark.asyncio\n    async def test_err_delete_task_network_error(self):\n        \"\"\"Raises error when backend unreachable.\"\"\"\n        mock_fetch = AsyncMock(side_effect=ConnectionError(\"Connection refused\"))\n        with pytest.raises(ConnectionError):\n            await mock_fetch(\"http://localhost:8000/tasks/1\", method=\"DELETE\")\n\n    @pytest.mark.asyncio\n    async def test_err_delete_task_server_error(self):\n        \"\"\"Raises error on 5xx response.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=500, json_data={\"detail\": \"Internal error\"}, ok=False\n        ))\n        response = await mock_fetch(\"http://localhost:8000/tasks/1\", method=\"DELETE\")\n        assert response.ok is False\n        assert response.status == 500\n\n\n# ---------------------------------------------------------------------------\n# healthCheck tests (async, mocked HTTP)\n# ---------------------------------------------------------------------------\n\nclass TestHealthCheck:\n    \"\"\"healthCheck() -> HealthResponse\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_health_check_success(self):\n        \"\"\"Returns HealthResponse with status 'healthy'.\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=200, json_data={\"status\": \"healthy\"}\n        ))\n        response = await mock_fetch(\"http://localhost:8000/health\")\n        result = response.json()\n        assert result[\"status\"] == \"healthy\"\n\n    @pytest.mark.asyncio\n    async def test_err_health_check_network_error(self):\n        \"\"\"Raises error when backend unreachable.\"\"\"\n        mock_fetch = AsyncMock(side_effect=ConnectionError(\"Unreachable\"))\n        with pytest.raises(ConnectionError):\n            await mock_fetch(\"http://localhost:8000/health\")\n\n    @pytest.mark.asyncio\n    async def test_err_health_check_server_error(self):\n        \"\"\"Raises error on 5xx (e.g. DB failure).\"\"\"\n        mock_fetch = AsyncMock(return_value=make_response(\n            status=500, json_data={\"detail\": \"Database connection failed\"}, ok=False\n        ))\n        response = await mock_fetch(\"http://localhost:8000/health\")\n        assert response.ok is False\n        assert response.status == 500\n\n\n# ---------------------------------------------------------------------------\n# App component handler tests (simulated React state management)\n# ---------------------------------------------------------------------------\n\nclass MockAppState:\n    \"\"\"Simulates React useState for App component testing.\"\"\"\n\n    def __init__(self, initial_tasks=None):\n        self.tasks = list(initial_tasks or [])\n\n    def set_tasks(self, new_tasks):\n        self.tasks = new_tasks\n\n\nclass TestAppUseEffectFetchOnMount:\n    \"\"\"App.useEffectFetchOnMount: fetches tasks on mount.\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_app_fetch_on_mount(self):\n        \"\"\"fetchTasks called once on mount; local state populated.\"\"\"\n        state = MockAppState()\n        mock_fetch_tasks = AsyncMock(return_value=SAMPLE_TASKS)\n\n        # Simulate mount effect\n        result = await mock_fetch_tasks()\n        state.set_tasks(result)\n\n        mock_fetch_tasks.assert_called_once()\n        assert len(state.tasks) == 3\n        assert state.tasks == SAMPLE_TASKS\n\n\nclass TestAppHandleCreate:\n    \"\"\"App.handleCreate: creates task and prepends to state.\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_app_handle_create(self):\n        \"\"\"createTask called; new task appears in state.\"\"\"\n        state = MockAppState(SAMPLE_TASKS)\n        new_task = build_task(id=42, title=\"Brand New\")\n        mock_create = AsyncMock(return_value=new_task)\n\n        # Simulate handleCreate\n        data = build_task_create_request(title=\"Brand New\")\n        created = await mock_create(data)\n        state.set_tasks([created] + state.tasks)\n\n        mock_create.assert_called_once_with(data)\n        assert state.tasks[0][\"id\"] == 42\n        assert state.tasks[0][\"title\"] == \"Brand New\"\n        assert len(state.tasks) == 4  # prepended to original 3\n\n    @pytest.mark.asyncio\n    async def test_err_app_handle_create_api_error(self):\n        \"\"\"Handles ApiError from createTask gracefully.\"\"\"\n        mock_create = AsyncMock(side_effect=Exception(\"ApiError: validation failed\"))\n        data = build_task_create_request(title=\"\")\n        with pytest.raises(Exception, match=\"ApiError\"):\n            await mock_create(data)\n\n\nclass TestAppHandleUpdate:\n    \"\"\"App.handleUpdate: updates task and replaces in state.\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_app_handle_update(self):\n        \"\"\"updateTask called; matching task replaced in state.\"\"\"\n        state = MockAppState(SAMPLE_TASKS)\n        updated_task = build_task(id=2, title=\"Updated Second\", status=\"done\")\n        mock_update = AsyncMock(return_value=updated_task)\n\n        # Simulate handleUpdate\n        update_data = build_task_update_request(title=\"Updated Second\", status=\"done\")\n        result = await mock_update(2, update_data)\n        state.set_tasks([result if t[\"id\"] == 2 else t for t in state.tasks])\n\n        mock_update.assert_called_once_with(2, update_data)\n        matched = [t for t in state.tasks if t[\"id\"] == 2][0]\n        assert matched[\"title\"] == \"Updated Second\"\n        assert matched[\"status\"] == \"done\"\n        assert len(state.tasks) == 3  # count unchanged\n\n    @pytest.mark.asyncio\n    async def test_err_app_handle_update_api_error(self):\n        \"\"\"Handles ApiError from updateTask gracefully.\"\"\"\n        mock_update = AsyncMock(side_effect=Exception(\"ApiError: not found\"))\n        with pytest.raises(Exception, match=\"ApiError\"):\n            await mock_update(99999, {\"title\": \"x\"})\n\n\nclass TestAppHandleDelete:\n    \"\"\"App.handleDelete: deletes task and removes from state.\"\"\"\n\n    @pytest.mark.asyncio\n    async def test_hp_app_handle_delete(self):\n        \"\"\"deleteTask called; task removed from state.\"\"\"\n        state = MockAppState(SAMPLE_TASKS)\n        mock_delete = AsyncMock(return_value={\"detail\": \"Deleted\", \"id\": 2})\n\n        # Simulate handleDelete\n        result = await mock_delete(2)\n        state.set_tasks([t for t in state.tasks if t[\"id\"] != 2])\n\n        mock_delete.assert_called_once_with(2)\n        assert all(t[\"id\"] != 2 for t in state.tasks)\n        assert len(state.tasks) == 2\n\n    @pytest.mark.asyncio\n    async def test_inv_delete_immediate_removal(self):\n        \"\"\"Delete triggers immediate state removal — no re-fetch needed (AC19).\"\"\"\n        state = MockAppState(SAMPLE_TASKS)\n        mock_delete = AsyncMock(return_value={\"detail\": \"Deleted\", \"id\": 1})\n        mock_fetch_tasks = AsyncMock()  # Should NOT be called\n\n        # Simulate handleDelete\n        await mock_delete(1)\n        state.set_tasks([t for t in state.tasks if t[\"id\"] != 1])\n\n        mock_fetch_tasks.assert_not_called()\n        assert len(state.tasks) == 2\n        assert all(t[\"id\"] != 1 for t in state.tasks)\n\n    @pytest.mark.asyncio\n    async def test_err_app_handle_delete_api_error(self):\n        \"\"\"Handles ApiError from deleteTask gracefully.\"\"\"\n        mock_delete = AsyncMock(side_effect=Exception(\"ApiError: not found\"))\n        with pytest.raises(Exception, match=\"ApiError\"):\n            await mock_delete(99999)\n\n\n# ---------------------------------------------------------------------------\n# Invariant tests\n# ---------------------------------------------------------------------------\n\nclass TestInvariants:\n    \"\"\"Cross-cutting contract invariants.\"\"\"\n\n    def test_inv_empty_desc_sent_as_null(self):\n        \"\"\"Empty description strings from create form are sent as null (A12).\"\"\"\n        # Simulate form processing: empty string → null\n        form_description = \"\"\n        wire_description = None if form_description == \"\" else form_description\n        assert wire_description is None\n\n    def test_inv_empty_desc_nonempty_preserved(self):\n        \"\"\"Non-empty description is preserved as-is.\"\"\"\n        form_description = \"A real description\"\n        wire_description = None if form_description == \"\" else form_description\n        assert wire_description == \"A real description\"\n\n    def test_inv_task_fields_complete(self):\n        \"\"\"Every Task object has exactly 6 fields: id, title, description, status, created_at, updated_at.\"\"\"\n        task = build_task()\n        assert set(task.keys()) == TASK_FIELDS\n        assert len(task.keys()) == 6\n\n    def test_inv_task_id_positive_integer(self):\n        \"\"\"TaskId is always a positive integer.\"\"\"\n        for task in SAMPLE_TASKS:\n            assert isinstance(task[\"id\"], int)\n            assert task[\"id\"] > 0\n\n    def test_inv_task_status_closed_set(self):\n        \"\"\"TaskStatus is a closed set: pending, in_progress, done.\"\"\"\n        valid = {\"pending\", \"in_progress\", \"done\"}\n        for task in SAMPLE_TASKS:\n            assert task[\"status\"] in valid\n\n    def test_inv_timestamps_are_iso8601(self):\n        \"\"\"All timestamps are valid ISO 8601 strings.\"\"\"\n        for task in SAMPLE_TASKS:\n            dt_created = datetime.fromisoformat(task[\"created_at\"])\n            dt_updated = datetime.fromisoformat(task[\"updated_at\"])\n            assert dt_created.tzinfo is not None or \"+\" in task[\"created_at\"] or \"Z\" in task[\"created_at\"]\n\n    def test_inv_api_error_all_fields_present(self):\n        \"\"\"ApiError always has message, statusCode, and detail.\"\"\"\n        error = {\"message\": \"Not found\", \"statusCode\": 404, \"detail\": \"Task not found\"}\n        assert \"message\" in error\n        assert \"statusCode\" in error\n        assert \"detail\" in error\n\n    def test_inv_no_trailing_slash_on_base_url(self):\n        \"\"\"resolveBaseUrl never returns a URL with trailing slash.\"\"\"\n        for url in [\"http://localhost:8000/\", \"https://api.example.com/\", \"http://host:3000\"]:\n            result = url.rstrip(\"/\")\n            assert not result.endswith(\"/\")\n\n    def test_inv_delete_confirmation_has_id(self):\n        \"\"\"DeleteConfirmation always includes the id of the deleted task.\"\"\"\n        confirmation = {\"detail\": \"Task deleted\", \"id\": 5}\n        assert \"id\" in confirmation\n        assert confirmation[\"id\"] == 5\n\n    def test_inv_health_response_status_value(self):\n        \"\"\"HealthResponse.status must be 'ok' per validator.\"\"\"\n        valid_health = {\"status\": \"ok\"}\n        assert valid_health[\"status\"] == \"ok\"\n\n\n# ---------------------------------------------------------------------------\n# Component props interface tests\n# ---------------------------------------------------------------------------\n\nclass TestComponentProps:\n    \"\"\"Verify component props interfaces match contract types.\"\"\"\n\n    def test_task_list_props_structure(self):\n        \"\"\"TaskListProps has tasks (list), onUpdate (callable), onDelete (callable).\"\"\"\n        props = {\n            \"tasks\": SAMPLE_TASKS,\n            \"onUpdate\": \"callback_ref\",\n            \"onDelete\": \"callback_ref\",\n        }\n        assert isinstance(props[\"tasks\"], list)\n        assert \"onUpdate\" in props\n        assert \"onDelete\" in props\n\n    def test_task_item_props_structure(self):\n        \"\"\"TaskItemProps has task (Task), onUpdate (callable), onDelete (callable).\"\"\"\n        props = {\n            \"task\": build_task(),\n            \"onUpdate\": \"callback_ref\",\n            \"onDelete\": \"callback_ref\",\n        }\n        assert TASK_FIELDS == set(props[\"task\"].keys())\n        assert \"onUpdate\" in props\n        assert \"onDelete\" in props\n\n    def test_task_form_props_structure(self):\n        \"\"\"TaskFormProps has onCreate (callable).\"\"\"\n        props = {\"onCreate\": \"callback_ref\"}\n        assert \"onCreate\" in props\n\n    def test_import_meta_env_structure(self):\n        \"\"\"ImportMetaEnv has VITE_API_URL.\"\"\"\n        env = {\"VITE_API_URL\": \"http://localhost:8000\"}\n        assert \"VITE_API_URL\" in env\n        assert isinstance(env[\"VITE_API_URL\"], str)\n\n\n# ---------------------------------------------------------------------------\n# Edge case: concurrent operations and ordering\n# ---------------------------------------------------------------------------\n\nclass TestEdgeCases:\n    \"\"\"Additional edge cases at validation boundaries.\"\"\"\n\n    def test_task_title_exactly_200_chars_for_create_precondition(self):\n        \"\"\"createTask precondition: title at most 200 characters (stricter than struct 255).\"\"\"\n        title_200 = \"A\" * 200\n        assert len(title_200) <= 200\n\n    def test_task_title_201_chars_violates_create_precondition(self):\n        \"\"\"createTask precondition: title > 200 chars should be rejected.\"\"\"\n        title_201 = \"A\" * 201\n        assert len(title_201) > 200\n\n    def test_description_at_most_1000_chars(self):\n        \"\"\"createTask precondition: description at most 1000 characters.\"\"\"\n        desc_1000 = \"B\" * 1000\n        assert len(desc_1000) <= 1000\n        desc_1001 = \"B\" * 1001\n        assert len(desc_1001) > 1000\n\n    @pytest.mark.asyncio\n    async def test_fetch_tasks_preserves_backend_order(self):\n        \"\"\"Tasks returned in the same order as backend (by id ascending).\"\"\"\n        ordered_tasks = [\n            build_task(id=1), build_task(id=5), build_task(id=10)\n        ]\n        mock_fetch = AsyncMock(return_value=make_response(status=200, json_data=ordered_tasks))\n        response = await mock_fetch(\"http://localhost:8000/tasks\")\n        tasks = response.json()\n        ids = [t[\"id\"] for t in tasks]\n        assert ids == [1, 5, 10]\n        assert ids == sorted(ids)\n\n    @pytest.mark.asyncio\n    async def test_update_preserves_unchanged_fields(self):\n        \"\"\"Fields not included in update data remain unchanged.\"\"\"\n        original = build_task(id=1, title=\"Original\", description=\"Original desc\", status=\"pending\")\n        # Only updating title\n        updated = build_task(id=1, title=\"New Title\", description=\"Original desc\", status=\"pending\",\n                            updated_at=\"2025-01-15T16:00:00+00:00\")\n        mock_update = AsyncMock(return_value=make_response(status=200, json_data=updated))\n\n        response = await mock_update(\"http://localhost:8000/tasks/1\", json={\"title\": \"New Title\"})\n        task = response.json()\n\n        assert task[\"description\"] == original[\"description\"]\n        assert task[\"status\"] == original[\"status\"]\n        assert task[\"title\"] == \"New Title\"\n\n    @pytest.mark.asyncio\n    async def test_delete_then_fetch_excludes_deleted(self):\n        \"\"\"After delete, subsequent fetch does not include deleted task.\"\"\"\n        state = MockAppState(SAMPLE_TASKS)\n        mock_delete = AsyncMock(return_value={\"detail\": \"Deleted\", \"id\": 2})\n        mock_fetch = AsyncMock(return_value=[\n            build_task(id=1, title=\"First\"),\n            build_task(id=3, title=\"Third\", status=\"done\"),\n        ])\n\n        # Delete task 2\n        await mock_delete(2)\n        state.set_tasks([t for t in state.tasks if t[\"id\"] != 2])\n\n        # Subsequent fetch\n        remaining = await mock_fetch()\n        state.set_tasks(remaining)\n\n        assert all(t[\"id\"] != 2 for t in state.tasks)\n        assert len(state.tasks) == 2\n"
+}

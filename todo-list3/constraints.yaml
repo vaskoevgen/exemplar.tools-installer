@@ -1,0 +1,58 @@
+version: "1.0"
+generated_by: constrain
+session_id: "demo_task_mgmt"
+
+constraints:
+  - id: C001
+    boundary: "Backend database writes"
+    condition: "Only FastAPI backend may write to tasks table"
+    violation: "Data corruption from multiple writers"
+    severity: must
+    rationale: "Maintain clean separation and data consistency"
+    classification_tier: null
+    affected_components: ["fastapi_backend", "postgres_db"]
+
+  - id: C002
+    boundary: "Status field values"
+    condition: "Task status must be one of: pending, in_progress, done"
+    violation: "Invalid status states in database"
+    severity: must
+    rationale: "Enforce business logic for status tracking"
+    classification_tier: "PUBLIC"
+    affected_components: ["fastapi_backend", "react_frontend"]
+
+  - id: C003
+    boundary: "Required fields"
+    condition: "Tasks must have non-null id, title, status, created_at, updated_at"
+    violation: "Incomplete task records"
+    severity: must
+    rationale: "Ensure data integrity for core task attributes"
+    classification_tier: "PUBLIC"
+    affected_components: ["fastapi_backend", "postgres_db"]
+
+  - id: C004
+    boundary: "Component communication"
+    condition: "Frontend must communicate with backend only via HTTP REST API"
+    violation: "Architecture boundary violation"
+    severity: must
+    rationale: "Maintain clean three-tier separation"
+    classification_tier: null
+    affected_components: ["react_frontend", "fastapi_backend"]
+
+  - id: C005
+    boundary: "Data deletion"
+    condition: "Delete operations must completely remove rows from database"
+    violation: "Data retention when deletion intended"
+    severity: must
+    rationale: "Hard delete requirement for demo project"
+    classification_tier: "PUBLIC"
+    affected_components: ["fastapi_backend", "postgres_db"]
+
+  - id: C006
+    boundary: "Port assignments"
+    condition: "React on 5173, FastAPI on 8000, PostgreSQL on 5432"
+    violation: "Port conflicts preventing component startup"
+    severity: should
+    rationale: "Standard development ports for each technology"
+    classification_tier: null
+    affected_components: ["react_frontend", "fastapi_backend", "postgres_db"]

@@ -1,0 +1,106 @@
+{
+  "task_summary": "Implement the 'Root' component — the top-level integration shell that wires together backend (FastAPI/Python), database (PostgreSQL/psycopg2), and frontend (React/Vite/TypeScript) tiers for a task-management application. The Root component owns cross-tier configuration, connection pool lifecycle, CORS policy, schema initialization idempotency, test isolation, and the HTTP API contract. Verification functions span all three tiers.",
+  "findings": [
+    {
+      "topic": "FastAPI application factory pattern",
+      "finding": "Use a `create_app()` factory function rather than a module-level `app = FastAPI()`. This enables test isolation (each test gets a fresh app instance), configurable dependency injection, and clean lifecycle management via FastAPI's `lifespan` context manager (introduced in 0.93+). The lifespan replaces deprecated `on_startup`/`on_shutdown` hooks and is the idiomatic way to manage connection pools.",
+      "source": "FastAPI official docs — Lifespan Events; Starlette lifespan protocol",
+      "relevance": "Directly satisfies verify_connection_pool_lifecycle and verify_test_isolation contracts. Factory pattern keeps the root module composable.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "psycopg2 connection pooling",
+      "finding": "Use `psycopg2.pool.ThreadedConnectionPool` (or `SimpleConnectionPool` for single-threaded test harnesses). Pool must be created once in lifespan startup, closed in lifespan shutdown. Key params: minconn=2, maxconn=10 (tunable via env). Always return connections via `pool.putconn(conn)` in a finally block; never rely on GC. For FastAPI (async), run psycopg2 calls in a thread executor or use `run_in_executor`; alternatively note psycopg2 is blocking — acceptable if request volume is moderate, but document the choice.",
+      "source": "psycopg2 docs — Connection pooling; FastAPI concurrency docs",
+      "relevance": "Directly satisfies verify_connection_pool_lifecycle. Blocking driver in async framework is a known pitfall — mitigate with pool sizing and executor offloading.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Schema initialization idempotency",
+      "finding": "Use `CREATE TABLE IF NOT EXISTS` and `CREATE INDEX IF NOT EXISTS` in a single idempotent migration function. Wrap in a transaction. Call this function at app startup (inside lifespan) and expose it for test setup. Avoid raw DDL scattered across modules. For evolution, consider a version table `schema_version` with advisory locks (`pg_advisory_lock`) to prevent concurrent migration races.",
+      "source": "PostgreSQL DDL best practices; Flyway/Alembic design principles",
+      "relevance": "Directly satisfies verify_schema_initialization_idempotent. Idempotent DDL is critical for container restarts, test re-runs, and CI parallelism.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "CORS configuration for React+Vite dev server",
+      "finding": "Vite dev server defaults to `http://localhost:5173`. FastAPI's `CORSMiddleware` must whitelist this origin (and optionally the production origin). Set `allow_methods=['*']`, `allow_headers=['*']`, `allow_credentials=True` only if needed; prefer explicit methods `['GET','POST','PUT','PATCH','DELETE','OPTIONS']`. Read allowed origins from an env var (e.g., `CORS_ORIGINS`) with a sensible default. Common pitfall: forgetting to allow `Content-Type` header causes preflight failures on POST/PUT.",
+      "source": "FastAPI CORS docs; MDN CORS specification",
+      "relevance": "Directly satisfies verify_cors_configuration. Misconfigured CORS is the #1 integration issue between separate frontend/backend dev servers.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "HTTP API contract — RESTful task CRUD",
+      "finding": "Given the types (TaskCreateRequest, TaskUpdateRequest, TaskResponse, TaskListResponse, ErrorResponse, HealthResponse, DeleteConfirmation), the contract implies standard endpoints: `GET /health`, `GET /tasks`, `POST /tasks`, `GET /tasks/{id}`, `PUT /tasks/{id}` or `PATCH /tasks/{id}`, `DELETE /tasks/{id}`. Use Pydantic v2 models for request/response schemas with strict type validation. Return 422 with ValidationErrorResponse for invalid input (FastAPI default). Return 404 with ErrorResponse for missing resources. Use `status_code=201` on POST, `200` on GET/PUT/PATCH, `200` on DELETE returning DeleteConfirmation.",
+      "source": "JSON:API conventions; FastAPI response model docs; HTTP semantics RFC 9110",
+      "relevance": "Directly satisfies verify_http_api_contract. Pydantic v2 strict mode catches type coercion bugs early.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Test isolation with PostgreSQL",
+      "finding": "Two proven patterns: (1) Transaction rollback — wrap each test in a transaction, rollback after. Fast but doesn't test commit behavior. (2) Truncate tables — `TRUNCATE table RESTART IDENTITY CASCADE` between tests. Slightly slower but tests real commits. For contract tests connecting via DATABASE_URL, prefer truncation in a pytest fixture (`autouse=True` at session or function scope). Use a dedicated test database, never the dev/prod database. Fixtures should call the idempotent schema init before the test suite.",
+      "source": "pytest-postgresql patterns; Django TestCase design; SQLAlchemy testing docs",
+      "relevance": "Directly satisfies verify_test_isolation. Without isolation, test ordering bugs are the most common CI flake source.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Cross-tier invariant verification",
+      "finding": "Cross-tier invariants verify that the API layer faithfully reflects database state (e.g., POST a task → SELECT confirms row exists; DELETE → row absent; enum values in Python match CHECK constraints in DB). Implement as integration tests that hit the HTTP API and then independently query the database. Use a separate psycopg2 connection (not the app's pool) to avoid coupling.",
+      "source": "Contract testing principles (Pact, Spring Cloud Contract); integration test best practices",
+      "relevance": "Directly satisfies verify_cross_tier_invariants. Separate verification connection prevents false positives from cached/uncommitted state.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Environment-driven configuration",
+      "finding": "Use `pydantic-settings` (BaseSettings) to load DATABASE_URL, CORS_ORIGINS, POOL_MIN, POOL_MAX, etc. from environment variables with sensible defaults. This is the canonical FastAPI approach. Validate at startup — fail fast on missing DATABASE_URL rather than on first request. Keep the Settings class in a dedicated `config.py` < 50 lines.",
+      "source": "pydantic-settings docs; 12-factor app methodology",
+      "relevance": "Root component owns configuration. Fail-fast validation prevents runtime surprises. Aligns with DATABASE_URL convention in operating procedures.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "File size discipline and module decomposition",
+      "finding": "With a 300-line limit, decompose the root into: `main.py` (app factory + lifespan, ~60 lines), `config.py` (settings, ~40 lines), `models.py` (Pydantic schemas, ~100 lines), `db.py` (pool management + schema init, ~80 lines), `routes/tasks.py` (CRUD endpoints, ~150 lines), `routes/health.py` (~20 lines). Each stays well under 300 lines. Use FastAPI's `APIRouter` for route separation.",
+      "source": "FastAPI larger applications docs; project operating procedures",
+      "relevance": "Directly satisfies the 300-line preference. APIRouter is the standard decomposition mechanism.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Security: SQL injection and input validation",
+      "finding": "Always use parameterized queries with psycopg2 (`cursor.execute('SELECT ... WHERE id = %s', (task_id,))`). Never use f-strings or string concatenation for SQL. Pydantic models handle input validation at the API boundary — use `constr(min_length=1, max_length=500)` for TaskTitle, constrained enums for TaskStatus. Add `max_length` to all string fields to prevent oversized payloads.",
+      "source": "OWASP SQL Injection Prevention Cheat Sheet; Pydantic constrained types",
+      "relevance": "Fundamental security requirement. psycopg2's parameterized queries are safe when used correctly; the pitfall is reverting to string formatting for dynamic queries.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "ISOTimestamp handling",
+      "finding": "Store timestamps as `TIMESTAMPTZ` in PostgreSQL (always timezone-aware). In Python, use `datetime.datetime` with `timezone.utc`. In Pydantic, use `datetime` type with a serializer that emits ISO 8601 format. Common pitfall: naive datetimes (no tz) cause comparison bugs and ambiguous ordering. psycopg2 returns timezone-aware datetimes from TIMESTAMPTZ columns by default.",
+      "source": "PostgreSQL timestamp docs; Python datetime best practices",
+      "relevance": "ISOTimestamp type in the contract requires consistent serialization. Timezone-naive datetimes are a frequent source of subtle bugs.",
+      "confidence": 0.93
+    }
+  ],
+  "recommended_approach": "Implement Root as an app-factory pattern with the following module structure:\n\n1. **`config.py`** — `pydantic-settings` BaseSettings loading DATABASE_URL, CORS_ORIGINS, pool sizing from env vars. Fail-fast validation.\n\n2. **`db.py`** — `ThreadedConnectionPool` lifecycle (init/close), idempotent `init_schema()` using `CREATE TABLE IF NOT EXISTS` with TIMESTAMPTZ columns, a `get_connection()` context manager that guarantees `putconn()`.\n\n3. **`models.py`** — Pydantic v2 models for all declared types (TaskStatus enum, TaskCreateRequest, TaskUpdateRequest, TaskResponse, TaskListResponse, ErrorResponse, ValidationErrorResponse, HealthResponse, DeleteConfirmation). Constrained string lengths, strict enum validation.\n\n4. **`main.py`** — `create_app()` factory using FastAPI `lifespan` async context manager. Lifespan opens pool + calls `init_schema()` on enter, closes pool on exit. Registers CORSMiddleware with configurable origins. Includes routers.\n\n5. **`routes/health.py`** — `GET /health` returning HealthResponse.\n\n6. **`routes/tasks.py`** — Full CRUD: `POST /tasks` (201), `GET /tasks` (200), `GET /tasks/{id}` (200/404), `PUT /tasks/{id}` (200/404), `DELETE /tasks/{id}` (200/404). All use parameterized psycopg2 queries via the pool.\n\n7. **`tests/conftest.py`** — Fixtures for test DB setup (schema init), table truncation between tests, httpx AsyncClient against the app factory, independent psycopg2 connection for cross-tier assertions.\n\n8. **`tests/`** — One test file per verification function, each exercising the corresponding contract.",
+  "alternatives_considered": [
+    "psycopg3 (async-native) instead of psycopg2 — would eliminate the blocking-driver-in-async-framework concern, but operating procedures mandate psycopg2. Could wrap in run_in_executor as a compromise.",
+    "SQLAlchemy Core as a query builder over raw psycopg2 — adds type safety and composability but introduces a dependency not in the tech stack and may obscure the direct psycopg2 usage expected.",
+    "Alembic for schema migrations — overkill for a single-table app; idempotent DDL in code is simpler and satisfies the idempotency verification requirement directly.",
+    "Module-level app singleton instead of factory — simpler but breaks test isolation and makes lifespan testing difficult. Factory is strictly superior for the verification requirements.",
+    "asyncpg instead of psycopg2 — natively async, better FastAPI fit, but violates the stated tech stack constraint."
+  ],
+  "risks": [
+    "psycopg2 is a blocking driver inside FastAPI's async event loop. Under high concurrency, pool exhaustion or event-loop starvation is possible. Mitigate by running DB calls in a threadpool executor and sizing the connection pool to match the executor's thread count.",
+    "Schema initialization at startup creates a race condition if multiple app instances start simultaneously (e.g., in container orchestration). Mitigate with pg_advisory_lock around DDL execution.",
+    "CORS misconfiguration is silent — browser blocks requests but the server logs nothing. Ensure verify_cors_configuration tests both preflight OPTIONS and actual cross-origin requests with the exact Vite dev origin.",
+    "Test database pollution if DATABASE_URL accidentally points to a dev/prod database. Mitigate by checking for a test-specific database name or requiring an explicit TEST_DATABASE_URL.",
+    "Connection pool not properly closed on unclean shutdown (e.g., SIGKILL). PostgreSQL will clean up via `idle_in_transaction_session_timeout`, but lingering connections can exhaust `max_connections`. Document pool sizing relative to PG max_connections.",
+    "Pydantic v2 validation errors have a different shape than v1. Ensure ValidationErrorResponse type matches FastAPI's actual 422 response body structure (which uses Pydantic v2 format)."
+  ],
+  "compliance_notes": [
+    "All public functions must have type annotations per operating procedures — enforce with mypy or pyright in CI.",
+    "Every backend function requires at least one test — track coverage at function granularity, not line granularity.",
+    "Contract tests use DATABASE_URL env var — never hardcode connection strings. Use os.environ.get('DATABASE_URL') with a clear error if unset.",
+    "No file may exceed 300 lines — the proposed 7-module decomposition keeps each file well under this limit.",
+    "Composition over inheritance — use FastAPI Depends() for dependency injection, dataclass/Pydantic composition for models, avoid class hierarchies for route handlers or services.",
+    "No task is done until contract tests pass — all six verify_* functions must return True before marking Root complete."
+  ]
+}

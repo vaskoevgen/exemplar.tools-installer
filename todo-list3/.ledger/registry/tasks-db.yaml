@@ -1,0 +1,4 @@
+backend_id: tasks-db
+backend_type: postgres
+owner_component: fastapi-backend
+registered_at: '2026-05-04T21:33:26.339286+00:00'
