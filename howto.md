@@ -1005,14 +1005,38 @@ sentinel report
 
 > `No incidents recorded.` is the expected output on a fresh project with no live traffic. This is not an error.
 
-**Optionally start the log watcher** — blocks until Ctrl+C:
+**Configure log sources** — edit `sentinel.yaml` to point at your app's logs. With Baton, use its captured service log:
+
+```yaml
+sources:
+  - type: file
+    path: .baton/service_logs.jsonl
+    format: jsonl
+    error_patterns:
+      - '"severity": "error"'
+      - 'Traceback'
+      - '500 Internal Server Error'
+```
+
+> **Why custom `error_patterns`?** Baton writes logs as JSONL with lowercase `"severity": "error"`. Sentinel's defaults (`ERROR`, `CRITICAL`, `Traceback`) are case-sensitive and won't match. You must add the JSONL-specific pattern.
+
+**Start the log watcher** — blocks until Ctrl+C:
 
 ```bash
-sentinel serve
+sentinel watch
 # (press Ctrl+C to stop)
 ```
 
-> `sentinel serve` starts an HTTP API that watches your application logs in real time. When it sees an error, it matches it to the PACT key embedded in the source code (e.g. `PACT:481349:root:create_task`), attributes it to the responsible component, and records it as an incident. **Skip this if your app is not running** — there are no logs to watch.
+> **`sentinel watch` not `sentinel serve`** — `serve` starts only the HTTP API and does NOT watch logs. This is a known misleading command name. Always use `sentinel watch` to tail log sources.
+
+After generating some traffic (or errors), check incidents:
+
+```bash
+sentinel report
+#   [!!] 4a18783759f1  root    $0.00  escalated  2026-05-05T15:10:16
+```
+
+> **Attribution as `unknown`** is normal when errors originate in third-party libraries (e.g. psycopg2 connection tracebacks) — those lines have no `PACT:` key. Errors logged via `_log("error", ...)` in your app code will be attributed correctly.
 
 ```bash
 deactivate
