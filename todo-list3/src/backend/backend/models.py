@@ -1,10 +1,10 @@
 import logging
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 from enum import Enum
-from typing import Any, List, Optional
+from typing import Annotated, Any, List, Optional
 
-from pydantic import BaseModel, ConfigDict, field_serializer, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_serializer, field_validator, model_validator
 
 _PACT_KEY = "PACT:10e08a:backend"
 logger = logging.getLogger(__name__)
@@ -23,8 +23,13 @@ def _log(level: str, msg: str, **kwargs) -> None:
     getattr(logger, level)(f"[{_PACT_KEY}] {msg}", **kwargs)
 
 
-# ----------- Enums -----------
+# --- string stub type ---
+class string:
+    """Auto-stubbed type — referenced but not defined in contract 'backend'"""
+    pass
 
+
+# --- TaskStatus enum ---
 class TaskStatus(str, Enum):
     """Closed set of allowed task lifecycle states."""
     pending = "pending"
@@ -32,169 +37,121 @@ class TaskStatus(str, Enum):
     done = "done"
 
 
-# ----------- Bespoke primitive types -----------
-
-class TaskTitle:
+# --- TaskTitle as a Pydantic model for standalone validation ---
+class TaskTitle(BaseModel):
     """Non-blank, whitespace-stripped task title. 1..200 chars after strip."""
-    def __init__(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise ValueError("TaskTitle value must be a string")
-        stripped = value.strip()
-        if len(stripped) == 0:
-            raise ValueError("TaskTitle must be non-blank after stripping whitespace")
-        if len(stripped) > 200:
-            raise ValueError(f"TaskTitle must be at most 200 characters, got {len(stripped)}")
-        self.value = stripped
+    model_config = ConfigDict(strict=False)
+    value: str
 
-    def __str__(self) -> str:
-        return self.value
+    @field_validator('value')
+    @classmethod
+    def validate_title(cls, v: str) -> str:
+        stripped = v.strip()
+        if len(stripped) == 0:
+            raise ValueError('Title must not be blank after stripping whitespace')
+        if len(stripped) > 200:
+            raise ValueError('Title must be at most 200 characters after stripping')
+        return stripped
 
 
 OptionalString = Optional[str]
+ISOTimestamp = datetime
+TaskId = int
+TaskListResponse = List["TaskResponse"]
+DatabaseURL = str
 
 
-class ISOTimestamp:
-    """A datetime with timezone info, serialized to ISO 8601 string with timezone."""
-    def __init__(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise ValueError("ISOTimestamp value must be a string")
-        # Parse to verify it's valid ISO 8601 with timezone
-        try:
-            dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
-        except (ValueError, TypeError) as e:
-            raise ValueError(f"Invalid ISO 8601 timestamp: {value}") from e
-        if dt.tzinfo is None:
-            raise ValueError(f"ISOTimestamp requires timezone info: {value}")
-        self.value = value
-        self.datetime = dt
-
-    def __str__(self) -> str:
-        return self.value
+def _normalize_description(v: Optional[str]) -> Optional[str]:
+    """Normalize empty/whitespace-only descriptions to None."""
+    if v is None:
+        return None
+    stripped = v.strip()
+    if not stripped:
+        return None
+    return v
 
 
-class DatabaseURL:
-    """PostgreSQL connection string."""
-    def __init__(self, value: str) -> None:
-        if not isinstance(value, str):
-            raise ValueError("DatabaseURL value must be a string")
-        if not (value.startswith("postgresql://") or value.startswith("postgres://")):
-            raise ValueError(f"DatabaseURL must start with postgresql:// or postgres://, got: {value}")
-        self.value = value
+def _validate_title(v: str) -> str:
+    """Strip and validate title: non-blank, 1..255 chars."""
+    if v is None:
+        raise ValueError('Title is required')
+    stripped = v.strip()
+    if len(stripped) == 0:
+        raise ValueError('Title must not be blank after stripping whitespace')
+    if len(stripped) > 255:
+        raise ValueError('Title must be at most 255 characters')
+    return stripped
 
-    def __str__(self) -> str:
-        return self.value
-
-
-class string:
-    """Auto-stubbed type — referenced but not defined in contract 'backend'"""
-    pass
-
-
-# ----------- Pydantic models -----------
 
 class TaskCreateRequest(BaseModel):
     """Request body for POST /tasks."""
-    model_config = ConfigDict(use_enum_values=True)
-
+    model_config = ConfigDict(strict=False)
     title: str
-    description: Optional[str] = None
+    description: OptionalString = None
     status: TaskStatus = TaskStatus.pending
 
-    @field_validator("title", mode="before")
+    @field_validator('title')
     @classmethod
-    def validate_title(cls, v: Any) -> str:
-        if not isinstance(v, str):
-            raise ValueError("Title must be a string")
-        stripped = v.strip()
-        if len(stripped) == 0:
-            raise ValueError("Title must be non-blank after stripping whitespace")
-        if len(stripped) > 255:
-            raise ValueError(f"Title must be at most 255 characters, got {len(stripped)}")
-        return stripped
+    def validate_title(cls, v: str) -> str:
+        return _validate_title(v)
 
-    @field_validator("description", mode="before")
+    @field_validator('description')
     @classmethod
-    def normalize_description(cls, v: Any) -> Optional[str]:
-        if v is None:
-            return None
-        if isinstance(v, str):
-            stripped = v.strip()
-            if len(stripped) == 0:
-                return None
-            return stripped
-        return v
+    def normalize_description(cls, v: Optional[str]) -> Optional[str]:
+        return _normalize_description(v)
 
 
 class TaskUpdateRequest(BaseModel):
     """Request body for PUT /tasks/{id} — partial update (PATCH semantics)."""
-    model_config = ConfigDict(use_enum_values=True)
-
+    model_config = ConfigDict(strict=False)
     title: Optional[str] = None
-    description: Optional[str] = None
+    description: OptionalString = None
     status: Optional[TaskStatus] = None
 
-    @field_validator("title", mode="before")
+    @field_validator('title')
     @classmethod
-    def validate_title(cls, v: Any) -> Optional[str]:
+    def validate_title(cls, v: Optional[str]) -> Optional[str]:
         if v is None:
-            return None
-        if not isinstance(v, str):
-            raise ValueError("Title must be a string")
-        stripped = v.strip()
-        if len(stripped) == 0:
-            raise ValueError("Title must be non-blank after stripping whitespace")
-        if len(stripped) > 255:
-            raise ValueError(f"Title must be at most 255 characters, got {len(stripped)}")
-        return stripped
+            return v
+        return _validate_title(v)
 
-    @field_validator("description", mode="before")
+    @field_validator('description')
     @classmethod
-    def normalize_description(cls, v: Any) -> Optional[str]:
-        if v is None:
-            return None
-        if isinstance(v, str):
-            stripped = v.strip()
-            if len(stripped) == 0:
-                return None
-            return stripped
-        return v
+    def normalize_description(cls, v: Optional[str]) -> Optional[str]:
+        return _normalize_description(v)
 
 
 class TaskResponse(BaseModel):
     """Complete task object returned by all read/write endpoints."""
-    model_config = ConfigDict(use_enum_values=True)
-
-    id: str
+    model_config = ConfigDict(from_attributes=True)
+    id: int
     title: str
-    description: Optional[str] = None
+    description: OptionalString = None
     status: TaskStatus
     created_at: datetime
     updated_at: datetime
 
-    @field_serializer("created_at", "updated_at")
-    def serialize_datetime(self, dt: datetime, _info: Any) -> str:
-        return dt.isoformat()
-
-
-TaskListResponse = List[TaskResponse]
+    @field_serializer('created_at', 'updated_at')
+    def serialize_datetime(self, v: datetime, _info: Any) -> str:
+        return v.isoformat()
 
 
 class HealthResponse(BaseModel):
     """Response body for GET /health."""
     status: str
 
-    @field_validator("status", mode="before")
+    @field_validator('status')
     @classmethod
-    def validate_status(cls, v: Any) -> str:
-        if v != "ok":
-            raise ValueError("HealthResponse status must be 'ok'")
+    def validate_status(cls, v: str) -> str:
+        if v != 'ok':
+            raise ValueError("status must be 'ok'")
         return v
 
 
 class DeleteConfirmation(BaseModel):
     """Response body for DELETE /tasks/{id}."""
     detail: str
-    id: str
+    id: int
 
 
 class ErrorDetail(BaseModel):

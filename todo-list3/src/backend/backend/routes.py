@@ -1,6 +1,5 @@
 import logging
 import time
-import uuid
 from typing import List
 
 from fastapi import APIRouter, HTTPException
@@ -9,7 +8,6 @@ from backend.models import (
     DeleteConfirmation,
     HealthResponse,
     TaskCreateRequest,
-    TaskListResponse,
     TaskResponse,
     TaskUpdateRequest,
 )
@@ -35,113 +33,95 @@ def _log(level: str, msg: str, **kwargs) -> None:
 router = APIRouter()
 
 
-def _validate_uuid(id_str: str) -> str:
-    """Validate that the string is a valid UUID. Raise 422 if not."""
-    try:
-        val = uuid.UUID(id_str)
-        return str(val)
-    except (ValueError, AttributeError):
-        raise HTTPException(status_code=422, detail="Invalid UUID format")
-
-
-@router.get("/health", response_model=HealthResponse, status_code=200)
+@router.get("/health", response_model=HealthResponse)
 def health_check() -> HealthResponse:
     """GET /health — Returns {'status': 'ok'}."""
-    _log("info", "PACT:10e08a:backend:health_check invoked")
+    _log("info", "health_check invoked")
     return HealthResponse(status="ok")
 
 
-@router.get("/tasks", response_model=TaskListResponse, status_code=200)
-def list_tasks() -> TaskListResponse:
+@router.get("/tasks", response_model=List[TaskResponse])
+def list_tasks() -> List[TaskResponse]:
     """GET /tasks — Returns all tasks ordered by created_at DESC."""
-    _log("info", "PACT:10e08a:backend:list_tasks invoked")
+    _log("info", "list_tasks invoked")
     try:
         rows = db_module.db_list_tasks()
     except Exception as e:
         _log("error", f"Database error in list_tasks: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
-    result = [TaskResponse(**_row_to_response(row)) for row in rows]
-    return result
+    return [TaskResponse(**row) for row in rows]
 
 
 @router.post("/tasks", response_model=TaskResponse, status_code=201)
 def create_task(task: TaskCreateRequest) -> TaskResponse:
     """POST /tasks — Creates a new task."""
-    _log("info", "PACT:10e08a:backend:create_task invoked")
+    _log("info", f"create_task invoked: title={task.title}")
     try:
         row = db_module.db_create_task(
             title=task.title,
             description=task.description,
-            status=task.status if isinstance(task.status, str) else task.status,
+            status=task.status.value,
         )
     except Exception as e:
         _log("error", f"Database error in create_task: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
-    return TaskResponse(**_row_to_response(row))
+    return TaskResponse(**row)
 
 
-@router.get("/tasks/{task_id}", response_model=TaskResponse, status_code=200)
-def get_task(task_id: str) -> TaskResponse:
-    """GET /tasks/{id} — Returns a single task by UUID."""
-    _log("info", f"PACT:10e08a:backend:get_task invoked task_id={task_id}")
-    _validate_uuid(task_id)
+@router.get("/tasks/{id}", response_model=TaskResponse)
+def get_task(id: int) -> TaskResponse:
+    """GET /tasks/{id} — Returns a single task by id."""
+    _log("info", f"get_task invoked: id={id}")
     try:
-        row = db_module.db_get_task(task_id)
+        row = db_module.db_get_task(id)
     except Exception as e:
         _log("error", f"Database error in get_task: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
     if row is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return TaskResponse(**_row_to_response(row))
+    return TaskResponse(**row)
 
 
-@router.put("/tasks/{task_id}", response_model=TaskResponse, status_code=200)
-def update_task(task_id: str, task: TaskUpdateRequest) -> TaskResponse:
-    """PUT /tasks/{id} — PATCH semantics partial update."""
-    _log("info", f"PACT:10e08a:backend:update_task invoked task_id={task_id}")
-    _validate_uuid(task_id)
+@router.put("/tasks/{id}", response_model=TaskResponse)
+def update_task(id: int, task: TaskUpdateRequest) -> TaskResponse:
+    """PUT /tasks/{id} — PATCH semantics."""
+    _log("info", f"update_task invoked: id={id}")
 
-    # Build fields dict from only provided fields
+    # Build fields dict from model_fields_set
     fields = {}
     for field_name in task.model_fields_set:
-        value = getattr(task, field_name)
-        fields[field_name] = value
+        fields[field_name] = getattr(task, field_name)
+
+    if not fields:
+        # No fields to update; just fetch and return current
+        try:
+            row = db_module.db_get_task(id)
+        except Exception as e:
+            _log("error", f"Database error in update_task: {e}")
+            raise HTTPException(status_code=500, detail="Database connection error")
+        if row is None:
+            raise HTTPException(status_code=404, detail="Task not found")
+        return TaskResponse(**row)
 
     try:
-        row = db_module.db_update_task(task_id, fields)
+        row = db_module.db_update_task(id, fields)
     except Exception as e:
         _log("error", f"Database error in update_task: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
     if row is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return TaskResponse(**_row_to_response(row))
+    return TaskResponse(**row)
 
 
-@router.delete("/tasks/{task_id}", response_model=DeleteConfirmation, status_code=200)
-def delete_task(task_id: str) -> DeleteConfirmation:
+@router.delete("/tasks/{id}", response_model=DeleteConfirmation)
+def delete_task(id: int) -> DeleteConfirmation:
     """DELETE /tasks/{id} — Hard-deletes the task."""
-    _log("info", f"PACT:10e08a:backend:delete_task invoked task_id={task_id}")
-    _validate_uuid(task_id)
+    _log("info", f"delete_task invoked: id={id}")
     try:
-        row = db_module.db_delete_task(task_id)
+        result = db_module.db_delete_task(id)
     except Exception as e:
         _log("error", f"Database error in delete_task: {e}")
         raise HTTPException(status_code=500, detail="Database connection error")
-    if row is None:
+    if result is None:
         raise HTTPException(status_code=404, detail="Task not found")
-    return DeleteConfirmation(
-        detail="Task deleted",
-        id=str(row["id"]),
-    )
-
-
-def _row_to_response(row: dict) -> dict:
-    """Convert a database row dict to TaskResponse-compatible dict."""
-    return {
-        "id": str(row["id"]),
-        "title": row["title"],
-        "description": row.get("description"),
-        "status": row["status"],
-        "created_at": row["created_at"],
-        "updated_at": row["updated_at"],
-    }
+    return DeleteConfirmation(detail="Task deleted", id=result["id"])

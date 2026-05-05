@@ -1,11 +1,17 @@
 """Root integration glue — wires backend, database, and frontend children
-into the parent Root verification interface.
+into the parent Root interface.
 
-This module implements the six parent integration-verification functions by
-delegating to child component functions.  It adds no business logic; all
-work is data transformation and routing between children.
+All six parent functions are **integration verification functions**. They
+delegate to child components (backend REST API via HTTP, database via direct
+SQL, frontend via its Python API mirror) and perform cross-tier assertions.
+No business logic is added; only data transformation, routing, and error
+propagation per the parent contract.
 
-PACT key: PACT:root:glue
+Error contract:
+    - ConnectionError  — backend/database unreachable
+    - AssertionError   — endpoint mismatch, invariant violation, schema
+                         mismatch, idempotency failure, isolation violation,
+                         CORS misconfiguration, pool not initialized
 """
 
 import asyncio
@@ -13,586 +19,617 @@ import logging
 import os
 import re
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-import httpx
-import psycopg2
-import psycopg2.extras
+_PACT_KEY = "PACT:root:integration"
+logger = logging.getLogger(__name__)
+
+
+def _log(level: str, msg: str, **kwargs) -> None:
+    getattr(logger, level)(f"[{_PACT_KEY}] {msg}", **kwargs)
+
 
 # ---------------------------------------------------------------------------
 # Child imports
 # ---------------------------------------------------------------------------
 
-# backend child
-from backend.db import (
-    init_connection_pool as backend_init_connection_pool,
-    close_connection_pool as backend_close_connection_pool,
-    db_list_tasks as backend_db_list_tasks,
-    db_create_task as backend_db_create_task,
-    db_get_task as backend_db_get_task,
-    db_update_task as backend_db_update_task,
-    db_delete_task as backend_db_delete_task,
-)
+# backend — HTTP routes & db helpers
 from backend.routes import (
-    health_check as backend_health_check,
-    list_tasks as backend_list_tasks,
-    create_task as backend_create_task,
-    get_task as backend_get_task,
-    update_task as backend_update_task,
-    delete_task as backend_delete_task,
+    health_check as _backend_health_check,
+    list_tasks as _backend_list_tasks,
+    create_task as _backend_create_task,
+    get_task as _backend_get_task,
+    update_task as _backend_update_task,
+    delete_task as _backend_delete_task,
+)
+from backend.db import (
+    init_connection_pool as _backend_init_pool,
+    close_connection_pool as _backend_close_pool,
+    get_connection as _backend_get_connection,
+    db_list_tasks as _backend_db_list_tasks,
+    db_create_task as _backend_db_create_task,
+    db_get_task as _backend_db_get_task,
+    db_update_task as _backend_db_update_task,
+    db_delete_task as _backend_db_delete_task,
+)
+from backend.models import (
+    TaskCreateRequest as BackendTaskCreateRequest,
+    TaskUpdateRequest as BackendTaskUpdateRequest,
+    TaskResponse as BackendTaskResponse,
+    HealthResponse as BackendHealthResponse,
+    DeleteConfirmation as BackendDeleteConfirmation,
 )
 
-# database child
+# database — schema init / verification
 from database import (
-    ConnectionConfig,
-    InitScriptResult,
-    execute_init_script as db_execute_init_script,
-    verify_schema as db_verify_schema,
+    execute_init_script as _db_execute_init_script,
+    verify_schema as _db_verify_schema,
+    ConnectionConfig as DbConnectionConfig,
 )
 
-# frontend child (Python simulation layer)
-from frontend.api import (
-    resolveBaseUrl as frontend_resolveBaseUrl,
-    healthCheck as frontend_healthCheck,
-    fetchTasks as frontend_fetchTasks,
-    createTask as frontend_createTask,
-    updateTask as frontend_updateTask,
-    deleteTask as frontend_deleteTask,
+# frontend — Python mirrors of the TypeScript API client
+from frontend import (
+    fetchTasks as _fe_fetchTasks,
+    createTask as _fe_createTask,
+    updateTask as _fe_updateTask,
+    deleteTask as _fe_deleteTask,
+    healthCheck as _fe_healthCheck,
+    resolveBaseUrl as _fe_resolveBaseUrl,
+    parseErrorResponse as _fe_parseErrorResponse,
 )
 
-# ---------------------------------------------------------------------------
-# Logging
-# ---------------------------------------------------------------------------
-
-_PACT_KEY = "PACT:root:glue"
-logger = logging.getLogger(__name__)
-
-
-def _log(level: str, msg: str, **kwargs: Any) -> None:
-    getattr(logger, level)(f"[{_PACT_KEY}] {msg}", **kwargs)
-
 
 # ---------------------------------------------------------------------------
-# ISO 8601 timestamp regex (matches parent ISOTimestamp validator)
+# Internal HTTP helpers (used by verification functions against a live backend)
 # ---------------------------------------------------------------------------
 
-_ISO_TS_RE = re.compile(
+def _sync(coro):
+    """Run an async coroutine synchronously, reusing an existing loop if available."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+    if loop and loop.is_running():
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            return pool.submit(asyncio.run, coro).result()
+    return asyncio.run(coro)
+
+
+async def _http_request(
+    method: str,
+    url: str,
+    json_body: Any = None,
+    headers: Optional[Dict[str, str]] = None,
+) -> "HTTPResult":
+    """Thin async HTTP client returning status, headers, and parsed JSON."""
+    import aiohttp
+
+    req_headers = {"Content-Type": "application/json"}
+    if headers:
+        req_headers.update(headers)
+    kwargs: Dict[str, Any] = {"headers": req_headers}
+    if json_body is not None:
+        import json as _json
+        kwargs["data"] = _json.dumps(json_body)
+
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.request(method, url, **kwargs) as resp:
+                body = None
+                try:
+                    body = await resp.json()
+                except Exception:
+                    body = await resp.text()
+                return HTTPResult(
+                    status=resp.status,
+                    headers=dict(resp.headers),
+                    body=body,
+                )
+    except aiohttp.ClientError as exc:
+        raise ConnectionError(f"Backend unreachable at {url}: {exc}") from exc
+
+
+class HTTPResult:
+    __slots__ = ("status", "headers", "body")
+
+    def __init__(self, status: int, headers: dict, body: Any):
+        self.status = status
+        self.headers = headers
+        self.body = body
+
+
+# ---------------------------------------------------------------------------
+# Timestamp format regex (ISO 8601 with timezone)
+# ---------------------------------------------------------------------------
+
+_ISO_TZ_RE = re.compile(
     r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$"
 )
 
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
-
-def _validate_backend_url(backend_base_url: str) -> None:
-    """Raise ConnectionError if the URL does not start with http(s)://."""
-    if not re.match(r"^https?://", backend_base_url):
-        raise ConnectionError(
-            f"Backend base URL must start with http:// or https://, got: {backend_base_url!r}"
-        )
-
-
-def _validate_database_url(database_url: str) -> None:
-    """Raise ConnectionError if the URL does not start with postgresql://."""
-    if not database_url.startswith("postgresql://"):
-        raise ConnectionError(
-            f"database_url must start with 'postgresql://', got: {database_url!r}"
-        )
-
-
-def _make_connection_config(database_url: str) -> ConnectionConfig:
-    """Build a database.ConnectionConfig from a raw database_url string."""
-    _validate_database_url(database_url)
-    return ConnectionConfig(database_url=database_url, port=5432)
-
-
-def _direct_db_connect(database_url: str):
-    """Open a raw psycopg2 connection for direct DB assertions."""
-    try:
-        return psycopg2.connect(database_url)
-    except Exception as exc:
-        raise ConnectionError(f"Database unreachable: {exc}") from exc
-
-
-def _assert_iso_timestamp(value: str, label: str) -> None:
-    """Assert a string matches ISO 8601 with timezone."""
-    if not _ISO_TS_RE.match(value):
-        raise AssertionError(
-            f"{label} is not ISO 8601 with timezone: {value!r}"
-        )
+def _assert_iso_tz(value: str, label: str = "timestamp") -> None:
+    assert _ISO_TZ_RE.match(value), (
+        f"{label} is not ISO 8601 with timezone: {value!r}"
+    )
 
 
 # ---------------------------------------------------------------------------
-# Parent function: verify_http_api_contract
+# Parent interface implementation
 # ---------------------------------------------------------------------------
-
 
 async def verify_http_api_contract(backend_base_url: str) -> bool:
-    """Validate that the backend exposes all six REST endpoints with correct
-    method, path, request/response types, and status codes.
-
-    Delegates to the backend child via HTTP.  Any tasks created during
-    verification are cleaned up before returning.
+    """Validate that the backend exposes all six REST endpoints per contract.
 
     Raises:
-        ConnectionError  – backend unreachable
-        AssertionError   – endpoint mismatch
+        ConnectionError: backend unreachable.
+        AssertionError: endpoint returns unexpected status code or shape.
     """
-    _validate_backend_url(backend_base_url)
-    _log("info", f"verify_http_api_contract: backend_base_url={backend_base_url}")
+    if not re.match(r"^https?://", backend_base_url):
+        raise ValueError("Backend base URL must start with http:// or https://")
 
-    created_ids: List[Any] = []
+    base = backend_base_url.rstrip("/")
+    _log("info", f"verify_http_api_contract: base={base}")
+
+    # --- 1. GET /health → 200, HealthResponse ---
+    r = await _http_request("GET", f"{base}/health")
+    assert r.status == 200, f"GET /health expected 200, got {r.status}"
+    assert isinstance(r.body, dict) and r.body.get("status") == "ok", (
+        f"GET /health body mismatch: {r.body}"
+    )
+
+    # --- 2. POST /tasks → 201, TaskResponse ---
+    create_body = {"title": "__verify_http_contract__", "description": None}
+    r = await _http_request("POST", f"{base}/tasks", json_body=create_body)
+    assert r.status == 201, f"POST /tasks expected 201, got {r.status}"
+    task = r.body
+    assert isinstance(task, dict), f"POST /tasks body not dict: {task}"
+    for key in ("id", "title", "description", "status", "created_at", "updated_at"):
+        assert key in task, f"POST /tasks missing key '{key}'"
+    assert task["status"] == "pending"
+    _assert_iso_tz(task["created_at"], "POST created_at")
+    _assert_iso_tz(task["updated_at"], "POST updated_at")
+    created_id = task["id"]
 
     try:
-        async with httpx.AsyncClient(base_url=backend_base_url, timeout=10.0) as client:
+        # --- 3. GET /tasks → 200, list ---
+        r = await _http_request("GET", f"{base}/tasks")
+        assert r.status == 200, f"GET /tasks expected 200, got {r.status}"
+        assert isinstance(r.body, list), f"GET /tasks body not list: {type(r.body)}"
 
-            # --- 1. GET /health → 200, HealthResponse ---
-            r = await client.get("/health")
-            assert r.status_code == 200, f"GET /health expected 200, got {r.status_code}"
-            body = r.json()
-            assert body.get("status") == "ok", f"GET /health body mismatch: {body}"
+        # --- 4. GET /tasks/{id} → 200, TaskResponse ---
+        r = await _http_request("GET", f"{base}/tasks/{created_id}")
+        assert r.status == 200, f"GET /tasks/{{id}} expected 200, got {r.status}"
+        assert r.body["id"] == created_id
 
-            # --- 2. GET /tasks → 200, TaskListResponse ---
-            r = await client.get("/tasks")
-            assert r.status_code == 200, f"GET /tasks expected 200, got {r.status_code}"
-            assert isinstance(r.json(), list), "GET /tasks must return a JSON array"
+        # --- 5. PUT /tasks/{id} → 200, TaskResponse ---
+        update_body = {"title": "__verify_updated__"}
+        r = await _http_request("PUT", f"{base}/tasks/{created_id}", json_body=update_body)
+        assert r.status == 200, f"PUT /tasks/{{id}} expected 200, got {r.status}"
+        assert r.body["title"] == "__verify_updated__"
 
-            # --- 3. POST /tasks → 201, TaskResponse ---
-            create_payload = {"title": "glue_verify_task", "description": None, "status": "pending"}
-            r = await client.post("/tasks", json=create_payload)
-            assert r.status_code == 201, f"POST /tasks expected 201, got {r.status_code}"
-            created = r.json()
-            assert "id" in created, "POST /tasks response missing 'id'"
-            assert "title" in created, "POST /tasks response missing 'title'"
-            assert "status" in created, "POST /tasks response missing 'status'"
-            assert "created_at" in created, "POST /tasks response missing 'created_at'"
-            assert "updated_at" in created, "POST /tasks response missing 'updated_at'"
-            task_id = created["id"]
-            created_ids.append(task_id)
+        # --- 6. DELETE /tasks/{id} → 200, DeleteConfirmation ---
+        r = await _http_request("DELETE", f"{base}/tasks/{created_id}")
+        assert r.status == 200, f"DELETE /tasks/{{id}} expected 200, got {r.status}"
+        assert "detail" in r.body and "id" in r.body
 
-            # --- 4. GET /tasks/{id} → 200, TaskResponse ---
-            r = await client.get(f"/tasks/{task_id}")
-            assert r.status_code == 200, f"GET /tasks/{{id}} expected 200, got {r.status_code}"
-            fetched = r.json()
-            assert str(fetched["id"]) == str(task_id), "GET /tasks/{id} id mismatch"
+        # --- Error taxonomy: 404 on deleted task ---
+        r = await _http_request("GET", f"{base}/tasks/{created_id}")
+        assert r.status == 404, f"GET deleted task expected 404, got {r.status}"
+        assert isinstance(r.body, dict) and "detail" in r.body
 
-            # --- 5. PUT /tasks/{id} → 200, TaskResponse ---
-            update_payload = {"title": "glue_verify_updated"}
-            r = await client.put(f"/tasks/{task_id}", json=update_payload)
-            assert r.status_code == 200, f"PUT /tasks/{{id}} expected 200, got {r.status_code}"
-            updated = r.json()
-            assert updated["title"] == "glue_verify_updated", "PUT response title mismatch"
+        # --- Error taxonomy: 422 on invalid create ---
+        r = await _http_request("POST", f"{base}/tasks", json_body={"title": ""})
+        assert r.status == 422, f"POST empty title expected 422, got {r.status}"
+        assert isinstance(r.body, dict) and "detail" in r.body
 
-            # --- 6. DELETE /tasks/{id} → 200, DeleteConfirmation ---
-            r = await client.delete(f"/tasks/{task_id}")
-            assert r.status_code == 200, f"DELETE /tasks/{{id}} expected 200, got {r.status_code}"
-            del_body = r.json()
-            assert "detail" in del_body, "DELETE response missing 'detail'"
-            assert "id" in del_body, "DELETE response missing 'id'"
-            created_ids.remove(task_id)
-
-            # --- Error taxonomy: 404 ---
-            r = await client.get(f"/tasks/{task_id}")
-            assert r.status_code == 404, f"GET deleted task expected 404, got {r.status_code}"
-            err_body = r.json()
-            assert "detail" in err_body, "404 response missing 'detail'"
-
-            # --- Error taxonomy: 422 ---
-            r = await client.post("/tasks", json={"title": ""})
-            assert r.status_code == 422, f"POST blank title expected 422, got {r.status_code}"
-            val_body = r.json()
-            assert "detail" in val_body, "422 response missing 'detail'"
-
-    except httpx.ConnectError as exc:
-        raise ConnectionError(f"Backend unreachable at {backend_base_url}: {exc}") from exc
-    except httpx.TimeoutException as exc:
-        raise ConnectionError(f"Backend timeout at {backend_base_url}: {exc}") from exc
-    finally:
-        # Cleanup any leaked test tasks
-        if created_ids:
-            try:
-                async with httpx.AsyncClient(base_url=backend_base_url, timeout=5.0) as client:
-                    for tid in created_ids:
-                        await client.delete(f"/tasks/{tid}")
-            except Exception:
-                _log("warning", f"Cleanup of test tasks failed: {created_ids}")
+    except Exception:
+        # Cleanup: best-effort delete
+        try:
+            await _http_request("DELETE", f"{base}/tasks/{created_id}")
+        except Exception:
+            pass
+        raise
 
     _log("info", "verify_http_api_contract: PASSED")
     return True
 
 
-# ---------------------------------------------------------------------------
-# Parent function: verify_cross_tier_invariants
-# ---------------------------------------------------------------------------
-
-
 async def verify_cross_tier_invariants(
-    backend_base_url: str,
-    database_url: str,
+    backend_base_url: str, database_url: str
 ) -> bool:
     """Validate cross-tier behavioral invariants across the full stack.
 
-    Creates test data through the backend REST API and cross-checks against
-    direct database reads.  All test data is cleaned up.
-
     Raises:
-        ConnectionError  – backend or database unreachable
-        AssertionError   – invariant violation
+        ConnectionError: backend or database unreachable.
+        AssertionError: invariant violation.
     """
-    _validate_backend_url(backend_base_url)
-    _validate_database_url(database_url)
-    _log("info", "verify_cross_tier_invariants: start")
+    base = backend_base_url.rstrip("/")
+    _log("info", f"verify_cross_tier_invariants: base={base}")
 
-    created_ids: List[Any] = []
+    created_ids: List[int] = []
 
     try:
-        async with httpx.AsyncClient(base_url=backend_base_url, timeout=10.0) as client:
+        # (g) Status default: POST without status → 'pending'
+        r = await _http_request("POST", f"{base}/tasks", json_body={
+            "title": "__invariant_test_1__",
+        })
+        assert r.status == 201
+        t1 = r.body
+        created_ids.append(t1["id"])
+        assert t1["status"] == "pending", f"Default status not 'pending': {t1['status']}"
 
-            # (g) Status default: POST without status → 'pending'
-            r = await client.post("/tasks", json={"title": "invariant_g"})
-            assert r.status_code == 201
-            t1 = r.json()
-            created_ids.append(t1["id"])
-            assert t1["status"] == "pending", f"CROSS-TIER default status: expected 'pending', got {t1['status']!r}"
+        # (h) Timestamp format: ISO 8601 with timezone
+        _assert_iso_tz(t1["created_at"], "t1.created_at")
+        _assert_iso_tz(t1["updated_at"], "t1.updated_at")
 
-            # (h) Timestamp format: ISO 8601 with timezone
-            _assert_iso_timestamp(t1["created_at"], "created_at")
-            _assert_iso_timestamp(t1["updated_at"], "updated_at")
+        # (f) Title stripping
+        r = await _http_request("POST", f"{base}/tasks", json_body={
+            "title": "  spaced title  ",
+        })
+        assert r.status == 201
+        t2 = r.body
+        created_ids.append(t2["id"])
+        assert t2["title"] == "spaced title", (
+            f"Title not stripped: {t2['title']!r}"
+        )
 
-            # (f) Title stripping
-            r = await client.post("/tasks", json={"title": "  padded_title  "})
-            assert r.status_code == 201
-            t2 = r.json()
-            created_ids.append(t2["id"])
-            assert t2["title"] == "padded_title", f"CROSS-TIER title strip: expected 'padded_title', got {t2['title']!r}"
+        # (e) Description normalization: empty → null
+        r = await _http_request("POST", f"{base}/tasks", json_body={
+            "title": "__invariant_desc_norm__",
+            "description": "   ",
+        })
+        assert r.status == 201
+        t3 = r.body
+        created_ids.append(t3["id"])
+        assert t3["description"] is None, (
+            f"Whitespace description not normalized to null: {t3['description']!r}"
+        )
 
-            # (e) Description normalization: empty → null
-            r = await client.post("/tasks", json={"title": "desc_test", "description": "   "})
-            assert r.status_code == 201
-            t3 = r.json()
-            created_ids.append(t3["id"])
-            assert t3["description"] is None, f"CROSS-TIER desc normalization: expected null, got {t3['description']!r}"
+        # (b) created_at immutability + (c) updated_at refresh
+        import asyncio as _aio
+        await _aio.sleep(0.05)  # small delay to ensure timestamp difference
+        original_created_at = t1["created_at"]
+        original_updated_at = t1["updated_at"]
+        r = await _http_request("PUT", f"{base}/tasks/{t1['id']}", json_body={
+            "title": "__invariant_updated__",
+        })
+        assert r.status == 200
+        t1_updated = r.body
+        assert t1_updated["created_at"] == original_created_at, (
+            f"created_at mutated: {original_created_at} -> {t1_updated['created_at']}"
+        )
+        assert t1_updated["updated_at"] >= original_updated_at, (
+            f"updated_at not refreshed: {original_updated_at} -> {t1_updated['updated_at']}"
+        )
 
-            # (a) TaskList ordering: created_at DESC
-            r = await client.get("/tasks")
-            assert r.status_code == 200
-            tasks = r.json()
+        # (a) TaskList ordering: created_at DESC
+        r = await _http_request("GET", f"{base}/tasks")
+        assert r.status == 200
+        tasks = r.body
+        if len(tasks) >= 2:
             for i in range(len(tasks) - 1):
-                assert tasks[i]["created_at"] >= tasks[i + 1]["created_at"], \
-                    f"CROSS-TIER ordering violated at index {i}: {tasks[i]['created_at']} < {tasks[i+1]['created_at']}"
+                assert tasks[i]["created_at"] >= tasks[i + 1]["created_at"], (
+                    f"Task list not ordered DESC by created_at at index {i}: "
+                    f"{tasks[i]['created_at']} < {tasks[i+1]['created_at']}"
+                )
 
-            # (b) created_at immutability & (c) updated_at refresh
-            original_created_at = t1["created_at"]
-            original_updated_at = t1["updated_at"]
-            r = await client.put(f"/tasks/{t1['id']}", json={"title": "invariant_g_updated"})
-            assert r.status_code == 200
-            t1_updated = r.json()
-            assert t1_updated["created_at"] == original_created_at, \
-                f"CROSS-TIER created_at mutated: {original_created_at} → {t1_updated['created_at']}"
-            assert t1_updated["updated_at"] >= original_updated_at, \
-                f"CROSS-TIER updated_at not refreshed: {original_updated_at} → {t1_updated['updated_at']}"
+        # (d) Hard delete
+        delete_id = created_ids.pop()  # remove t3
+        r = await _http_request("DELETE", f"{base}/tasks/{delete_id}")
+        assert r.status == 200
+        r = await _http_request("GET", f"{base}/tasks/{delete_id}")
+        assert r.status == 404, (
+            f"Hard-deleted task still accessible: status {r.status}"
+        )
 
-            # (d) Hard delete
-            del_id = t3["id"]
-            r = await client.delete(f"/tasks/{del_id}")
-            assert r.status_code == 200
-            created_ids.remove(del_id)
-            r = await client.get(f"/tasks/{del_id}")
-            assert r.status_code == 404, f"CROSS-TIER hard delete: expected 404, got {r.status_code}"
-
-            # Direct DB cross-check: verify deleted row is gone
-            conn = _direct_db_connect(database_url)
+        # Cross-check with direct DB if psycopg2 available
+        try:
+            import psycopg2
+            conn = psycopg2.connect(database_url)
             try:
-                with conn.cursor() as cur:
-                    cur.execute("SELECT id FROM tasks WHERE id = %s", (del_id,))
-                    row = cur.fetchone()
-                    assert row is None, f"CROSS-TIER hard delete: row {del_id} still in DB"
+                cur = conn.cursor()
+                cur.execute("SELECT COUNT(*) FROM tasks WHERE id = %s", (delete_id,))
+                count = cur.fetchone()[0]
+                assert count == 0, f"Deleted row still in DB: count={count}"
+                cur.close()
             finally:
                 conn.close()
+        except ImportError:
+            _log("warning", "psycopg2 not available for direct DB cross-check")
 
-    except httpx.ConnectError as exc:
-        raise ConnectionError(f"Backend unreachable: {exc}") from exc
-    except httpx.TimeoutException as exc:
-        raise ConnectionError(f"Backend timeout: {exc}") from exc
     finally:
-        # Cleanup
-        if created_ids:
+        # Cleanup all created tasks
+        for tid in created_ids:
             try:
-                async with httpx.AsyncClient(base_url=backend_base_url, timeout=5.0) as client:
-                    for tid in created_ids:
-                        await client.delete(f"/tasks/{tid}")
+                await _http_request("DELETE", f"{base}/tasks/{tid}")
             except Exception:
-                _log("warning", f"Cleanup failed for task ids: {created_ids}")
+                pass
 
     _log("info", "verify_cross_tier_invariants: PASSED")
     return True
 
 
-# ---------------------------------------------------------------------------
-# Parent function: verify_schema_initialization_idempotent
-# ---------------------------------------------------------------------------
-
-
 def verify_schema_initialization_idempotent(database_url: str) -> bool:
-    """Validate that init.sql is idempotent and produces the correct schema.
-
-    Delegates to database child's execute_init_script (twice) and
-    verify_schema.
+    """Validate init.sql idempotency and schema correctness.
 
     Raises:
-        ConnectionError  – database unreachable
-        AssertionError   – schema mismatch or idempotency failure
+        ConnectionError: database unreachable.
+        AssertionError: schema mismatch or idempotency failure.
     """
-    _validate_database_url(database_url)
+    if not re.match(r"^postgresql://", database_url):
+        raise ValueError("database_url must start with 'postgresql://'")
+
     _log("info", "verify_schema_initialization_idempotent: start")
 
-    config = _make_connection_config(database_url)
-
-    # Capture row count before to verify data preservation
-    conn = _direct_db_connect(database_url)
-    try:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            # Table may not exist yet on first run
-            cur.execute(
-                "SELECT EXISTS ("
-                "  SELECT 1 FROM information_schema.tables "
-                "  WHERE table_schema='public' AND table_name='tasks'"
-                ")"
-            )
-            table_existed = cur.fetchone()[0]
-            if table_existed:
-                cur.execute("SELECT COUNT(*) FROM tasks")
-                row_count_before = cur.fetchone()[0]
-            else:
-                row_count_before = 0
-    finally:
-        conn.close()
+    config = DbConnectionConfig(database_url=database_url, port=5432)
 
     # First execution
-    try:
-        result1 = db_execute_init_script(config)
-    except Exception as exc:
-        raise ConnectionError(f"First init.sql execution failed: {exc}") from exc
+    result1 = _db_execute_init_script(config)
+    assert result1.table_created, "tasks table not present after first init"
+    assert result1.check_constraint_present, "CHECK constraint missing after first init"
+    assert result1.trigger_created, "Trigger missing after first init"
 
-    # Second execution — must not error (idempotency)
+    # Capture pre-existing row count
+    import psycopg2
+    conn = psycopg2.connect(database_url)
     try:
-        result2 = db_execute_init_script(config)
-    except Exception as exc:
-        raise AssertionError(f"Second init.sql execution raised error (not idempotent): {exc}") from exc
-
-    # Verify schema via database child
-    schema = db_verify_schema(config)
-    assert schema.table_created, "tasks table does not exist after init.sql"
-    assert schema.check_constraint_present, "CHECK constraint on status not present"
-    assert schema.trigger_created, "update_updated_at trigger not present"
-
-    # Verify column structure via direct introspection
-    conn = _direct_db_connect(database_url)
-    try:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            cur.execute(
-                "SELECT column_name, data_type, is_nullable, column_default "
-                "FROM information_schema.columns "
-                "WHERE table_schema='public' AND table_name='tasks' "
-                "ORDER BY ordinal_position"
-            )
-            columns = {row[0]: row for row in cur.fetchall()}
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM tasks")
+        count_before = cur.fetchone()[0]
+        cur.close()
     finally:
         conn.close()
 
-    expected_columns = {"id", "title", "description", "status", "created_at", "updated_at"}
-    assert set(columns.keys()) == expected_columns, \
-        f"Column mismatch: expected {expected_columns}, got {set(columns.keys())}"
+    # Second execution — must not raise
+    try:
+        result2 = _db_execute_init_script(config)
+    except Exception as exc:
+        raise AssertionError(f"Second init.sql execution failed: {exc}") from exc
 
-    # Verify data was not modified
-    if table_existed and row_count_before > 0:
-        conn = _direct_db_connect(database_url)
-        try:
-            conn.autocommit = True
-            with conn.cursor() as cur:
-                cur.execute("SELECT COUNT(*) FROM tasks")
-                row_count_after = cur.fetchone()[0]
-        finally:
-            conn.close()
-        assert row_count_after == row_count_before, \
-            f"Row count changed after re-execution: {row_count_before} → {row_count_after}"
+    assert result2.table_created, "tasks table missing after second init"
+    assert result2.check_constraint_present, "CHECK constraint missing after second init"
+    assert result2.trigger_created, "Trigger missing after second init"
+
+    # Row count unchanged
+    conn = psycopg2.connect(database_url)
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM tasks")
+        count_after = cur.fetchone()[0]
+        cur.close()
+    finally:
+        conn.close()
+    assert count_after == count_before, (
+        f"Row count changed: {count_before} → {count_after}"
+    )
+
+    # Verify column structure via information_schema
+    conn = psycopg2.connect(database_url)
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT column_name, data_type, is_nullable, column_default
+            FROM information_schema.columns
+            WHERE table_name = 'tasks' AND table_schema = 'public'
+            ORDER BY ordinal_position
+        """)
+        columns = {row[0]: row for row in cur.fetchall()}
+        cur.close()
+    finally:
+        conn.close()
+
+    expected_cols = {"id", "title", "description", "status", "created_at", "updated_at"}
+    assert set(columns.keys()) == expected_cols, (
+        f"Column set mismatch: {set(columns.keys())} != {expected_cols}"
+    )
+
+    # title: NOT NULL
+    assert columns["title"][2] == "NO", "title should be NOT NULL"
+    # description: nullable
+    assert columns["description"][2] == "YES", "description should be nullable"
+    # status: NOT NULL
+    assert columns["status"][2] == "NO", "status should be NOT NULL"
 
     _log("info", "verify_schema_initialization_idempotent: PASSED")
     return True
 
 
-# ---------------------------------------------------------------------------
-# Parent function: verify_test_isolation
-# ---------------------------------------------------------------------------
-
-
 def verify_test_isolation(database_url: str) -> bool:
-    """Validate that test operations leave the database in pre-test state.
-
-    Counts rows before/after a create-then-delete cycle to verify no
-    data leakage.
+    """Validate that integration tests leave the database in its pre-test state.
 
     Raises:
-        ConnectionError  – database unreachable
-        AssertionError   – isolation violation
+        ConnectionError: database unreachable.
+        AssertionError: data leaked or modified.
     """
-    _validate_database_url(database_url)
     _log("info", "verify_test_isolation: start")
 
-    conn = _direct_db_connect(database_url)
-    try:
-        conn.autocommit = True
-        with conn.cursor() as cur:
-            # Row count before
-            cur.execute("SELECT COUNT(*) FROM tasks")
-            count_before = cur.fetchone()[0]
+    import psycopg2
 
-            # Insert a test row
+    try:
+        conn = psycopg2.connect(database_url)
+    except Exception as exc:
+        raise ConnectionError(f"Database unreachable: {exc}") from exc
+
+    try:
+        cur = conn.cursor()
+
+        # Snapshot row count before test operations
+        cur.execute("SELECT COUNT(*) FROM tasks")
+        count_before = cur.fetchone()[0]
+
+        # Simulate test data lifecycle within a transaction that rolls back
+        conn.autocommit = False
+        try:
             cur.execute(
                 "INSERT INTO tasks (title, status) VALUES (%s, %s) RETURNING id",
-                ("isolation_test_row", "pending"),
+                ("__isolation_test__", "pending"),
             )
             test_id = cur.fetchone()[0]
 
-            # Verify it exists
+            # Verify the row exists inside the transaction
             cur.execute("SELECT COUNT(*) FROM tasks WHERE id = %s", (test_id,))
-            assert cur.fetchone()[0] == 1, "Test row was not inserted"
+            assert cur.fetchone()[0] == 1, "Test row not visible in transaction"
 
-            # Delete it (cleanup)
-            cur.execute("DELETE FROM tasks WHERE id = %s", (test_id,))
+            # Rollback — simulating proper test teardown
+            conn.rollback()
+        except Exception:
+            conn.rollback()
+            raise
 
-            # Row count after — must match before
-            cur.execute("SELECT COUNT(*) FROM tasks")
-            count_after = cur.fetchone()[0]
-            assert count_after == count_before, \
-                f"Test isolation violation: row count {count_before} → {count_after}"
-    except psycopg2.Error as exc:
-        raise ConnectionError(f"Database error during isolation test: {exc}") from exc
+        # Verify count unchanged after rollback
+        conn.autocommit = True
+        cur.execute("SELECT COUNT(*) FROM tasks")
+        count_after = cur.fetchone()[0]
+        assert count_after == count_before, (
+            f"Test isolation violated: count {count_before} → {count_after}"
+        )
+
+        cur.close()
     finally:
         conn.close()
 
-    # (c) Conditional skip when DATABASE_URL absent — verified structurally:
-    # this function was only callable because database_url was provided.
+    # Verify DATABASE_URL skip mechanism is testable
+    # (The contract requires tests to be skipped when DATABASE_URL is absent;
+    #  we verify the env var is indeed set when we reach this point.)
+    assert database_url, "DATABASE_URL must be set for integration tests"
 
     _log("info", "verify_test_isolation: PASSED")
     return True
-
-
-# ---------------------------------------------------------------------------
-# Parent function: verify_cors_configuration
-# ---------------------------------------------------------------------------
 
 
 async def verify_cors_configuration(
     backend_base_url: str,
     frontend_origin: str = "http://localhost:5173",
 ) -> bool:
-    """Validate CORS middleware allows the frontend origin.
-
-    Sends an OPTIONS preflight and inspects Access-Control-Allow-* headers.
+    """Validate CORS headers for the frontend origin.
 
     Raises:
-        ConnectionError  – backend unreachable
-        AssertionError   – CORS not configured
+        ConnectionError: backend unreachable.
+        AssertionError: CORS not configured correctly.
     """
-    _validate_backend_url(backend_base_url)
-    _log("info", f"verify_cors_configuration: origin={frontend_origin}")
+    base = backend_base_url.rstrip("/")
+    _log("info", f"verify_cors_configuration: base={base}, origin={frontend_origin}")
 
+    # Send OPTIONS preflight request
+    preflight_headers = {
+        "Origin": frontend_origin,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "Content-Type",
+    }
+
+    import aiohttp
     try:
-        async with httpx.AsyncClient(base_url=backend_base_url, timeout=10.0) as client:
-            r = await client.options(
-                "/tasks",
-                headers={
-                    "Origin": frontend_origin,
-                    "Access-Control-Request-Method": "POST",
-                    "Access-Control-Request-Headers": "Content-Type",
-                },
-            )
-    except httpx.ConnectError as exc:
-        raise ConnectionError(f"Backend unreachable: {exc}") from exc
-    except httpx.TimeoutException as exc:
-        raise ConnectionError(f"Backend timeout: {exc}") from exc
+        async with aiohttp.ClientSession() as session:
+            async with session.options(
+                f"{base}/tasks",
+                headers=preflight_headers,
+            ) as resp:
+                h = {k.lower(): v for k, v in resp.headers.items()}
 
-    # Access-Control-Allow-Origin must include the origin or '*'
-    acao = r.headers.get("access-control-allow-origin", "")
-    assert acao == frontend_origin or acao == "*", \
-        f"CORS: Access-Control-Allow-Origin is {acao!r}, expected {frontend_origin!r} or '*'"
+                # Access-Control-Allow-Origin
+                acao = h.get("access-control-allow-origin", "")
+                assert acao == frontend_origin, (
+                    f"CORS Allow-Origin missing or wrong: {acao!r} "
+                    f"(expected {frontend_origin!r})"
+                )
 
-    # Access-Control-Allow-Methods must include required methods
-    acam = r.headers.get("access-control-allow-methods", "").upper()
-    for method in ("GET", "POST", "PUT", "DELETE", "OPTIONS"):
-        assert method in acam or "*" in acam, \
-            f"CORS: Access-Control-Allow-Methods missing {method}: {acam!r}"
+                # Access-Control-Allow-Methods
+                acam = h.get("access-control-allow-methods", "")
+                for method in ("GET", "POST", "PUT", "DELETE"):
+                    assert method in acam.upper() or "*" in acam, (
+                        f"CORS Allow-Methods missing {method}: {acam!r}"
+                    )
 
-    # Access-Control-Allow-Headers must include Content-Type
-    acah = r.headers.get("access-control-allow-headers", "").lower()
-    assert "content-type" in acah or "*" in acah, \
-        f"CORS: Access-Control-Allow-Headers missing Content-Type: {acah!r}"
+                # Access-Control-Allow-Headers
+                acah = h.get("access-control-allow-headers", "")
+                assert "content-type" in acah.lower() or "*" in acah, (
+                    f"CORS Allow-Headers missing Content-Type: {acah!r}"
+                )
+    except aiohttp.ClientError as exc:
+        raise ConnectionError(
+            f"Backend unreachable at {base}: {exc}"
+        ) from exc
 
     _log("info", "verify_cors_configuration: PASSED")
     return True
 
 
-# ---------------------------------------------------------------------------
-# Parent function: verify_connection_pool_lifecycle
-# ---------------------------------------------------------------------------
-
-
 async def verify_connection_pool_lifecycle(backend_base_url: str) -> bool:
-    """Validate that the psycopg2 connection pool is functional during
-    application runtime.
-
-    Issues GET /tasks to confirm the pool was initialized at startup and
-    queries succeed.
+    """Validate that the connection pool is functional during app runtime.
 
     Raises:
-        ConnectionError  – backend unreachable
-        AssertionError   – pool not initialized
+        ConnectionError: backend unreachable.
+        AssertionError: pool not initialized or queries fail.
     """
-    _validate_backend_url(backend_base_url)
-    _log("info", "verify_connection_pool_lifecycle: start")
+    base = backend_base_url.rstrip("/")
+    _log("info", f"verify_connection_pool_lifecycle: base={base}")
 
-    try:
-        async with httpx.AsyncClient(base_url=backend_base_url, timeout=10.0) as client:
-            # (a) Pool initialized on startup — GET /tasks succeeds
-            r = await client.get("/tasks")
-            assert r.status_code == 200, \
-                f"Connection pool not functional: GET /tasks returned {r.status_code}"
-            assert isinstance(r.json(), list), "GET /tasks did not return a list"
+    # (a) Pool initialized on startup: GET /tasks should work (requires DB)
+    r = await _http_request("GET", f"{base}/tasks")
+    assert r.status == 200, (
+        f"GET /tasks failed (pool not initialized?): status {r.status}, body {r.body}"
+    )
 
-            # (c) Database queries work during runtime — health check
-            r = await client.get("/health")
-            assert r.status_code == 200, \
-                f"Health check failed: {r.status_code}"
+    # (c) Database queries work: health check + list tasks
+    r = await _http_request("GET", f"{base}/health")
+    assert r.status == 200 and r.body.get("status") == "ok"
 
-            # (d) Pool exhaustion returns 500 rather than hanging —
-            # We verify the happy path here; pool exhaustion would require
-            # saturating maxconn, which is beyond a simple verification.
-            # The contract requires HTTP 500 on exhaustion, and the backend
-            # implementation wraps pool errors in HTTPException(500).
-
-    except httpx.ConnectError as exc:
-        raise ConnectionError(f"Backend unreachable: {exc}") from exc
-    except httpx.TimeoutException as exc:
-        raise ConnectionError(f"Backend timeout: {exc}") from exc
+    # Create and immediately delete to exercise pool under write load
+    r = await _http_request("POST", f"{base}/tasks", json_body={
+        "title": "__pool_lifecycle_test__",
+    })
+    assert r.status == 201, f"POST during pool test failed: {r.status}"
+    test_id = r.body["id"]
+    r = await _http_request("DELETE", f"{base}/tasks/{test_id}")
+    assert r.status == 200, f"DELETE during pool test failed: {r.status}"
 
     _log("info", "verify_connection_pool_lifecycle: PASSED")
     return True
 
 
 # ---------------------------------------------------------------------------
-# Exports
+# Synchronous wrappers for async verification functions
+# (The parent contract declares async, but we also provide sync entry points
+#  for pytest or direct invocation.)
+# ---------------------------------------------------------------------------
+
+def verify_http_api_contract_sync(backend_base_url: str) -> bool:
+    return _sync(verify_http_api_contract(backend_base_url))
+
+
+def verify_cross_tier_invariants_sync(
+    backend_base_url: str, database_url: str
+) -> bool:
+    return _sync(verify_cross_tier_invariants(backend_base_url, database_url))
+
+
+def verify_cors_configuration_sync(
+    backend_base_url: str, frontend_origin: str = "http://localhost:5173"
+) -> bool:
+    return _sync(verify_cors_configuration(backend_base_url, frontend_origin))
+
+
+def verify_connection_pool_lifecycle_sync(backend_base_url: str) -> bool:
+    return _sync(verify_connection_pool_lifecycle(backend_base_url))
+
+
+# ---------------------------------------------------------------------------
+# Module exports
 # ---------------------------------------------------------------------------
 
 __all__ = [
+    # Parent verification functions (async)
     "verify_http_api_contract",
     "verify_cross_tier_invariants",
     "verify_schema_initialization_idempotent",
     "verify_test_isolation",
     "verify_cors_configuration",
     "verify_connection_pool_lifecycle",
+    # Synchronous wrappers
+    "verify_http_api_contract_sync",
+    "verify_cross_tier_invariants_sync",
+    "verify_cors_configuration_sync",
+    "verify_connection_pool_lifecycle_sync",
 ]

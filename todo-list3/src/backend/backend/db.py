@@ -1,7 +1,7 @@
 import logging
 import time
 from contextlib import contextmanager
-from typing import Any, Dict, Generator, List, Optional
+from typing import Any, Dict, List, Optional
 
 import psycopg2
 import psycopg2.extras
@@ -25,7 +25,7 @@ def _log(level: str, msg: str, **kwargs) -> None:
 
 
 # Module-level pool reference
-pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
+_pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
 
 
 def init_connection_pool(
@@ -33,56 +33,70 @@ def init_connection_pool(
     minconn: int = 1,
     maxconn: int = 10,
 ) -> None:
-    """Initialize the psycopg2.pool.ThreadedConnectionPool."""
-    global pool
-    _log("info", f"Initializing connection pool minconn={minconn} maxconn={maxconn}")
-    try:
-        pool = psycopg2.pool.ThreadedConnectionPool(
-            minconn=minconn,
-            maxconn=maxconn,
-            dsn=database_url,
+    """Initialize the psycopg2 ThreadedConnectionPool."""
+    global _pool
+    _log("info", "Initializing connection pool")
+    if not database_url or not database_url.startswith(("postgres://", "postgresql://")):
+        raise RuntimeError(
+            "DATABASE_URL environment variable is required and must be a valid PostgreSQL URI."
         )
-    except Exception as e:
-        _log("error", f"Failed to initialize connection pool: {e}")
-        pool = None
-        raise RuntimeError(f"Failed to connect to PostgreSQL: {e}") from e
-    _log("info", "Connection pool initialized successfully")
+    try:
+        _pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn, maxconn, database_url
+        )
+    except psycopg2.Error as e:
+        raise RuntimeError("Failed to connect to PostgreSQL.") from e
+
+    # Ensure tasks table exists
+    try:
+        conn = _pool.getconn()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS tasks (
+                        id SERIAL PRIMARY KEY,
+                        title VARCHAR(255) NOT NULL,
+                        description TEXT,
+                        status VARCHAR(20) NOT NULL DEFAULT 'pending'
+                            CHECK (status IN ('pending', 'in_progress', 'done')),
+                        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+                        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+                    );
+                """)
+            conn.commit()
+        finally:
+            _pool.putconn(conn)
+    except psycopg2.Error as e:
+        _log("error", f"Failed to create tasks table: {e}")
+
+    _log("info", "Connection pool initialized")
 
 
 def close_connection_pool() -> None:
-    """Close all pooled connections."""
-    global pool
+    """Close the connection pool."""
+    global _pool
     _log("info", "Closing connection pool")
-    if pool is not None:
-        try:
-            pool.closeall()
-        except Exception as e:
-            _log("error", f"Error closing pool: {e}")
-        pool = None
+    if _pool is not None:
+        _pool.closeall()
+        _pool = None
     _log("info", "Connection pool closed")
 
 
 @contextmanager
-def get_connection() -> Generator[Any, None, None]:
+def get_connection():
     """Context manager that borrows a connection from the pool."""
-    global pool
-    if pool is None:
-        raise RuntimeError("Connection pool not initialized")
-    conn = None
-    try:
-        conn = pool.getconn()
-    except Exception as e:
-        raise RuntimeError(f"Connection pool exhausted: {e}") from e
+    global _pool
+    if _pool is None:
+        raise RuntimeError("Connection pool not initialized.")
+    conn = _pool.getconn()
     try:
         yield conn
         conn.commit()
     except Exception:
-        if conn is not None:
-            conn.rollback()
+        conn.rollback()
         raise
     finally:
-        if conn is not None:
-            pool.putconn(conn)
+        _pool.putconn(conn)
 
 
 def db_list_tasks() -> List[Dict[str, Any]]:
@@ -101,7 +115,7 @@ def db_create_task(
     status: str,
 ) -> Dict[str, Any]:
     """INSERT INTO tasks ... RETURNING *."""
-    _log("debug", f"db_create_task title={title!r} status={status!r}")
+    _log("debug", f"db_create_task: title={title}, status={status}")
     with get_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
@@ -112,9 +126,9 @@ def db_create_task(
     return dict(row)
 
 
-def db_get_task(task_id: str) -> Optional[Dict[str, Any]]:
+def db_get_task(task_id: int) -> Optional[Dict[str, Any]]:
     """SELECT * FROM tasks WHERE id = %s."""
-    _log("debug", f"db_get_task task_id={task_id!r}")
+    _log("debug", f"db_get_task: task_id={task_id}")
     with get_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("SELECT * FROM tasks WHERE id = %s", (task_id,))
@@ -125,50 +139,43 @@ def db_get_task(task_id: str) -> Optional[Dict[str, Any]]:
 
 
 def db_update_task(
-    task_id: str,
+    task_id: int,
     fields: Dict[str, Any],
 ) -> Optional[Dict[str, Any]]:
-    """Dynamic UPDATE SET from fields dict. Always updates updated_at=NOW()."""
-    _log("debug", f"db_update_task task_id={task_id!r} fields={fields!r}")
-    if not fields:
-        # Even with no user fields, still update updated_at
-        with get_connection() as conn:
-            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
-                    "UPDATE tasks SET updated_at = NOW() WHERE id = %s RETURNING *",
-                    (task_id,),
-                )
-                row = cur.fetchone()
-        if row is None:
-            return None
-        return dict(row)
+    """Dynamic UPDATE SET clause from fields dict. Always sets updated_at=NOW()."""
+    _log("debug", f"db_update_task: task_id={task_id}, fields={fields}")
+    allowed = {"title", "description", "status"}
+    filtered = {k: v for k, v in fields.items() if k in allowed}
 
     set_clauses = []
     values = []
-    for key, value in fields.items():
-        set_clauses.append(f"{key} = %s")
-        values.append(value)
+    for col, val in filtered.items():
+        set_clauses.append(f"{col} = %s")
+        if col == "status" and hasattr(val, 'value'):
+            values.append(val.value)
+        else:
+            values.append(val)
     set_clauses.append("updated_at = NOW()")
-    set_clause_str = ", ".join(set_clauses)
     values.append(task_id)
 
-    query = f"UPDATE tasks SET {set_clause_str} WHERE id = %s RETURNING *"
-
+    sql = f"UPDATE tasks SET {', '.join(set_clauses)} WHERE id = %s RETURNING *"
     with get_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(query, tuple(values))
+            cur.execute(sql, tuple(values))
             row = cur.fetchone()
     if row is None:
         return None
     return dict(row)
 
 
-def db_delete_task(task_id: str) -> Optional[Dict[str, Any]]:
+def db_delete_task(task_id: int) -> Optional[Dict[str, Any]]:
     """DELETE FROM tasks WHERE id = %s RETURNING id."""
-    _log("debug", f"db_delete_task task_id={task_id!r}")
+    _log("debug", f"db_delete_task: task_id={task_id}")
     with get_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute("DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,))
+            cur.execute(
+                "DELETE FROM tasks WHERE id = %s RETURNING id", (task_id,)
+            )
             row = cur.fetchone()
     if row is None:
         return None
