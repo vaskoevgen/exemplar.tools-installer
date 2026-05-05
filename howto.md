@@ -507,15 +507,21 @@ pip install fastapi psycopg2-binary uvicorn pytest httpx
 deactivate
 ```
 
-Then prepend the venv to PATH:
+Then prepend the venv to PATH **in the same shell** before starting the daemon:
 
-```bash
-# bash / zsh
-export PATH="/absolute/path/to/your/project/.venv/bin:$PATH"
-
-# fish
-fish_add_path --prepend /absolute/path/to/your/project/.venv/bin
+```fish
+# fish — run from your project directory
+fish_add_path --prepend (pwd)/.venv/bin
 ```
+
+Then start the daemon (API key must also be set):
+
+```fish
+source /path/to/.env   # or use a universal variable — see API key section above
+pact daemon .
+```
+
+> **Why prepend the venv?** Pact runs `python3 -m pytest` as a subprocess using the shell PATH. If the system `python3` doesn't have your project's dependencies (psycopg2, fastapi, etc.), all tests will silently collect 0 items and report `failed 0/0 tests`. Prepending the venv fixes this.
 
 Then activate Pact and start the daemon:
 
