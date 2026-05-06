@@ -1,0 +1,269 @@
+{
+  "version": "1.0",
+  "generated_by": "pact",
+  "project": "todo-list3",
+  "timestamp": "2026-05-05T09:39:09.099739",
+  "components": [
+    {
+      "id": "database",
+      "name": "PostgreSQL Database Schema",
+      "data_access": {
+        "reads": [
+          "INTERNAL"
+        ],
+        "writes": [
+          "INTERNAL"
+        ],
+        "side_effects": [
+          {
+            "type": "ddl_execution",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.id",
+              "tasks.title",
+              "tasks.description",
+              "tasks.status",
+              "tasks.created_at",
+              "tasks.updated_at"
+            ],
+            "rationale": "CREATE TABLE IF NOT EXISTS defines the tasks table schema with all six columns. This is a one-time structural change to the database catalog."
+          },
+          {
+            "type": "constraint_creation",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.status"
+            ],
+            "rationale": "CHECK constraint on tasks.status enforcing domain values ('pending', 'in_progress', 'done') ensures data integrity at the storage layer."
+          },
+          {
+            "type": "trigger_creation",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.updated_at"
+            ],
+            "rationale": "The update_updated_at_column() trigger function and its BEFORE UPDATE binding on the tasks table automatically maintain the updated_at timestamp, providing defense-in-depth for temporal consistency."
+          },
+          {
+            "type": "catalog_introspection",
+            "classification": "INTERNAL",
+            "fields": [],
+            "rationale": "Read-only queries against information_schema.columns, information_schema.table_constraints, and pg_catalog.pg_trigger to verify schema correctness during contract testing."
+          }
+        ]
+      },
+      "authority": {
+        "domains": [
+          "tasks_table_schema",
+          "task_status_constraint",
+          "updated_at_trigger"
+        ],
+        "rationale": "This component is the sole authoritative source for the tasks table DDL, including column definitions, data types, default values, the CHECK constraint on the status column, and the updated_at auto-update trigger. No other component may issue DDL against the tasks table. Application components (e.g., backend API) consume this schema as readers/writers of row data but do not own or modify the structural definition."
+      },
+      "contract_hash": "c9beba7246909a27760799e383baf1ee826a81e0b766925f1acb1618d625887a",
+      "test_hash": "998f0b8fd93246b9d9cb7f96a0cc58c12c9a1b7a15f29e67ccc4e793870481c4"
+    },
+    {
+      "id": "frontend",
+      "name": "React Frontend SPA",
+      "data_access": {
+        "reads": [
+          "PUBLIC"
+        ],
+        "writes": [],
+        "side_effects": [
+          {
+            "type": "http_get",
+            "classification": "PUBLIC",
+            "fields": [
+              "id",
+              "title",
+              "description",
+              "status",
+              "created_at",
+              "updated_at"
+            ],
+            "rationale": "GET /tasks and GET /health fetch public task data and health status from the backend API for UI rendering"
+          },
+          {
+            "type": "http_post",
+            "classification": "PUBLIC",
+            "fields": [
+              "title",
+              "description",
+              "status"
+            ],
+            "rationale": "POST /tasks sends user-entered task creation data to the backend for persistence"
+          },
+          {
+            "type": "http_put",
+            "classification": "PUBLIC",
+            "fields": [
+              "title",
+              "description",
+              "status"
+            ],
+            "rationale": "PUT /tasks/{id} sends user-modified task fields to the backend for update"
+          },
+          {
+            "type": "http_delete",
+            "classification": "PUBLIC",
+            "fields": [
+              "id"
+            ],
+            "rationale": "DELETE /tasks/{id} requests task removal from the backend by task identifier"
+          }
+        ]
+      },
+      "authority": {
+        "domains": [],
+        "rationale": null
+      },
+      "contract_hash": "3a59a3f50029727a689a60ed373c9b5c70553f62e0bcb2c11c2a90aad716f0ca",
+      "test_hash": "1effa6fa02b2f356da996d0098a1de1609a33dc9b738ce0c46335b3aa6dd5860"
+    },
+    {
+      "id": "backend",
+      "name": "FastAPI Backend API",
+      "data_access": {
+        "reads": [
+          "INTERNAL:tasks.id",
+          "INTERNAL:tasks.title",
+          "INTERNAL:tasks.description",
+          "INTERNAL:tasks.status",
+          "INTERNAL:tasks.created_at",
+          "INTERNAL:tasks.updated_at",
+          "INTERNAL:DATABASE_URL"
+        ],
+        "writes": [
+          "INTERNAL:tasks.id",
+          "INTERNAL:tasks.title",
+          "INTERNAL:tasks.description",
+          "INTERNAL:tasks.status",
+          "INTERNAL:tasks.created_at",
+          "INTERNAL:tasks.updated_at"
+        ],
+        "side_effects": [
+          {
+            "type": "database_read",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.id",
+              "tasks.title",
+              "tasks.description",
+              "tasks.status",
+              "tasks.created_at",
+              "tasks.updated_at"
+            ],
+            "rationale": "SELECT queries on the tasks table to serve GET /tasks and GET /tasks/{id} endpoints."
+          },
+          {
+            "type": "database_write",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.title",
+              "tasks.description",
+              "tasks.status",
+              "tasks.updated_at"
+            ],
+            "rationale": "INSERT and UPDATE operations on the tasks table for POST /tasks and PUT /tasks/{id} endpoints. created_at is set once by PostgreSQL DEFAULT on INSERT."
+          },
+          {
+            "type": "database_delete",
+            "classification": "INTERNAL",
+            "fields": [
+              "tasks.id"
+            ],
+            "rationale": "DELETE operations on the tasks table for DELETE /tasks/{id} endpoint. Hard-deletes the entire row."
+          },
+          {
+            "type": "environment_read",
+            "classification": "INTERNAL",
+            "fields": [
+              "DATABASE_URL"
+            ],
+            "rationale": "Read at startup to configure the psycopg2 ThreadedConnectionPool. Contains the PostgreSQL connection URI with host, port, database name, and credentials."
+          }
+        ]
+      },
+      "authority": {
+        "domains": [
+          "tasks"
+        ],
+        "rationale": "The backend API is the authoritative service for the tasks domain. It is the exclusive writer to the PostgreSQL tasks table, defines the canonical task schema (TaskCreateRequest, TaskUpdateRequest, TaskResponse), owns all CRUD lifecycle operations, and enforces all validation rules (status enum, title non-blank, description normalization). No other component may directly read from or write to the tasks table."
+      },
+      "contract_hash": "db98b1109e94e85b437a56deff05ca8da637835e0a71984567d2efc2053e7a1e",
+      "test_hash": "d35a4ae82be0f46da4c62f17ef9f8e6a63d968aae99d735c54f019dfd2c8c64e"
+    },
+    {
+      "id": "root",
+      "name": "Root",
+      "data_access": {
+        "reads": [
+          "INTERNAL",
+          "PUBLIC"
+        ],
+        "writes": [],
+        "side_effects": [
+          {
+            "type": "network_call",
+            "classification": "INTERNAL",
+            "fields": [
+              "backend_base_url",
+              "database_url"
+            ],
+            "rationale": "Verification functions connect to the backend REST API and PostgreSQL database to validate cross-tier invariants. Connection strings and URLs are INTERNAL configuration data."
+          },
+          {
+            "type": "database_read",
+            "classification": "PUBLIC",
+            "fields": [
+              "id",
+              "title",
+              "description",
+              "status",
+              "created_at",
+              "updated_at"
+            ],
+            "rationale": "Verification functions read task data from the database (via API and direct SQL) to validate schema conformance, ordering invariants, and timestamp format compliance. Task data is classified as PUBLIC \u2014 no PII is stored in the tasks table."
+          }
+        ]
+      },
+      "authority": {
+        "domains": [
+          "integration_contract",
+          "cross_tier_invariants",
+          "http_api_specification"
+        ],
+        "rationale": "The root contract is the single authoritative source for: (1) the canonical type registry shared across all three tiers, (2) the HTTP API specification (endpoints, methods, paths, status codes, error taxonomy), and (3) cross-tier behavioral invariants that no single child component can fully specify alone (e.g., created_at immutability spans backend logic and database triggers). Child component contracts implement these specifications but do not define them \u2014 the root contract is the arbiter when child contracts conflict."
+      },
+      "contract_hash": "9733aa71c7034b19c9f558f014ed85e6521c8aa418da3539af08c3ac35533051",
+      "test_hash": "a5e0720a3fc6e8a4601e6e910ac975871c644a0304e1a7c104d1ccc8addc1a95"
+    }
+  ],
+  "edges": [
+    {
+      "from": "root",
+      "to": "backend",
+      "data_tiers_in_flight": [
+        "PUBLIC",
+        "INTERNAL"
+      ]
+    },
+    {
+      "from": "root",
+      "to": "database",
+      "data_tiers_in_flight": [
+        "INTERNAL"
+      ]
+    },
+    {
+      "from": "root",
+      "to": "frontend",
+      "data_tiers_in_flight": [
+        "PUBLIC",
+        "INTERNAL"
+      ]
+    }
+  ]
+}

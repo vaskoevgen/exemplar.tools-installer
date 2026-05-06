@@ -1,0 +1,594 @@
+{
+  "component_id": "home_page",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_to_quick_start_row_unfamiliar_tooldef",
+      "description": "toQuickStartRow must project arbitrary ToolDef fields correctly, not just recognize known tool slugs — verifies the function is a generic projection, not a lookup table keyed on slug",
+      "function": "toQuickStartRow",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A synthetic ToolDef with slug='arbiter', a novel name 'Arbiter-X', description 'Synthetic test desc', step=5, and other valid fields",
+      "expected_output_description": "QuickStartRow with step=5, slug='arbiter', name='Arbiter-X', description='Synthetic test desc'",
+      "expected_error": "",
+      "assertions": [
+        "result['step'] == 5",
+        "result['slug'] == 'arbiter'",
+        "result['name'] == 'Arbiter-X'",
+        "result['description'] == 'Synthetic test desc'"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_description_passthrough",
+      "description": "toQuickStartRow must faithfully pass through the description field verbatim, including special characters, not return a hardcoded or truncated value",
+      "function": "toQuickStartRow",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef with description containing special characters: 'Desc with <html> & \"quotes\" + unicode: café'",
+      "expected_output_description": "QuickStartRow.description is the exact same string including special chars",
+      "expected_error": "",
+      "assertions": [
+        "result['description'] == 'Desc with <html> & \"quotes\" + unicode: café'"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_name_passthrough_unusual",
+      "description": "toQuickStartRow must pass through the name field exactly, detecting implementations that normalize or transform the name",
+      "function": "toQuickStartRow",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef with name=' Leading Spaces ' (whitespace-padded)",
+      "expected_output_description": "QuickStartRow.name preserves the exact whitespace-padded string",
+      "expected_error": "",
+      "assertions": [
+        "result['name'] == ' Leading Spaces '"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_does_not_include_version",
+      "description": "toQuickStartRow must exclude all ToolDef fields not in {step, slug, name, description} — specifically version, accentColor, videoUrl, instructions must be absent",
+      "function": "toQuickStartRow",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef with version='2.0.0', accentColor='#ff00ff', videoUrl='https://youtube.com/x', instructions=[{title:'t', bash:'b'}]",
+      "expected_output_description": "Result has exactly 4 keys: step, slug, name, description. No version, accentColor, videoUrl, or instructions.",
+      "expected_error": "",
+      "assertions": [
+        "'version' not in result",
+        "'accentColor' not in result",
+        "'videoUrl' not in result",
+        "'instructions' not in result",
+        "set(result.keys()) == {'step', 'slug', 'name', 'description'}"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_undefined_input",
+      "description": "toQuickStartRow must raise invalid_tool_def for undefined-like inputs, not just None — ensures robust null/undefined handling",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Input is an empty dict {} with no required fields",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def or equivalent error"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_missing_name_only",
+      "description": "toQuickStartRow must validate each required field individually — a ToolDef missing only 'name' while having step, slug, description must still fail",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef-like dict with step=1, slug='constrain', description='valid' but name is missing/absent",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_missing_step_only",
+      "description": "toQuickStartRow must validate presence of step field — a ToolDef missing only 'step' while having slug, name, description must fail",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef-like dict with slug='constrain', name='Constrain', description='valid' but step missing",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_unfamiliar_values",
+      "description": "toDiagramNode must be a generic projection, not hardcoded per tool — using non-standard name/color combinations must still produce correct output",
+      "function": "toDiagramNode",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef with slug='sentinel', name='Sentinel-Altered', step=7, accentColor='#abcdef'",
+      "expected_output_description": "DiagramNode with slug='sentinel', name='Sentinel-Altered', step=7, accentColor='#abcdef'",
+      "expected_error": "",
+      "assertions": [
+        "result['slug'] == 'sentinel'",
+        "result['name'] == 'Sentinel-Altered'",
+        "result['step'] == 7",
+        "result['accentColor'] == '#abcdef'"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_excludes_description_and_others",
+      "description": "toDiagramNode must exclude description, version, videoUrl, instructions — only slug, name, step, accentColor are projected",
+      "function": "toDiagramNode",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef with all fields populated including description='should not appear'",
+      "expected_output_description": "Result has exactly 4 keys: slug, name, step, accentColor",
+      "expected_error": "",
+      "assertions": [
+        "'description' not in result",
+        "'version' not in result",
+        "'videoUrl' not in result",
+        "'instructions' not in result",
+        "set(result.keys()) == {'slug', 'name', 'step', 'accentColor'}"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_missing_slug",
+      "description": "toDiagramNode must validate slug presence independently — missing slug with other fields present must raise invalid_tool_def",
+      "function": "toDiagramNode",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A dict with name='Test', step=3, accentColor='#ffffff' but slug is missing",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_missing_name",
+      "description": "toDiagramNode must validate name presence independently — missing name must raise invalid_tool_def",
+      "function": "toDiagramNode",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A dict with slug='pact', step=3, accentColor='#ffffff' but name is missing",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_missing_step",
+      "description": "toDiagramNode must validate step presence independently — missing step must raise invalid_tool_def",
+      "function": "toDiagramNode",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A dict with slug='pact', name='Pact', accentColor='#ffffff' but step is missing",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_accent_color_case_preserved",
+      "description": "toDiagramNode must preserve the exact casing of accentColor hex string — no uppercasing or lowercasing transformations",
+      "function": "toDiagramNode",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef with accentColor='#AaBbCc' (mixed case)",
+      "expected_output_description": "DiagramNode.accentColor is exactly '#AaBbCc'",
+      "expected_error": "",
+      "assertions": [
+        "result['accentColor'] == '#AaBbCc'"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_3_digit",
+      "description": "HexColor should handle 3-digit shorthand CSS hex colors like '#fff' — the contract says CSS hex color string",
+      "function": "HexColor",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string '#fff' (3-digit shorthand hex)",
+      "expected_output_description": "Either accepted as valid or rejected — behavior must be consistent with CSS hex color definition",
+      "expected_error": "",
+      "assertions": [
+        "validation result is deterministic for '#fff'"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_uppercase",
+      "description": "HexColor must accept uppercase hex digits since CSS hex colors are case-insensitive",
+      "function": "HexColor",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string '#FF00AA' (uppercase hex)",
+      "expected_output_description": "Accepted as valid HexColor",
+      "expected_error": "",
+      "assertions": [
+        "'#FF00AA' is accepted as valid"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_no_hash",
+      "description": "HexColor must reject hex-like strings without the leading '#' character",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string '00e5ff' (no hash prefix)",
+      "expected_output_description": "Rejected as invalid HexColor",
+      "expected_error": "",
+      "assertions": [
+        "'00e5ff' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_extra_digits",
+      "description": "HexColor must reject strings with too many hex digits after '#'",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string '#00e5ff00' (8 hex digits — RGBA format not specified in contract)",
+      "expected_output_description": "Rejected as invalid HexColor",
+      "expected_error": "",
+      "assertions": [
+        "'#00e5ff00' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_step_number_float_rejected",
+      "description": "StepNumber must be an integer — floating point values like 1.5 within range should be rejected",
+      "function": "StepNumber",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The value 1.5 (float within 1-11 range)",
+      "expected_output_description": "Rejected as invalid StepNumber",
+      "expected_error": "",
+      "assertions": [
+        "1.5 is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_step_number_12_rejected",
+      "description": "StepNumber must reject 12, the value immediately above the valid range boundary",
+      "function": "StepNumber",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The integer 12",
+      "expected_output_description": "Rejected as invalid StepNumber",
+      "expected_error": "",
+      "assertions": [
+        "12 is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slug_invalid_string",
+      "description": "ToolSlug must reject arbitrary strings not in the enum — ensures it's a real enum, not just a string type",
+      "function": "ToolSlug",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string 'nonexistent_tool'",
+      "expected_output_description": "Rejected as invalid ToolSlug",
+      "expected_error": "",
+      "assertions": [
+        "'nonexistent_tool' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slug_case_sensitive",
+      "description": "ToolSlug must be case-sensitive — 'Constrain' (capitalized) must be rejected when 'constrain' is valid",
+      "function": "ToolSlug",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string 'Constrain' (first letter capitalized)",
+      "expected_output_description": "Rejected as invalid ToolSlug",
+      "expected_error": "",
+      "assertions": [
+        "'Constrain' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_step_boundary_1",
+      "description": "toQuickStartRow must correctly handle step=1 (minimum boundary), returning it without alteration",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef with step=1",
+      "expected_output_description": "QuickStartRow.step is exactly 1",
+      "expected_error": "",
+      "assertions": [
+        "result['step'] == 1"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_step_boundary_11",
+      "description": "toQuickStartRow must correctly handle step=11 (maximum boundary), returning it without alteration",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef with step=11, slug='kindex'",
+      "expected_output_description": "QuickStartRow.step is exactly 11",
+      "expected_error": "",
+      "assertions": [
+        "result['step'] == 11"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_does_not_mutate_input",
+      "description": "toQuickStartRow must not mutate the input ToolDef object — pure function invariant",
+      "function": "toQuickStartRow",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef dict; check that all original fields are unchanged after calling toQuickStartRow",
+      "expected_output_description": "Input dict is identical before and after the call",
+      "expected_error": "",
+      "assertions": [
+        "input dict is not mutated"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_does_not_mutate_input",
+      "description": "toDiagramNode must not mutate the input ToolDef object — pure function invariant",
+      "function": "toDiagramNode",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef dict; check that all original fields are unchanged after calling toDiagramNode",
+      "expected_output_description": "Input dict is identical before and after the call",
+      "expected_error": "",
+      "assertions": [
+        "input dict is not mutated"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_different_inputs_different_outputs",
+      "description": "toQuickStartRow must produce different outputs for different inputs — detects hardcoded single return value",
+      "function": "toQuickStartRow",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Two distinct ToolDefs: one with slug='constrain', step=1 and another with slug='kindex', step=11",
+      "expected_output_description": "The two QuickStartRow results differ in step, slug, name, description",
+      "expected_error": "",
+      "assertions": [
+        "result1 != result2",
+        "result1['slug'] != result2['slug']",
+        "result1['step'] != result2['step']"
+      ]
+    },
+    {
+      "id": "goodhart_to_diagram_node_different_inputs_different_outputs",
+      "description": "toDiagramNode must produce different outputs for different inputs — detects hardcoded single return value",
+      "function": "toDiagramNode",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Two distinct ToolDefs with different slugs, steps, and colors",
+      "expected_output_description": "The two DiagramNode results differ",
+      "expected_error": "",
+      "assertions": [
+        "result1 != result2"
+      ]
+    },
+    {
+      "id": "goodhart_tool_description_boundary_256",
+      "description": "ToolDescription must accept a string of exactly 256 characters (boundary maximum)",
+      "function": "ToolDescription",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A string of exactly 256 'x' characters",
+      "expected_output_description": "Accepted as valid ToolDescription",
+      "expected_error": "",
+      "assertions": [
+        "256-char string is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_tool_description_boundary_257",
+      "description": "ToolDescription must reject a string of exactly 257 characters (one past boundary maximum)",
+      "function": "ToolDescription",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A string of exactly 257 'x' characters",
+      "expected_output_description": "Rejected as invalid ToolDescription",
+      "expected_error": "",
+      "assertions": [
+        "257-char string is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_tool_name_boundary_101",
+      "description": "ToolName must reject a string of exactly 101 characters (one past boundary maximum)",
+      "function": "ToolName",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A string of exactly 101 'x' characters",
+      "expected_output_description": "Rejected as invalid ToolName",
+      "expected_error": "",
+      "assertions": [
+        "101-char string is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_quick_start_table_props_multiple_rows",
+      "description": "QuickStartTableProps must accept lists with more than 1 row — not just boundary 1",
+      "function": "QuickStartTableProps",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A list of 5 valid QuickStartRow items",
+      "expected_output_description": "Accepted as valid QuickStartTableProps",
+      "expected_error": "",
+      "assertions": [
+        "5-row list is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_closed_loop_diagram_props_11_nodes",
+      "description": "ClosedLoopDiagramProps must accept a list of exactly 11 nodes — the production cardinality",
+      "function": "ClosedLoopDiagramProps",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A list of 11 valid DiagramNode items",
+      "expected_output_description": "Accepted as valid ClosedLoopDiagramProps",
+      "expected_error": "",
+      "assertions": [
+        "11-node list is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_closed_loop_diagram_props_boundary_2",
+      "description": "ClosedLoopDiagramProps must accept exactly 2 nodes — the minimum valid count",
+      "function": "ClosedLoopDiagramProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A list of exactly 2 valid DiagramNode items",
+      "expected_output_description": "Accepted as valid ClosedLoopDiagramProps",
+      "expected_error": "",
+      "assertions": [
+        "2-node list is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_with_none_description",
+      "description": "toQuickStartRow must raise invalid_tool_def when description field is None rather than a string",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef-like dict with step=1, slug='constrain', name='Constrain', but description=None",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": [
+        "raises invalid_tool_def"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_empty_string",
+      "description": "HexColor must reject empty string — a degenerate input that a regex could miss",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty string ''",
+      "expected_output_description": "Rejected as invalid HexColor",
+      "expected_error": "",
+      "assertions": [
+        "'' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_with_spaces",
+      "description": "HexColor must reject hex strings with embedded spaces like '# 00e5ff'",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string '# 00e5ff'",
+      "expected_output_description": "Rejected as invalid HexColor",
+      "expected_error": "",
+      "assertions": [
+        "'# 00e5ff' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_to_quick_start_row_returns_new_object",
+      "description": "toQuickStartRow must return a new object, not a reference to or subset of the input — modifying the result must not affect the input",
+      "function": "toQuickStartRow",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef; after calling toQuickStartRow, mutate the result and verify original is unchanged",
+      "expected_output_description": "Mutating the result does not affect the original ToolDef",
+      "expected_error": "",
+      "assertions": [
+        "result is a separate object from input"
+      ]
+    },
+    {
+      "id": "goodhart_tool_description_single_char",
+      "description": "ToolDescription must accept a single character string (boundary len=1)",
+      "function": "ToolDescription",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The string 'x' (1 character)",
+      "expected_output_description": "Accepted as valid ToolDescription",
+      "expected_error": "",
+      "assertions": [
+        "'x' is accepted"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nHidden adversarial acceptance tests for the Home Page component.\n\nThese tests target gaps in the visible test suite to catch implementations\nthat hardcode returns or take shortcuts based on visible test inputs.\n\"\"\"\nimport copy\nimport pytest\n\nfrom home_page import (\n    toQuickStartRow,\n    toDiagramNode,\n    ToolName,\n    ToolDescription,\n    StepNumber,\n    ToolSlug,\n    HexColor,\n    ClosedLoopDiagramProps,\n    QuickStartTableProps,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef _make_tool_def(**overrides):\n    \"\"\"Create a minimal valid ToolDef dict with sensible defaults, applying overrides.\"\"\"\n    base = {\n        \"slug\": \"constrain\",\n        \"name\": \"Constrain\",\n        \"description\": \"Define project boundaries\",\n        \"step\": 1,\n        \"version\": \"1.0.0\",\n        \"accentColor\": \"#00e5ff\",\n        \"videoUrl\": None,\n        \"instructions\": [],\n    }\n    base.update(overrides)\n    return base\n\n\ndef _make_diagram_node(**overrides):\n    \"\"\"Create a minimal valid DiagramNode dict.\"\"\"\n    base = {\n        \"slug\": \"constrain\",\n        \"name\": \"Constrain\",\n        \"step\": 1,\n        \"accentColor\": \"#00e5ff\",\n    }\n    base.update(overrides)\n    return base\n\n\ndef _make_quick_start_row(**overrides):\n    \"\"\"Create a minimal valid QuickStartRow dict.\"\"\"\n    base = {\n        \"step\": 1,\n        \"slug\": \"constrain\",\n        \"name\": \"Constrain\",\n        \"description\": \"Define project boundaries\",\n    }\n    base.update(overrides)\n    return base\n\n\n# ---------------------------------------------------------------------------\n# toQuickStartRow tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartToQuickStartRow:\n\n    def test_goodhart_unfamiliar_tooldef_values(self):\n        \"\"\"toQuickStartRow must project arbitrary ToolDef fields correctly, not just recognize known tool slugs — verifies the function is a generic projection, not a lookup table keyed on slug.\"\"\"\n        tool = _make_tool_def(slug=\"arbiter\", name=\"Arbiter-X\", description=\"Synthetic test desc\", step=5)\n        result = toQuickStartRow(tool)\n        assert result[\"step\"] == 5\n        assert result[\"slug\"] == \"arbiter\"\n        assert result[\"name\"] == \"Arbiter-X\"\n        assert result[\"description\"] == \"Synthetic test desc\"\n\n    def test_goodhart_description_special_chars_passthrough(self):\n        \"\"\"toQuickStartRow must faithfully pass through the description field verbatim, including special characters.\"\"\"\n        desc = 'Desc with <html> & \"quotes\" + unicode: café'\n        tool = _make_tool_def(description=desc)\n        result = toQuickStartRow(tool)\n        assert result[\"description\"] == desc\n\n    def test_goodhart_name_whitespace_preserved(self):\n        \"\"\"toQuickStartRow must pass through the name field exactly, detecting implementations that normalize or transform the name.\"\"\"\n        tool = _make_tool_def(name=\" Leading Spaces \")\n        result = toQuickStartRow(tool)\n        assert result[\"name\"] == \" Leading Spaces \"\n\n    def test_goodhart_excludes_non_projected_fields(self):\n        \"\"\"toQuickStartRow must exclude all ToolDef fields not in {step, slug, name, description}.\"\"\"\n        tool = _make_tool_def(\n            version=\"2.0.0\",\n            accentColor=\"#ff00ff\",\n            videoUrl=\"https://youtube.com/x\",\n            instructions=[{\"title\": \"t\", \"bash\": \"b\"}],\n        )\n        result = toQuickStartRow(tool)\n        assert \"version\" not in result\n        assert \"accentColor\" not in result\n        assert \"videoUrl\" not in result\n        assert \"instructions\" not in result\n        assert set(result.keys()) == {\"step\", \"slug\", \"name\", \"description\"}\n\n    def test_goodhart_empty_dict_raises(self):\n        \"\"\"toQuickStartRow must raise invalid_tool_def for an empty dict with no required fields.\"\"\"\n        with pytest.raises(Exception):\n            toQuickStartRow({})\n\n    def test_goodhart_missing_name_only_raises(self):\n        \"\"\"toQuickStartRow must validate each required field individually — missing only 'name' must fail.\"\"\"\n        tool = {\"step\": 1, \"slug\": \"constrain\", \"description\": \"valid\"}\n        with pytest.raises(Exception):\n            toQuickStartRow(tool)\n\n    def test_goodhart_missing_step_only_raises(self):\n        \"\"\"toQuickStartRow must validate presence of step field — missing only 'step' must fail.\"\"\"\n        tool = {\"slug\": \"constrain\", \"name\": \"Constrain\", \"description\": \"valid\"}\n        with pytest.raises(Exception):\n            toQuickStartRow(tool)\n\n    def test_goodhart_step_boundary_1(self):\n        \"\"\"toQuickStartRow must correctly handle step=1 (minimum boundary).\"\"\"\n        tool = _make_tool_def(step=1)\n        result = toQuickStartRow(tool)\n        assert result[\"step\"] == 1\n\n    def test_goodhart_step_boundary_11(self):\n        \"\"\"toQuickStartRow must correctly handle step=11 (maximum boundary).\"\"\"\n        tool = _make_tool_def(step=11, slug=\"kindex\", name=\"Kindex\")\n        result = toQuickStartRow(tool)\n        assert result[\"step\"] == 11\n\n    def test_goodhart_does_not_mutate_input(self):\n        \"\"\"toQuickStartRow must not mutate the input ToolDef object — pure function invariant.\"\"\"\n        tool = _make_tool_def()\n        original = copy.deepcopy(tool)\n        toQuickStartRow(tool)\n        assert tool == original\n\n    def test_goodhart_different_inputs_different_outputs(self):\n        \"\"\"toQuickStartRow must produce different outputs for different inputs — detects hardcoded single return value.\"\"\"\n        tool1 = _make_tool_def(slug=\"constrain\", name=\"Constrain\", step=1, description=\"Desc A\")\n        tool2 = _make_tool_def(slug=\"kindex\", name=\"Kindex\", step=11, description=\"Desc B\")\n        result1 = toQuickStartRow(tool1)\n        result2 = toQuickStartRow(tool2)\n        assert result1 != result2\n        assert result1[\"slug\"] != result2[\"slug\"]\n        assert result1[\"step\"] != result2[\"step\"]\n\n    def test_goodhart_none_description_raises(self):\n        \"\"\"toQuickStartRow must raise invalid_tool_def when description field is None rather than a string.\"\"\"\n        tool = _make_tool_def(description=None)\n        with pytest.raises(Exception):\n            toQuickStartRow(tool)\n\n    def test_goodhart_returns_new_object(self):\n        \"\"\"toQuickStartRow must return a new object — modifying the result must not affect the input.\"\"\"\n        tool = _make_tool_def()\n        result = toQuickStartRow(tool)\n        result[\"name\"] = \"MUTATED\"\n        assert tool[\"name\"] != \"MUTATED\"\n\n\n# ---------------------------------------------------------------------------\n# toDiagramNode tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartToDiagramNode:\n\n    def test_goodhart_unfamiliar_values(self):\n        \"\"\"toDiagramNode must be a generic projection, not hardcoded per tool.\"\"\"\n        tool = _make_tool_def(slug=\"sentinel\", name=\"Sentinel-Altered\", step=7, accentColor=\"#abcdef\")\n        result = toDiagramNode(tool)\n        assert result[\"slug\"] == \"sentinel\"\n        assert result[\"name\"] == \"Sentinel-Altered\"\n        assert result[\"step\"] == 7\n        assert result[\"accentColor\"] == \"#abcdef\"\n\n    def test_goodhart_excludes_description_and_others(self):\n        \"\"\"toDiagramNode must exclude description, version, videoUrl, instructions.\"\"\"\n        tool = _make_tool_def(description=\"should not appear\")\n        result = toDiagramNode(tool)\n        assert \"description\" not in result\n        assert \"version\" not in result\n        assert \"videoUrl\" not in result\n        assert \"instructions\" not in result\n        assert set(result.keys()) == {\"slug\", \"name\", \"step\", \"accentColor\"}\n\n    def test_goodhart_missing_slug_raises(self):\n        \"\"\"toDiagramNode must validate slug presence — missing slug must raise invalid_tool_def.\"\"\"\n        tool = {\"name\": \"Test\", \"step\": 3, \"accentColor\": \"#ffffff\"}\n        with pytest.raises(Exception):\n            toDiagramNode(tool)\n\n    def test_goodhart_missing_name_raises(self):\n        \"\"\"toDiagramNode must validate name presence — missing name must raise invalid_tool_def.\"\"\"\n        tool = {\"slug\": \"pact\", \"step\": 3, \"accentColor\": \"#ffffff\"}\n        with pytest.raises(Exception):\n            toDiagramNode(tool)\n\n    def test_goodhart_missing_step_raises(self):\n        \"\"\"toDiagramNode must validate step presence — missing step must raise invalid_tool_def.\"\"\"\n        tool = {\"slug\": \"pact\", \"name\": \"Pact\", \"accentColor\": \"#ffffff\"}\n        with pytest.raises(Exception):\n            toDiagramNode(tool)\n\n    def test_goodhart_accent_color_case_preserved(self):\n        \"\"\"toDiagramNode must preserve the exact casing of accentColor hex string.\"\"\"\n        tool = _make_tool_def(accentColor=\"#AaBbCc\")\n        result = toDiagramNode(tool)\n        assert result[\"accentColor\"] == \"#AaBbCc\"\n\n    def test_goodhart_does_not_mutate_input(self):\n        \"\"\"toDiagramNode must not mutate the input ToolDef object — pure function invariant.\"\"\"\n        tool = _make_tool_def()\n        original = copy.deepcopy(tool)\n        toDiagramNode(tool)\n        assert tool == original\n\n    def test_goodhart_different_inputs_different_outputs(self):\n        \"\"\"toDiagramNode must produce different outputs for different inputs — detects hardcoded single return value.\"\"\"\n        tool1 = _make_tool_def(slug=\"constrain\", name=\"Constrain\", step=1, accentColor=\"#000000\")\n        tool2 = _make_tool_def(slug=\"kindex\", name=\"Kindex\", step=11, accentColor=\"#ffffff\")\n        result1 = toDiagramNode(tool1)\n        result2 = toDiagramNode(tool2)\n        assert result1 != result2\n\n\n# ---------------------------------------------------------------------------\n# HexColor tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartHexColor:\n\n    def test_goodhart_uppercase_accepted(self):\n        \"\"\"HexColor must accept uppercase hex digits since CSS hex colors are case-insensitive.\"\"\"\n        # Should not raise\n        HexColor(\"#FF00AA\")\n\n    def test_goodhart_no_hash_rejected(self):\n        \"\"\"HexColor must reject hex-like strings without the leading '#' character.\"\"\"\n        with pytest.raises(Exception):\n            HexColor(\"00e5ff\")\n\n    def test_goodhart_extra_digits_rejected(self):\n        \"\"\"HexColor must reject strings with too many hex digits (8-digit RGBA).\"\"\"\n        with pytest.raises(Exception):\n            HexColor(\"#00e5ff00\")\n\n    def test_goodhart_empty_string_rejected(self):\n        \"\"\"HexColor must reject empty string.\"\"\"\n        with pytest.raises(Exception):\n            HexColor(\"\")\n\n    def test_goodhart_spaces_rejected(self):\n        \"\"\"HexColor must reject hex strings with embedded spaces.\"\"\"\n        with pytest.raises(Exception):\n            HexColor(\"# 00e5ff\")\n\n\n# ---------------------------------------------------------------------------\n# StepNumber tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartStepNumber:\n\n    def test_goodhart_float_rejected(self):\n        \"\"\"StepNumber must be an integer — floating point values within range should be rejected.\"\"\"\n        with pytest.raises(Exception):\n            StepNumber(1.5)\n\n    def test_goodhart_12_rejected(self):\n        \"\"\"StepNumber must reject 12, the value immediately above the valid range boundary.\"\"\"\n        with pytest.raises(Exception):\n            StepNumber(12)\n\n\n# ---------------------------------------------------------------------------\n# ToolSlug tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartToolSlug:\n\n    def test_goodhart_invalid_string_rejected(self):\n        \"\"\"ToolSlug must reject arbitrary strings not in the enum.\"\"\"\n        with pytest.raises(Exception):\n            ToolSlug(\"nonexistent_tool\")\n\n    def test_goodhart_case_sensitive(self):\n        \"\"\"ToolSlug must be case-sensitive — 'Constrain' must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            ToolSlug(\"Constrain\")\n\n\n# ---------------------------------------------------------------------------\n# ToolDescription boundary tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartToolDescription:\n\n    def test_goodhart_boundary_256_accepted(self):\n        \"\"\"ToolDescription must accept a string of exactly 256 characters (boundary maximum).\"\"\"\n        ToolDescription(\"x\" * 256)\n\n    def test_goodhart_boundary_257_rejected(self):\n        \"\"\"ToolDescription must reject a string of exactly 257 characters (one past boundary).\"\"\"\n        with pytest.raises(Exception):\n            ToolDescription(\"x\" * 257)\n\n    def test_goodhart_single_char_accepted(self):\n        \"\"\"ToolDescription must accept a single character string (boundary len=1).\"\"\"\n        ToolDescription(\"x\")\n\n\n# ---------------------------------------------------------------------------\n# ToolName boundary tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartToolName:\n\n    def test_goodhart_boundary_101_rejected(self):\n        \"\"\"ToolName must reject a string of exactly 101 characters (one past boundary).\"\"\"\n        with pytest.raises(Exception):\n            ToolName(\"x\" * 101)\n\n\n# ---------------------------------------------------------------------------\n# Props validation tests\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartPropsValidation:\n\n    def test_goodhart_quick_start_table_props_multiple_rows(self):\n        \"\"\"QuickStartTableProps must accept lists with more than 1 row.\"\"\"\n        rows = [_make_quick_start_row(step=i) for i in range(1, 6)]\n        QuickStartTableProps(rows=rows)\n\n    def test_goodhart_closed_loop_diagram_props_11_nodes(self):\n        \"\"\"ClosedLoopDiagramProps must accept a list of exactly 11 nodes — the production cardinality.\"\"\"\n        nodes = [_make_diagram_node(step=i, slug=f\"tool{i}\") for i in range(1, 12)]\n        ClosedLoopDiagramProps(nodes=nodes)\n\n    def test_goodhart_closed_loop_diagram_props_boundary_2(self):\n        \"\"\"ClosedLoopDiagramProps must accept exactly 2 nodes — the minimum valid count.\"\"\"\n        nodes = [\n            _make_diagram_node(step=1, slug=\"constrain\"),\n            _make_diagram_node(step=2, slug=\"ledger\"),\n        ]\n        ClosedLoopDiagramProps(nodes=nodes)\n"
+}

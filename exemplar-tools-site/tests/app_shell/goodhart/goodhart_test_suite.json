@@ -1,0 +1,474 @@
+{
+  "component_id": "app_shell",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_is_valid_tool_slug_case_sensitive",
+      "description": "isValidToolSlug must be case-sensitive: uppercase or mixed-case variants of valid slugs must return False, ensuring membership check is exact rather than case-insensitive",
+      "function": "isValidToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Uppercase and mixed-case versions of valid slugs like 'Constrain', 'LEDGER', 'Pact'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isValidToolSlug('Constrain') is False",
+        "isValidToolSlug('LEDGER') is False",
+        "isValidToolSlug('Pact') is False",
+        "isValidToolSlug('ARBITER') is False",
+        "isValidToolSlug('Sentinel') is False",
+        "isValidToolSlug('KINDEX') is False"
+      ]
+    },
+    {
+      "id": "goodhart_is_valid_tool_slug_near_miss_strings",
+      "description": "isValidToolSlug must reject strings that are substrings, superstrings, or slight misspellings of valid slugs to prevent fuzzy matching shortcuts",
+      "function": "isValidToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Near-miss strings: 'constrai', 'constrainn', 'ledger ', ' ledger', 'pacts', 'advocat', 'batons', 'sentinels'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isValidToolSlug('constrai') is False",
+        "isValidToolSlug('constrainn') is False",
+        "isValidToolSlug('ledger ') is False",
+        "isValidToolSlug(' ledger') is False",
+        "isValidToolSlug('pacts') is False",
+        "isValidToolSlug('advocat') is False",
+        "isValidToolSlug('batons') is False",
+        "isValidToolSlug('sentinels') is False"
+      ]
+    },
+    {
+      "id": "goodhart_is_valid_tool_slug_empty_and_none",
+      "description": "isValidToolSlug must handle degenerate inputs (empty string, whitespace) by returning False without raising exceptions",
+      "function": "isValidToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty string, whitespace-only string, and other non-slug strings",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isValidToolSlug('') is False",
+        "isValidToolSlug(' ') is False",
+        "isValidToolSlug('  ') is False"
+      ]
+    },
+    {
+      "id": "goodhart_tool_path_exact_format_no_trailing_slash",
+      "description": "toolPath must produce a path with exactly one leading slash and no trailing slash, ensuring it is not double-slashed or malformed",
+      "function": "toolPath",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Every valid ToolSlug",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toolPath('constrain') == '/constrain'",
+        "toolPath('constrain').count('/') == 1",
+        "toolPath('stigmergy') == '/stigmergy'",
+        "toolPath('stigmergy').count('/') == 1",
+        "toolPath('kindex') == '/kindex'",
+        "not toolPath('arbiter').endswith('/')"
+      ]
+    },
+    {
+      "id": "goodhart_tool_path_does_not_contain_colon",
+      "description": "toolPath must replace the :toolSlug route parameter, never returning a string containing the literal ':toolSlug' template placeholder",
+      "function": "toolPath",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Multiple valid slugs checked for absence of template syntax",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "':' not in toolPath('constrain')",
+        "':' not in toolPath('advocate')",
+        "':' not in toolPath('baton')",
+        "':' not in toolPath('chronicler')",
+        "'toolSlug' not in toolPath('apprentice')"
+      ]
+    },
+    {
+      "id": "goodhart_tool_path_slug_preserved_exactly",
+      "description": "toolPath must preserve the slug string exactly without transformation (no URL encoding, no case change, no prefix/suffix addition beyond the leading slash)",
+      "function": "toolPath",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Check that path[1:] equals the input slug exactly for several slugs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toolPath('stigmergy')[1:] == 'stigmergy'",
+        "toolPath('chronicler')[1:] == 'chronicler'",
+        "toolPath('apprentice')[1:] == 'apprentice'",
+        "toolPath('sentinel')[1:] == 'sentinel'",
+        "toolPath('kindex')[1:] == 'kindex'"
+      ]
+    },
+    {
+      "id": "goodhart_project_preserves_different_accent_colors",
+      "description": "projectToolDefToSidebarItem must faithfully pass through any valid accentColor, not hardcode a specific color value",
+      "function": "projectToolDefToSidebarItem",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDefs with various distinct hex accent colors",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result1.accentColor == '#ff0000'",
+        "result2.accentColor == '#00e5ff'",
+        "result3.accentColor == '#abc'"
+      ]
+    },
+    {
+      "id": "goodhart_project_preserves_various_names",
+      "description": "projectToolDefToSidebarItem must map the name field to label faithfully for arbitrary name strings, not just known tool names",
+      "function": "projectToolDefToSidebarItem",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDefs with different name values including multi-word names",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.label == 'My Custom Tool'",
+        "result.slug == 'constrain'",
+        "result.stepNumber == 5"
+      ]
+    },
+    {
+      "id": "goodhart_project_mid_range_step_numbers",
+      "description": "projectToolDefToSidebarItem must handle all step numbers 1-11, not just boundary values 1 and 11 that visible tests check",
+      "function": "projectToolDefToSidebarItem",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDefs with step numbers 2, 6, and 10",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result_step2.stepNumber == 2",
+        "result_step6.stepNumber == 6",
+        "result_step10.stepNumber == 10"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_string_3digit_lowercase",
+      "description": "HexColorString must accept 3-digit hex colors in all case combinations, not just the specific examples in visible tests",
+      "function": "HexColorString",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "3-digit hex colors: '#abc', '#ABC', '#1a2', '#FFF', '#000'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'#abc' is accepted",
+        "'#ABC' is accepted",
+        "'#1a2' is accepted",
+        "'#FFF' is accepted",
+        "'#000' is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_string_boundary_rejections",
+      "description": "HexColorString must reject strings with wrong digit counts (1, 2, 4, 5, 7+ hex digits after #) to verify the regex is precise",
+      "function": "HexColorString",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Hex strings with 1, 2, 4, 5, and 7 hex digits",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'#a' is rejected",
+        "'#ab' is rejected",
+        "'#abcd' is rejected",
+        "'#abcde' is rejected",
+        "'#abcdef0' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_string_no_hash",
+      "description": "HexColorString must require the leading '#' character; bare hex digit sequences must be rejected",
+      "function": "HexColorString",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Valid hex digits without the # prefix",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'abc' is rejected",
+        "'AABBCC' is rejected",
+        "'123456' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_convex_url_exact_min_length",
+      "description": "ConvexUrl must enforce the minimum length of 10 characters, accepting URLs of exactly 10 chars and rejecting those of 9 chars",
+      "function": "ConvexUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "URLs at the boundary: 'http://a.b' (10 chars) and 'http://a.' (9 chars)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'http://a.b' (length 10) is accepted",
+        "'http://a.' (length 9) is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_convex_url_max_length_boundary",
+      "description": "ConvexUrl must enforce the maximum length of 256 characters, accepting URLs of exactly 256 chars and rejecting those of 257 chars",
+      "function": "ConvexUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "URLs at exactly 256 and 257 characters",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL of exactly 256 chars is accepted",
+        "URL of exactly 257 chars is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_routes_object_tool_value",
+      "description": "RoutesObject TOOL field must be exactly '/:toolSlug', ensuring both route constants are validated together",
+      "function": "RoutesObject",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "RoutesObject with HOME='/' and TOOL='/:toolSlug'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TOOL field equals '/:toolSlug'"
+      ]
+    },
+    {
+      "id": "goodhart_routes_object_invalid_tool",
+      "description": "RoutesObject must reject TOOL values that differ from the exact '/:toolSlug' pattern",
+      "function": "RoutesObject",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "TOOL values like '/tool/:slug', '/:tool', '/tools/:toolSlug'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TOOL='/:tool' is rejected",
+        "TOOL='/tool/:slug' is rejected",
+        "TOOL='/tools/:toolSlug' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_routes_object_frozen",
+      "description": "ROUTES object must be frozen (immutable) so that runtime mutation attempts are prevented",
+      "function": "RoutesObject",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Attempt to verify immutability of the ROUTES object",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ROUTES object is frozen/immutable"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_frozen",
+      "description": "TOOL_SLUGS array must be frozen (immutable) to prevent runtime mutation",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Attempt to verify the TOOL_SLUGS collection is immutable",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TOOL_SLUGS is frozen/immutable"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_exact_membership",
+      "description": "TOOL_SLUGS must contain exactly the 11 specified slug strings and no others, preventing implementations that include extra entries",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Compare TOOL_SLUGS set against the canonical set of 11 slugs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "set(TOOL_SLUGS) == {'constrain', 'ledger', 'pact', 'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex'}"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_no_duplicates",
+      "description": "TOOL_SLUGS must contain no duplicate entries; each slug appears exactly once",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Check length equals length of deduplicated set",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(TOOL_SLUGS) == len(set(TOOL_SLUGS))"
+      ]
+    },
+    {
+      "id": "goodhart_step_number_rejects_out_of_range",
+      "description": "StepNumber must reject integers outside the 1-11 range including 0, 12, negative numbers, and large values",
+      "function": "StepNumber",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Values: 0, -1, 12, 100, -100",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "StepNumber(0) is rejected",
+        "StepNumber(-1) is rejected",
+        "StepNumber(12) is rejected",
+        "StepNumber(100) is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_step_number_all_valid_values",
+      "description": "StepNumber must accept every integer from 1 through 11 inclusive, not just boundary values",
+      "function": "StepNumber",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "All integers 1 through 11",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "StepNumber(n) is valid for every n in range(1, 12)"
+      ]
+    },
+    {
+      "id": "goodhart_fadein_keyframes_partial_canonical",
+      "description": "FadeInKeyframes must validate each field independently; changing just one field from canonical values must cause rejection",
+      "function": "FadeInKeyframes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Structs where only one field differs from canonical: from_opacity=0.1 (rest canonical), duration='300ms' (rest canonical), easing='ease-in' (rest canonical), to_opacity=0.9 (rest canonical)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "from_opacity=0.1 with other fields canonical is rejected",
+        "to_opacity=0.9 with other fields canonical is rejected",
+        "duration='300ms' with other fields canonical is rejected",
+        "easing='ease-in' with other fields canonical is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_google_font_link_preconnect_origins",
+      "description": "GoogleFontLink must include the expected preconnect origins list for proper font loading performance",
+      "function": "GoogleFontLink",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid GoogleFontLink with proper href and preconnect_origins",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "preconnect_origins list is non-empty",
+        "preconnect_origins contains font-related Google origins"
+      ]
+    },
+    {
+      "id": "goodhart_is_valid_tool_slug_non_string_types",
+      "description": "isValidToolSlug must return False (not raise) for non-string-like inputs such as numeric values or None, ensuring robust type guarding",
+      "function": "isValidToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Non-string values: None, 0, 42, True, empty list",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isValidToolSlug(None) returns False or handles gracefully",
+        "isValidToolSlug(42) returns False or handles gracefully",
+        "isValidToolSlug(True) returns False or handles gracefully"
+      ]
+    },
+    {
+      "id": "goodhart_project_identity_mapping",
+      "description": "projectToolDefToSidebarItem must not swap, transform, or lose any field during mapping — each output field corresponds to the correct input field",
+      "function": "projectToolDefToSidebarItem",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef where all field values are maximally distinct to detect any field swapping",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "slug maps from toolDef.slug not from any other field",
+        "label maps from toolDef.name not from slug or other field",
+        "stepNumber maps from toolDef.stepNumber",
+        "accentColor maps from toolDef.accentColor"
+      ]
+    },
+    {
+      "id": "goodhart_convex_url_rejects_non_http_schemes",
+      "description": "ConvexUrl must reject URLs with schemes other than http/https like ftp://, ws://, or file://",
+      "function": "ConvexUrl",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "URLs with ftp://, ws://, file:// schemes that are otherwise valid",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'ftp://example.com' is rejected",
+        "'ws://example.com' is rejected",
+        "'file:///etc/passwd' is rejected"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nHidden adversarial acceptance tests for the App Shell, Routing & Layout component.\nThese tests target gaps in visible test coverage and detect implementations\nthat hardcode returns or take shortcuts matching only visible test inputs.\n\"\"\"\nimport pytest\nimport re\nfrom app_shell import (\n    isValidToolSlug,\n    toolPath,\n    projectToolDefToSidebarItem,\n    HexColorString,\n    ConvexUrl,\n    RoutesObject,\n    FadeInKeyframes,\n    GoogleFontLink,\n    StepNumber,\n    TOOL_SLUGS,\n    ROUTES,\n)\n\n\n# ─── ToolSlug enum membership: case sensitivity ───\n\nclass TestGoodhartIsValidToolSlug:\n\n    def test_goodhart_case_sensitivity_uppercase(self):\n        \"\"\"isValidToolSlug must be case-sensitive: uppercase variants of valid slugs must be rejected\"\"\"\n        assert isValidToolSlug(\"Constrain\") is False\n        assert isValidToolSlug(\"LEDGER\") is False\n        assert isValidToolSlug(\"Pact\") is False\n        assert isValidToolSlug(\"ARBITER\") is False\n        assert isValidToolSlug(\"Sentinel\") is False\n        assert isValidToolSlug(\"KINDEX\") is False\n        assert isValidToolSlug(\"ADVOCATE\") is False\n        assert isValidToolSlug(\"BATON\") is False\n\n    def test_goodhart_near_miss_substrings(self):\n        \"\"\"isValidToolSlug must reject substrings, superstrings, and misspellings of valid slugs\"\"\"\n        assert isValidToolSlug(\"constrai\") is False\n        assert isValidToolSlug(\"constrainn\") is False\n        assert isValidToolSlug(\"pacts\") is False\n        assert isValidToolSlug(\"advocat\") is False\n        assert isValidToolSlug(\"batons\") is False\n        assert isValidToolSlug(\"sentinels\") is False\n        assert isValidToolSlug(\"chroniclers\") is False\n        assert isValidToolSlug(\"apprentic\") is False\n        assert isValidToolSlug(\"kinde\") is False\n\n    def test_goodhart_whitespace_variants(self):\n        \"\"\"isValidToolSlug must reject whitespace-padded or whitespace-only inputs\"\"\"\n        assert isValidToolSlug(\"\") is False\n        assert isValidToolSlug(\" \") is False\n        assert isValidToolSlug(\"  \") is False\n        assert isValidToolSlug(\"ledger \") is False\n        assert isValidToolSlug(\" ledger\") is False\n        assert isValidToolSlug(\" constrain \") is False\n\n    def test_goodhart_non_string_types(self):\n        \"\"\"isValidToolSlug must return False (not raise) for non-string inputs\"\"\"\n        # The function should gracefully handle non-strings\n        for val in [None, 0, 42, True, False, [], {}]:\n            result = isValidToolSlug(val)\n            assert result is False or result == False, f\"isValidToolSlug({val!r}) should be False\"\n\n    def test_goodhart_slug_like_but_invalid(self):\n        \"\"\"isValidToolSlug must reject plausible-looking but non-canonical slug strings\"\"\"\n        assert isValidToolSlug(\"constraint\") is False\n        assert isValidToolSlug(\"ledgers\") is False\n        assert isValidToolSlug(\"contract\") is False\n        assert isValidToolSlug(\"tool\") is False\n        assert isValidToolSlug(\"index\") is False\n        assert isValidToolSlug(\"kindle\") is False\n\n\n# ─── toolPath: format and content ───\n\nclass TestGoodhartToolPath:\n\n    def test_goodhart_no_trailing_slash(self):\n        \"\"\"toolPath must produce paths with no trailing slash for any slug\"\"\"\n        for slug in TOOL_SLUGS:\n            result = toolPath(slug)\n            assert not result.endswith(\"/\") or result == \"/\", f\"toolPath('{slug}') should not end with '/'\"\n\n    def test_goodhart_exactly_one_slash(self):\n        \"\"\"toolPath must produce a path with exactly one slash (the leading one)\"\"\"\n        for slug in TOOL_SLUGS:\n            result = toolPath(slug)\n            assert result.count(\"/\") == 1, f\"toolPath('{slug}') has {result.count('/')} slashes, expected 1\"\n\n    def test_goodhart_no_template_placeholder(self):\n        \"\"\"toolPath must replace the route parameter, never returning literal ':toolSlug'\"\"\"\n        for slug in TOOL_SLUGS:\n            result = toolPath(slug)\n            assert \":\" not in result, f\"toolPath('{slug}') contains ':' template syntax\"\n            assert \"toolSlug\" not in result, f\"toolPath('{slug}') contains literal 'toolSlug'\"\n\n    def test_goodhart_slug_preserved_exactly(self):\n        \"\"\"toolPath must preserve the slug string exactly after the leading slash\"\"\"\n        for slug in TOOL_SLUGS:\n            result = toolPath(slug)\n            assert result[1:] == slug, f\"toolPath('{slug}')[1:] == {result[1:]!r}, expected {slug!r}\"\n\n    def test_goodhart_path_matches_pattern(self):\n        \"\"\"toolPath output must match the regex pattern '/[a-z0-9-]+'\"\"\"\n        pattern = re.compile(r\"^/[a-z0-9-]+$\")\n        for slug in TOOL_SLUGS:\n            result = toolPath(slug)\n            assert pattern.match(result), f\"toolPath('{slug}') = {result!r} doesn't match pattern\"\n\n\n# ─── projectToolDefToSidebarItem: field mapping fidelity ───\n\nclass TestGoodhartProjectToolDef:\n\n    def _make_tooldef(self, slug=\"constrain\", name=\"Test Tool\", step=1, color=\"#ff0000\"):\n        \"\"\"Helper to create a mock ToolDef-like object.\"\"\"\n        class ToolDef:\n            pass\n        td = ToolDef()\n        td.slug = slug\n        td.name = name\n        td.stepNumber = step\n        td.accentColor = color\n        return td\n\n    def test_goodhart_various_accent_colors(self):\n        \"\"\"projectToolDefToSidebarItem must faithfully pass through any valid accentColor, not hardcode a specific color\"\"\"\n        colors = [\"#ff0000\", \"#00e5ff\", \"#abc\", \"#4F46E5\", \"#000000\", \"#FFFFFF\"]\n        for color in colors:\n            td = self._make_tooldef(color=color)\n            result = projectToolDefToSidebarItem(td)\n            assert result.accentColor == color, f\"Expected accentColor={color!r}, got {result.accentColor!r}\"\n\n    def test_goodhart_arbitrary_name_mapping(self):\n        \"\"\"projectToolDefToSidebarItem must map name to label for arbitrary name strings, not just known tool names\"\"\"\n        td = self._make_tooldef(name=\"My Custom Tool\", slug=\"constrain\", step=5)\n        result = projectToolDefToSidebarItem(td)\n        assert result.label == \"My Custom Tool\"\n        assert result.slug == \"constrain\"\n        assert result.stepNumber == 5\n\n    def test_goodhart_mid_range_step_numbers(self):\n        \"\"\"projectToolDefToSidebarItem must handle all step numbers 1-11, not just boundaries 1 and 11\"\"\"\n        for step in [2, 3, 4, 5, 6, 7, 8, 9, 10]:\n            td = self._make_tooldef(step=step)\n            result = projectToolDefToSidebarItem(td)\n            assert result.stepNumber == step, f\"Expected stepNumber={step}, got {result.stepNumber}\"\n\n    def test_goodhart_no_field_swapping(self):\n        \"\"\"projectToolDefToSidebarItem must not swap or confuse fields during mapping\"\"\"\n        td = self._make_tooldef(slug=\"stigmergy\", name=\"Unique Name XYZ\", step=7, color=\"#abcdef\")\n        result = projectToolDefToSidebarItem(td)\n        assert result.slug == \"stigmergy\"\n        assert result.label == \"Unique Name XYZ\"\n        assert result.stepNumber == 7\n        assert result.accentColor == \"#abcdef\"\n        # Ensure no cross-contamination\n        assert result.slug != result.label\n        assert result.slug != result.accentColor\n\n    def test_goodhart_all_slugs_mappable(self):\n        \"\"\"projectToolDefToSidebarItem must work correctly for every valid ToolSlug, not just a subset\"\"\"\n        for i, slug in enumerate(TOOL_SLUGS):\n            td = self._make_tooldef(slug=slug, name=f\"Tool {slug}\", step=(i % 11) + 1, color=\"#aabbcc\")\n            result = projectToolDefToSidebarItem(td)\n            assert result.slug == slug\n\n\n# ─── HexColorString: boundary and format ───\n\nclass TestGoodhartHexColorString:\n\n    def test_goodhart_3digit_various_cases(self):\n        \"\"\"HexColorString must accept all case combinations of 3-digit hex colors\"\"\"\n        valid_3digit = [\"#abc\", \"#ABC\", \"#1a2\", \"#FFF\", \"#000\", \"#fFf\", \"#A0c\"]\n        for color in valid_3digit:\n            result = HexColorString(color)\n            assert result is not None, f\"HexColorString should accept {color!r}\"\n\n    def test_goodhart_wrong_digit_counts(self):\n        \"\"\"HexColorString must reject hex strings with digit counts other than 3 or 6\"\"\"\n        invalid_counts = [\"#a\", \"#ab\", \"#abcd\", \"#abcde\", \"#abcdef0\", \"#abcdef01\"]\n        for color in invalid_counts:\n            with pytest.raises(Exception):\n                HexColorString(color)\n\n    def test_goodhart_no_hash_prefix(self):\n        \"\"\"HexColorString must require the leading '#' character\"\"\"\n        for color in [\"abc\", \"AABBCC\", \"123456\", \"fff\"]:\n            with pytest.raises(Exception):\n                HexColorString(color)\n\n    def test_goodhart_non_hex_chars(self):\n        \"\"\"HexColorString must reject strings containing non-hexadecimal characters after #\"\"\"\n        for color in [\"#gggggg\", \"#xyz\", \"#12345g\", \"#zzzzzz\"]:\n            with pytest.raises(Exception):\n                HexColorString(color)\n\n    def test_goodhart_double_hash(self):\n        \"\"\"HexColorString must reject strings with double hash or other prefix anomalies\"\"\"\n        for color in [\"##aabbcc\", \"# aabbcc\", \"#aabb cc\"]:\n            with pytest.raises(Exception):\n                HexColorString(color)\n\n\n# ─── ConvexUrl: length boundaries and scheme ───\n\nclass TestGoodhartConvexUrl:\n\n    def test_goodhart_exact_min_length(self):\n        \"\"\"ConvexUrl must accept URLs of exactly 10 characters and reject those of 9\"\"\"\n        url_10 = \"http://a.b\"  # exactly 10 chars\n        assert len(url_10) == 10\n        result = ConvexUrl(url_10)\n        assert result is not None\n\n        url_9 = \"http://a.\"  # 9 chars\n        assert len(url_9) == 9\n        with pytest.raises(Exception):\n            ConvexUrl(url_9)\n\n    def test_goodhart_exact_max_length(self):\n        \"\"\"ConvexUrl must accept URLs of exactly 256 characters and reject those of 257\"\"\"\n        base = \"https://example.com/\"\n        url_256 = base + \"a\" * (256 - len(base))\n        assert len(url_256) == 256\n        result = ConvexUrl(url_256)\n        assert result is not None\n\n        url_257 = base + \"a\" * (257 - len(base))\n        assert len(url_257) == 257\n        with pytest.raises(Exception):\n            ConvexUrl(url_257)\n\n    def test_goodhart_rejects_non_http_schemes(self):\n        \"\"\"ConvexUrl must reject URLs with schemes other than http/https\"\"\"\n        for url in [\"ftp://example.com/path\", \"ws://example.com/ws\", \"file:///etc/passwd\"]:\n            with pytest.raises(Exception):\n                ConvexUrl(url)\n\n    def test_goodhart_empty_and_whitespace(self):\n        \"\"\"ConvexUrl must reject empty strings and whitespace\"\"\"\n        for url in [\"\", \" \", \"   \"]:\n            with pytest.raises(Exception):\n                ConvexUrl(url)\n\n\n# ─── RoutesObject: TOOL value and immutability ───\n\nclass TestGoodhartRoutesObject:\n\n    def test_goodhart_tool_value_exact(self):\n        \"\"\"RoutesObject TOOL field must be exactly '/:toolSlug'\"\"\"\n        routes = RoutesObject(HOME=\"/\", TOOL=\"/:toolSlug\")\n        assert routes.TOOL == \"/:toolSlug\"\n\n    def test_goodhart_invalid_tool_values(self):\n        \"\"\"RoutesObject must reject TOOL values that differ from '/:toolSlug'\"\"\"\n        for bad_tool in [\"/:tool\", \"/tool/:slug\", \"/tools/:toolSlug\", \"/\", \"/:toolSlug/\", \"\"]:\n            with pytest.raises(Exception):\n                RoutesObject(HOME=\"/\", TOOL=bad_tool)\n\n    def test_goodhart_frozen_routes(self):\n        \"\"\"ROUTES object must be frozen/immutable — mutation attempts should fail or have no effect\"\"\"\n        # If ROUTES is a module-level constant, verify it cannot be mutated\n        original_home = ROUTES.HOME\n        original_tool = ROUTES.TOOL\n        try:\n            ROUTES.HOME = \"/changed\"\n        except (AttributeError, TypeError, Exception):\n            pass  # Expected for frozen objects\n        assert ROUTES.HOME == original_home, \"ROUTES.HOME should not be mutable\"\n        assert ROUTES.TOOL == original_tool, \"ROUTES.TOOL should not be mutable\"\n\n\n# ─── FadeInKeyframes: per-field validation ───\n\nclass TestGoodhartFadeInKeyframes:\n\n    def test_goodhart_single_field_deviation(self):\n        \"\"\"FadeInKeyframes must validate each field independently — changing one field from canonical must cause rejection\"\"\"\n        # Canonical: from_opacity=0, to_opacity=1, duration='200ms', easing='ease-out'\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0.1, to_opacity=1, duration=\"200ms\", easing=\"ease-out\")\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0, to_opacity=0.9, duration=\"200ms\", easing=\"ease-out\")\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"300ms\", easing=\"ease-out\")\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"200ms\", easing=\"ease-in\")\n\n    def test_goodhart_wrong_duration_units(self):\n        \"\"\"FadeInKeyframes must reject duration values with wrong units or format\"\"\"\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"0.2s\", easing=\"ease-out\")\n        with pytest.raises(Exception):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"200\", easing=\"ease-out\")\n\n    def test_goodhart_wrong_easing_variants(self):\n        \"\"\"FadeInKeyframes must reject easing values that are CSS-valid but not 'ease-out'\"\"\"\n        for easing in [\"ease\", \"ease-in\", \"ease-in-out\", \"linear\", \"cubic-bezier(0,0,1,1)\"]:\n            with pytest.raises(Exception):\n                FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"200ms\", easing=easing)\n\n\n# ─── TOOL_SLUGS: content and immutability ───\n\nclass TestGoodhartToolSlugs:\n\n    def test_goodhart_exact_membership(self):\n        \"\"\"TOOL_SLUGS must contain exactly the 11 specified slugs and no others\"\"\"\n        expected = {\"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\", \"baton\",\n                    \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\"}\n        actual = set(TOOL_SLUGS)\n        assert actual == expected, f\"TOOL_SLUGS mismatch: extra={actual - expected}, missing={expected - actual}\"\n\n    def test_goodhart_no_duplicates(self):\n        \"\"\"TOOL_SLUGS must contain no duplicate entries\"\"\"\n        assert len(TOOL_SLUGS) == len(set(TOOL_SLUGS)), \"TOOL_SLUGS contains duplicates\"\n\n    def test_goodhart_frozen(self):\n        \"\"\"TOOL_SLUGS must be immutable — append/extend/mutation should fail or have no effect\"\"\"\n        original_len = len(TOOL_SLUGS)\n        try:\n            TOOL_SLUGS.append(\"extra\")\n        except (AttributeError, TypeError, Exception):\n            pass  # Expected for frozen collections\n        assert len(TOOL_SLUGS) == original_len, \"TOOL_SLUGS should not be mutable\"\n\n    def test_goodhart_all_lowercase(self):\n        \"\"\"Every entry in TOOL_SLUGS must be lowercase\"\"\"\n        for slug in TOOL_SLUGS:\n            assert slug == slug.lower(), f\"TOOL_SLUGS entry {slug!r} is not lowercase\"\n\n    def test_goodhart_all_kebab_case(self):\n        \"\"\"Every entry in TOOL_SLUGS must be URL-safe kebab-case (lowercase alphanumeric and hyphens)\"\"\"\n        pattern = re.compile(r\"^[a-z0-9]+(-[a-z0-9]+)*$\")\n        for slug in TOOL_SLUGS:\n            assert pattern.match(slug), f\"TOOL_SLUGS entry {slug!r} is not valid kebab-case\"\n\n\n# ─── StepNumber: complete range and rejection ───\n\nclass TestGoodhartStepNumber:\n\n    def test_goodhart_all_valid_range(self):\n        \"\"\"StepNumber must accept every integer from 1 through 11 inclusive\"\"\"\n        for n in range(1, 12):\n            result = StepNumber(n)\n            assert result is not None, f\"StepNumber({n}) should be valid\"\n\n    def test_goodhart_out_of_range_rejection(self):\n        \"\"\"StepNumber must reject integers outside 1-11 range\"\"\"\n        for n in [0, -1, 12, 13, 100, -100]:\n            with pytest.raises(Exception):\n                StepNumber(n)\n\n    def test_goodhart_non_integer_rejection(self):\n        \"\"\"StepNumber must reject non-integer types\"\"\"\n        for val in [1.5, \"1\", None, True]:\n            with pytest.raises(Exception):\n                StepNumber(val)\n\n\n# ─── GoogleFontLink: content validation ───\n\nclass TestGoodhartGoogleFontLink:\n\n    def test_goodhart_preconnect_origins_present(self):\n        \"\"\"GoogleFontLink must include non-empty preconnect_origins for proper font loading\"\"\"\n        link = GoogleFontLink(\n            href=\"https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap\",\n            preconnect_origins=[\"https://fonts.googleapis.com\", \"https://fonts.gstatic.com\"]\n        )\n        assert len(link.preconnect_origins) > 0\n\n    def test_goodhart_href_must_have_family_param(self):\n        \"\"\"GoogleFontLink href must contain a family parameter between 'css2?family=' and '&display=swap'\"\"\"\n        # Valid: has family param\n        valid_href = \"https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap\"\n        link = GoogleFontLink(href=valid_href, preconnect_origins=[])\n        assert \"family=\" in link.href\n\n    def test_goodhart_href_rejects_missing_display_swap(self):\n        \"\"\"GoogleFontLink must reject hrefs that don't end with &display=swap\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css2?family=Instrument+Serif\",\n                preconnect_origins=[]\n            )\n\n    def test_goodhart_href_rejects_wrong_domain(self):\n        \"\"\"GoogleFontLink must reject hrefs pointing to non-Google Fonts domains\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://fonts.example.com/css2?family=Roboto&display=swap\",\n                preconnect_origins=[]\n            )\n\n\n# ─── isValidToolSlug + toolPath consistency ───\n\nclass TestGoodhartCrossFunction:\n\n    def test_goodhart_valid_slugs_produce_valid_paths(self):\n        \"\"\"Every string accepted by isValidToolSlug must produce a valid path via toolPath\"\"\"\n        for slug in TOOL_SLUGS:\n            assert isValidToolSlug(slug) is True\n            path = toolPath(slug)\n            assert path == f\"/{slug}\"\n\n    def test_goodhart_tool_slugs_and_validator_agree(self):\n        \"\"\"TOOL_SLUGS entries and isValidToolSlug must agree on exactly which strings are valid\"\"\"\n        # All TOOL_SLUGS entries should be valid\n        for slug in TOOL_SLUGS:\n            assert isValidToolSlug(slug) is True\n\n        # A broad sample of non-slug strings should be invalid\n        non_slugs = [\"\", \"foo\", \"bar\", \"test\", \"tool\", \"slug\", \"home\", \"app\",\n                      \"123\", \"constrain1\", \"1constrain\"]\n        for s in non_slugs:\n            if s not in set(TOOL_SLUGS):\n                assert isValidToolSlug(s) is False, f\"isValidToolSlug({s!r}) should be False\"\n"
+}

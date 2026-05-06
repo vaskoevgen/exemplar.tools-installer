@@ -1,0 +1,116 @@
+{
+  "task_summary": "Define the interface contract for the Root component of a three-tier task management application (React frontend, FastAPI backend, PostgreSQL database). The Root contract must unify the canonical type registry, establish cross-component communication conventions (HTTP/REST, SQL), error handling semantics, serialization formats, and naming conventions. It serves as the authoritative source-of-truth that the three child components (backend, database, frontend) must conform to.",
+  "findings": [
+    {
+      "topic": "Root contract as integration authority",
+      "finding": "In decoupled multi-component architectures, the root contract should define: (1) the canonical type registry all components reference, (2) the wire protocol and serialization format between tiers, (3) the error taxonomy and HTTP status code mapping, and (4) invariants that span components (e.g., 'a task deleted in the DB must return 404 from the API'). The root contract does NOT re-implement child logic — it specifies the integration surface.",
+      "source": "API-first design methodology (Swagger/OpenAPI design-first pattern); contract-driven development literature",
+      "relevance": "Directly governs the shape and scope of this deliverable",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Canonical type registry enforcement",
+      "finding": "The provided registry defines 11 types with explicit ownership. The root contract must re-export these verbatim — no field renaming, no type widening. Each child component's contract must import from this single registry. Common pitfall: child components subtly redefining a type (e.g., adding an extra field to Task, or using 'string' instead of 'OptionalString' for description) leading to silent serialization mismatches.",
+      "source": "Schema registry patterns (Confluent, Protobuf style guides); the task's own IMPORTANT directive",
+      "relevance": "Critical — the root contract is the canonical owner of the type registry",
+      "confidence": 0.98
+    },
+    {
+      "topic": "REST wire protocol conventions for CRUD",
+      "finding": "Established REST patterns for the five-endpoint surface: GET /tasks → 200 + TaskList; POST /tasks → 201 + Task; GET /tasks/{id} → 200 + Task | 404 + ErrorResponse; PUT /tasks/{id} → 200 + Task | 404 + ErrorResponse; DELETE /tasks/{id} → 200 + DeleteConfirmation | 404 + ErrorResponse; GET /health → 200 + HealthResponse. Content-Type is application/json throughout. PUT with PATCH semantics (partial update) is explicitly specified in the TaskUpdateRequest definition — this is a deliberate design choice that should be documented clearly to avoid consumer confusion.",
+      "source": "RFC 7231 (HTTP Semantics), JSON:API spec conventions, FastAPI response_model patterns",
+      "relevance": "Defines the exact HTTP contract between frontend and backend",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Error handling taxonomy and HTTP status mapping",
+      "finding": "Minimum error surface for this app: 404 (resource not found) → ErrorResponse{detail}; 422 (validation error, FastAPI default) → FastAPI's native ValidationErrorResponse (array of error objects); 500 (unexpected server error) → ErrorResponse{detail}. FastAPI automatically returns 422 for Pydantic validation failures with a specific schema ({detail: [{loc, msg, type}]}). The root contract should acknowledge this and decide whether to normalize it into ErrorResponse or let the native 422 shape pass through. Common pitfall: frontend assumes all errors have {detail: string} but 422 has {detail: [{loc, msg, type}]}.",
+      "source": "FastAPI documentation on validation errors; Pydantic v2 error handling",
+      "relevance": "Cross-tier error contract must be unambiguous for frontend consumption",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Timestamp serialization — ISO 8601 with timezone",
+      "finding": "The Timestamp type specifies ISO 8601 with timezone (e.g., '2025-01-15T12:00:00+00:00'). PostgreSQL TIMESTAMPTZ stores internally as UTC. psycopg2 returns datetime objects with tzinfo. FastAPI/Pydantic v2 serializes datetime as ISO 8601 with offset by default. Key invariant: all timestamps must include timezone offset in wire representation. Common pitfall: naive datetimes (no tzinfo) leaking through if DB or application layer strips timezone. The root contract should mandate UTC storage and UTC-offset serialization.",
+      "source": "PostgreSQL TIMESTAMPTZ documentation; Python datetime/Pydantic v2 serialization behavior; ISO 8601",
+      "relevance": "Timestamp is a cross-cutting type used in Task — serialization mismatch is a frequent integration bug",
+      "confidence": 0.94
+    },
+    {
+      "topic": "OptionalString semantics — null vs absent vs empty string",
+      "finding": "OptionalString is defined as 'string or null'. Three-way ambiguity must be resolved: (1) field absent in request body, (2) field explicitly set to null, (3) field set to empty string ''. For TaskCreateRequest, absent and null should both mean 'no description' (stored as NULL in DB). For TaskUpdateRequest (PATCH semantics), absent means 'do not modify', null means 'clear to NULL', empty string means 'set to empty string'. This distinction is critical for partial updates and is a frequently missed edge case.",
+      "source": "JSON Merge Patch RFC 7396; PATCH semantics literature; Pydantic v2 model_fields_set pattern",
+      "relevance": "Directly affects TaskUpdateRequest partial-update semantics — most common source of bugs in CRUD APIs",
+      "confidence": 0.92
+    },
+    {
+      "topic": "TaskId type — integer surrogate key",
+      "finding": "TaskId is a PostgreSQL SERIAL integer. The root contract should specify: (1) path parameter is an integer (not string), (2) the backend validates it as a positive integer, (3) the frontend must parse/store it as a number (JavaScript Number is safe for SERIAL range). Common pitfall: path parameter treated as string and not validated, leading to SQL injection or type errors with psycopg2 parameterized queries.",
+      "source": "PostgreSQL SERIAL documentation; FastAPI path parameter type annotation patterns",
+      "relevance": "TaskId flows through all three tiers — type consistency is essential",
+      "confidence": 0.95
+    },
+    {
+      "topic": "TaskStatus enum — closed set enforcement",
+      "finding": "TaskStatus has exactly three variants: pending, in_progress, done. Must be enforced at three levels: (1) DB CHECK constraint or equivalent, (2) backend Pydantic enum validation, (3) frontend TypeScript union type or enum. Default status for new tasks (when not specified in TaskCreateRequest) should be 'pending' — this is the standard convention and should be explicit in the root contract. Wire format is lowercase string.",
+      "source": "Pydantic StrEnum patterns; PostgreSQL CHECK constraints; TypeScript union literal types",
+      "relevance": "Enum consistency across tiers is a common integration failure point",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Ordering convention for TaskList",
+      "finding": "TaskList specifies 'ordered by created_at DESC'. This must be enforced at the database query level (ORDER BY created_at DESC). The root contract should specify this as a behavioral invariant. No pagination is specified — this is acceptable for a task management app but should be noted as a known limitation.",
+      "source": "REST API design best practices; the canonical type registry definition of TaskList",
+      "relevance": "Ordering is a cross-tier behavioral contract — DB implements, backend passes through, frontend relies on it",
+      "confidence": 0.9
+    },
+    {
+      "topic": "CORS and cross-origin communication",
+      "finding": "Decoupled frontend (React+Vite on dev server) and backend (FastAPI) require CORS configuration. The root contract should specify that the backend must enable CORS for the frontend origin. In development, Vite typically runs on localhost:5173 and FastAPI on localhost:8000. The contract should specify CORS as a backend responsibility with configurable allowed origins.",
+      "source": "FastAPI CORSMiddleware documentation; Vite proxy configuration",
+      "relevance": "Without CORS specification, frontend-backend integration will fail in browser environments",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Database connection lifecycle",
+      "finding": "The backend dependency contract includes init_connection_pool and close_connection_pool, indicating a connection pool pattern with psycopg2. The root contract should specify: (1) pool is initialized on application startup (FastAPI lifespan), (2) pool is closed on shutdown, (3) DATABASE_URL env var is the single configuration source (as specified in Operating Procedures). psycopg2 itself doesn't have a built-in pool — psycopg2.pool.SimpleConnectionPool or ThreadedConnectionPool are the standard choices.",
+      "source": "psycopg2 pool documentation; FastAPI lifespan event patterns",
+      "relevance": "Connection lifecycle is a cross-cutting concern between backend and database tiers",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Contract test strategy",
+      "finding": "Operating procedures mandate contract tests connecting to PostgreSQL via DATABASE_URL. The root contract should specify test categories: (1) unit tests (no DB) for pure logic, (2) contract/integration tests (real PostgreSQL) for DB operations and API endpoints. Test isolation requires either transaction rollback or table truncation between tests. pytest fixtures with function-scope DB cleanup are the standard pattern.",
+      "source": "Operating Procedures verification section; pytest-fastapi testing patterns",
+      "relevance": "Verification requirements directly constrain how the contract must be testable",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "Define the Root contract as the integration authority with four sections:\n\n1. **Canonical Type Registry** — Re-export all 11 types verbatim from the provided registry. Add explicit notes on: (a) TaskStatus default is 'pending', (b) Timestamp is always UTC-offset ISO 8601, (c) OptionalString null semantics differ between create (null = no value) and update (null = clear, absent = no change).\n\n2. **HTTP API Contract** — Define the six endpoints with exact method, path, request body type, response type, and status code mapping. Document the PUT-with-PATCH-semantics deviation explicitly. Specify Content-Type: application/json. Define the error taxonomy: 404 → ErrorResponse, 422 → FastAPI native validation error shape (document it), 500 → ErrorResponse.\n\n3. **Cross-Tier Invariants** — Specify behavioral contracts that span components: (a) TaskList ordering is created_at DESC, (b) created_at is immutable after INSERT, (c) updated_at is refreshed on every UPDATE, (d) DELETE is hard-delete (not soft), (e) CORS must be enabled on backend for frontend origin, (f) DATABASE_URL is the sole DB configuration source, (g) connection pool lifecycle is tied to application lifespan.\n\n4. **Verification Contract** — Specify that contract tests must validate cross-tier integration: API endpoint tests hit real PostgreSQL, schema initialization is idempotent, and test isolation uses transaction rollback or truncation.\n\nKeep the root contract focused on integration surfaces — do not duplicate implementation details that belong in child component contracts.",
+  "alternatives_considered": [
+    "GraphQL instead of REST: Rejected — the dependency contracts already define REST endpoints and FastAPI is the specified framework. GraphQL would add complexity without benefit for this CRUD surface.",
+    "JSON:API or HAL hypermedia format: Rejected — the canonical types use plain JSON objects, and the error envelope (ErrorResponse) is a simple {detail: string}. Hypermedia adds unnecessary complexity.",
+    "Separate PATCH endpoint instead of PUT-with-PATCH-semantics: Considered — RFC-correct would be PATCH /tasks/{id} with merge-patch content type. However, the canonical TaskUpdateRequest explicitly defines PUT with partial-update semantics. The root contract should document this deviation clearly.",
+    "Pagination for TaskList: Not specified in the canonical type. Could be added as a future extension but should not be introduced in the root contract to avoid contradicting the registry.",
+    "WebSocket for real-time updates: Out of scope — no mention in dependency contracts. CRUD over REST is sufficient.",
+    "Normalize 422 errors to ErrorResponse format: Considered but rejected — FastAPI's native 422 schema is well-known and changing it adds a maintenance burden. Better to document both error shapes in the contract."
+  ],
+  "risks": [
+    "PATCH-via-PUT semantics: Using PUT for partial updates violates RFC 7231 (PUT should be full replacement). Consumers familiar with REST conventions may send full objects. The contract must be explicit that only provided fields are updated.",
+    "OptionalString absent-vs-null ambiguity in TaskUpdateRequest: If Pydantic model uses Optional[str] = None as default, there is no way to distinguish 'field absent' from 'field explicitly null'. Must use a sentinel value or Pydantic's model_fields_set to differentiate. This is the highest-risk integration bug.",
+    "422 vs ErrorResponse shape mismatch: Frontend may assume all errors have {detail: string} but 422 returns {detail: [{loc, msg, type}]}. This will cause runtime TypeScript errors if not handled.",
+    "Timestamp timezone stripping: If any layer (psycopg2 config, Pydantic serializer, JavaScript Date parsing) drops timezone info, cross-tier timestamp comparison will break.",
+    "No pagination: TaskList returns all tasks. For a demo/small app this is fine, but unbounded result sets are a scaling risk.",
+    "CORS misconfiguration: If CORS is not specified at the root level, frontend and backend developers may make incompatible assumptions about allowed origins.",
+    "psycopg2 pool exhaustion: Without specifying min/max connection counts in the root contract, the backend may exhaust PostgreSQL connections under load."
+  ],
+  "compliance_notes": [
+    "All 11 canonical types must be referenced exactly as defined — no field additions, renames, or type changes (per task directive).",
+    "Python 3.12+ type annotations required on all public functions (Operating Procedures).",
+    "pytest is the mandated test framework; contract tests use DATABASE_URL env var (Operating Procedures).",
+    "Files must stay under 300 lines (Operating Procedures preference).",
+    "Composition over inheritance — Pydantic models should use composition (embedded types), not model inheritance hierarchies (Operating Procedures).",
+    "PUT /tasks/{id} uses PATCH semantics (partial update) — this is an intentional design decision per the canonical TaskUpdateRequest definition, not an oversight.",
+    "FastAPI 422 validation error shape ({detail: [{loc, msg, type}]}) is a framework convention that must be documented but not altered."
+  ]
+}

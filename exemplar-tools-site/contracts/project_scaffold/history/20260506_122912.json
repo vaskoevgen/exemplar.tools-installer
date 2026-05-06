@@ -1,0 +1,1257 @@
+{
+  "component_id": "project_scaffold",
+  "name": "Project Scaffold & Configuration",
+  "description": "Initialize the Vite + React + TypeScript project with bun create vite. Configure vite.config.ts (port 4000, build output dist/, inline vitest config). Install and configure Tailwind CSS v3 (pinned), React Router v6, Convex npm package. Set up tailwind.config.js with custom infrastructure colors, font families (Instrument Serif, JetBrains Mono, Inter via Google Fonts link tags in index.html), and the bg-grid utility via Tailwind plugin. Create the global CSS entry point importing Tailwind directives with dark near-black background (#0a0a0a), subtle grid pattern utility, and font-face assignments. Configure tsconfig.json with strict mode, react-jsx, bundler moduleResolution. Ensure bun.lockb is the only lockfile. Add scripts to package.json: dev, build, test. This component produces ONLY static configuration files and the platform on which all other components build. It does NOT produce React components, Convex schema/functions, or route definitions.",
+  "version": 1,
+  "types": [
+    {
+      "name": "FilePath",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-zA-Z0-9_./-]+$",
+              "error_message": "File path must contain only alphanumeric characters, dots, underscores, hyphens, and forward slashes"
+            },
+            {
+              "kind": "length",
+              "expression": "1..256",
+              "error_message": "File path must be between 1 and 256 characters"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A project-root-relative POSIX file path (forward slashes, no leading slash). Must match the set of files in the scaffold manifest.",
+      "owner_component": ""
+    },
+    {
+      "name": "FileManifestEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Project-root-relative path of the generated file",
+          "validators": []
+        },
+        {
+          "name": "purpose",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Human-readable purpose of this file in the scaffold",
+          "validators": []
+        },
+        {
+          "name": "content_hash",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "SHA-256 hex digest of the generated file content, used for determinism verification",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-f0-9]{64}$",
+              "error_message": "content_hash must be a 64-character lowercase hex SHA-256 digest"
+            }
+          ]
+        },
+        {
+          "name": "overwritable",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "Whether downstream components are permitted to modify this file (false = scaffold-owned, true = shared)",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single file produced by the scaffold, with its path, purpose, and content classification.",
+      "owner_component": ""
+    },
+    {
+      "name": "FileManifest",
+      "kind": "list",
+      "fields": [],
+      "item_type": "FileManifestEntry",
+      "variants": [],
+      "inner_types": [],
+      "description": "The complete ordered list of files produced by the scaffold. Exactly 11 entries.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "manifest",
+          "type_ref": "FileManifest",
+          "required": true,
+          "default": "",
+          "description": "Complete list of generated files",
+          "validators": []
+        },
+        {
+          "name": "dependency_count",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Total number of npm dependencies (dependencies + devDependencies) declared in package.json",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "1..100",
+              "error_message": "dependency_count must be between 1 and 100"
+            }
+          ]
+        },
+        {
+          "name": "lockfile",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Name of the lockfile produced. Must always be bun.lockb.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^bun\\.lockb$",
+              "error_message": "Only bun.lockb is permitted as a lockfile"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of a successful scaffold generation, containing the manifest and verification metadata.",
+      "owner_component": ""
+    },
+    {
+      "name": "PackageJsonScript",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Script name (key in scripts object)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(dev|build|test)$",
+              "error_message": "Script name must be one of: dev, build, test"
+            }
+          ]
+        },
+        {
+          "name": "command",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Shell command executed by bun run <name>",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A named script entry in package.json.",
+      "owner_component": ""
+    },
+    {
+      "name": "PackageJsonScripts",
+      "kind": "list",
+      "fields": [],
+      "item_type": "PackageJsonScript",
+      "variants": [],
+      "inner_types": [],
+      "description": "The three required scripts. Must contain exactly dev, build, and test.",
+      "owner_component": ""
+    },
+    {
+      "name": "DependencyPin",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "package_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "npm package name",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(@[a-z0-9-]+/)?[a-z0-9._-]+$",
+              "error_message": "package_name must be a valid npm package name"
+            }
+          ]
+        },
+        {
+          "name": "version_range",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Semver version range string (e.g. ^3.4.0, ~18.2.0)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[~^]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$",
+              "error_message": "version_range must be a valid semver range"
+            }
+          ]
+        },
+        {
+          "name": "is_dev",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "True if this is a devDependency, false if a runtime dependency",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A pinned npm dependency with name and semver range.",
+      "owner_component": ""
+    },
+    {
+      "name": "DependencyManifest",
+      "kind": "list",
+      "fields": [],
+      "item_type": "DependencyPin",
+      "variants": [],
+      "inner_types": [],
+      "description": "Complete list of npm dependencies with pinned version ranges.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindColorToken",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind class name segment (e.g. 'surface' yields bg-surface, text-surface, etc.)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z][a-z0-9-]*$",
+              "error_message": "Color token name must be lowercase kebab-case"
+            }
+          ]
+        },
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "CSS color value (hex, rgb, hsl, or CSS variable reference)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(#[0-9a-fA-F]{3,8}|rgb\\(|hsl\\(|var\\().*$",
+              "error_message": "Color value must be a valid CSS color or variable reference"
+            }
+          ]
+        },
+        {
+          "name": "purpose",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "What this color is used for in the design system",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A named color token registered in tailwind.config.js extend.colors. Infrastructure colors only; per-tool accent colors use Tailwind arbitrary values.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindColorTokens",
+      "kind": "list",
+      "fields": [],
+      "item_type": "TailwindColorToken",
+      "variants": [],
+      "inner_types": [],
+      "description": "All infrastructure color tokens registered in tailwind.config.js.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindFontFamily",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind class name segment (e.g. 'serif' yields font-serif)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z][a-z0-9-]*$",
+              "error_message": "Font family token name must be lowercase kebab-case"
+            }
+          ]
+        },
+        {
+          "name": "css_families",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered list of CSS font-family values including fallbacks",
+          "validators": []
+        },
+        {
+          "name": "google_fonts_name",
+          "type_ref": "str",
+          "required": false,
+          "default": "",
+          "description": "Name as it appears in the Google Fonts URL parameter (empty string if system font)",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A named font family registered in tailwind.config.js extend.fontFamily.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindFontFamilies",
+      "kind": "list",
+      "fields": [],
+      "item_type": "TailwindFontFamily",
+      "variants": [],
+      "inner_types": [],
+      "description": "All font families registered in tailwind.config.js.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindUtilityClass",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "class_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "CSS class name without the leading dot (e.g. 'bg-grid')",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z][a-z0-9-]*$",
+              "error_message": "Utility class name must be lowercase kebab-case"
+            }
+          ]
+        },
+        {
+          "name": "css_properties",
+          "type_ref": "dict",
+          "required": true,
+          "default": "",
+          "description": "Map of CSS property name to CSS value that the utility applies",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Human-readable description of the visual effect",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A custom utility class registered via Tailwind plugin.",
+      "owner_component": ""
+    },
+    {
+      "name": "EnvironmentVariable",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Environment variable name",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^VITE_[A-Z_]+$",
+              "error_message": "Vite-exposed env vars must start with VITE_ and be UPPER_SNAKE_CASE"
+            }
+          ]
+        },
+        {
+          "name": "required",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether the application will fail to start without this variable",
+          "validators": []
+        },
+        {
+          "name": "example_value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Example value for .env.local.example",
+          "validators": []
+        },
+        {
+          "name": "consumed_by",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Which file/module reads this variable at runtime",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A required or optional environment variable the scaffold expects.",
+      "owner_component": ""
+    },
+    {
+      "name": "VerificationResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "all_files_exist",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if all manifest files exist on disk",
+          "validators": []
+        },
+        {
+          "name": "no_forbidden_lockfiles",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if neither package-lock.json nor yarn.lock exist",
+          "validators": []
+        },
+        {
+          "name": "dev_server_starts",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if bun run dev starts without error on port 4000",
+          "validators": []
+        },
+        {
+          "name": "build_succeeds",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if bun run build produces dist/ without errors",
+          "validators": []
+        },
+        {
+          "name": "tests_run",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if bun run test executes vitest without configuration errors",
+          "validators": []
+        },
+        {
+          "name": "missing_files",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of FilePath values for any missing manifest files",
+          "validators": []
+        },
+        {
+          "name": "errors",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of error message strings for any failed checks",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of running scaffold verification checks.",
+      "owner_component": ""
+    },
+    {
+      "name": "ViteConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "server_port",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Dev server port number",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "4000..4000",
+              "error_message": "Dev server port must be exactly 4000"
+            }
+          ]
+        },
+        {
+          "name": "build_out_dir",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Build output directory relative to project root",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^dist$",
+              "error_message": "Build output directory must be 'dist'"
+            }
+          ]
+        },
+        {
+          "name": "plugins",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of Vite plugin names configured (e.g. ['react'])",
+          "validators": []
+        },
+        {
+          "name": "test_environment",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Vitest test environment (jsdom or happy-dom)",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(jsdom|happy-dom)$",
+              "error_message": "Test environment must be jsdom or happy-dom"
+            }
+          ]
+        },
+        {
+          "name": "test_globals",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether vitest globals (describe, it, expect) are auto-imported",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structured representation of the vite.config.ts settings this scaffold produces.",
+      "owner_component": ""
+    },
+    {
+      "name": "TsConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "strict",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "TypeScript strict mode enabled",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === true",
+              "error_message": "strict must be true"
+            }
+          ]
+        },
+        {
+          "name": "jsx",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "JSX transform mode",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^react-jsx$",
+              "error_message": "jsx must be react-jsx"
+            }
+          ]
+        },
+        {
+          "name": "module_resolution",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Module resolution strategy",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(bundler|Bundler)$",
+              "error_message": "moduleResolution must be 'bundler'"
+            }
+          ]
+        },
+        {
+          "name": "target",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "ECMAScript target version",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^ES20(20|22)$",
+              "error_message": "target must be ES2020 or ES2022"
+            }
+          ]
+        },
+        {
+          "name": "skip_lib_check",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether to skip type checking of declaration files",
+          "validators": []
+        },
+        {
+          "name": "includes",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of include glob patterns; must contain 'convex/_generated' for Convex type generation",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Key tsconfig.json compiler options this scaffold enforces.",
+      "owner_component": ""
+    },
+    {
+      "name": "IntegrationPoint",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Unique identifier for this integration point",
+          "validators": []
+        },
+        {
+          "name": "kind",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Category: 'html_element', 'css_class', 'css_variable', 'env_var', 'directory', 'tailwind_token', 'font_family', 'provider_component'",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(html_element|css_class|css_variable|env_var|directory|tailwind_token|font_family|provider_component)$",
+              "error_message": "kind must be one of the defined integration point categories"
+            }
+          ]
+        },
+        {
+          "name": "selector_or_value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "CSS selector, class name, variable name, or path that downstream components use to reference this point",
+          "validators": []
+        },
+        {
+          "name": "provided_by_file",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Which scaffold file defines this integration point",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A named integration point that downstream components depend on.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "generate_scaffold",
+      "description": "Generate the complete project scaffold: create all 11 configuration files, install dependencies with bun, and produce bun.lockb. This is the primary entry point. Idempotent: re-running on an existing scaffold overwrites files to match the canonical state.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Absolute filesystem path to the project root directory. Must be an empty or non-existent directory.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^/[a-zA-Z0-9_./-]+$",
+              "error_message": "project_root must be an absolute POSIX path"
+            }
+          ]
+        }
+      ],
+      "output_type": "ScaffoldResult",
+      "error_cases": [
+        {
+          "name": "bun_not_found",
+          "condition": "bun executable is not found on PATH",
+          "error_type": "EnvironmentError",
+          "error_data": {
+            "detail": "bun must be installed (https://bun.sh). npm and yarn are not supported."
+          }
+        },
+        {
+          "name": "directory_not_writable",
+          "condition": "project_root does not exist or is not writable",
+          "error_type": "FilesystemError",
+          "error_data": {
+            "detail": "project_root must be a writable directory"
+          }
+        },
+        {
+          "name": "bun_install_failed",
+          "condition": "bun install exits with non-zero status (network error, registry unavailable, version conflict)",
+          "error_type": "DependencyInstallError",
+          "error_data": {
+            "detail": "bun install failed; check network connectivity and package version availability"
+          }
+        },
+        {
+          "name": "directory_not_empty_with_conflicts",
+          "condition": "project_root contains existing files that conflict with scaffold files (e.g. a non-scaffold vite.config.ts) and idempotent overwrite is blocked by read-only permissions",
+          "error_type": "FilesystemError",
+          "error_data": {
+            "detail": "Cannot overwrite existing files due to filesystem permissions"
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root is an absolute path to a writable directory",
+        "bun is installed and available on PATH (version >= 1.0)",
+        "Network access is available for bun install and Google Fonts verification"
+      ],
+      "postconditions": [
+        "All 11 files in the manifest exist at their specified paths under project_root",
+        "bun.lockb exists at project_root/bun.lockb",
+        "No package-lock.json or yarn.lock exists under project_root",
+        "bun run build executes without error from project_root",
+        "bun run dev starts a dev server on port 4000 from project_root",
+        "bun run test executes vitest without configuration error from project_root",
+        "tailwind.config.js exports colors: surface, surface-light, border, border-light, text-primary, text-secondary, text-muted",
+        "tailwind.config.js exports fontFamily: serif (Instrument Serif), mono (JetBrains Mono), sans (Inter)",
+        "bg-grid utility class is registered via Tailwind plugin and usable in templates",
+        "index.html contains Google Fonts link tags for Inter, JetBrains Mono, Instrument Serif with display=swap",
+        "index.html contains <div id='root'></div> mount point",
+        "src/main.tsx wraps the app in ConvexProvider reading import.meta.env.VITE_CONVEX_URL",
+        "tsconfig.json includes 'convex/_generated' in its include array"
+      ],
+      "idempotent": true,
+      "is_async": true,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "package.json",
+          "description": "Creates package.json with dependencies, devDependencies, and scripts"
+        },
+        {
+          "kind": "writes_file",
+          "target": "vite.config.ts",
+          "description": "Creates Vite configuration with React plugin, server port 4000, build outDir dist/, inline vitest config"
+        },
+        {
+          "kind": "writes_file",
+          "target": "tailwind.config.js",
+          "description": "Creates Tailwind configuration with custom colors, fonts, and bg-grid plugin"
+        },
+        {
+          "kind": "writes_file",
+          "target": "postcss.config.js",
+          "description": "Creates PostCSS configuration loading tailwindcss and autoprefixer"
+        },
+        {
+          "kind": "writes_file",
+          "target": "tsconfig.json",
+          "description": "Creates TypeScript configuration with strict, react-jsx, bundler moduleResolution, ES2020, includes convex/_generated"
+        },
+        {
+          "kind": "writes_file",
+          "target": "tsconfig.node.json",
+          "description": "Creates TypeScript configuration for Node.js config files (vite.config.ts)"
+        },
+        {
+          "kind": "writes_file",
+          "target": "index.html",
+          "description": "Creates HTML entry point with root div, Google Fonts links, and script tag for src/main.tsx"
+        },
+        {
+          "kind": "writes_file",
+          "target": "src/index.css",
+          "description": "Creates global CSS with Tailwind directives, dark background (#0a0a0a), font-family assignments"
+        },
+        {
+          "kind": "writes_file",
+          "target": "src/main.tsx",
+          "description": "Creates React entry point with StrictMode, ConvexProvider, BrowserRouter wrapping a placeholder App"
+        },
+        {
+          "kind": "writes_file",
+          "target": "src/App.tsx",
+          "description": "Creates minimal placeholder App component that downstream components will replace"
+        },
+        {
+          "kind": "writes_file",
+          "target": ".env.local.example",
+          "description": "Creates environment variable template with VITE_CONVEX_URL placeholder"
+        },
+        {
+          "kind": "writes_file",
+          "target": "bun.lockb",
+          "description": "Binary lockfile produced by bun install"
+        },
+        {
+          "kind": "network_call",
+          "target": "npm registry (registry.npmjs.org)",
+          "description": "bun install fetches packages from npm registry"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 60000,
+        "max_memory_mb": null,
+        "complexity": "O(n) in number of dependencies"
+      }
+    },
+    {
+      "name": "get_file_manifest",
+      "description": "Return the canonical file manifest — the complete list of 11 files this scaffold produces, with paths, purposes, and overwritability flags. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "FileManifest",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list has exactly 11 entries",
+        "All paths are unique",
+        "Paths include: package.json, vite.config.ts, tailwind.config.js, postcss.config.js, tsconfig.json, tsconfig.node.json, index.html, src/index.css, src/main.tsx, src/App.tsx, .env.local.example"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_dependency_manifest",
+      "description": "Return the canonical dependency manifest — all npm packages with pinned version ranges. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "DependencyManifest",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains entries for: react (^18.2.0), react-dom (^18.2.0), react-router-dom (^6.20.0), convex (^1.6.0)",
+        "Returned list contains devDependency entries for: @vitejs/plugin-react (^4.2.0), tailwindcss (^3.4.0), autoprefixer (^10.4.0), postcss (^8.4.0), typescript (^5.3.0), vitest (^1.0.0), @types/react (^18.2.0), @types/react-dom (^18.2.0), jsdom (^23.0.0), vite (^5.0.0)",
+        "No entry has an empty version_range",
+        "All runtime dependencies have is_dev === false",
+        "All devDependencies have is_dev === true"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_tailwind_theme",
+      "description": "Return the canonical Tailwind theme tokens — infrastructure colors and font families registered in tailwind.config.js. Pure function, no I/O. Per-tool accent colors are NOT included here; they use Tailwind arbitrary values (e.g. bg-[#3b82f6]) driven by ToolDef.accentColor at runtime.",
+      "inputs": [],
+      "output_type": "TailwindColorTokens",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains color tokens: surface (#0a0a0a), surface-light (#141414), border (#1e1e1e), border-light (#2a2a2a), text-primary (#f5f5f5), text-secondary (#a0a0a0), text-muted (#666666)",
+        "All color values are valid 6-digit hex codes"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_font_families",
+      "description": "Return the canonical font family definitions registered in tailwind.config.js with their Google Fonts names for the index.html link tags. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "TailwindFontFamilies",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains exactly 3 entries: serif (Instrument Serif), mono (JetBrains Mono), sans (Inter)",
+        "Each entry includes fallback system fonts",
+        "Each entry has a non-empty google_fonts_name"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_bg_grid_utility",
+      "description": "Return the specification of the bg-grid Tailwind utility class registered via the Tailwind plugin in tailwind.config.js. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "TailwindUtilityClass",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned class_name is 'bg-grid'",
+        "CSS properties include background-image with a repeating linear-gradient producing a subtle grid pattern",
+        "Grid lines use a low-opacity color consistent with the border color token (#1e1e1e or similar)",
+        "Grid cell size is defined (e.g. 64px x 64px)"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_integration_points",
+      "description": "Return all named integration points that downstream components depend on. This is the canonical reference for what the scaffold provides to consumers. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "list",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list includes: root div (#root in index.html), ConvexProvider (src/main.tsx), BrowserRouter (src/main.tsx), VITE_CONVEX_URL (.env.local.example), bg-grid class (tailwind.config.js), all color tokens (tailwind.config.js), all font families (tailwind.config.js), convex/ directory expectation (tsconfig.json includes)",
+        "Each IntegrationPoint has a non-empty selector_or_value and provided_by_file"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_environment_variables",
+      "description": "Return all environment variables the scaffold expects, with their required status and example values. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "list",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains exactly one entry: VITE_CONVEX_URL (required=true, consumed_by='src/main.tsx')",
+        "example_value is a plausible Convex deployment URL"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_vite_config",
+      "description": "Return the structured Vite configuration that vite.config.ts implements. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "ViteConfig",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "server_port is 4000",
+        "build_out_dir is 'dist'",
+        "plugins contains 'react'",
+        "test_environment is 'jsdom'",
+        "test_globals is true"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_tsconfig",
+      "description": "Return the structured TypeScript configuration that tsconfig.json implements. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "TsConfig",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "strict is true",
+        "jsx is 'react-jsx'",
+        "module_resolution is 'bundler'",
+        "target is 'ES2020'",
+        "skip_lib_check is true",
+        "includes contains 'src' and 'convex/_generated'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_package_json_scripts",
+      "description": "Return the three required package.json scripts with their exact commands. Pure function, no I/O.",
+      "inputs": [],
+      "output_type": "PackageJsonScripts",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains exactly 3 entries",
+        "dev script command is 'vite'",
+        "build script command is 'vite build'",
+        "test script command is 'vitest'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "verify_scaffold",
+      "description": "Run all verification checks against an existing scaffold installation: file existence, lockfile exclusivity, dev server startup, build success, and test runner execution.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Absolute filesystem path to the project root directory containing the scaffold.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^/[a-zA-Z0-9_./-]+$",
+              "error_message": "project_root must be an absolute POSIX path"
+            }
+          ]
+        }
+      ],
+      "output_type": "VerificationResult",
+      "error_cases": [
+        {
+          "name": "project_root_not_found",
+          "condition": "project_root does not exist",
+          "error_type": "FilesystemError",
+          "error_data": {
+            "detail": "project_root directory does not exist"
+          }
+        },
+        {
+          "name": "bun_not_found",
+          "condition": "bun executable is not found on PATH",
+          "error_type": "EnvironmentError",
+          "error_data": {
+            "detail": "bun must be installed to run verification checks"
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root exists and contains scaffold files",
+        "bun is installed and available on PATH"
+      ],
+      "postconditions": [
+        "VerificationResult reflects the actual state of the scaffold on disk",
+        "If all_files_exist && no_forbidden_lockfiles && dev_server_starts && build_succeeds && tests_run, the scaffold is fully valid",
+        "errors list is empty if and only if all boolean fields are true"
+      ],
+      "idempotent": true,
+      "is_async": true,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "reads_file",
+          "target": "All 11 manifest files + bun.lockb",
+          "description": "Reads scaffold files to verify existence and content"
+        },
+        {
+          "kind": "reads_file",
+          "target": "package-lock.json, yarn.lock",
+          "description": "Checks for forbidden lockfiles (should not exist)"
+        },
+        {
+          "kind": "network_call",
+          "target": "localhost:4000",
+          "description": "Starts dev server briefly to verify it binds to port 4000"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 30000,
+        "max_memory_mb": null,
+        "complexity": "O(1) file checks + O(n) build verification in dependency count"
+      }
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "Exactly 11 files are produced by the scaffold (package.json, vite.config.ts, tailwind.config.js, postcss.config.js, tsconfig.json, tsconfig.node.json, index.html, src/index.css, src/main.tsx, src/App.tsx, .env.local.example)",
+    "bun.lockb is the only lockfile; package-lock.json and yarn.lock must never exist",
+    "Dev server always runs on port 4000; this is non-configurable",
+    "Build output always goes to dist/; this is non-configurable",
+    "The convex/ directory is NOT created by this component — it is owned by the data_layer component. However, tsconfig.json must include 'convex/_generated' in its includes array",
+    "All Tailwind infrastructure color tokens use static hex values; per-tool accent colors use Tailwind arbitrary value syntax (e.g. bg-[#3b82f6]) and are NOT registered in tailwind.config.js",
+    "Google Fonts are loaded via <link> tags in index.html with display=swap, never via @font-face in CSS",
+    "src/main.tsx creates a ConvexProvider using import.meta.env.VITE_CONVEX_URL — it does NOT import or configure ConvexReactClient with any other options",
+    "src/main.tsx wraps the app in StrictMode > ConvexProvider > BrowserRouter > App",
+    "The bg-grid utility class is registered via a Tailwind plugin using addUtilities(), not via custom CSS in index.css",
+    "TypeScript strict mode is always enabled",
+    "vitest configuration is inline in vite.config.ts via the test property, not in a separate vitest.config.ts",
+    "All package version ranges use caret (^) for minor version flexibility within the major version constraint",
+    "src/App.tsx is a minimal placeholder component; downstream components (app_shell) replace its contents",
+    "src/index.css contains only Tailwind directives (@tailwind base/components/utilities), body background color, and font-family assignments — no component-specific styles"
+  ],
+  "requires": [],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [
+      "PUBLIC"
+    ],
+    "rationale": "This component reads and writes only project configuration files (package.json, vite.config.ts, tailwind.config.js, tsconfig.json, etc.) and a .env.local.example template. All files are PUBLIC-tier source code artifacts committed to version control. The .env.local.example contains only a placeholder URL, not actual credentials. The actual .env.local with real VITE_CONVEX_URL values is .gitignored and not produced by this component. No PII, secrets, or INTERNAL data is accessed.",
+    "side_effects": [
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "package.json",
+          "vite.config.ts",
+          "tailwind.config.js",
+          "postcss.config.js",
+          "tsconfig.json",
+          "tsconfig.node.json",
+          "index.html",
+          "src/index.css",
+          "src/main.tsx",
+          "src/App.tsx",
+          ".env.local.example"
+        ],
+        "rationale": "Writes 11 project configuration and entry point files to the project root. All are PUBLIC source code files intended for version control."
+      },
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "bun.lockb"
+        ],
+        "rationale": "bun install produces bun.lockb as a binary lockfile. This is a PUBLIC build artifact committed to version control for reproducible installs."
+      },
+      {
+        "type": "network_request",
+        "classification": "PUBLIC",
+        "fields": [
+          "registry.npmjs.org"
+        ],
+        "rationale": "bun install fetches npm packages from the public npm registry. No authentication tokens or private registries are used."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "project_configuration",
+      "build_toolchain",
+      "tailwind_infrastructure_theme",
+      "typescript_config",
+      "vite_config"
+    ],
+    "rationale": "This component is the sole authority for project-level configuration files and build toolchain setup. It owns: (1) package.json structure, dependency versions, and scripts; (2) vite.config.ts including dev server port, build output, and vitest configuration; (3) tailwind.config.js infrastructure color tokens, font families, and the bg-grid utility plugin; (4) tsconfig.json compiler options and include paths; (5) postcss.config.js plugin chain; (6) index.html structure including Google Fonts links and root mount point; (7) src/index.css Tailwind directives and global styles; (8) src/main.tsx provider hierarchy (StrictMode > ConvexProvider > BrowserRouter). No other component may modify these files without coordinating through this contract. The data_layer component owns the convex/ directory, and the app_shell component owns the contents of src/App.tsx beyond the placeholder."
+  }
+}

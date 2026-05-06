@@ -1,0 +1,800 @@
+{
+  "component_id": "home_page",
+  "name": "Home Page",
+  "description": "Route-level component rendered at '/'. Orchestrates the home page by importing the static ToolDefList registry, projecting it into QuickStartRow[] and DiagramNodeList via pure functions, and composing the QuickStartTable and ClosedLoopDiagram presentational children. Contains: introductory workflow overview paragraph, a quick-start table listing all 11 tools (step number, linked tool name, one-line description), and a circular SVG flow diagram arranging the 11 tools with connecting arrows in their accent colors. All sub-components follow the dark terminal aesthetic with cyan accents.",
+  "version": 1,
+  "types": [
+    {
+      "name": "ToolDef",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "URL-safe identifier used as route parameter and sidebar key.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable display name of the tool (e.g. 'Constrain').",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "One-line description shown on the tool page and in the quick-start table.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Workflow step number (1–11) displayed in the StepBadge.",
+          "validators": []
+        },
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Semver version string displayed in the VersionBadge.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Per-tool accent color hex for badges, headings, and diagram nodes.",
+          "validators": []
+        },
+        {
+          "name": "videoUrl",
+          "type_ref": "OptionalVideoUrl",
+          "required": false,
+          "default": "undefined",
+          "description": "YouTube embed URL; omitted for kindex.",
+          "validators": []
+        },
+        {
+          "name": "instructions",
+          "type_ref": "InstructionStepList",
+          "required": true,
+          "default": "",
+          "description": "Ordered step-by-step instructions rendered on the tool page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Complete static definition of one tool including display metadata, instructions, and video URL.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolDefList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "ToolDef",
+      "variants": [],
+      "inner_types": [],
+      "description": "The canonical ordered array of all 11 ToolDef objects, indexed by workflow step order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "StepNumber",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Integer 1–11 representing the tool's position in the exemplar.tools workflow order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "URL-safe identifier for each tool, used as route param and Convex page key.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "CssColor",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The CSS color value.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(#[0-9a-fA-F]{3,8}|rgb\\(|rgba\\(|hsl\\(|hsla\\(|[a-zA-Z]+)",
+              "error_message": "Must be a valid CSS color (hex, rgb/rgba, hsl/hsla, or named color)."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A valid CSS color string (hex, rgb, hsl, or named).",
+      "owner_component": ""
+    },
+    {
+      "name": "QuickStartRow",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number column value.",
+          "validators": []
+        },
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Route slug for the tool name link.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Tool display name rendered as a router link.",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "One-line description column value.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "One row in the HomePage quick-start table, projected from ToolDef.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "QuickStartRowList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "QuickStartRow",
+      "variants": [],
+      "inner_types": [],
+      "description": "Sorted list of QuickStartRow, always ascending by step.",
+      "owner_component": ""
+    },
+    {
+      "name": "DiagramNode",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool identifier for link target from diagram node.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Label rendered inside the diagram node.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number for ordering nodes around the circular layout.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Fill/stroke color for this tool's node in the diagram.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Data for one node in the ClosedLoopDiagram SVG, projected from ToolDef.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "DiagramNodeList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "DiagramNode",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of DiagramNode objects passed into the ClosedLoopDiagram component.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "HomePageProps",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props interface for the HomePage route-level component. Empty because HomePage is a route-level orchestrator that sources its own data from the static registry.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "QuickStartTableProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "rows",
+          "type_ref": "QuickStartRowList",
+          "required": true,
+          "default": "",
+          "description": "Pre-sorted list of QuickStartRow to render.",
+          "validators": []
+        },
+        {
+          "name": "className",
+          "type_ref": "str",
+          "required": false,
+          "default": "\"\"",
+          "description": "Optional Tailwind className for the root element.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props interface for the QuickStartTable presentational component.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "ClosedLoopDiagramProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "nodes",
+          "type_ref": "DiagramNodeList",
+          "required": true,
+          "default": "",
+          "description": "Pre-sorted list of DiagramNode with precomputed positions.",
+          "validators": []
+        },
+        {
+          "name": "className",
+          "type_ref": "str",
+          "required": false,
+          "default": "\"\"",
+          "description": "Optional Tailwind className for the wrapper div (not applied inside SVG).",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props interface for the ClosedLoopDiagram SVG component.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "DiagramConstants",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "viewBoxWidth",
+          "type_ref": "int",
+          "required": true,
+          "default": "600",
+          "description": "Fixed at 600.",
+          "validators": []
+        },
+        {
+          "name": "viewBoxHeight",
+          "type_ref": "int",
+          "required": true,
+          "default": "600",
+          "description": "Fixed at 600.",
+          "validators": []
+        },
+        {
+          "name": "centerX",
+          "type_ref": "float",
+          "required": true,
+          "default": "300",
+          "description": "Center of the circle, fixed at 300.",
+          "validators": []
+        },
+        {
+          "name": "centerY",
+          "type_ref": "float",
+          "required": true,
+          "default": "300",
+          "description": "Center of the circle, fixed at 300.",
+          "validators": []
+        },
+        {
+          "name": "radius",
+          "type_ref": "float",
+          "required": true,
+          "default": "240",
+          "description": "Radius of the node placement circle.",
+          "validators": []
+        },
+        {
+          "name": "nodeRadius",
+          "type_ref": "float",
+          "required": true,
+          "default": "36",
+          "description": "Radius of each node circle/rounded-rect.",
+          "validators": []
+        },
+        {
+          "name": "totalNodes",
+          "type_ref": "int",
+          "required": true,
+          "default": "11",
+          "description": "Always 11.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Constants governing the ClosedLoopDiagram layout. Not a runtime type — documents the fixed parameters.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "HexColor",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "CSS hex color string (e.g. '#00e5ff') used for per-tool accent theming.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "OptionalVideoUrl",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "string",
+      "variants": [],
+      "inner_types": [],
+      "description": "YouTube embed URL if the tool has a video; undefined otherwise (e.g. kindex).",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStepList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "InstructionStep",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of InstructionStep objects for a tool's how-to section.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStep",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Short human-readable title for this instruction step.",
+          "validators": []
+        },
+        {
+          "name": "bash",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Bash code block content to display in a terminal-styled card.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single step-by-step instruction entry containing a human title and a bash snippet.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ReactElement",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'home_page'",
+      "owner_component": ""
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'home_page'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "toQuickStartRows",
+      "description": "Pure projection function. Maps a ToolDefList to a QuickStartRowList by destructuring each ToolDef into { step, name, slug, shortDescription } and sorting ascending by step. Does not mutate the input array.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "ToolDefList",
+          "required": true,
+          "default": "",
+          "description": "The full static registry of 11 tool definitions.",
+          "validators": []
+        }
+      ],
+      "output_type": "QuickStartRowList",
+      "error_cases": [
+        {
+          "name": "empty_registry",
+          "condition": "tools array is empty",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "ToolDefList must contain exactly 11 tools, received 0."
+          }
+        },
+        {
+          "name": "wrong_count",
+          "condition": "tools.length !== 11",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "ToolDefList must contain exactly 11 tools."
+          }
+        },
+        {
+          "name": "duplicate_steps",
+          "condition": "Two or more tools share the same step number",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "Duplicate step numbers detected in ToolDefList."
+          }
+        }
+      ],
+      "preconditions": [
+        "tools.length === 11",
+        "All tools have unique step values in range [1, 11]",
+        "All tools have unique slug values"
+      ],
+      "postconditions": [
+        "Result has exactly 11 elements",
+        "Result is sorted ascending by step (result[i].step < result[i+1].step for all i in [0,9])",
+        "Each result element contains only { step, name, slug, shortDescription } — no accentColor leakage",
+        "Input array is not mutated"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(n log n)"
+      }
+    },
+    {
+      "name": "toDiagramNodes",
+      "description": "Pure projection function. Maps a ToolDefList to a DiagramNodeList by destructuring each ToolDef into { step, name, accentColor } and computing cx/cy/angleDeg from the step. Positions are computed as: angleDeg = (360 * (step - 1) / 11) - 90; cx = 300 + 240 * cos(angleDeg * π / 180); cy = 300 + 240 * sin(angleDeg * π / 180). Result is sorted ascending by step.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "ToolDefList",
+          "required": true,
+          "default": "",
+          "description": "The full static registry of 11 tool definitions.",
+          "validators": []
+        }
+      ],
+      "output_type": "DiagramNodeList",
+      "error_cases": [
+        {
+          "name": "empty_registry",
+          "condition": "tools array is empty",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "ToolDefList must contain exactly 11 tools, received 0."
+          }
+        },
+        {
+          "name": "wrong_count",
+          "condition": "tools.length !== 11",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "ToolDefList must contain exactly 11 tools."
+          }
+        },
+        {
+          "name": "duplicate_steps",
+          "condition": "Two or more tools share the same step number",
+          "error_type": "InvalidArgumentError",
+          "error_data": {
+            "message": "Duplicate step numbers detected in ToolDefList."
+          }
+        }
+      ],
+      "preconditions": [
+        "tools.length === 11",
+        "All tools have unique step values in range [1, 11]"
+      ],
+      "postconditions": [
+        "Result has exactly 11 elements",
+        "Result is sorted ascending by step",
+        "Each result element has cx in range [60, 540] and cy in range [60, 540]",
+        "result[0].angleDeg === -90 (step 1 is at top of circle)",
+        "Each result element contains only { step, name, accentColor, cx, cy, angleDeg } — no slug or shortDescription leakage",
+        "Input array is not mutated"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(n log n)"
+      }
+    },
+    {
+      "name": "HomePage",
+      "description": "Route-level React functional component rendered at '/'. Imports the static ToolDefList, calls toQuickStartRows and toDiagramNodes to produce presentation models, then composes a workflow overview paragraph, the QuickStartTable, and the ClosedLoopDiagram. Applies a fade-in animation via key={location.pathname} on the root wrapper for page transition remount. Full TypeScript type annotation: React.FC<HomePageProps>.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "HomePageProps",
+          "required": true,
+          "default": "",
+          "description": "Empty props object (route-level component).",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "missing_router_context",
+          "condition": "Component rendered outside of a React Router context",
+          "error_type": "React Router invariant violation",
+          "error_data": {
+            "message": "useLocation() may be used only in the context of a <Router> component."
+          }
+        }
+      ],
+      "preconditions": [
+        "Component is mounted inside a React Router v6 <Routes> context",
+        "Static ToolDefList registry module is importable and contains exactly 11 entries"
+      ],
+      "postconditions": [
+        "Renders a semantic <main> or <section> wrapper with fade-in animation key",
+        "Contains a workflow overview <p> or prose block",
+        "Contains a QuickStartTable with all 11 rows",
+        "Contains a ClosedLoopDiagram with all 11 nodes",
+        "All tool names in the table are rendered as React Router <Link> elements pointing to /:toolSlug"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render — reads only static data and React Router location."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "QuickStartTable",
+      "description": "Presentational React functional component. Renders an HTML <table> with three columns: step number, tool name (as <Link to={`/${row.slug}`}>), and one-line description. Accepts pre-sorted rows. Full TypeScript type annotation: React.FC<QuickStartTableProps>.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "QuickStartTableProps",
+          "required": true,
+          "default": "",
+          "description": "Contains sorted rows and optional className.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "empty_rows",
+          "condition": "props.rows is an empty array",
+          "error_type": "RenderWarning",
+          "error_data": {
+            "message": "QuickStartTable received 0 rows — table body will be empty."
+          }
+        }
+      ],
+      "preconditions": [
+        "props.rows is sorted ascending by step",
+        "Component is mounted inside a React Router v6 context (required for <Link>)"
+      ],
+      "postconditions": [
+        "Renders a <table> element with <thead> containing column headers ['Step', 'Tool', 'Description']",
+        "Renders exactly props.rows.length <tr> elements in <tbody>",
+        "Each tool name cell contains a <Link to={`/${slug}`}> with the tool name as children",
+        "Table is styled with Tailwind classes for dark terminal aesthetic",
+        "If className is provided, it is applied to the root element"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "ClosedLoopDiagram",
+      "description": "Presentational React functional component. Renders an accessible SVG circular flow diagram with viewBox='0 0 600 600', width='100%', role='img', and aria-label. Each node is a <g> containing a colored circle (or rounded rect) filled with the node's accentColor and a centered <text> label. Arrows connect consecutive nodes (1→2, 2→3, ..., 10→11, 11→1) using <line> or <path> elements with per-color <marker> arrowhead definitions. All SVG fills and strokes are set via explicit attributes — no Tailwind classes inside the <svg> element. Full TypeScript type annotation: React.FC<ClosedLoopDiagramProps>.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "ClosedLoopDiagramProps",
+          "required": true,
+          "default": "",
+          "description": "Contains sorted diagram nodes with precomputed positions, and optional className.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "empty_nodes",
+          "condition": "props.nodes is an empty array",
+          "error_type": "RenderError",
+          "error_data": {
+            "message": "ClosedLoopDiagram requires exactly 11 nodes, received 0."
+          }
+        },
+        {
+          "name": "wrong_node_count",
+          "condition": "props.nodes.length !== 11",
+          "error_type": "RenderError",
+          "error_data": {
+            "message": "ClosedLoopDiagram requires exactly 11 nodes."
+          }
+        }
+      ],
+      "preconditions": [
+        "props.nodes is sorted ascending by step",
+        "props.nodes has exactly 11 elements",
+        "Each node has valid cx, cy within viewBox bounds"
+      ],
+      "postconditions": [
+        "Root element is an <svg> with viewBox='0 0 600 600', width='100%', role='img', and non-empty aria-label",
+        "SVG contains a <defs> section with 11 <marker> elements, one per node accent color",
+        "SVG contains exactly 11 node <g> groups, each with a filled shape and <text> label",
+        "SVG contains exactly 11 arrow elements forming the closed loop 1→2→...→11→1",
+        "No Tailwind CSS class names appear on any element inside the <svg>",
+        "All shape fills use the node's accentColor value",
+        "Text labels are white or light-colored for contrast against dark background",
+        "If className is provided, it is applied to a wrapper <div>, not to the <svg> directly",
+        "Component is responsive: max-width constrains the SVG, width='100%' allows shrinking"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render — no side effects. All SVG is declarative."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 16,
+        "max_memory_mb": 5,
+        "complexity": "O(n)"
+      }
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "All 11 tools from ToolDefList are always rendered in both QuickStartTable and ClosedLoopDiagram — no filtering is applied.",
+    "QuickStartRow[] and DiagramNodeList are always sorted ascending by step (1..11).",
+    "Projection functions (toQuickStartRows, toDiagramNodes) are pure — no side effects, no mutations of input.",
+    "ClosedLoopDiagram SVG uses explicit fill/stroke attributes on all elements — no Tailwind classes inside <svg>.",
+    "ClosedLoopDiagram root <svg> always carries role='img' and a non-empty aria-label.",
+    "ClosedLoopDiagram viewBox is always '0 0 600 600'; responsiveness achieved via width='100%' and max-width.",
+    "Arrow connections form a closed loop: 1→2→3→...→11→1.",
+    "Each node in the diagram is positioned at θ = (2π * (step - 1) / 11) - π/2 radians.",
+    "All exported functions and components carry full TypeScript type annotations.",
+    "Component file does not exceed 300 lines; ClosedLoopDiagram is a separate file."
+  ],
+  "requires": [],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Reads the static ToolDefList registry (PUBLIC classification) containing tool metadata (name, slug, step, description, accentColor) to project into table rows and diagram nodes. No user data, PII, or mutable state is accessed. No writes are performed; the component is purely presentational over static data.",
+    "side_effects": [
+      {
+        "type": "read",
+        "classification": "PUBLIC",
+        "fields": [
+          "ToolDef.name",
+          "ToolDef.slug",
+          "ToolDef.step",
+          "ToolDef.shortDescription",
+          "ToolDef.accentColor"
+        ],
+        "rationale": "Imports static tool registry to populate quick-start table rows and circular diagram nodes."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [],
+    "rationale": null
+  }
+}

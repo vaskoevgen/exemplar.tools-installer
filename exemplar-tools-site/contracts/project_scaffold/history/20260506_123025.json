@@ -1,0 +1,1838 @@
+{
+  "component_id": "project_scaffold",
+  "name": "Project Scaffold & Configuration",
+  "description": "Initialize the Vite + React + TypeScript project with bun create vite. Produces a deterministic set of configuration files (vite.config.ts, tailwind.config.js, postcss.config.js, tsconfig.json, package.json, index.html, src/main.tsx, src/index.css) that define the build toolchain, styling system, routing, real-time backend wiring, and test runner for the exemplar.tools documentation site. This component owns the configuration surface only — no application components or pages. Downstream consumers (app_shell, data_layer, pages) depend on the file manifest, dependency versions, Tailwind tokens, font-family assignments, CSS utilities, and package.json scripts produced here.",
+  "version": 1,
+  "types": [
+    {
+      "name": "FilePath",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-zA-Z0-9_.\\-/]+$",
+              "error_message": "FilePath must contain only alphanumeric characters, dots, hyphens, underscores, and forward slashes."
+            },
+            {
+              "kind": "custom",
+              "expression": "must not start with / or contain ..",
+              "error_message": "FilePath must be relative to project root with no parent traversal."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A project-root-relative POSIX file path (forward slashes, no leading slash).",
+      "owner_component": ""
+    },
+    {
+      "name": "SemVerConstraint",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[~^]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?(\\s*\\|\\|\\s*[~^]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?)*$",
+              "error_message": "SemVerConstraint must be a valid npm semver range."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An npm semver version constraint string, e.g. '^3.4.1', '~5.0.0', '3.4.1'.",
+      "owner_component": ""
+    },
+    {
+      "name": "PackageDependency",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "package_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "npm package name, e.g. 'react', '@vitejs/plugin-react'.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(@[a-z0-9\\-]+\\/)?[a-z0-9\\-_.]+$",
+              "error_message": "package_name must be a valid npm package name."
+            }
+          ]
+        },
+        {
+          "name": "version_constraint",
+          "type_ref": "SemVerConstraint",
+          "required": true,
+          "default": "",
+          "description": "Semver constraint pinned or ranged per project standards.",
+          "validators": []
+        },
+        {
+          "name": "dev",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "True if this is a devDependency, false if a production dependency.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single npm package dependency with name, version constraint, and dev/prod classification.",
+      "owner_component": ""
+    },
+    {
+      "name": "DependencyCategory",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "CORE_FRAMEWORK",
+        "BUILD_TOOLING",
+        "STYLING",
+        "ROUTING",
+        "BACKEND",
+        "TESTING",
+        "TYPE_DEFINITIONS"
+      ],
+      "inner_types": [],
+      "description": "Classification of dependency purpose.",
+      "owner_component": ""
+    },
+    {
+      "name": "CategorizedDependency",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "dependency",
+          "type_ref": "PackageDependency",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": []
+        },
+        {
+          "name": "category",
+          "type_ref": "DependencyCategory",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": []
+        },
+        {
+          "name": "rationale",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Why this dependency is included and at this version constraint.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A PackageDependency annotated with its category for traceability.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldFileEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Project-root-relative path to the file.",
+          "validators": []
+        },
+        {
+          "name": "purpose",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Human-readable description of what this file configures.",
+          "validators": []
+        },
+        {
+          "name": "structural_invariants",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of machine-checkable or human-verifiable invariants the file must satisfy.",
+          "validators": []
+        },
+        {
+          "name": "overwrites_existing",
+          "type_ref": "bool",
+          "required": true,
+          "default": "true",
+          "description": "If true, scaffold will overwrite an existing file at this path.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Describes a single file in the scaffold manifest — its path, purpose, and structural invariants.",
+      "owner_component": ""
+    },
+    {
+      "name": "FileManifest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "files",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered list of ScaffoldFileEntry items. Order is creation order.",
+          "validators": []
+        },
+        {
+          "name": "lockfile",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "The single lockfile path. Must be 'bun.lockb'.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "The complete set of files produced by the scaffold operation.",
+      "owner_component": ""
+    },
+    {
+      "name": "ViteConfigShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "plugins",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include react() from @vitejs/plugin-react.",
+          "validators": []
+        },
+        {
+          "name": "server_port",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Dev server port. Must be 4000.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "4000..4000",
+              "error_message": "Dev server port must be exactly 4000."
+            }
+          ]
+        },
+        {
+          "name": "server_strict_port",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be true to fail fast on port 4000 conflicts.",
+          "validators": []
+        },
+        {
+          "name": "build_out_dir",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Build output directory. Must be 'dist'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'dist'",
+              "error_message": "Build output directory must be 'dist'."
+            }
+          ]
+        },
+        {
+          "name": "test_config",
+          "type_ref": "VitestConfigShape",
+          "required": true,
+          "default": "",
+          "description": "Co-located vitest configuration under the test key.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for vite.config.ts. Defines required keys and their values/types.",
+      "owner_component": ""
+    },
+    {
+      "name": "VitestConfigShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "globals",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be true to enable global test APIs (describe, it, expect).",
+          "validators": []
+        },
+        {
+          "name": "environment",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'jsdom' for React component testing.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'jsdom'",
+              "error_message": "Vitest environment must be 'jsdom'."
+            }
+          ]
+        },
+        {
+          "name": "setup_files",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Optional list of setup file paths. May be empty initially.",
+          "validators": []
+        },
+        {
+          "name": "css",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be true to process CSS imports in tests.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for vitest configuration co-located in vite.config.ts under the test key.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindConfigShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "content_globs",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Content paths for Tailwind purge. Must include './index.html' and './src/**/*.{js,ts,jsx,tsx}'.",
+          "validators": []
+        },
+        {
+          "name": "custom_colors",
+          "type_ref": "TailwindCustomColors",
+          "required": true,
+          "default": "",
+          "description": "Extended color palette under theme.extend.colors.",
+          "validators": []
+        },
+        {
+          "name": "font_families",
+          "type_ref": "TailwindFontFamilies",
+          "required": true,
+          "default": "",
+          "description": "Font family tokens under theme.extend.fontFamily.",
+          "validators": []
+        },
+        {
+          "name": "plugins",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include the bg-grid utility plugin function.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for tailwind.config.js.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindCustomColors",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "background",
+          "type_ref": "CSSColorValue",
+          "required": true,
+          "default": "",
+          "description": "Primary dark background. Must be '#0a0a0a'.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Custom color tokens exposed by Tailwind config for downstream components.",
+      "owner_component": ""
+    },
+    {
+      "name": "CSSColorValue",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{3,8}$|^rgb|^hsl",
+              "error_message": "Must be a valid CSS color value (hex, rgb, or hsl)."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A valid CSS color value (hex, rgb, hsl, etc.).",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindFontFamilies",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "serif",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "font-serif stack. Primary: 'Instrument Serif'. Fallback: Georgia, serif.",
+          "validators": []
+        },
+        {
+          "name": "mono",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "font-mono stack. Primary: 'JetBrains Mono'. Fallback: monospace.",
+          "validators": []
+        },
+        {
+          "name": "sans",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "font-sans stack. Primary: 'Inter'. Fallback: system-ui, sans-serif.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Font family tokens registered in Tailwind config. Downstream components reference these via font-serif, font-mono, font-sans classes.",
+      "owner_component": ""
+    },
+    {
+      "name": "PostCSSConfigShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "plugins",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include tailwindcss and autoprefixer in that order.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for postcss.config.js. Minimal — only Tailwind and autoprefixer plugins.",
+      "owner_component": ""
+    },
+    {
+      "name": "TSConfigShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "compiler_target",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'ES2020' or newer.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^ES20(2[0-9]|[3-9][0-9])|ESNext$",
+              "error_message": "compiler_target must be ES2020 or newer."
+            }
+          ]
+        },
+        {
+          "name": "jsx",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'react-jsx' for React 18 JSX transform.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'react-jsx'",
+              "error_message": "jsx must be 'react-jsx'."
+            }
+          ]
+        },
+        {
+          "name": "strict",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be true.",
+          "validators": []
+        },
+        {
+          "name": "module_resolution",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'bundler' for Vite compatibility.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'bundler'",
+              "error_message": "moduleResolution must be 'bundler'."
+            }
+          ]
+        },
+        {
+          "name": "include",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include 'src' directory.",
+          "validators": []
+        },
+        {
+          "name": "types",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include 'vitest/globals' for global test type support.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for tsconfig.json.",
+      "owner_component": ""
+    },
+    {
+      "name": "PackageJsonShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Project name. Must be 'exemplar-tools-docs'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'exemplar-tools-docs'",
+              "error_message": "Package name must be 'exemplar-tools-docs'."
+            }
+          ]
+        },
+        {
+          "name": "private",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be true — this is not published to npm.",
+          "validators": []
+        },
+        {
+          "name": "type",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'module' for ESM.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'module'",
+              "error_message": "package.json type must be 'module'."
+            }
+          ]
+        },
+        {
+          "name": "scripts",
+          "type_ref": "PackageJsonScripts",
+          "required": true,
+          "default": "",
+          "description": "Required npm scripts.",
+          "validators": []
+        },
+        {
+          "name": "dependencies",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Production dependencies as CategorizedDependency list.",
+          "validators": []
+        },
+        {
+          "name": "dev_dependencies",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Dev dependencies as CategorizedDependency list.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for package.json — required keys, scripts, and dependency sets.",
+      "owner_component": ""
+    },
+    {
+      "name": "PackageJsonScripts",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "dev",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Development server command.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'vite'",
+              "error_message": "dev script must be 'vite'."
+            }
+          ]
+        },
+        {
+          "name": "build",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Production build command.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'tsc && vite build'",
+              "error_message": "build script must be 'tsc && vite build'."
+            }
+          ]
+        },
+        {
+          "name": "test",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Test runner command.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'vitest'",
+              "error_message": "test script must be 'vitest'."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Exact script commands for package.json.",
+      "owner_component": ""
+    },
+    {
+      "name": "IndexHtmlShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "lang",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "HTML lang attribute. Must be 'en'.",
+          "validators": []
+        },
+        {
+          "name": "google_fonts_links",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of Google Fonts <link> hrefs. Must load Instrument Serif, JetBrains Mono, and Inter.",
+          "validators": []
+        },
+        {
+          "name": "root_div_id",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Root mount point div ID. Must be 'root'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'root'",
+              "error_message": "Root div ID must be 'root'."
+            }
+          ]
+        },
+        {
+          "name": "module_script_src",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Entry module script src. Must be '/src/main.tsx'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === '/src/main.tsx'",
+              "error_message": "Module script src must be '/src/main.tsx'."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for index.html entry point.",
+      "owner_component": ""
+    },
+    {
+      "name": "MainTsxShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "mount_element_id",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "DOM element ID to mount React root. Must be 'root'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'root'",
+              "error_message": "Mount element ID must be 'root'."
+            }
+          ]
+        },
+        {
+          "name": "uses_strict_mode",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must wrap app in React.StrictMode.",
+          "validators": []
+        },
+        {
+          "name": "provider_slots",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered list of provider component names that wrap the App. Downstream components fill these slots. Initial scaffold provides: ['ConvexProvider', 'BrowserRouter'].",
+          "validators": []
+        },
+        {
+          "name": "css_import",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "CSS entry point import. Must be './index.css'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === './index.css'",
+              "error_message": "CSS import must be './index.css'."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for src/main.tsx. Defines the provider wiring slots and mount point.",
+      "owner_component": ""
+    },
+    {
+      "name": "IndexCssShape",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "tailwind_directives",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Must include '@tailwind base', '@tailwind components', '@tailwind utilities' in order.",
+          "validators": []
+        },
+        {
+          "name": "base_background_color",
+          "type_ref": "CSSColorValue",
+          "required": true,
+          "default": "",
+          "description": "Body background color in @layer base. Must be '#0a0a0a'.",
+          "validators": []
+        },
+        {
+          "name": "base_text_color",
+          "type_ref": "CSSColorValue",
+          "required": true,
+          "default": "",
+          "description": "Body text color in @layer base. Near-white for dark theme.",
+          "validators": []
+        },
+        {
+          "name": "font_face_assignments",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Font-family assignments: body uses Inter (font-sans), headings use Instrument Serif (font-serif), code uses JetBrains Mono (font-mono).",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Structural contract for src/index.css — Tailwind directives, base layer, and utility definitions.",
+      "owner_component": ""
+    },
+    {
+      "name": "BgGridUtilitySpec",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "class_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind utility class name. Must be 'bg-grid'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'bg-grid'",
+              "error_message": "Utility class must be 'bg-grid'."
+            }
+          ]
+        },
+        {
+          "name": "css_property",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must set background-image to a repeating grid pattern using CSS linear-gradient or similar.",
+          "validators": []
+        },
+        {
+          "name": "grid_color",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Subtle grid line color. Should be a low-opacity white or gray, e.g. 'rgba(255,255,255,0.03)'.",
+          "validators": []
+        },
+        {
+          "name": "grid_size",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Grid cell size as CSS background-size value, e.g. '64px 64px'.",
+          "validators": []
+        },
+        {
+          "name": "registered_via",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Must be 'tailwind_plugin' — registered via plugin() in tailwind.config.js for discoverability.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'tailwind_plugin'",
+              "error_message": "bg-grid must be registered via Tailwind plugin."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Specification for the bg-grid Tailwind utility class registered via plugin.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "manifest",
+          "type_ref": "FileManifest",
+          "required": true,
+          "default": "",
+          "description": "Complete list of files created.",
+          "validators": []
+        },
+        {
+          "name": "dependencies_installed",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of CategorizedDependency entries that were installed.",
+          "validators": []
+        },
+        {
+          "name": "lockfile_valid",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if bun.lockb exists and no npm/yarn lockfile is present.",
+          "validators": []
+        },
+        {
+          "name": "dev_server_port",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Configured dev server port. Must be 4000.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of the scaffold operation — file manifest, dependency list, and validation status.",
+      "owner_component": ""
+    },
+    {
+      "name": "ValidationResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "valid",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if all checks pass.",
+          "validators": []
+        },
+        {
+          "name": "checks_passed",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of check names that passed.",
+          "validators": []
+        },
+        {
+          "name": "checks_failed",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of ValidationFailure entries.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of validating the scaffold output against all structural invariants.",
+      "owner_component": ""
+    },
+    {
+      "name": "ValidationFailure",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "check_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Name of the check that failed.",
+          "validators": []
+        },
+        {
+          "name": "expected",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "What was expected.",
+          "validators": []
+        },
+        {
+          "name": "actual",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "What was found.",
+          "validators": []
+        },
+        {
+          "name": "file_path",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "The file where the failure was detected.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single validation check that failed.",
+      "owner_component": ""
+    },
+    {
+      "name": "GoogleFontSpec",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "family",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Font family name as registered with Google Fonts.",
+          "validators": []
+        },
+        {
+          "name": "weights",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of weight values to load, e.g. ['400', '500', '600', '700'].",
+          "validators": []
+        },
+        {
+          "name": "italic",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "Whether to include italic variants.",
+          "validators": []
+        },
+        {
+          "name": "display",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "font-display strategy. Must be 'swap'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'swap'",
+              "error_message": "font-display must be 'swap' for performance."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Specification for a Google Font loaded in index.html.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "initialize_project",
+      "description": "Execute 'bun create vite' with the React + TypeScript template to scaffold the base project structure. This is the first operation and produces the initial file set that subsequent functions modify.",
+      "inputs": [
+        {
+          "name": "project_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Project directory name. Must be 'exemplar-tools-docs'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'exemplar-tools-docs'",
+              "error_message": "Project name must be 'exemplar-tools-docs'."
+            }
+          ]
+        },
+        {
+          "name": "template",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Vite template. Must be 'react-ts'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'react-ts'",
+              "error_message": "Template must be 'react-ts'."
+            }
+          ]
+        }
+      ],
+      "output_type": "FileManifest",
+      "error_cases": [
+        {
+          "name": "bun_not_installed",
+          "condition": "bun executable is not found on PATH",
+          "error_type": "EnvironmentError",
+          "error_data": {
+            "message": "bun is required but not found on PATH. Install from https://bun.sh"
+          }
+        },
+        {
+          "name": "directory_exists",
+          "condition": "Target directory already exists and is non-empty",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Target directory already exists and is non-empty. Remove it or choose a different name."
+          }
+        },
+        {
+          "name": "network_unavailable",
+          "condition": "Cannot reach npm registry to download template",
+          "error_type": "NetworkError",
+          "error_data": {
+            "message": "Cannot reach npm registry. Check network connectivity."
+          }
+        },
+        {
+          "name": "template_not_found",
+          "condition": "The react-ts template is not available in the vite create catalog",
+          "error_type": "TemplateError",
+          "error_data": {
+            "message": "Vite template 'react-ts' not found."
+          }
+        }
+      ],
+      "preconditions": [
+        "bun is installed and available on PATH",
+        "Target directory does not exist or is empty",
+        "Network access is available for bun create"
+      ],
+      "postconditions": [
+        "Directory 'exemplar-tools-docs' exists with base Vite + React + TS files",
+        "package.json exists with react and react-dom dependencies",
+        "vite.config.ts exists with default Vite React plugin",
+        "tsconfig.json exists with TypeScript configuration",
+        "No npm or yarn lockfiles exist (only bun.lockb)"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "exemplar-tools-docs/ (entire project directory)",
+          "description": "Creates the project directory and all base template files."
+        },
+        {
+          "kind": "network_call",
+          "target": "npm registry (registry.npmjs.org)",
+          "description": "Downloads the Vite create template and initial dependencies."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 30000,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "install_dependencies",
+      "description": "Install all required npm packages using bun add/bun add -d. Installs exact versions for pinned packages (Tailwind v3) and compatible ranges for others. Ensures bun.lockb is the only lockfile.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        }
+      ],
+      "output_type": "list",
+      "error_cases": [
+        {
+          "name": "package_json_missing",
+          "condition": "package.json does not exist at project_root",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "package.json not found. Run initialize_project first."
+          }
+        },
+        {
+          "name": "version_resolution_failed",
+          "condition": "A specified version constraint cannot be resolved from the registry",
+          "error_type": "DependencyResolutionError",
+          "error_data": {
+            "message": "Could not resolve one or more package versions from the npm registry."
+          }
+        },
+        {
+          "name": "bun_install_failed",
+          "condition": "bun add exits with non-zero code",
+          "error_type": "InstallError",
+          "error_data": {
+            "message": "bun add failed. Check bun output for details."
+          }
+        },
+        {
+          "name": "stale_lockfile_detected",
+          "condition": "A package-lock.json or yarn.lock file is found after installation",
+          "error_type": "LockfileViolation",
+          "error_data": {
+            "message": "Non-bun lockfile detected. Remove package-lock.json and/or yarn.lock."
+          }
+        }
+      ],
+      "preconditions": [
+        "package.json exists at project_root",
+        "bun is installed and available on PATH",
+        "initialize_project has completed successfully"
+      ],
+      "postconditions": [
+        "All production dependencies are in package.json dependencies: react, react-dom, react-router-dom, convex",
+        "All dev dependencies are in package.json devDependencies: @vitejs/plugin-react, typescript, vite, tailwindcss (v3.x pinned), postcss, autoprefixer, vitest, jsdom, @types/react, @types/react-dom",
+        "bun.lockb exists at project_root",
+        "No package-lock.json or yarn.lock exists",
+        "node_modules/ directory exists with installed packages"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "package.json",
+          "description": "Adds dependencies and devDependencies entries."
+        },
+        {
+          "kind": "writes_file",
+          "target": "bun.lockb",
+          "description": "Creates or updates the bun lockfile."
+        },
+        {
+          "kind": "writes_file",
+          "target": "node_modules/",
+          "description": "Installs package artifacts into node_modules."
+        },
+        {
+          "kind": "network_call",
+          "target": "npm registry (registry.npmjs.org)",
+          "description": "Downloads packages from the npm registry."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 60000,
+        "max_memory_mb": null,
+        "complexity": "O(n) where n is number of dependencies"
+      }
+    },
+    {
+      "name": "configure_vite",
+      "description": "Write vite.config.ts with React plugin, dev server on port 4000 with strictPort: true, build output to dist/, and co-located vitest configuration (globals: true, environment: jsdom, css: true).",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        },
+        {
+          "name": "config",
+          "type_ref": "ViteConfigShape",
+          "required": true,
+          "default": "",
+          "description": "The desired Vite configuration shape.",
+          "validators": []
+        }
+      ],
+      "output_type": "ScaffoldFileEntry",
+      "error_cases": [
+        {
+          "name": "plugin_not_installed",
+          "condition": "@vitejs/plugin-react is not in node_modules",
+          "error_type": "DependencyError",
+          "error_data": {
+            "message": "@vitejs/plugin-react must be installed before configuring Vite."
+          }
+        },
+        {
+          "name": "write_failed",
+          "condition": "Cannot write to vite.config.ts due to filesystem permissions",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Failed to write vite.config.ts. Check filesystem permissions."
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root directory exists",
+        "@vitejs/plugin-react is installed in node_modules",
+        "vitest is installed in node_modules"
+      ],
+      "postconditions": [
+        "vite.config.ts exists at project_root with all specified keys",
+        "server.port is 4000",
+        "server.strictPort is true",
+        "build.outDir is 'dist'",
+        "plugins array includes react()",
+        "test.globals is true",
+        "test.environment is 'jsdom'",
+        "test.css is true",
+        "File imports defineConfig from 'vite' and react from '@vitejs/plugin-react'",
+        "File includes /// <reference types='vitest' /> triple-slash directive"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "vite.config.ts",
+          "description": "Creates or overwrites vite.config.ts with Vite + vitest configuration."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "configure_tailwind",
+      "description": "Create tailwind.config.js with content globs, custom colors (background: #0a0a0a), font families (Instrument Serif, JetBrains Mono, Inter), and the bg-grid utility registered via Tailwind plugin() for discoverability. Create postcss.config.js with tailwindcss and autoprefixer plugins.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        },
+        {
+          "name": "tailwind_config",
+          "type_ref": "TailwindConfigShape",
+          "required": true,
+          "default": "",
+          "description": "Desired Tailwind configuration shape.",
+          "validators": []
+        },
+        {
+          "name": "postcss_config",
+          "type_ref": "PostCSSConfigShape",
+          "required": true,
+          "default": "",
+          "description": "Desired PostCSS configuration shape.",
+          "validators": []
+        },
+        {
+          "name": "bg_grid_spec",
+          "type_ref": "BgGridUtilitySpec",
+          "required": true,
+          "default": "",
+          "description": "Specification for the bg-grid utility class.",
+          "validators": []
+        }
+      ],
+      "output_type": "list",
+      "error_cases": [
+        {
+          "name": "tailwind_not_installed",
+          "condition": "tailwindcss is not in node_modules",
+          "error_type": "DependencyError",
+          "error_data": {
+            "message": "tailwindcss must be installed before configuring Tailwind."
+          }
+        },
+        {
+          "name": "write_failed",
+          "condition": "Cannot write configuration files",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Failed to write Tailwind/PostCSS config files."
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root directory exists",
+        "tailwindcss is installed in node_modules",
+        "postcss is installed in node_modules",
+        "autoprefixer is installed in node_modules"
+      ],
+      "postconditions": [
+        "tailwind.config.js exists at project_root",
+        "content globs include './index.html' and './src/**/*.{js,ts,jsx,tsx}'",
+        "theme.extend.colors.background is '#0a0a0a'",
+        "theme.extend.fontFamily.serif starts with 'Instrument Serif'",
+        "theme.extend.fontFamily.mono starts with 'JetBrains Mono'",
+        "theme.extend.fontFamily.sans starts with 'Inter'",
+        "plugins array includes a plugin() call registering .bg-grid utility",
+        "postcss.config.js exists at project_root with tailwindcss and autoprefixer plugins",
+        "bg-grid utility generates a background-image with repeating grid pattern"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "tailwind.config.js",
+          "description": "Creates or overwrites tailwind.config.js with theme extensions, content globs, and bg-grid plugin."
+        },
+        {
+          "kind": "writes_file",
+          "target": "postcss.config.js",
+          "description": "Creates or overwrites postcss.config.js with tailwindcss and autoprefixer plugins."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "configure_typescript",
+      "description": "Write tsconfig.json with strict mode, react-jsx, bundler module resolution, vitest/globals types, and src include path.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        },
+        {
+          "name": "config",
+          "type_ref": "TSConfigShape",
+          "required": true,
+          "default": "",
+          "description": "Desired TypeScript configuration shape.",
+          "validators": []
+        }
+      ],
+      "output_type": "ScaffoldFileEntry",
+      "error_cases": [
+        {
+          "name": "write_failed",
+          "condition": "Cannot write tsconfig.json",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Failed to write tsconfig.json."
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root directory exists",
+        "typescript is installed in node_modules"
+      ],
+      "postconditions": [
+        "tsconfig.json exists at project_root",
+        "compilerOptions.target is ES2020 or newer",
+        "compilerOptions.jsx is 'react-jsx'",
+        "compilerOptions.strict is true",
+        "compilerOptions.moduleResolution is 'bundler'",
+        "compilerOptions.types includes 'vitest/globals'",
+        "include array contains 'src'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "tsconfig.json",
+          "description": "Creates or overwrites tsconfig.json."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "configure_entry_points",
+      "description": "Write index.html (Google Fonts links for Instrument Serif, JetBrains Mono, Inter; root div; module script to /src/main.tsx), src/main.tsx (React.StrictMode, provider wiring slots for ConvexProvider and BrowserRouter, CSS import), and src/index.css (Tailwind directives, @layer base with dark background #0a0a0a, font-face assignments).",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        },
+        {
+          "name": "index_html",
+          "type_ref": "IndexHtmlShape",
+          "required": true,
+          "default": "",
+          "description": "Structural spec for index.html.",
+          "validators": []
+        },
+        {
+          "name": "main_tsx",
+          "type_ref": "MainTsxShape",
+          "required": true,
+          "default": "",
+          "description": "Structural spec for src/main.tsx.",
+          "validators": []
+        },
+        {
+          "name": "index_css",
+          "type_ref": "IndexCssShape",
+          "required": true,
+          "default": "",
+          "description": "Structural spec for src/index.css.",
+          "validators": []
+        },
+        {
+          "name": "google_fonts",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of GoogleFontSpec entries for fonts loaded in index.html.",
+          "validators": []
+        }
+      ],
+      "output_type": "list",
+      "error_cases": [
+        {
+          "name": "src_directory_missing",
+          "condition": "src/ directory does not exist under project_root",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "src/ directory not found. Run initialize_project first."
+          }
+        },
+        {
+          "name": "write_failed",
+          "condition": "Cannot write one or more entry point files",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Failed to write entry point files. Check filesystem permissions."
+          }
+        },
+        {
+          "name": "invalid_font_spec",
+          "condition": "A GoogleFontSpec has an empty family name or no weights",
+          "error_type": "ValidationError",
+          "error_data": {
+            "message": "Each GoogleFontSpec must have a non-empty family and at least one weight."
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root directory exists",
+        "src/ directory exists under project_root",
+        "Dependencies have been installed (react, react-dom, react-router-dom, convex are available)"
+      ],
+      "postconditions": [
+        "index.html exists at project_root with lang='en'",
+        "index.html contains <link> tags for Google Fonts: Instrument Serif, JetBrains Mono, Inter",
+        "index.html contains <link rel='preconnect' href='https://fonts.googleapis.com'>",
+        "index.html contains <link rel='preconnect' href='https://fonts.gstatic.com' crossorigin>",
+        "index.html contains <div id='root'></div>",
+        "index.html contains <script type='module' src='/src/main.tsx'></script>",
+        "src/main.tsx exists and imports React, ReactDOM, and ./index.css",
+        "src/main.tsx wraps app in React.StrictMode",
+        "src/main.tsx has provider wiring slots for ConvexProvider and BrowserRouter (may be commented placeholders initially)",
+        "src/main.tsx calls createRoot on document.getElementById('root')",
+        "src/index.css exists with @tailwind base, @tailwind components, @tailwind utilities directives",
+        "src/index.css has @layer base with body { background-color: #0a0a0a } and appropriate text color",
+        "src/index.css assigns font-family: 'Inter', system-ui, sans-serif to body"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "index.html",
+          "description": "Creates or overwrites index.html with Google Fonts links, root div, and module script."
+        },
+        {
+          "kind": "writes_file",
+          "target": "src/main.tsx",
+          "description": "Creates or overwrites src/main.tsx with React root mount and provider wiring slots."
+        },
+        {
+          "kind": "writes_file",
+          "target": "src/index.css",
+          "description": "Creates or overwrites src/index.css with Tailwind directives and base layer styles."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "configure_package_json_scripts",
+      "description": "Set the scripts field in package.json to the exact required commands: dev='vite', build='tsc && vite build', test='vitest'.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory.",
+          "validators": []
+        },
+        {
+          "name": "scripts",
+          "type_ref": "PackageJsonScripts",
+          "required": true,
+          "default": "",
+          "description": "The exact script commands to set.",
+          "validators": []
+        }
+      ],
+      "output_type": "ScaffoldFileEntry",
+      "error_cases": [
+        {
+          "name": "package_json_missing",
+          "condition": "package.json does not exist at project_root",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "package.json not found at project root."
+          }
+        },
+        {
+          "name": "package_json_parse_error",
+          "condition": "package.json is not valid JSON",
+          "error_type": "ParseError",
+          "error_data": {
+            "message": "package.json is not valid JSON. Manual repair may be required."
+          }
+        },
+        {
+          "name": "write_failed",
+          "condition": "Cannot write to package.json",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Failed to write package.json."
+          }
+        }
+      ],
+      "preconditions": [
+        "package.json exists at project_root"
+      ],
+      "postconditions": [
+        "package.json scripts.dev is 'vite'",
+        "package.json scripts.build is 'tsc && vite build'",
+        "package.json scripts.test is 'vitest'",
+        "package.json 'private' field is true",
+        "package.json 'type' field is 'module'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "package.json",
+          "description": "Updates the scripts, private, and type fields in package.json."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_scaffold",
+      "description": "Validate the entire scaffold output against all structural invariants defined in this contract. Checks file existence, configuration key values, dependency versions, lockfile exclusivity, port configuration, Tailwind tokens, font loading, and script commands.",
+      "inputs": [
+        {
+          "name": "project_root",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory to validate.",
+          "validators": []
+        }
+      ],
+      "output_type": "ValidationResult",
+      "error_cases": [
+        {
+          "name": "project_root_missing",
+          "condition": "project_root directory does not exist",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "message": "Project root directory does not exist. Nothing to validate."
+          }
+        }
+      ],
+      "preconditions": [
+        "project_root directory exists",
+        "All scaffold functions have been invoked"
+      ],
+      "postconditions": [
+        "Returns ValidationResult with valid=true if all checks pass",
+        "All failed checks include the file path, expected value, and actual value",
+        "Checks include: file_existence (all manifest files), vite_port (4000), vite_strict_port (true), vite_build_dir (dist), vitest_environment (jsdom), vitest_globals (true), tailwind_content_globs, tailwind_background_color (#0a0a0a), tailwind_font_serif (Instrument Serif), tailwind_font_mono (JetBrains Mono), tailwind_font_sans (Inter), tailwind_bg_grid_plugin, postcss_plugins, tsconfig_strict (true), tsconfig_jsx (react-jsx), tsconfig_module_resolution (bundler), tsconfig_vitest_types, package_name (exemplar-tools-docs), package_scripts_dev (vite), package_scripts_build (tsc && vite build), package_scripts_test (vitest), lockfile_bun_only, index_html_google_fonts, index_html_root_div, main_tsx_strict_mode, main_tsx_css_import, index_css_tailwind_directives, index_css_background"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "reads_file",
+          "target": "All configuration files in the scaffold manifest",
+          "description": "Reads every file in the manifest to validate structural invariants."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_dependency_manifest",
+      "description": "Return the canonical list of all npm dependencies this scaffold installs, with exact version constraints, dev/prod classification, category, and rationale. This is a pure function that returns the static dependency specification.",
+      "inputs": [],
+      "output_type": "list",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returns exactly the following production dependencies: react (^18.x), react-dom (^18.x), react-router-dom (^6.x), convex (latest compatible)",
+        "Returns exactly the following dev dependencies: @vitejs/plugin-react, typescript, vite, tailwindcss (^3.x pinned to v3 major), postcss, autoprefixer, vitest, jsdom, @types/react, @types/react-dom",
+        "Each dependency has a non-empty rationale",
+        "Each dependency has a valid DependencyCategory"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static dependency manifest."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_style_tokens",
+      "description": "Return the canonical set of CSS/Tailwind tokens that downstream components may reference. This is a pure function that returns the style contract: color tokens, font-family tokens, utility class names, and base layer values.",
+      "inputs": [],
+      "output_type": "dict",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returns color tokens: { background: '#0a0a0a' }",
+        "Returns font tokens: { serif: ['Instrument Serif', 'Georgia', 'serif'], mono: ['JetBrains Mono', 'monospace'], sans: ['Inter', 'system-ui', 'sans-serif'] }",
+        "Returns utility classes: ['bg-grid']",
+        "Returns tailwind class prefixes for fonts: ['font-serif', 'font-mono', 'font-sans']",
+        "Returns base body background: '#0a0a0a'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static style token contract."
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "bun.lockb is the ONLY lockfile — package-lock.json and yarn.lock must never exist in the project root",
+    "Dev server port is exactly 4000 with strictPort: true — Vite must fail if port 4000 is unavailable",
+    "Build output directory is exactly 'dist/'",
+    "Tailwind CSS is pinned to v3.x (^3) — never v4",
+    "vitest configuration is co-located in vite.config.ts under the 'test' key — no separate vitest.config.ts",
+    "vite.config.ts includes the /// <reference types='vitest' /> triple-slash directive for type support",
+    "All three Google Fonts (Instrument Serif, JetBrains Mono, Inter) are loaded via <link> tags in index.html with font-display: swap",
+    "Google Fonts preconnect links to fonts.googleapis.com and fonts.gstatic.com are present in index.html <head>",
+    "The bg-grid utility is registered via Tailwind plugin() in tailwind.config.js — not as arbitrary CSS in index.css",
+    "src/index.css contains exactly three Tailwind directives in order: @tailwind base, @tailwind components, @tailwind utilities",
+    "The @layer base in src/index.css sets body background-color to #0a0a0a",
+    "font-serif maps to 'Instrument Serif' as primary, font-mono maps to 'JetBrains Mono' as primary, font-sans maps to 'Inter' as primary",
+    "package.json scripts are exactly: dev='vite', build='tsc && vite build', test='vitest'",
+    "package.json name is 'exemplar-tools-docs', private is true, type is 'module'",
+    "tsconfig.json has strict: true, jsx: 'react-jsx', moduleResolution: 'bundler'",
+    "tsconfig.json compilerOptions.types includes 'vitest/globals'",
+    "src/main.tsx mounts React via createRoot on document.getElementById('root') wrapped in React.StrictMode",
+    "src/main.tsx imports './index.css' for global styles",
+    "src/main.tsx provides wiring slots (import placeholders) for ConvexProvider and BrowserRouter — downstream components complete the wiring",
+    "postcss.config.js plugins are [tailwindcss, autoprefixer] in that order",
+    "No class components — only functional components in src/main.tsx",
+    "All files are under 300 lines",
+    "No custom CSS files beyond src/index.css unless absolutely necessary — all styling via Tailwind utilities"
+  ],
+  "requires": [],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [
+      "PUBLIC"
+    ],
+    "rationale": "This component reads and writes project configuration files (vite.config.ts, tailwind.config.js, postcss.config.js, tsconfig.json, package.json, index.html, src/main.tsx, src/index.css) which are PUBLIC source code artifacts. It reads from the npm registry (PUBLIC package metadata) to resolve dependency versions. No PII, secrets, or INTERNAL data is accessed. All outputs are deterministic configuration files committed to version control.",
+    "side_effects": [
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "vite.config.ts",
+          "tailwind.config.js",
+          "postcss.config.js",
+          "tsconfig.json",
+          "package.json",
+          "index.html",
+          "src/main.tsx",
+          "src/index.css",
+          "bun.lockb"
+        ],
+        "rationale": "Creates or overwrites project configuration and entry point files that define the build toolchain, styling system, and application bootstrap for the documentation site."
+      },
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "node_modules/"
+        ],
+        "rationale": "Installs npm packages into node_modules via bun. These are third-party open-source packages fetched from the public npm registry."
+      },
+      {
+        "type": "network_request",
+        "classification": "PUBLIC",
+        "fields": [
+          "registry.npmjs.org"
+        ],
+        "rationale": "Fetches package metadata and tarballs from the public npm registry to install dependencies. No authentication tokens or private registry access required."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "project_configuration",
+      "build_toolchain",
+      "css_design_tokens",
+      "dependency_versions"
+    ],
+    "rationale": "This component is the single source of truth for: (1) project_configuration — all config files (vite.config.ts, tailwind.config.js, postcss.config.js, tsconfig.json, package.json) and their structural contracts; (2) build_toolchain — Vite dev server port, build output directory, vitest configuration, and script commands; (3) css_design_tokens — Tailwind color tokens, font-family tokens, the bg-grid utility, and base layer styles that all downstream components depend on; (4) dependency_versions — the canonical list of npm packages and their version constraints. No other component may modify these files or redefine these tokens without coordinating through this contract."
+  }
+}

@@ -1,0 +1,6 @@
+project_name: todo-list3
+schemas_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/schemas
+changelog_path: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/changelog.yaml
+plans_dir: /Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/plans
+backends: []
+custom_annotations: []

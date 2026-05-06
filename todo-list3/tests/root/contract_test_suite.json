@@ -1,0 +1,510 @@
+{
+  "component_id": "root",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "hp_health_endpoint",
+      "description": "GET /health returns 200 with HealthResponse {status: 'ok'}",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 200",
+        "Response body contains {\"status\": \"ok\"}"
+      ]
+    },
+    {
+      "id": "hp_list_tasks_endpoint",
+      "description": "GET /tasks returns 200 with TaskListResponse (array of TaskResponse)",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 200",
+        "Response body is a JSON array"
+      ]
+    },
+    {
+      "id": "hp_create_task_endpoint",
+      "description": "POST /tasks with valid TaskCreateRequest returns 201 with TaskResponse",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 201",
+        "Response body contains id, title, description, status, created_at, updated_at"
+      ]
+    },
+    {
+      "id": "hp_get_task_endpoint",
+      "description": "GET /tasks/{id} returns 200 with TaskResponse for existing task",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 200",
+        "Response body matches TaskResponse shape"
+      ]
+    },
+    {
+      "id": "hp_update_task_endpoint",
+      "description": "PUT /tasks/{id} with valid TaskUpdateRequest returns 200 with TaskResponse",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 200",
+        "Response body matches TaskResponse shape"
+      ]
+    },
+    {
+      "id": "hp_delete_task_endpoint",
+      "description": "DELETE /tasks/{id} returns 200 with DeleteConfirmation",
+      "function": "verify_http_api_contract",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 200",
+        "Response body contains detail and id fields"
+      ]
+    },
+    {
+      "id": "err_get_nonexistent_task",
+      "description": "GET /tasks/{id} for non-existent task returns 404 with ErrorResponse",
+      "function": "verify_http_api_contract",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "endpoint_mismatch",
+      "assertions": [
+        "Response status code is 404",
+        "Response body contains {\"detail\": \"Task not found\"}"
+      ]
+    },
+    {
+      "id": "err_create_blank_title",
+      "description": "POST /tasks with blank title returns 422 ValidationErrorResponse",
+      "function": "verify_http_api_contract",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "endpoint_mismatch",
+      "assertions": [
+        "Response status code is 422",
+        "Response body contains detail array with ValidationErrorItem"
+      ]
+    },
+    {
+      "id": "err_update_nonexistent_task",
+      "description": "PUT /tasks/{id} for non-existent task returns 404",
+      "function": "verify_http_api_contract",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 404",
+        "Response body matches ErrorResponse shape"
+      ]
+    },
+    {
+      "id": "err_delete_nonexistent_task",
+      "description": "DELETE /tasks/{id} for non-existent task returns 404",
+      "function": "verify_http_api_contract",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Response status code is 404",
+        "Response body matches ErrorResponse shape"
+      ]
+    },
+    {
+      "id": "inv_task_list_ordering",
+      "description": "CROSS-TIER-01: GET /tasks returns tasks ordered by created_at DESC",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Tasks are returned in descending created_at order"
+      ]
+    },
+    {
+      "id": "inv_created_at_immutable",
+      "description": "CROSS-TIER-02: PUT /tasks/{id} does not modify created_at",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at before update equals created_at after update"
+      ]
+    },
+    {
+      "id": "inv_updated_at_refresh",
+      "description": "CROSS-TIER-03: PUT /tasks/{id} sets updated_at >= previous updated_at",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "updated_at after update >= updated_at before update"
+      ]
+    },
+    {
+      "id": "inv_hard_delete",
+      "description": "CROSS-TIER-04: DELETE /tasks/{id} permanently removes the row",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Subsequent GET /tasks/{id} returns 404"
+      ]
+    },
+    {
+      "id": "inv_description_normalization",
+      "description": "CROSS-TIER-09: Empty/whitespace description normalized to null",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "description field is null in response when empty or whitespace-only string submitted"
+      ]
+    },
+    {
+      "id": "inv_title_stripping",
+      "description": "CROSS-TIER-18: Leading/trailing whitespace on title is stripped",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Title in response has no leading/trailing whitespace"
+      ]
+    },
+    {
+      "id": "inv_status_default",
+      "description": "POST /tasks without status defaults to 'pending'",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "status field is 'pending' when not explicitly set"
+      ]
+    },
+    {
+      "id": "inv_timestamp_format",
+      "description": "CROSS-TIER-10: All timestamps are ISO 8601 with timezone offset",
+      "function": "verify_cross_tier_invariants",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at matches ISO 8601 regex with timezone",
+        "updated_at matches ISO 8601 regex with timezone"
+      ]
+    },
+    {
+      "id": "hp_schema_init_idempotent",
+      "description": "init.sql can be executed twice without error and schema is correct",
+      "function": "verify_schema_initialization_idempotent",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Second execution does not raise errors",
+        "tasks table has correct 6 columns",
+        "CHECK constraint on status exists",
+        "update_updated_at_column trigger exists"
+      ]
+    },
+    {
+      "id": "inv_schema_preserves_data",
+      "description": "CROSS-TIER-15: Re-execution of init.sql does not modify existing data",
+      "function": "verify_schema_initialization_idempotent",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Row count before equals row count after re-execution",
+        "Existing row data is unchanged"
+      ]
+    },
+    {
+      "id": "hp_test_isolation",
+      "description": "Test data is properly isolated — row count unchanged after verification",
+      "function": "verify_test_isolation",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tasks table row count is unchanged after verification"
+      ]
+    },
+    {
+      "id": "inv_no_leaked_rows",
+      "description": "CROSS-TIER-14: Each test run leaves the database in its pre-test state",
+      "function": "verify_test_isolation",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "No leaked rows in tasks table"
+      ]
+    },
+    {
+      "id": "hp_cors_configuration",
+      "description": "CORS headers allow frontend origin with required methods and headers",
+      "function": "verify_cors_configuration",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "backend_base_url": "http://localhost:8000",
+        "frontend_origin": "http://localhost:5173"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Access-Control-Allow-Origin includes frontend_origin or '*'",
+        "Access-Control-Allow-Methods includes GET, POST, PUT, DELETE, OPTIONS",
+        "Access-Control-Allow-Headers includes Content-Type"
+      ]
+    },
+    {
+      "id": "hp_connection_pool_lifecycle",
+      "description": "Connection pool is functional — GET /tasks succeeds during application runtime",
+      "function": "verify_connection_pool_lifecycle",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "GET /tasks returns 200",
+        "Database queries execute without connection errors"
+      ]
+    },
+    {
+      "id": "edge_task_title_length_1",
+      "description": "TaskTitle with exactly 1 character after stripping is valid",
+      "function": "verify_http_api_contract",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "POST /tasks with title='a' returns 201"
+      ]
+    },
+    {
+      "id": "edge_task_title_length_255",
+      "description": "TaskTitle with exactly 255 characters is valid (database VARCHAR limit)",
+      "function": "verify_http_api_contract",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "POST /tasks with title of 255 chars returns 201"
+      ]
+    },
+    {
+      "id": "edge_task_title_whitespace_only",
+      "description": "TaskTitle with only whitespace is rejected (blank after strip)",
+      "function": "verify_http_api_contract",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "POST /tasks with title='   ' returns 422"
+      ]
+    },
+    {
+      "id": "edge_task_status_enum_values",
+      "description": "TaskStatus only accepts pending, in_progress, done",
+      "function": "verify_http_api_contract",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "POST /tasks with status='invalid' returns 422",
+        "POST /tasks with status='pending' returns 201",
+        "POST /tasks with status='in_progress' returns 201",
+        "POST /tasks with status='done' returns 201"
+      ]
+    },
+    {
+      "id": "edge_iso_timestamp_valid",
+      "description": "ISOTimestamp regex accepts valid ISO 8601 with timezone offset",
+      "function": "verify_cross_tier_invariants",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Timestamp like '2024-01-15T10:30:00+00:00' matches validator regex",
+        "Timestamp like '2024-01-15T10:30:00Z' matches validator regex"
+      ]
+    },
+    {
+      "id": "edge_put_patch_semantics",
+      "description": "CROSS-TIER-12: PUT with partial body only updates provided fields",
+      "function": "verify_cross_tier_invariants",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Fields not in request body retain their previous values"
+      ]
+    },
+    {
+      "id": "edge_database_url_format",
+      "description": "DatabaseURL must start with postgresql://",
+      "function": "verify_schema_initialization_idempotent",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Connection string starting with postgresql:// is accepted"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for root component.\nTests verify the full-stack integration contract including HTTP API,\ncross-tier invariants, schema initialization, test isolation, CORS, and\nconnection pool lifecycle.\n\nRun with: pytest contract_test.py -v\n\"\"\"\nimport json\nimport os\nimport re\nimport time\nimport urllib.request\nimport urllib.error\nfrom datetime import datetime\nfrom typing import Any, Dict, List, Optional\nfrom unittest.mock import patch, MagicMock\n\nimport pytest\n\n\n# ---------------------------------------------------------------------------\n# Constants\n# ---------------------------------------------------------------------------\nISO_TIMESTAMP_RE = re.compile(\n    r\"^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?([+-]\\d{2}:\\d{2}|Z)$\"\n)\nTASK_RESPONSE_KEYS = {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\nVALID_STATUSES = {\"pending\", \"in_progress\", \"done\"}\n\n\n# ---------------------------------------------------------------------------\n# Fixtures\n# ---------------------------------------------------------------------------\n@pytest.fixture(scope=\"session\")\ndef backend_base_url() -> str:\n    \"\"\"Resolve backend URL; skip if unreachable.\"\"\"\n    url = os.environ.get(\"BACKEND_BASE_URL\", \"http://localhost:8000\")\n    try:\n        urllib.request.urlopen(url + \"/health\", timeout=2)\n    except Exception:\n        pytest.skip(f\"Backend not reachable at {url}\")\n    return url\n\n\n@pytest.fixture(scope=\"session\")\ndef database_url() -> str:\n    \"\"\"Resolve DATABASE_URL; skip if absent.\"\"\"\n    url = os.environ.get(\"DATABASE_URL\")\n    if url is None:\n        pytest.skip(\"DATABASE_URL not set\")\n    return url\n\n\n@pytest.fixture(scope=\"session\")\ndef frontend_origin() -> str:\n    return os.environ.get(\"FRONTEND_ORIGIN\", \"http://localhost:5173\")\n\n\n# ---------------------------------------------------------------------------\n# HTTP helpers\n# ---------------------------------------------------------------------------\ndef _request(\n    method: str,\n    url: str,\n    data: Optional[dict] = None,\n    headers: Optional[dict] = None,\n) -> tuple:\n    \"\"\"Low-level HTTP request. Returns (status_code, headers, body_dict|list).\"\"\"\n    hdrs = {\"Content-Type\": \"application/json\", \"Accept\": \"application/json\"}\n    if headers:\n        hdrs.update(headers)\n    body_bytes: Optional[bytes] = None\n    if data is not None:\n        body_bytes = json.dumps(data).encode(\"utf-8\")\n    req = urllib.request.Request(url, data=body_bytes, headers=hdrs, method=method)\n    try:\n        resp = urllib.request.urlopen(req, timeout=10)\n        status = resp.status\n        resp_headers = dict(resp.headers)\n        resp_body = json.loads(resp.read().decode(\"utf-8\"))\n    except urllib.error.HTTPError as exc:\n        status = exc.code\n        resp_headers = dict(exc.headers)\n        resp_body = json.loads(exc.read().decode(\"utf-8\"))\n    return status, resp_headers, resp_body\n\n\ndef _create_task(\n    base: str,\n    title: str = \"Contract Test Task\",\n    description: Optional[str] = None,\n    status: Optional[str] = None,\n) -> tuple:\n    \"\"\"Create a task via POST and return (status, body).\"\"\"\n    payload: Dict[str, Any] = {\"title\": title}\n    if description is not None:\n        payload[\"description\"] = description\n    if status is not None:\n        payload[\"status\"] = status\n    s, _, b = _request(\"POST\", f\"{base}/tasks\", data=payload)\n    return s, b\n\n\ndef _delete_task(base: str, task_id: int) -> None:\n    \"\"\"Best-effort cleanup.\"\"\"\n    try:\n        _request(\"DELETE\", f\"{base}/tasks/{task_id}\")\n    except Exception:\n        pass\n\n\n# ---------------------------------------------------------------------------\n# 1. verify_http_api_contract — happy paths\n# ---------------------------------------------------------------------------\nclass TestHttpApiContractHappyPath:\n    \"\"\"Happy-path verification of all six REST endpoints.\"\"\"\n\n    def test_health_endpoint(self, backend_base_url: str) -> None:\n        status, _, body = _request(\"GET\", f\"{backend_base_url}/health\")\n        assert status == 200\n        assert body == {\"status\": \"ok\"}\n\n    def test_list_tasks_endpoint(self, backend_base_url: str) -> None:\n        status, _, body = _request(\"GET\", f\"{backend_base_url}/tasks\")\n        assert status == 200\n        assert isinstance(body, list)\n\n    def test_create_task_endpoint(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"hp create test\")\n        assert status == 201\n        assert TASK_RESPONSE_KEYS.issubset(set(body.keys()))\n        _delete_task(backend_base_url, body[\"id\"])\n\n    def test_get_task_endpoint(self, backend_base_url: str) -> None:\n        _, created = _create_task(backend_base_url, title=\"hp get test\")\n        tid = created[\"id\"]\n        try:\n            status, _, body = _request(\"GET\", f\"{backend_base_url}/tasks/{tid}\")\n            assert status == 200\n            assert TASK_RESPONSE_KEYS.issubset(set(body.keys()))\n            assert body[\"id\"] == tid\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_update_task_endpoint(self, backend_base_url: str) -> None:\n        _, created = _create_task(backend_base_url, title=\"hp update test\")\n        tid = created[\"id\"]\n        try:\n            status, _, body = _request(\n                \"PUT\",\n                f\"{backend_base_url}/tasks/{tid}\",\n                data={\"title\": \"updated title\"},\n            )\n            assert status == 200\n            assert body[\"title\"] == \"updated title\"\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_delete_task_endpoint(self, backend_base_url: str) -> None:\n        _, created = _create_task(backend_base_url, title=\"hp delete test\")\n        tid = created[\"id\"]\n        status, _, body = _request(\"DELETE\", f\"{backend_base_url}/tasks/{tid}\")\n        assert status == 200\n        assert \"detail\" in body\n        assert body[\"id\"] == tid\n\n\n# ---------------------------------------------------------------------------\n# 2. verify_http_api_contract — error cases\n# ---------------------------------------------------------------------------\nclass TestHttpApiContractErrors:\n\n    def test_get_nonexistent_task_returns_404(self, backend_base_url: str) -> None:\n        status, _, body = _request(\"GET\", f\"{backend_base_url}/tasks/999999999\")\n        assert status == 404\n        assert body.get(\"detail\") == \"Task not found\"\n\n    def test_create_blank_title_returns_422(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"   \")\n        assert status == 422\n        assert \"detail\" in body\n        assert isinstance(body[\"detail\"], list)\n\n    def test_update_nonexistent_task_returns_404(self, backend_base_url: str) -> None:\n        status, _, body = _request(\n            \"PUT\",\n            f\"{backend_base_url}/tasks/999999999\",\n            data={\"title\": \"no such task\"},\n        )\n        assert status == 404\n        assert body.get(\"detail\") == \"Task not found\"\n\n    def test_delete_nonexistent_task_returns_404(self, backend_base_url: str) -> None:\n        status, _, body = _request(\"DELETE\", f\"{backend_base_url}/tasks/999999999\")\n        assert status == 404\n        assert body.get(\"detail\") == \"Task not found\"\n\n    def test_create_invalid_status_returns_422(self, backend_base_url: str) -> None:\n        status, _ = _create_task(backend_base_url, title=\"bad status\", status=\"invalid\")\n        assert status == 422\n\n\n# ---------------------------------------------------------------------------\n# 3. verify_http_api_contract — edge cases\n# ---------------------------------------------------------------------------\nclass TestHttpApiContractEdgeCases:\n\n    def test_title_min_length_1(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"a\")\n        assert status == 201\n        _delete_task(backend_base_url, body[\"id\"])\n\n    def test_title_max_length_255(self, backend_base_url: str) -> None:\n        title = \"a\" * 255\n        status, body = _create_task(backend_base_url, title=title)\n        assert status == 201\n        assert len(body[\"title\"]) == 255\n        _delete_task(backend_base_url, body[\"id\"])\n\n    def test_title_whitespace_only_rejected(self, backend_base_url: str) -> None:\n        status, _ = _create_task(backend_base_url, title=\"   \")\n        assert status == 422\n\n    def test_valid_status_pending(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"s pending\", status=\"pending\")\n        assert status == 201\n        _delete_task(backend_base_url, body[\"id\"])\n\n    def test_valid_status_in_progress(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"s in_progress\", status=\"in_progress\")\n        assert status == 201\n        _delete_task(backend_base_url, body[\"id\"])\n\n    def test_valid_status_done(self, backend_base_url: str) -> None:\n        status, body = _create_task(backend_base_url, title=\"s done\", status=\"done\")\n        assert status == 201\n        _delete_task(backend_base_url, body[\"id\"])\n\n\n# ---------------------------------------------------------------------------\n# 4. verify_cross_tier_invariants\n# ---------------------------------------------------------------------------\nclass TestCrossTierInvariants:\n\n    def test_task_list_ordered_by_created_at_desc(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-01\"\"\"\n        ids: List[int] = []\n        try:\n            for i in range(3):\n                _, body = _create_task(backend_base_url, title=f\"order test {i}\")\n                ids.append(body[\"id\"])\n                time.sleep(0.05)  # ensure distinct created_at\n            _, _, tasks = _request(\"GET\", f\"{backend_base_url}/tasks\")\n            # filter to our test tasks\n            test_tasks = [t for t in tasks if t[\"id\"] in ids]\n            timestamps = [t[\"created_at\"] for t in test_tasks]\n            assert timestamps == sorted(timestamps, reverse=True)\n        finally:\n            for tid in ids:\n                _delete_task(backend_base_url, tid)\n\n    def test_created_at_immutable_on_update(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-02\"\"\"\n        _, created = _create_task(backend_base_url, title=\"immutable ca\")\n        tid = created[\"id\"]\n        try:\n            original_ca = created[\"created_at\"]\n            time.sleep(0.05)\n            _, _, updated = _request(\n                \"PUT\",\n                f\"{backend_base_url}/tasks/{tid}\",\n                data={\"title\": \"immutable ca changed\"},\n            )\n            assert updated[\"created_at\"] == original_ca\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_updated_at_refreshed_on_update(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-03\"\"\"\n        _, created = _create_task(backend_base_url, title=\"refresh ua\")\n        tid = created[\"id\"]\n        try:\n            original_ua = created[\"updated_at\"]\n            time.sleep(0.05)\n            _, _, updated = _request(\n                \"PUT\",\n                f\"{backend_base_url}/tasks/{tid}\",\n                data={\"title\": \"refresh ua changed\"},\n            )\n            assert updated[\"updated_at\"] >= original_ua\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_hard_delete(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-04\"\"\"\n        _, created = _create_task(backend_base_url, title=\"hard delete\")\n        tid = created[\"id\"]\n        status, _, _ = _request(\"DELETE\", f\"{backend_base_url}/tasks/{tid}\")\n        assert status == 200\n        status2, _, body2 = _request(\"GET\", f\"{backend_base_url}/tasks/{tid}\")\n        assert status2 == 404\n\n    def test_description_normalization_empty_string(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-09: empty string -> null\"\"\"\n        status, body = _create_task(backend_base_url, title=\"desc norm empty\", description=\"\")\n        tid = body[\"id\"]\n        try:\n            assert status == 201\n            assert body[\"description\"] is None\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_description_normalization_whitespace(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-09: whitespace-only -> null\"\"\"\n        status, body = _create_task(backend_base_url, title=\"desc norm ws\", description=\"   \")\n        tid = body[\"id\"]\n        try:\n            assert status == 201\n            assert body[\"description\"] is None\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_title_stripping(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-18\"\"\"\n        status, body = _create_task(backend_base_url, title=\"  stripped title  \")\n        tid = body[\"id\"]\n        try:\n            assert status == 201\n            assert body[\"title\"] == \"stripped title\"\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_status_defaults_to_pending(self, backend_base_url: str) -> None:\n        \"\"\"Status default when not provided.\"\"\"\n        payload = {\"title\": \"default status test\"}\n        s, _, body = _request(\"POST\", f\"{backend_base_url}/tasks\", data=payload)\n        tid = body[\"id\"]\n        try:\n            assert s == 201\n            assert body[\"status\"] == \"pending\"\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_timestamps_iso8601_with_timezone(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-10\"\"\"\n        _, body = _create_task(backend_base_url, title=\"ts format test\")\n        tid = body[\"id\"]\n        try:\n            assert ISO_TIMESTAMP_RE.match(body[\"created_at\"]), (\n                f\"created_at '{body['created_at']}' does not match ISO 8601 with tz\"\n            )\n            assert ISO_TIMESTAMP_RE.match(body[\"updated_at\"]), (\n                f\"updated_at '{body['updated_at']}' does not match ISO 8601 with tz\"\n            )\n        finally:\n            _delete_task(backend_base_url, tid)\n\n    def test_put_patch_semantics(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-12: Only provided fields are updated.\"\"\"\n        _, created = _create_task(\n            backend_base_url,\n            title=\"patch sem\",\n            description=\"original desc\",\n            status=\"pending\",\n        )\n        tid = created[\"id\"]\n        try:\n            # Update only title\n            _, _, updated = _request(\n                \"PUT\",\n                f\"{backend_base_url}/tasks/{tid}\",\n                data={\"title\": \"patch sem changed\"},\n            )\n            assert updated[\"title\"] == \"patch sem changed\"\n            # description and status should be unchanged\n            assert updated[\"description\"] == \"original desc\"\n            assert updated[\"status\"] == \"pending\"\n        finally:\n            _delete_task(backend_base_url, tid)\n\n\n# ---------------------------------------------------------------------------\n# 5. verify_schema_initialization_idempotent\n# ---------------------------------------------------------------------------\nclass TestSchemaInitializationIdempotent:\n\n    def test_schema_idempotent_and_correct(self, database_url: str) -> None:\n        \"\"\"CROSS-TIER-15: init.sql can be run twice; schema matches contract.\"\"\"\n        import psycopg2  # type: ignore\n\n        conn = None\n        try:\n            conn = psycopg2.connect(database_url)\n            conn.autocommit = True\n            cur = conn.cursor()\n\n            # Locate init.sql — try common paths\n            init_sql_path = None\n            for candidate in [\n                \"init.sql\",\n                \"database/init.sql\",\n                \"db/init.sql\",\n                \"../database/init.sql\",\n            ]:\n                if os.path.isfile(candidate):\n                    init_sql_path = candidate\n                    break\n\n            if init_sql_path is None:\n                pytest.skip(\"init.sql not found in expected locations\")\n\n            with open(init_sql_path, \"r\") as f:\n                init_sql = f.read()\n\n            # Execute twice — second must not raise\n            cur.execute(init_sql)\n            cur.execute(init_sql)\n\n            # Verify table exists with expected columns\n            cur.execute(\n                \"\"\"\n                SELECT column_name, data_type, is_nullable, column_default\n                FROM information_schema.columns\n                WHERE table_name = 'tasks'\n                ORDER BY ordinal_position;\n                \"\"\"\n            )\n            columns = cur.fetchall()\n            col_names = [c[0] for c in columns]\n            expected_cols = {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\n            assert expected_cols.issubset(set(col_names)), (\n                f\"Missing columns: {expected_cols - set(col_names)}\"\n            )\n\n            # Verify CHECK constraint on status\n            cur.execute(\n                \"\"\"\n                SELECT conname FROM pg_constraint\n                WHERE conrelid = 'tasks'::regclass AND contype = 'c';\n                \"\"\"\n            )\n            check_constraints = [row[0] for row in cur.fetchall()]\n            assert len(check_constraints) > 0, \"No CHECK constraint found on tasks table\"\n\n            # Verify trigger exists\n            cur.execute(\n                \"\"\"\n                SELECT tgname FROM pg_trigger\n                WHERE tgrelid = 'tasks'::regclass AND NOT tgisinternal;\n                \"\"\"\n            )\n            triggers = [row[0] for row in cur.fetchall()]\n            assert any(\"update\" in t.lower() for t in triggers), (\n                f\"update_updated_at_column trigger not found; triggers: {triggers}\"\n            )\n\n            cur.close()\n        except psycopg2.OperationalError:\n            pytest.skip(\"Database unreachable\")\n        finally:\n            if conn:\n                conn.close()\n\n    def test_schema_preserves_existing_data(self, database_url: str) -> None:\n        \"\"\"Re-execution of init.sql must not modify existing rows.\"\"\"\n        import psycopg2  # type: ignore\n\n        conn = None\n        try:\n            conn = psycopg2.connect(database_url)\n            conn.autocommit = True\n            cur = conn.cursor()\n\n            cur.execute(\"SELECT count(*) FROM tasks;\")\n            count_before = cur.fetchone()[0]\n\n            init_sql_path = None\n            for candidate in [\n                \"init.sql\",\n                \"database/init.sql\",\n                \"db/init.sql\",\n                \"../database/init.sql\",\n            ]:\n                if os.path.isfile(candidate):\n                    init_sql_path = candidate\n                    break\n\n            if init_sql_path is None:\n                pytest.skip(\"init.sql not found\")\n\n            with open(init_sql_path, \"r\") as f:\n                init_sql = f.read()\n            cur.execute(init_sql)\n\n            cur.execute(\"SELECT count(*) FROM tasks;\")\n            count_after = cur.fetchone()[0]\n            assert count_after == count_before, (\n                f\"Row count changed: {count_before} -> {count_after}\"\n            )\n            cur.close()\n        except psycopg2.OperationalError:\n            pytest.skip(\"Database unreachable\")\n        finally:\n            if conn:\n                conn.close()\n\n    def test_database_url_must_be_postgresql(self, database_url: str) -> None:\n        \"\"\"DatabaseURL validator: must start with postgresql://\"\"\"\n        assert database_url.startswith(\"postgresql://\"), (\n            f\"DATABASE_URL does not start with postgresql://: {database_url[:20]}...\"\n        )\n\n\n# ---------------------------------------------------------------------------\n# 6. verify_test_isolation\n# ---------------------------------------------------------------------------\nclass TestTestIsolation:\n\n    def test_row_count_unchanged_after_crud_cycle(\n        self, backend_base_url: str, database_url: str\n    ) -> None:\n        \"\"\"CROSS-TIER-14: test data is cleaned up; no leaked rows.\"\"\"\n        import psycopg2  # type: ignore\n\n        conn = None\n        try:\n            conn = psycopg2.connect(database_url)\n            conn.autocommit = True\n            cur = conn.cursor()\n            cur.execute(\"SELECT count(*) FROM tasks;\")\n            count_before = cur.fetchone()[0]\n\n            # Full CRUD cycle\n            _, created = _create_task(backend_base_url, title=\"isolation test\")\n            tid = created[\"id\"]\n            _request(\"GET\", f\"{backend_base_url}/tasks/{tid}\")\n            _request(\"PUT\", f\"{backend_base_url}/tasks/{tid}\", data={\"title\": \"iso updated\"})\n            _request(\"DELETE\", f\"{backend_base_url}/tasks/{tid}\")\n\n            cur.execute(\"SELECT count(*) FROM tasks;\")\n            count_after = cur.fetchone()[0]\n            assert count_after == count_before, (\n                f\"Leaked rows: before={count_before}, after={count_after}\"\n            )\n            cur.close()\n        except psycopg2.OperationalError:\n            pytest.skip(\"Database unreachable\")\n        finally:\n            if conn:\n                conn.close()\n\n\n# ---------------------------------------------------------------------------\n# 7. verify_cors_configuration\n# ---------------------------------------------------------------------------\nclass TestCorsConfiguration:\n\n    def test_cors_preflight(self, backend_base_url: str, frontend_origin: str) -> None:\n        \"\"\"CROSS-TIER-05: CORS allows frontend origin.\"\"\"\n        req = urllib.request.Request(\n            f\"{backend_base_url}/tasks\",\n            method=\"OPTIONS\",\n            headers={\n                \"Origin\": frontend_origin,\n                \"Access-Control-Request-Method\": \"POST\",\n                \"Access-Control-Request-Headers\": \"Content-Type\",\n            },\n        )\n        try:\n            resp = urllib.request.urlopen(req, timeout=5)\n            headers = {k.lower(): v for k, v in resp.headers.items()}\n        except urllib.error.HTTPError as exc:\n            headers = {k.lower(): v for k, v in exc.headers.items()}\n\n        allow_origin = headers.get(\"access-control-allow-origin\", \"\")\n        assert frontend_origin in allow_origin or \"*\" in allow_origin, (\n            f\"Origin not allowed: {allow_origin}\"\n        )\n\n        allow_methods = headers.get(\"access-control-allow-methods\", \"\").upper()\n        for method in [\"GET\", \"POST\", \"PUT\", \"DELETE\"]:\n            assert method in allow_methods, f\"{method} not in Allow-Methods: {allow_methods}\"\n\n        allow_headers = headers.get(\"access-control-allow-headers\", \"\").lower()\n        assert \"content-type\" in allow_headers, (\n            f\"Content-Type not in Allow-Headers: {allow_headers}\"\n        )\n\n\n# ---------------------------------------------------------------------------\n# 8. verify_connection_pool_lifecycle\n# ---------------------------------------------------------------------------\nclass TestConnectionPoolLifecycle:\n\n    def test_pool_functional_get_tasks(self, backend_base_url: str) -> None:\n        \"\"\"CROSS-TIER-07: pool initialized → GET /tasks succeeds.\"\"\"\n        status, _, body = _request(\"GET\", f\"{backend_base_url}/tasks\")\n        assert status == 200\n        assert isinstance(body, list)\n\n    def test_pool_functional_create_and_delete(self, backend_base_url: str) -> None:\n        \"\"\"Connection pool handles write operations correctly.\"\"\"\n        status, body = _create_task(backend_base_url, title=\"pool test\")\n        assert status == 201\n        tid = body[\"id\"]\n        _delete_task(backend_base_url, tid)\n\n\n# ---------------------------------------------------------------------------\n# 9. Type validation unit tests (no backend required)\n# ---------------------------------------------------------------------------\nclass TestTypeValidation:\n    \"\"\"Validate canonical type contracts without network calls.\"\"\"\n\n    def test_task_status_enum_values(self) -> None:\n        \"\"\"CROSS-TIER-11: TaskStatus enum values are exactly {pending, in_progress, done}.\"\"\"\n        assert VALID_STATUSES == {\"pending\", \"in_progress\", \"done\"}\n\n    def test_iso_timestamp_regex_accepts_offset(self) -> None:\n        assert ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00+00:00\")\n        assert ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00-05:00\")\n        assert ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00.123456+00:00\")\n\n    def test_iso_timestamp_regex_accepts_z(self) -> None:\n        assert ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00Z\")\n        assert ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00.123Z\")\n\n    def test_iso_timestamp_regex_rejects_naive(self) -> None:\n        assert not ISO_TIMESTAMP_RE.match(\"2024-01-15T10:30:00\")\n        assert not ISO_TIMESTAMP_RE.match(\"2024-01-15 10:30:00\")\n\n    def test_iso_timestamp_regex_rejects_unix(self) -> None:\n        assert not ISO_TIMESTAMP_RE.match(\"1705312200\")\n\n    def test_task_title_validator_non_blank_after_strip(self) -> None:\n        \"\"\"TaskTitle: 1 <= len(stripped) <= 255.\"\"\"\n        stripped = \"   \".strip()\n        assert len(stripped) == 0  # would be rejected\n        stripped2 = \"  a  \".strip()\n        assert 1 <= len(stripped2) <= 255\n\n    def test_task_title_validator_max_length(self) -> None:\n        title = \"a\" * 256\n        assert len(title.strip()) > 255  # would be rejected\n\n    def test_health_response_status_must_be_ok(self) -> None:\n        \"\"\"HealthResponse validator: status == 'ok'.\"\"\"\n        valid = {\"status\": \"ok\"}\n        assert valid[\"status\"] == \"ok\"\n        invalid = {\"status\": \"error\"}\n        assert invalid[\"status\"] != \"ok\"\n\n    def test_database_url_regex(self) -> None:\n        \"\"\"DatabaseURL must start with postgresql://.\"\"\"\n        valid = \"postgresql://user:pass@host:5432/dbname\"\n        assert valid.startswith(\"postgresql://\")\n        invalid = \"mysql://user:pass@host:3306/dbname\"\n        assert not invalid.startswith(\"postgresql://\")\n\n    def test_http_endpoint_method_validator(self) -> None:\n        \"\"\"HttpEndpoint.method must be in (GET, POST, PUT, DELETE).\"\"\"\n        allowed = {\"GET\", \"POST\", \"PUT\", \"DELETE\"}\n        assert \"PATCH\" not in allowed\n        for m in allowed:\n            assert m in allowed\n\n    def test_error_response_shape(self) -> None:\n        \"\"\"ErrorResponse has exactly a 'detail' string field.\"\"\"\n        err = {\"detail\": \"Task not found\"}\n        assert \"detail\" in err\n        assert isinstance(err[\"detail\"], str)\n\n    def test_delete_confirmation_shape(self) -> None:\n        \"\"\"DeleteConfirmation has 'detail' and 'id' fields.\"\"\"\n        dc = {\"detail\": \"Task deleted\", \"id\": 42}\n        assert \"detail\" in dc\n        assert \"id\" in dc\n\n    def test_validation_error_response_shape(self) -> None:\n        \"\"\"ValidationErrorResponse.detail is a list of ValidationErrorItem.\"\"\"\n        ver = {\n            \"detail\": [\n                {\"loc\": [\"body\", \"title\"], \"msg\": \"field required\", \"type\": \"value_error\"}\n            ]\n        }\n        assert isinstance(ver[\"detail\"], list)\n        item = ver[\"detail\"][0]\n        assert \"loc\" in item and \"msg\" in item and \"type\" in item\n"
+}

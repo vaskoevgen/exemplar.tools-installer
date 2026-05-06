@@ -1,0 +1,27 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_website_001
+
+storage_backends:
+  - owner_component: "convex_backend"
+    type: unknown
+    description: "Convex real-time database storing user comments and metadata"
+
+field_hints:
+  - backend_owner: "convex_backend"
+    field_description: "User comment text content"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Public community comments require no special protection"
+  
+  - backend_owner: "convex_backend"
+    field_description: "Comment timestamp and page association"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable, audit_field]
+    rationale: "Audit trail for comment history and page context"
+  
+  - backend_owner: "convex_backend"
+    field_description: "Comment author identifier"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Public attribution for community discussions"

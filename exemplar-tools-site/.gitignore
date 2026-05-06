@@ -1,0 +1,7 @@
+.constrain/
+.env.local
+.vercel
+node_modules/
+dist/
+*.log
+.convex/local/

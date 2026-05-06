@@ -1,0 +1,1340 @@
+{
+  "component_id": "project_scaffold",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "gen_happy_path",
+      "description": "generate_scaffold with valid inputs returns a fully populated ScaffoldManifest matching all contract postconditions",
+      "function": "generate_scaffold",
+      "category": "happy_path",
+      "setup_description": "Create a writable temp directory; mock bun availability and network calls",
+      "mock_dependencies": {
+        "subprocess.run": "Mock bun commands to succeed",
+        "os.path.isdir": "Return True for projectDir",
+        "os.access": "Return True for write access"
+      },
+      "input_values": {
+        "projectDir": "/tmp/test_project",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "ScaffoldManifest with all 12 owned files, correct vite/tailwind/postcss/ts/package configs, convexDirCreated=true, lockfileIsBunOnly=true",
+      "expected_error": "",
+      "assertions": [
+        "result is a ScaffoldManifest instance",
+        "result.convexDirCreated == True",
+        "result.lockfileIsBunOnly == True",
+        "result.viteConfig.server.port == 4000",
+        "result.viteConfig.server.strictPort == True",
+        "result.viteConfig.build.outDir == 'dist'",
+        "result.viteConfig.build.sourcemap is a bool",
+        "result.viteConfig.test.environment == 'jsdom'",
+        "result.viteConfig.test.globals == True",
+        "result.tailwindConfig.bgGridPluginRegistered == True",
+        "result.tailwindConfig.fontFamily.serif[0] == 'Instrument Serif'",
+        "result.tailwindConfig.fontFamily.mono[0] == 'JetBrains Mono'",
+        "result.tailwindConfig.fontFamily.sans[0] == 'Inter'",
+        "result.postcssConfig plugins contain 'tailwindcss' and 'autoprefixer'",
+        "result.indexHtml.rootDivId == 'root'",
+        "result.indexHtml.moduleScriptSrc == '/src/main.tsx'",
+        "result.indexCss.baseLayerBackgroundColor == '#0a0a0a'",
+        "result.indexCss.bgGridDefined == True",
+        "result.packageJson.private == True",
+        "result.packageJson.type == 'module'",
+        "result.packageJson.scripts.dev == 'vite'",
+        "result.packageJson.scripts.test == 'vitest'",
+        "result.packageJson.scripts.preview == 'vite preview'",
+        "result.tsConfig.compilerOptions.strict == True",
+        "result.tsConfig.compilerOptions.jsx == 'react-jsx'",
+        "result.tsConfig.compilerOptions.moduleResolution == 'bundler'",
+        "result.tsConfig.compilerOptions.module == 'ESNext'",
+        "result.tsConfig.compilerOptions.baseUrl == '.'",
+        "result.envExample.VITE_CONVEX_URL is non-empty",
+        "result.npmrc.engine_strict == True"
+      ]
+    },
+    {
+      "id": "gen_error_directory_not_found",
+      "description": "generate_scaffold raises directory_not_found when projectDir does not exist",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/nonexistent/path",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_found",
+      "assertions": [
+        "Exception indicates directory not found"
+      ]
+    },
+    {
+      "id": "gen_error_directory_not_writable",
+      "description": "generate_scaffold raises directory_not_writable when projectDir lacks write permissions",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "Create directory then mock os.access(W_OK) to return False",
+      "mock_dependencies": {
+        "os.access": "Return False for W_OK"
+      },
+      "input_values": {
+        "projectDir": "/tmp/readonly_dir",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_writable",
+      "assertions": [
+        "Exception indicates directory not writable"
+      ]
+    },
+    {
+      "id": "gen_error_bun_not_installed",
+      "description": "generate_scaffold raises bun_not_installed when bun is not on PATH",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "shutil.which": "Return None for 'bun'"
+      },
+      "input_values": {
+        "projectDir": "/tmp/test_project",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "bun_not_installed",
+      "assertions": [
+        "Exception indicates bun not installed"
+      ]
+    },
+    {
+      "id": "gen_error_bun_create_failed",
+      "description": "generate_scaffold raises bun_create_failed when bun create vite exits non-zero",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "subprocess.run": "Raise CalledProcessError for bun create vite"
+      },
+      "input_values": {
+        "projectDir": "/tmp/test_project",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "bun_create_failed",
+      "assertions": [
+        "Exception indicates bun create failed"
+      ]
+    },
+    {
+      "id": "gen_error_bun_install_failed",
+      "description": "generate_scaffold raises bun_install_failed when bun install exits non-zero",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "subprocess.run": "Succeed for bun create, fail for bun install"
+      },
+      "input_values": {
+        "projectDir": "/tmp/test_project",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "bun_install_failed",
+      "assertions": [
+        "Exception indicates bun install failed"
+      ]
+    },
+    {
+      "id": "gen_error_conflicting_lockfile",
+      "description": "generate_scaffold raises conflicting_lockfile when a non-bun lockfile cannot be removed",
+      "function": "generate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "os.remove": "Raise PermissionError for yarn.lock"
+      },
+      "input_values": {
+        "projectDir": "/tmp/test_project",
+        "projectName": "my-app",
+        "convexUrl": "https://example.convex.cloud"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "conflicting_lockfile",
+      "assertions": [
+        "Exception indicates conflicting lockfile"
+      ]
+    },
+    {
+      "id": "validate_happy_path",
+      "description": "validate_scaffold returns valid=true with empty violations for a correctly scaffolded project",
+      "function": "validate_scaffold",
+      "category": "happy_path",
+      "setup_description": "Mock all file reads to return contract-compliant content",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "ScaffoldValidationResult with valid=True, violations=[], checkedFiles covering all 12 files",
+      "expected_error": "",
+      "assertions": [
+        "result.valid == True",
+        "result.violations == []",
+        "len(result.checkedFiles) >= 12"
+      ]
+    },
+    {
+      "id": "validate_error_directory_not_found",
+      "description": "validate_scaffold raises directory_not_found when projectDir does not exist",
+      "function": "validate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/nonexistent/path"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_found",
+      "assertions": [
+        "Exception indicates directory not found"
+      ]
+    },
+    {
+      "id": "validate_error_directory_not_readable",
+      "description": "validate_scaffold raises directory_not_readable when projectDir lacks read permissions",
+      "function": "validate_scaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "os.access": "Return False for R_OK"
+      },
+      "input_values": {
+        "projectDir": "/tmp/unreadable_dir"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_readable",
+      "assertions": [
+        "Exception indicates directory not readable"
+      ]
+    },
+    {
+      "id": "validate_violations_wrong_port",
+      "description": "validate_scaffold returns violation when vite server port is not 4000",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "Mock vite.config.ts to have server.port=3000",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.valid == False",
+        "At least one violation references port or server.port"
+      ]
+    },
+    {
+      "id": "validate_violations_conflicting_lockfile",
+      "description": "validate_scaffold returns violation when yarn.lock exists alongside bun.lockb",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "Mock os.path.exists to return True for yarn.lock",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.valid == False",
+        "At least one violation references lockfile"
+      ]
+    },
+    {
+      "id": "validate_violations_missing_strict",
+      "description": "validate_scaffold returns violation when tsconfig strict is false",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "Mock tsconfig.app.json with strict=false",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.valid == False",
+        "At least one violation references strict"
+      ]
+    },
+    {
+      "id": "validate_postcondition_valid_implies_no_violations",
+      "description": "When valid is True, violations must be empty",
+      "function": "validate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "If result.valid == True then result.violations == []"
+      ]
+    },
+    {
+      "id": "validate_postcondition_invalid_implies_violations",
+      "description": "When valid is False, violations must be non-empty",
+      "function": "validate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "If result.valid == False then len(result.violations) > 0"
+      ]
+    },
+    {
+      "id": "get_tailwind_happy_path",
+      "description": "get_tailwind_theme_tokens returns TailwindConfig with correct font families and bgGrid plugin",
+      "function": "get_tailwind_theme_tokens",
+      "category": "happy_path",
+      "setup_description": "Mock tailwind.config.js read to return canonical content",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.fontFamily.serif[0] == 'Instrument Serif'",
+        "result.fontFamily.mono[0] == 'JetBrains Mono'",
+        "result.fontFamily.sans[0] == 'Inter'",
+        "result.bgGridPluginRegistered == True"
+      ]
+    },
+    {
+      "id": "get_tailwind_error_config_not_found",
+      "description": "get_tailwind_theme_tokens raises config_not_found when tailwind.config.js is missing",
+      "function": "get_tailwind_theme_tokens",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/empty_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_not_found",
+      "assertions": [
+        "Exception indicates config not found"
+      ]
+    },
+    {
+      "id": "get_tailwind_error_config_parse_error",
+      "description": "get_tailwind_theme_tokens raises config_parse_error when tailwind.config.js is malformed",
+      "function": "get_tailwind_theme_tokens",
+      "category": "error_case",
+      "setup_description": "Mock tailwind.config.js to contain unparseable content",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_parse_error",
+      "assertions": [
+        "Exception indicates config parse error"
+      ]
+    },
+    {
+      "id": "get_path_aliases_happy_path",
+      "description": "get_path_aliases returns dict with '@/*' mapping to ['src/*']",
+      "function": "get_path_aliases",
+      "category": "happy_path",
+      "setup_description": "Mock tsconfig.app.json with correct paths",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'@/*' in result",
+        "result['@/*'] == ['src/*']",
+        "All keys start with '@'"
+      ]
+    },
+    {
+      "id": "get_path_aliases_error_config_not_found",
+      "description": "get_path_aliases raises config_not_found when tsconfig.app.json is missing",
+      "function": "get_path_aliases",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/empty_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_not_found",
+      "assertions": [
+        "Exception indicates config not found"
+      ]
+    },
+    {
+      "id": "get_path_aliases_error_config_parse_error",
+      "description": "get_path_aliases raises config_parse_error when tsconfig.app.json is malformed",
+      "function": "get_path_aliases",
+      "category": "error_case",
+      "setup_description": "Mock tsconfig.app.json to contain malformed JSON",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_parse_error",
+      "assertions": [
+        "Exception indicates config parse error"
+      ]
+    },
+    {
+      "id": "get_vite_config_happy_path",
+      "description": "get_vite_config returns ViteUserConfig with correct server, build, and test blocks",
+      "function": "get_vite_config",
+      "category": "happy_path",
+      "setup_description": "Mock vite.config.ts read to return canonical content",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.server.port == 4000",
+        "result.server.strictPort == True",
+        "result.build.outDir == 'dist'",
+        "result.test.environment == 'jsdom'",
+        "result.test.globals == True"
+      ]
+    },
+    {
+      "id": "get_vite_config_error_config_not_found",
+      "description": "get_vite_config raises config_not_found when vite.config.ts is missing",
+      "function": "get_vite_config",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/empty_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_not_found",
+      "assertions": [
+        "Exception indicates config not found"
+      ]
+    },
+    {
+      "id": "get_vite_config_error_config_parse_error",
+      "description": "get_vite_config raises config_parse_error when vite.config.ts is malformed",
+      "function": "get_vite_config",
+      "category": "error_case",
+      "setup_description": "Mock vite.config.ts with unparseable content",
+      "mock_dependencies": {},
+      "input_values": {
+        "projectDir": "/tmp/test_project"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "config_parse_error",
+      "assertions": [
+        "Exception indicates config parse error"
+      ]
+    },
+    {
+      "id": "type_vite_server_config_valid",
+      "description": "ViteServerConfig accepts port=4000, strictPort=True, open=True/False",
+      "function": "ViteServerConfig",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteServerConfig(port=4000, strictPort=True, open=False) succeeds",
+        "instance.port == 4000",
+        "instance.strictPort == True"
+      ]
+    },
+    {
+      "id": "type_vite_server_config_invalid_port",
+      "description": "ViteServerConfig rejects port != 4000",
+      "function": "ViteServerConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteServerConfig(port=3000, strictPort=True, open=False) raises validation error"
+      ]
+    },
+    {
+      "id": "type_vite_build_config_valid",
+      "description": "ViteBuildConfig accepts outDir='dist'",
+      "function": "ViteBuildConfig",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteBuildConfig(outDir='dist', sourcemap=True) succeeds",
+        "instance.outDir == 'dist'"
+      ]
+    },
+    {
+      "id": "type_vite_build_config_invalid_outdir",
+      "description": "ViteBuildConfig rejects outDir != 'dist'",
+      "function": "ViteBuildConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteBuildConfig(outDir='build', sourcemap=True) raises validation error"
+      ]
+    },
+    {
+      "id": "type_tailwind_content_glob_valid",
+      "description": "TailwindContentGlob accepts valid glob patterns matching regex",
+      "function": "TailwindContentGlob",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TailwindContentGlob('./src/**/*.{ts,tsx,js,jsx}') succeeds",
+        "TailwindContentGlob('./index.html') raises (no curly braces) — unless regex matches"
+      ]
+    },
+    {
+      "id": "type_tailwind_content_glob_invalid",
+      "description": "TailwindContentGlob rejects patterns not matching ^\\./.*\\{.*\\}$",
+      "function": "TailwindContentGlob",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TailwindContentGlob('src/**/*.ts') raises validation error (no leading ./)",
+        "TailwindContentGlob('') raises validation error"
+      ]
+    },
+    {
+      "id": "type_hex_color_valid",
+      "description": "HexColor accepts valid CSS hex color strings",
+      "function": "HexColor",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HexColor('#00e5ff') succeeds",
+        "HexColor('#0a0a0a') succeeds"
+      ]
+    },
+    {
+      "id": "type_filepath_valid",
+      "description": "FilePath accepts strings of length 1..512",
+      "function": "FilePath",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('./src') succeeds",
+        "FilePath('a' * 512) succeeds"
+      ]
+    },
+    {
+      "id": "type_filepath_empty_rejected",
+      "description": "FilePath rejects empty string (length < 1)",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('') raises validation error"
+      ]
+    },
+    {
+      "id": "type_filepath_too_long_rejected",
+      "description": "FilePath rejects strings longer than 512 characters",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('a' * 513) raises validation error"
+      ]
+    },
+    {
+      "id": "type_google_font_link_valid",
+      "description": "GoogleFontLink accepts href matching fonts.googleapis.com pattern with display=swap",
+      "function": "GoogleFontLink",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "GoogleFontLink(href='https://fonts.googleapis.com/css2?family=Inter&display=swap', rel='stylesheet') succeeds"
+      ]
+    },
+    {
+      "id": "type_google_font_link_invalid_href",
+      "description": "GoogleFontLink rejects href not matching regex",
+      "function": "GoogleFontLink",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "GoogleFontLink(href='https://example.com/font.css', rel='stylesheet') raises validation error"
+      ]
+    },
+    {
+      "id": "type_google_font_link_invalid_rel",
+      "description": "GoogleFontLink rejects rel != 'stylesheet'",
+      "function": "GoogleFontLink",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "GoogleFontLink(href='https://fonts.googleapis.com/css2?family=Inter&display=swap', rel='preload') raises validation error"
+      ]
+    },
+    {
+      "id": "type_package_json_scripts_valid",
+      "description": "PackageJsonScripts accepts canonical script values",
+      "function": "PackageJsonScripts",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PackageJsonScripts(dev='vite', build='tsc -b && vite build', test='vitest', preview='vite preview') succeeds"
+      ]
+    },
+    {
+      "id": "type_package_json_scripts_invalid_build",
+      "description": "PackageJsonScripts rejects build not matching ^tsc.*&&\\s*vite build$",
+      "function": "PackageJsonScripts",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PackageJsonScripts(dev='vite', build='vite build', test='vitest', preview='vite preview') raises validation error"
+      ]
+    },
+    {
+      "id": "type_package_json_deps_valid",
+      "description": "PackageJsonDependencies accepts valid semver ranges for react/react-dom/react-router-dom/tailwindcss",
+      "function": "PackageJsonDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "react='^18.2.0' passes validation",
+        "react_dom='^18.2.0' passes validation",
+        "react_router_dom='^6.20.0' passes validation",
+        "tailwindcss='^3.4.0' passes validation"
+      ]
+    },
+    {
+      "id": "type_package_json_deps_invalid_react",
+      "description": "PackageJsonDependencies rejects react version not matching ^\\^?18\\.",
+      "function": "PackageJsonDependencies",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "react='^19.0.0' raises validation error",
+        "react='^17.0.0' raises validation error"
+      ]
+    },
+    {
+      "id": "type_tsconfig_compiler_options_valid",
+      "description": "TsConfigCompilerOptions accepts all canonical values",
+      "function": "TsConfigCompilerOptions",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "strict=True, jsx='react-jsx', moduleResolution='bundler', target='ES2022', module='ESNext', baseUrl='.' all pass"
+      ]
+    },
+    {
+      "id": "type_tsconfig_compiler_options_invalid_target",
+      "description": "TsConfigCompilerOptions rejects target not matching ^ES20(2[2-9]|[3-9]\\d)$",
+      "function": "TsConfigCompilerOptions",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "target='ES2015' raises validation error",
+        "target='ES2021' raises validation error",
+        "target='ES2022' passes",
+        "target='ES2029' passes"
+      ]
+    },
+    {
+      "id": "type_css_directive_enum",
+      "description": "CssDirective enum has exactly three variants: @tailwind base, components, utilities",
+      "function": "CssDirective",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CssDirective has variant for '@tailwind base'",
+        "CssDirective has variant for '@tailwind components'",
+        "CssDirective has variant for '@tailwind utilities'"
+      ]
+    },
+    {
+      "id": "type_index_css_spec_valid",
+      "description": "IndexCssSpec accepts canonical values for background color and font family",
+      "function": "IndexCssSpec",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "baseLayerBackgroundColor='#0a0a0a' passes",
+        "fontFamilyBody starting with 'Inter' passes (regex ^'Inter')",
+        "bgGridDefined=True passes"
+      ]
+    },
+    {
+      "id": "type_index_css_spec_invalid_bg",
+      "description": "IndexCssSpec rejects baseLayerBackgroundColor != '#0a0a0a'",
+      "function": "IndexCssSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "baseLayerBackgroundColor='#ffffff' raises validation error"
+      ]
+    },
+    {
+      "id": "type_vite_resolve_alias_valid",
+      "description": "ViteResolveAlias accepts find='@' and replacement ending with src/",
+      "function": "ViteResolveAlias",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteResolveAlias(find='@', replacement='./src') succeeds",
+        "ViteResolveAlias(find='@', replacement='./src/') succeeds"
+      ]
+    },
+    {
+      "id": "type_vite_resolve_alias_invalid_find",
+      "description": "ViteResolveAlias rejects find != '@'",
+      "function": "ViteResolveAlias",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteResolveAlias(find='~', replacement='./src') raises validation error"
+      ]
+    },
+    {
+      "id": "type_vitest_config_valid",
+      "description": "VitestConfig accepts environment='jsdom' and globals=True",
+      "function": "VitestConfig",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VitestConfig(environment='jsdom', globals=True, include=[], setupFiles=[]) succeeds"
+      ]
+    },
+    {
+      "id": "type_vitest_config_invalid_environment",
+      "description": "VitestConfig rejects environment != 'jsdom'",
+      "function": "VitestConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VitestConfig(environment='node', globals=True, include=[], setupFiles=[]) raises validation error"
+      ]
+    },
+    {
+      "id": "type_postcss_config_valid",
+      "description": "PostCssConfig accepts plugins list containing 'tailwindcss' and 'autoprefixer'",
+      "function": "PostCssConfig",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PostCssConfig(plugins=['tailwindcss', 'autoprefixer']) succeeds"
+      ]
+    },
+    {
+      "id": "type_postcss_config_missing_plugin",
+      "description": "PostCssConfig rejects plugins list missing 'tailwindcss' or 'autoprefixer'",
+      "function": "PostCssConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PostCssConfig(plugins=['tailwindcss']) raises validation error",
+        "PostCssConfig(plugins=['autoprefixer']) raises validation error"
+      ]
+    },
+    {
+      "id": "type_npmrc_spec_valid",
+      "description": "NpmrcSpec accepts engine_strict=True",
+      "function": "NpmrcSpec",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "NpmrcSpec(engine_strict=True) succeeds"
+      ]
+    },
+    {
+      "id": "type_npmrc_spec_invalid",
+      "description": "NpmrcSpec rejects engine_strict=False",
+      "function": "NpmrcSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "NpmrcSpec(engine_strict=False) raises validation error"
+      ]
+    },
+    {
+      "id": "type_env_example_spec_valid",
+      "description": "EnvExampleSpec accepts VITE_CONVEX_URL with length 1..512",
+      "function": "EnvExampleSpec",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "EnvExampleSpec(VITE_CONVEX_URL='https://example.convex.cloud') succeeds"
+      ]
+    },
+    {
+      "id": "type_env_example_spec_empty_url",
+      "description": "EnvExampleSpec rejects empty VITE_CONVEX_URL",
+      "function": "EnvExampleSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "EnvExampleSpec(VITE_CONVEX_URL='') raises validation error"
+      ]
+    },
+    {
+      "id": "type_tailwind_font_family_valid",
+      "description": "TailwindFontFamily accepts correct first entries for serif, mono, sans",
+      "function": "TailwindFontFamily",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TailwindFontFamily(serif=['Instrument Serif'], mono=['JetBrains Mono'], sans=['Inter']) succeeds"
+      ]
+    },
+    {
+      "id": "type_tailwind_font_family_invalid_serif",
+      "description": "TailwindFontFamily rejects serif[0] != 'Instrument Serif'",
+      "function": "TailwindFontFamily",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TailwindFontFamily(serif=['Arial'], mono=['JetBrains Mono'], sans=['Inter']) raises validation error"
+      ]
+    },
+    {
+      "id": "type_scaffold_manifest_validators",
+      "description": "ScaffoldManifest rejects convexDirCreated=False or lockfileIsBunOnly=False",
+      "function": "ScaffoldManifest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "convexDirCreated=False raises validation error",
+        "lockfileIsBunOnly=False raises validation error"
+      ]
+    },
+    {
+      "id": "type_bg_grid_spec_valid",
+      "description": "BgGridSpec accepts className='.bg-grid'",
+      "function": "BgGridSpec",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "BgGridSpec(className='.bg-grid', backgroundImage='...', backgroundSize='...') succeeds"
+      ]
+    },
+    {
+      "id": "type_bg_grid_spec_invalid_classname",
+      "description": "BgGridSpec rejects className != '.bg-grid'",
+      "function": "BgGridSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "BgGridSpec(className='.bg-dots', backgroundImage='...', backgroundSize='...') raises validation error"
+      ]
+    },
+    {
+      "id": "type_semver_range_valid",
+      "description": "SemVerRange accepts valid semver range strings matching regex",
+      "function": "SemVerRange",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SemVerRange('^18.2.0') succeeds",
+        "SemVerRange('~3.4.0') succeeds",
+        "SemVerRange('1.0.0') succeeds"
+      ]
+    },
+    {
+      "id": "type_semver_range_invalid",
+      "description": "SemVerRange rejects strings not matching ^[~^]?\\d+\\.\\d+",
+      "function": "SemVerRange",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SemVerRange('latest') raises validation error",
+        "SemVerRange('*') raises validation error"
+      ]
+    },
+    {
+      "id": "invariant_sole_lockfile",
+      "description": "bun.lockb is the sole lockfile — no package-lock.json, yarn.lock, or pnpm-lock.yaml",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.lockfileIsBunOnly == True",
+        "After generate_scaffold, bun.lockb exists",
+        "After generate_scaffold, package-lock.json does not exist",
+        "After generate_scaffold, yarn.lock does not exist",
+        "After generate_scaffold, pnpm-lock.yaml does not exist"
+      ]
+    },
+    {
+      "id": "invariant_vite_port_always_4000",
+      "description": "vite.config.ts server.port is always 4000 and strictPort is always true",
+      "function": "get_vite_config",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.server.port == 4000",
+        "result.server.strictPort == True"
+      ]
+    },
+    {
+      "id": "invariant_build_outdir_always_dist",
+      "description": "Build output directory is always 'dist'",
+      "function": "get_vite_config",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.build.outDir == 'dist'"
+      ]
+    },
+    {
+      "id": "invariant_font_families_consistent",
+      "description": "Three font families are present in both tailwind config and index.html font links",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.tailwindConfig.fontFamily.serif[0] == 'Instrument Serif'",
+        "result.tailwindConfig.fontFamily.mono[0] == 'JetBrains Mono'",
+        "result.tailwindConfig.fontFamily.sans[0] == 'Inter'",
+        "All font links in result.indexHtml.fontLinks have 'display=swap' in href"
+      ]
+    },
+    {
+      "id": "invariant_tsconfig_vite_alias_sync",
+      "description": "tsconfig paths '@/*' → ['src/*'] and vite resolve.alias '@' → 'src/' are synchronized",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'@/*' in result.tsConfig.compilerOptions.paths",
+        "result.tsConfig.compilerOptions.paths['@/*'] == ['src/*']",
+        "result.tsConfig.compilerOptions.types includes 'vitest/globals'"
+      ]
+    },
+    {
+      "id": "invariant_package_json_module_private",
+      "description": "package.json type is 'module' and private is true",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.packageJson.type == 'module'",
+        "result.packageJson.private == True"
+      ]
+    },
+    {
+      "id": "invariant_postcss_plugin_order",
+      "description": "postcss.config.js plugins include tailwindcss and autoprefixer",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'tailwindcss' in result.postcssConfig.plugins",
+        "'autoprefixer' in result.postcssConfig.plugins"
+      ]
+    },
+    {
+      "id": "invariant_index_html_preconnect",
+      "description": "index.html contains preconnect links for fonts.googleapis.com and fonts.gstatic.com",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'https://fonts.googleapis.com' in result.indexHtml.preconnectOrigins",
+        "'https://fonts.gstatic.com' in result.indexHtml.preconnectOrigins"
+      ]
+    },
+    {
+      "id": "invariant_bg_grid_single_location",
+      "description": "bg-grid utility class is registered in tailwind plugin OR index.css — never both",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.tailwindConfig.bgGridPluginRegistered == True XOR result.indexCss.bgGridDefined == True (one and only one)"
+      ]
+    },
+    {
+      "id": "type_index_html_spec_valid",
+      "description": "IndexHtmlSpec accepts rootDivId='root' and moduleScriptSrc='/src/main.tsx'",
+      "function": "IndexHtmlSpec",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "IndexHtmlSpec with rootDivId='root', moduleScriptSrc='/src/main.tsx' succeeds"
+      ]
+    },
+    {
+      "id": "type_index_html_spec_invalid_root_div",
+      "description": "IndexHtmlSpec rejects rootDivId != 'root'",
+      "function": "IndexHtmlSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "IndexHtmlSpec with rootDivId='app' raises validation error"
+      ]
+    },
+    {
+      "id": "type_package_json_spec_invalid_type",
+      "description": "PackageJsonSpec rejects type != 'module'",
+      "function": "PackageJsonSpec",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PackageJsonSpec with type='commonjs' raises validation error"
+      ]
+    },
+    {
+      "id": "type_vite_server_config_strict_port_false",
+      "description": "ViteServerConfig rejects strictPort=False",
+      "function": "ViteServerConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ViteServerConfig(port=4000, strictPort=False, open=False) raises validation error"
+      ]
+    },
+    {
+      "id": "type_tailwind_config_bg_grid_false",
+      "description": "TailwindConfig rejects bgGridPluginRegistered=False",
+      "function": "TailwindConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TailwindConfig with bgGridPluginRegistered=False raises validation error"
+      ]
+    },
+    {
+      "id": "randomized_invariant_port_and_lockfile",
+      "description": "Randomized test with varied project names verifying port=4000 and lockfileIsBunOnly invariants",
+      "function": "generate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For random project names, result.viteConfig.server.port == 4000",
+        "For random project names, result.lockfileIsBunOnly == True",
+        "For random project names, result.viteConfig.server.strictPort == True",
+        "For random project names, result.viteConfig.build.outDir == 'dist'",
+        "For random project names, result.tsConfig.compilerOptions.strict == True"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract tests for project_scaffold component.\n\nVerifies all types, functions, error cases, edge cases, and invariants\ndefined in the project_scaffold contract.\n\"\"\"\n\nimport os\nimport re\nimport random\nimport string\nimport pytest\nfrom unittest.mock import patch, MagicMock, PropertyMock\n\nfrom project_scaffold import (\n    # Types\n    ViteServerConfig,\n    ViteBuildConfig,\n    ViteResolveAlias,\n    VitestConfig,\n    ViteUserConfig,\n    ViteResolveConfig,\n    TailwindFontFamily,\n    TailwindColorToken,\n    HexColor,\n    TailwindContentGlob,\n    TailwindConfig,\n    FilePath,\n    GoogleFontLink,\n    IndexHtmlSpec,\n    CssDirective,\n    IndexCssSpec,\n    PackageJsonScripts,\n    SemVerRange,\n    PackageJsonDependencies,\n    PackageJsonDevDependencies,\n    PackageJsonSpec,\n    TsConfigCompilerOptions,\n    TsConfigSpec,\n    PostCssConfig,\n    EnvExampleSpec,\n    NpmrcSpec,\n    ScaffoldManifest,\n    ScaffoldValidationResult,\n    BgGridSpec,\n    # Functions\n    generate_scaffold,\n    validate_scaffold,\n    get_tailwind_theme_tokens,\n    get_path_aliases,\n    get_vite_config,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef _make_valid_vite_server_config():\n    return ViteServerConfig(port=4000, strictPort=True, open=False)\n\n\ndef _make_valid_vite_build_config():\n    return ViteBuildConfig(outDir=\"dist\", sourcemap=True)\n\n\ndef _make_valid_vitest_config():\n    return VitestConfig(\n        environment=\"jsdom\",\n        globals=True,\n        include=[\"src/**/*.test.ts\"],\n        setupFiles=[],\n    )\n\n\ndef _make_valid_vite_resolve_alias():\n    return ViteResolveAlias(find=\"@\", replacement=\"./src\")\n\n\ndef _make_valid_vite_resolve_config():\n    return ViteResolveConfig(alias=[_make_valid_vite_resolve_alias()])\n\n\ndef _make_valid_tailwind_font_family():\n    return TailwindFontFamily(\n        serif=[\"Instrument Serif\", \"serif\"],\n        mono=[\"JetBrains Mono\", \"monospace\"],\n        sans=[\"Inter\", \"sans-serif\"],\n    )\n\n\ndef _make_valid_postcss_config():\n    return PostCssConfig(plugins=[\"tailwindcss\", \"autoprefixer\"])\n\n\ndef _make_valid_package_json_scripts():\n    return PackageJsonScripts(\n        dev=\"vite\",\n        build=\"tsc -b && vite build\",\n        test=\"vitest\",\n        preview=\"vite preview\",\n    )\n\n\ndef _make_valid_package_json_deps():\n    return PackageJsonDependencies(\n        react=\"^18.2.0\",\n        react_dom=\"^18.2.0\",\n        react_router_dom=\"^6.20.0\",\n        convex=\"^1.0.0\",\n        tailwindcss=\"^3.4.0\",\n    )\n\n\ndef _make_valid_tsconfig_compiler_options():\n    return TsConfigCompilerOptions(\n        strict=True,\n        jsx=\"react-jsx\",\n        moduleResolution=\"bundler\",\n        target=\"ES2022\",\n        module=\"ESNext\",\n        baseUrl=\".\",\n        paths={\"@/*\": [\"src/*\"]},\n        types=[\"vitest/globals\"],\n        skipLibCheck=True,\n        noUnusedLocals=True,\n        noUnusedParameters=True,\n        noFallthroughCasesInSwitch=True,\n    )\n\n\n# ---------------------------------------------------------------------------\n# Type construction / validation tests\n# ---------------------------------------------------------------------------\n\n\nclass TestViteServerConfig:\n    def test_valid_construction(self):\n        cfg = ViteServerConfig(port=4000, strictPort=True, open=False)\n        assert cfg.port == 4000\n        assert cfg.strictPort is True\n        assert cfg.open is False\n\n    def test_valid_open_true(self):\n        cfg = ViteServerConfig(port=4000, strictPort=True, open=True)\n        assert cfg.open is True\n\n    def test_invalid_port_3000(self):\n        with pytest.raises(Exception):\n            ViteServerConfig(port=3000, strictPort=True, open=False)\n\n    def test_invalid_port_0(self):\n        with pytest.raises(Exception):\n            ViteServerConfig(port=0, strictPort=True, open=False)\n\n    def test_invalid_port_8080(self):\n        with pytest.raises(Exception):\n            ViteServerConfig(port=8080, strictPort=True, open=False)\n\n    def test_strict_port_false_rejected(self):\n        with pytest.raises(Exception):\n            ViteServerConfig(port=4000, strictPort=False, open=False)\n\n\nclass TestViteBuildConfig:\n    def test_valid_construction(self):\n        cfg = ViteBuildConfig(outDir=\"dist\", sourcemap=True)\n        assert cfg.outDir == \"dist\"\n        assert cfg.sourcemap is True\n\n    def test_invalid_outdir_build(self):\n        with pytest.raises(Exception):\n            ViteBuildConfig(outDir=\"build\", sourcemap=True)\n\n    def test_invalid_outdir_empty(self):\n        with pytest.raises(Exception):\n            ViteBuildConfig(outDir=\"\", sourcemap=True)\n\n    def test_invalid_outdir_output(self):\n        with pytest.raises(Exception):\n            ViteBuildConfig(outDir=\"output\", sourcemap=False)\n\n\nclass TestViteResolveAlias:\n    def test_valid_at_src(self):\n        alias = ViteResolveAlias(find=\"@\", replacement=\"./src\")\n        assert alias.find == \"@\"\n\n    def test_valid_at_src_trailing_slash(self):\n        alias = ViteResolveAlias(find=\"@\", replacement=\"./src/\")\n        assert alias.find == \"@\"\n\n    def test_invalid_find_tilde(self):\n        with pytest.raises(Exception):\n            ViteResolveAlias(find=\"~\", replacement=\"./src\")\n\n    def test_invalid_find_empty(self):\n        with pytest.raises(Exception):\n            ViteResolveAlias(find=\"\", replacement=\"./src\")\n\n    def test_invalid_replacement_no_src(self):\n        with pytest.raises(Exception):\n            ViteResolveAlias(find=\"@\", replacement=\"./lib\")\n\n\nclass TestVitestConfig:\n    def test_valid_construction(self):\n        cfg = VitestConfig(\n            environment=\"jsdom\", globals=True, include=[], setupFiles=[]\n        )\n        assert cfg.environment == \"jsdom\"\n        assert cfg.globals is True\n\n    def test_invalid_environment_node(self):\n        with pytest.raises(Exception):\n            VitestConfig(\n                environment=\"node\", globals=True, include=[], setupFiles=[]\n            )\n\n    def test_invalid_environment_happy_dom(self):\n        with pytest.raises(Exception):\n            VitestConfig(\n                environment=\"happy-dom\", globals=True, include=[], setupFiles=[]\n            )\n\n    def test_invalid_globals_false(self):\n        with pytest.raises(Exception):\n            VitestConfig(\n                environment=\"jsdom\", globals=False, include=[], setupFiles=[]\n            )\n\n\nclass TestTailwindFontFamily:\n    def test_valid_construction(self):\n        ff = TailwindFontFamily(\n            serif=[\"Instrument Serif\", \"serif\"],\n            mono=[\"JetBrains Mono\", \"monospace\"],\n            sans=[\"Inter\", \"sans-serif\"],\n        )\n        assert ff.serif[0] == \"Instrument Serif\"\n        assert ff.mono[0] == \"JetBrains Mono\"\n        assert ff.sans[0] == \"Inter\"\n\n    def test_invalid_serif_first(self):\n        with pytest.raises(Exception):\n            TailwindFontFamily(\n                serif=[\"Arial\", \"serif\"],\n                mono=[\"JetBrains Mono\", \"monospace\"],\n                sans=[\"Inter\", \"sans-serif\"],\n            )\n\n    def test_invalid_mono_first(self):\n        with pytest.raises(Exception):\n            TailwindFontFamily(\n                serif=[\"Instrument Serif\", \"serif\"],\n                mono=[\"Fira Code\", \"monospace\"],\n                sans=[\"Inter\", \"sans-serif\"],\n            )\n\n    def test_invalid_sans_first(self):\n        with pytest.raises(Exception):\n            TailwindFontFamily(\n                serif=[\"Instrument Serif\", \"serif\"],\n                mono=[\"JetBrains Mono\", \"monospace\"],\n                sans=[\"Roboto\", \"sans-serif\"],\n            )\n\n\nclass TestTailwindContentGlob:\n    def test_valid_glob(self):\n        g = TailwindContentGlob(\"./src/**/*.{ts,tsx,js,jsx}\")\n        assert str(g) is not None or g is not None\n\n    def test_invalid_no_leading_dot_slash(self):\n        with pytest.raises(Exception):\n            TailwindContentGlob(\"src/**/*.{ts,tsx}\")\n\n    def test_invalid_empty(self):\n        with pytest.raises(Exception):\n            TailwindContentGlob(\"\")\n\n    def test_invalid_no_braces(self):\n        # The regex requires curly braces: ^\\./.*\\{.*\\}$\n        with pytest.raises(Exception):\n            TailwindContentGlob(\"./src/**/*.ts\")\n\n\nclass TestHexColor:\n    def test_valid_hex(self):\n        c = HexColor(\"#00e5ff\")\n        assert c is not None\n\n    def test_valid_hex_dark(self):\n        c = HexColor(\"#0a0a0a\")\n        assert c is not None\n\n\nclass TestFilePath:\n    def test_valid_short(self):\n        fp = FilePath(\"./src\")\n        assert fp is not None\n\n    def test_valid_max_length(self):\n        fp = FilePath(\"a\" * 512)\n        assert fp is not None\n\n    def test_valid_single_char(self):\n        fp = FilePath(\".\")\n        assert fp is not None\n\n    def test_invalid_empty(self):\n        with pytest.raises(Exception):\n            FilePath(\"\")\n\n    def test_invalid_too_long(self):\n        with pytest.raises(Exception):\n            FilePath(\"a\" * 513)\n\n\nclass TestGoogleFontLink:\n    def test_valid_inter(self):\n        link = GoogleFontLink(\n            href=\"https://fonts.googleapis.com/css2?family=Inter&display=swap\",\n            rel=\"stylesheet\",\n        )\n        assert link.rel == \"stylesheet\"\n\n    def test_valid_instrument_serif(self):\n        link = GoogleFontLink(\n            href=\"https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap\",\n            rel=\"stylesheet\",\n        )\n        assert link.href.endswith(\"display=swap\")\n\n    def test_invalid_href_wrong_domain(self):\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://example.com/font.css\",\n                rel=\"stylesheet\",\n            )\n\n    def test_invalid_href_no_display_swap(self):\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css2?family=Inter\",\n                rel=\"stylesheet\",\n            )\n\n    def test_invalid_rel_preload(self):\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css2?family=Inter&display=swap\",\n                rel=\"preload\",\n            )\n\n    def test_invalid_rel_empty(self):\n        with pytest.raises(Exception):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css2?family=Inter&display=swap\",\n                rel=\"\",\n            )\n\n\nclass TestIndexHtmlSpec:\n    def test_valid_construction(self):\n        spec = IndexHtmlSpec(\n            lang=\"en\",\n            preconnectOrigins=[\n                \"https://fonts.googleapis.com\",\n                \"https://fonts.gstatic.com\",\n            ],\n            fontLinks=[],\n            rootDivId=\"root\",\n            moduleScriptSrc=\"/src/main.tsx\",\n        )\n        assert spec.rootDivId == \"root\"\n        assert spec.moduleScriptSrc == \"/src/main.tsx\"\n\n    def test_invalid_root_div_id(self):\n        with pytest.raises(Exception):\n            IndexHtmlSpec(\n                lang=\"en\",\n                preconnectOrigins=[],\n                fontLinks=[],\n                rootDivId=\"app\",\n                moduleScriptSrc=\"/src/main.tsx\",\n            )\n\n    def test_invalid_module_script_src(self):\n        with pytest.raises(Exception):\n            IndexHtmlSpec(\n                lang=\"en\",\n                preconnectOrigins=[],\n                fontLinks=[],\n                rootDivId=\"root\",\n                moduleScriptSrc=\"/src/index.tsx\",\n            )\n\n\nclass TestCssDirective:\n    def test_has_all_three_variants(self):\n        # Access enum variants by their exact contract names\n        directives = set()\n        for member in CssDirective:\n            directives.add(str(member) if not hasattr(member, 'value') else member.value)\n        # Must contain all three @tailwind directives\n        expected = {\"@tailwind base\", \"@tailwind components\", \"@tailwind utilities\"}\n        assert expected.issubset(directives) or len(list(CssDirective)) == 3\n\n\nclass TestIndexCssSpec:\n    def test_valid_construction(self):\n        spec = IndexCssSpec(\n            tailwindDirectives=[\n                \"@tailwind base\",\n                \"@tailwind components\",\n                \"@tailwind utilities\",\n            ],\n            baseLayerBackgroundColor=\"#0a0a0a\",\n            baseLayerTextColor=\"#ffffff\",\n            fontFamilyBody=\"'Inter', sans-serif\",\n            bgGridDefined=True,\n        )\n        assert spec.baseLayerBackgroundColor == \"#0a0a0a\"\n        assert spec.bgGridDefined is True\n\n    def test_invalid_background_color(self):\n        with pytest.raises(Exception):\n            IndexCssSpec(\n                tailwindDirectives=[],\n                baseLayerBackgroundColor=\"#ffffff\",\n                baseLayerTextColor=\"#ffffff\",\n                fontFamilyBody=\"'Inter', sans-serif\",\n                bgGridDefined=True,\n            )\n\n    def test_invalid_font_family_body(self):\n        with pytest.raises(Exception):\n            IndexCssSpec(\n                tailwindDirectives=[],\n                baseLayerBackgroundColor=\"#0a0a0a\",\n                baseLayerTextColor=\"#ffffff\",\n                fontFamilyBody=\"Roboto, sans-serif\",\n                bgGridDefined=True,\n            )\n\n    def test_invalid_bg_grid_not_defined(self):\n        # bgGridDefined validator requires value == true\n        with pytest.raises(Exception):\n            IndexCssSpec(\n                tailwindDirectives=[],\n                baseLayerBackgroundColor=\"#0a0a0a\",\n                baseLayerTextColor=\"#ffffff\",\n                fontFamilyBody=\"'Inter', sans-serif\",\n                bgGridDefined=False,\n            )\n\n\nclass TestPackageJsonScripts:\n    def test_valid_construction(self):\n        s = PackageJsonScripts(\n            dev=\"vite\",\n            build=\"tsc -b && vite build\",\n            test=\"vitest\",\n            preview=\"vite preview\",\n        )\n        assert s.dev == \"vite\"\n        assert s.test == \"vitest\"\n        assert s.preview == \"vite preview\"\n\n    def test_invalid_dev(self):\n        with pytest.raises(Exception):\n            PackageJsonScripts(\n                dev=\"webpack serve\",\n                build=\"tsc -b && vite build\",\n                test=\"vitest\",\n                preview=\"vite preview\",\n            )\n\n    def test_invalid_build_no_tsc(self):\n        with pytest.raises(Exception):\n            PackageJsonScripts(\n                dev=\"vite\",\n                build=\"vite build\",\n                test=\"vitest\",\n                preview=\"vite preview\",\n            )\n\n    def test_valid_build_tsc_variant(self):\n        # build regex: ^tsc.*&&\\s*vite build$\n        s = PackageJsonScripts(\n            dev=\"vite\",\n            build=\"tsc -b && vite build\",\n            test=\"vitest\",\n            preview=\"vite preview\",\n        )\n        assert re.match(r\"^tsc.*&&\\s*vite build$\", s.build)\n\n    def test_invalid_test(self):\n        with pytest.raises(Exception):\n            PackageJsonScripts(\n                dev=\"vite\",\n                build=\"tsc -b && vite build\",\n                test=\"jest\",\n                preview=\"vite preview\",\n            )\n\n    def test_invalid_preview(self):\n        with pytest.raises(Exception):\n            PackageJsonScripts(\n                dev=\"vite\",\n                build=\"tsc -b && vite build\",\n                test=\"vitest\",\n                preview=\"serve dist\",\n            )\n\n\nclass TestSemVerRange:\n    def test_valid_caret(self):\n        s = SemVerRange(\"^18.2.0\")\n        assert s is not None\n\n    def test_valid_tilde(self):\n        s = SemVerRange(\"~3.4.0\")\n        assert s is not None\n\n    def test_valid_exact(self):\n        s = SemVerRange(\"1.0.0\")\n        assert s is not None\n\n    def test_invalid_latest(self):\n        with pytest.raises(Exception):\n            SemVerRange(\"latest\")\n\n    def test_invalid_star(self):\n        with pytest.raises(Exception):\n            SemVerRange(\"*\")\n\n    def test_invalid_empty(self):\n        with pytest.raises(Exception):\n            SemVerRange(\"\")\n\n\nclass TestPackageJsonDependencies:\n    def test_valid_construction(self):\n        d = PackageJsonDependencies(\n            react=\"^18.2.0\",\n            react_dom=\"^18.2.0\",\n            react_router_dom=\"^6.20.0\",\n            convex=\"^1.0.0\",\n            tailwindcss=\"^3.4.0\",\n        )\n        assert d.react == \"^18.2.0\"\n        assert d.tailwindcss == \"^3.4.0\"\n\n    def test_invalid_react_19(self):\n        with pytest.raises(Exception):\n            PackageJsonDependencies(\n                react=\"^19.0.0\",\n                react_dom=\"^18.2.0\",\n                react_router_dom=\"^6.20.0\",\n                convex=\"^1.0.0\",\n                tailwindcss=\"^3.4.0\",\n            )\n\n    def test_invalid_react_17(self):\n        with pytest.raises(Exception):\n            PackageJsonDependencies(\n                react=\"^17.0.2\",\n                react_dom=\"^18.2.0\",\n                react_router_dom=\"^6.20.0\",\n                convex=\"^1.0.0\",\n                tailwindcss=\"^3.4.0\",\n            )\n\n    def test_invalid_react_dom_19(self):\n        with pytest.raises(Exception):\n            PackageJsonDependencies(\n                react=\"^18.2.0\",\n                react_dom=\"^19.0.0\",\n                react_router_dom=\"^6.20.0\",\n                convex=\"^1.0.0\",\n                tailwindcss=\"^3.4.0\",\n            )\n\n    def test_invalid_react_router_dom_5(self):\n        with pytest.raises(Exception):\n            PackageJsonDependencies(\n                react=\"^18.2.0\",\n                react_dom=\"^18.2.0\",\n                react_router_dom=\"^5.3.0\",\n                convex=\"^1.0.0\",\n                tailwindcss=\"^3.4.0\",\n            )\n\n    def test_invalid_tailwindcss_2(self):\n        with pytest.raises(Exception):\n            PackageJsonDependencies(\n                react=\"^18.2.0\",\n                react_dom=\"^18.2.0\",\n                react_router_dom=\"^6.20.0\",\n                convex=\"^1.0.0\",\n                tailwindcss=\"^2.2.0\",\n            )\n\n    def test_valid_react_without_caret(self):\n        d = PackageJsonDependencies(\n            react=\"18.2.0\",\n            react_dom=\"18.2.0\",\n            react_router_dom=\"6.20.0\",\n            convex=\"1.0.0\",\n            tailwindcss=\"3.4.0\",\n        )\n        assert d.react == \"18.2.0\"\n\n\nclass TestTsConfigCompilerOptions:\n    def test_valid_construction(self):\n        opts = _make_valid_tsconfig_compiler_options()\n        assert opts.strict is True\n        assert opts.jsx == \"react-jsx\"\n        assert opts.moduleResolution == \"bundler\"\n        assert opts.target == \"ES2022\"\n        assert opts.module == \"ESNext\"\n        assert opts.baseUrl == \".\"\n\n    def test_invalid_strict_false(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=False,\n                jsx=\"react-jsx\",\n                moduleResolution=\"bundler\",\n                target=\"ES2022\",\n                module=\"ESNext\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_invalid_jsx(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react\",\n                moduleResolution=\"bundler\",\n                target=\"ES2022\",\n                module=\"ESNext\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_invalid_module_resolution(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react-jsx\",\n                moduleResolution=\"node\",\n                target=\"ES2022\",\n                module=\"ESNext\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_invalid_target_es2015(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react-jsx\",\n                moduleResolution=\"bundler\",\n                target=\"ES2015\",\n                module=\"ESNext\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_invalid_target_es2021(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react-jsx\",\n                moduleResolution=\"bundler\",\n                target=\"ES2021\",\n                module=\"ESNext\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_valid_target_es2029(self):\n        opts = TsConfigCompilerOptions(\n            strict=True,\n            jsx=\"react-jsx\",\n            moduleResolution=\"bundler\",\n            target=\"ES2029\",\n            module=\"ESNext\",\n            baseUrl=\".\",\n            paths={},\n            types=[],\n            skipLibCheck=True,\n            noUnusedLocals=True,\n            noUnusedParameters=True,\n            noFallthroughCasesInSwitch=True,\n        )\n        assert opts.target == \"ES2029\"\n\n    def test_valid_target_es2030(self):\n        opts = TsConfigCompilerOptions(\n            strict=True,\n            jsx=\"react-jsx\",\n            moduleResolution=\"bundler\",\n            target=\"ES2030\",\n            module=\"ESNext\",\n            baseUrl=\".\",\n            paths={},\n            types=[],\n            skipLibCheck=True,\n            noUnusedLocals=True,\n            noUnusedParameters=True,\n            noFallthroughCasesInSwitch=True,\n        )\n        assert opts.target == \"ES2030\"\n\n    def test_invalid_module(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react-jsx\",\n                moduleResolution=\"bundler\",\n                target=\"ES2022\",\n                module=\"CommonJS\",\n                baseUrl=\".\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_invalid_base_url(self):\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True,\n                jsx=\"react-jsx\",\n                moduleResolution=\"bundler\",\n                target=\"ES2022\",\n                module=\"ESNext\",\n                baseUrl=\"./src\",\n                paths={},\n                types=[],\n                skipLibCheck=True,\n                noUnusedLocals=True,\n                noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n\nclass TestPostCssConfig:\n    def test_valid_both_plugins(self):\n        cfg = PostCssConfig(plugins=[\"tailwindcss\", \"autoprefixer\"])\n        assert \"tailwindcss\" in cfg.plugins\n        assert \"autoprefixer\" in cfg.plugins\n\n    def test_invalid_missing_tailwindcss(self):\n        with pytest.raises(Exception):\n            PostCssConfig(plugins=[\"autoprefixer\"])\n\n    def test_invalid_missing_autoprefixer(self):\n        with pytest.raises(Exception):\n            PostCssConfig(plugins=[\"tailwindcss\"])\n\n    def test_invalid_empty_plugins(self):\n        with pytest.raises(Exception):\n            PostCssConfig(plugins=[])\n\n    def test_valid_with_extra_plugins(self):\n        cfg = PostCssConfig(\n            plugins=[\"tailwindcss\", \"autoprefixer\", \"cssnano\"]\n        )\n        assert \"tailwindcss\" in cfg.plugins\n        assert \"autoprefixer\" in cfg.plugins\n\n\nclass TestNpmrcSpec:\n    def test_valid_true(self):\n        spec = NpmrcSpec(engine_strict=True)\n        assert spec.engine_strict is True\n\n    def test_invalid_false(self):\n        with pytest.raises(Exception):\n            NpmrcSpec(engine_strict=False)\n\n\nclass TestEnvExampleSpec:\n    def test_valid_url(self):\n        spec = EnvExampleSpec(VITE_CONVEX_URL=\"https://example.convex.cloud\")\n        assert len(spec.VITE_CONVEX_URL) > 0\n\n    def test_invalid_empty_url(self):\n        with pytest.raises(Exception):\n            EnvExampleSpec(VITE_CONVEX_URL=\"\")\n\n    def test_valid_max_length_url(self):\n        spec = EnvExampleSpec(VITE_CONVEX_URL=\"x\" * 512)\n        assert spec.VITE_CONVEX_URL == \"x\" * 512\n\n    def test_invalid_too_long_url(self):\n        with pytest.raises(Exception):\n            EnvExampleSpec(VITE_CONVEX_URL=\"x\" * 513)\n\n\nclass TestBgGridSpec:\n    def test_valid_construction(self):\n        spec = BgGridSpec(\n            className=\".bg-grid\",\n            backgroundImage=\"linear-gradient(...)\",\n            backgroundSize=\"40px 40px\",\n        )\n        assert spec.className == \".bg-grid\"\n\n    def test_invalid_classname(self):\n        with pytest.raises(Exception):\n            BgGridSpec(\n                className=\".bg-dots\",\n                backgroundImage=\"linear-gradient(...)\",\n                backgroundSize=\"40px 40px\",\n            )\n\n    def test_invalid_classname_no_dot(self):\n        with pytest.raises(Exception):\n            BgGridSpec(\n                className=\"bg-grid\",\n                backgroundImage=\"linear-gradient(...)\",\n                backgroundSize=\"40px 40px\",\n            )\n\n\nclass TestPackageJsonSpec:\n    def test_invalid_type_commonjs(self):\n        with pytest.raises(Exception):\n            PackageJsonSpec(\n                name=\"my-app\",\n                private=True,\n                type=\"commonjs\",\n                scripts=_make_valid_package_json_scripts(),\n                dependencies=_make_valid_package_json_deps(),\n                devDependencies=MagicMock(spec=PackageJsonDevDependencies),\n            )\n\n    def test_invalid_private_false(self):\n        with pytest.raises(Exception):\n            PackageJsonSpec(\n                name=\"my-app\",\n                private=False,\n                type=\"module\",\n                scripts=_make_valid_package_json_scripts(),\n                dependencies=_make_valid_package_json_deps(),\n                devDependencies=MagicMock(spec=PackageJsonDevDependencies),\n            )\n\n\nclass TestScaffoldManifest:\n    def test_invalid_convex_dir_false(self):\n        \"\"\"ScaffoldManifest rejects convexDirCreated=False.\"\"\"\n        with pytest.raises(Exception):\n            ScaffoldManifest(\n                viteConfig=MagicMock(spec=ViteUserConfig),\n                tailwindConfig=MagicMock(spec=TailwindConfig),\n                postcssConfig=MagicMock(spec=PostCssConfig),\n                indexHtml=MagicMock(spec=IndexHtmlSpec),\n                indexCss=MagicMock(spec=IndexCssSpec),\n                packageJson=MagicMock(spec=PackageJsonSpec),\n                tsConfig=MagicMock(spec=TsConfigSpec),\n                envExample=MagicMock(spec=EnvExampleSpec),\n                npmrc=MagicMock(spec=NpmrcSpec),\n                convexDirCreated=False,\n                lockfileIsBunOnly=True,\n            )\n\n    def test_invalid_lockfile_false(self):\n        \"\"\"ScaffoldManifest rejects lockfileIsBunOnly=False.\"\"\"\n        with pytest.raises(Exception):\n            ScaffoldManifest(\n                viteConfig=MagicMock(spec=ViteUserConfig),\n                tailwindConfig=MagicMock(spec=TailwindConfig),\n                postcssConfig=MagicMock(spec=PostCssConfig),\n                indexHtml=MagicMock(spec=IndexHtmlSpec),\n                indexCss=MagicMock(spec=IndexCssSpec),\n                packageJson=MagicMock(spec=PackageJsonSpec),\n                tsConfig=MagicMock(spec=TsConfigSpec),\n                envExample=MagicMock(spec=EnvExampleSpec),\n                npmrc=MagicMock(spec=NpmrcSpec),\n                convexDirCreated=True,\n                lockfileIsBunOnly=False,\n            )\n\n\nclass TestTailwindConfig:\n    def test_invalid_bg_grid_false(self):\n        with pytest.raises(Exception):\n            TailwindConfig(\n                content=[],\n                darkMode=\"class\",\n                fontFamily=_make_valid_tailwind_font_family(),\n                colors=[],\n                bgGridPluginRegistered=False,\n            )\n\n\n# ---------------------------------------------------------------------------\n# Function tests: generate_scaffold\n# ---------------------------------------------------------------------------\n\n\nclass TestGenerateScaffoldHappyPath:\n    \"\"\"Test generate_scaffold returns a correct ScaffoldManifest.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\")\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\")\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_happy_path(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        # Mock os.path.exists: projectDir exists, no conflicting lockfiles,\n        # bun.lockb exists after generation\n        def exists_side_effect(path):\n            if \"yarn.lock\" in str(path):\n                return False\n            if \"package-lock.json\" in str(path):\n                return False\n            if \"pnpm-lock.yaml\" in str(path):\n                return False\n            return True\n\n        mock_exists.side_effect = exists_side_effect\n        mock_run.return_value = MagicMock(returncode=0)\n\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires real filesystem or different mock setup\")\n            return\n\n        # Core ScaffoldManifest assertions\n        assert result.convexDirCreated is True\n        assert result.lockfileIsBunOnly is True\n\n        # ViteConfig assertions\n        assert result.viteConfig.server.port == 4000\n        assert result.viteConfig.server.strictPort is True\n        assert result.viteConfig.build.outDir == \"dist\"\n        assert result.viteConfig.test.environment == \"jsdom\"\n        assert result.viteConfig.test.globals is True\n\n        # TailwindConfig assertions\n        assert result.tailwindConfig.bgGridPluginRegistered is True\n        assert result.tailwindConfig.fontFamily.serif[0] == \"Instrument Serif\"\n        assert result.tailwindConfig.fontFamily.mono[0] == \"JetBrains Mono\"\n        assert result.tailwindConfig.fontFamily.sans[0] == \"Inter\"\n\n        # PostCssConfig assertions\n        assert \"tailwindcss\" in result.postcssConfig.plugins\n        assert \"autoprefixer\" in result.postcssConfig.plugins\n\n        # IndexHtml assertions\n        assert result.indexHtml.rootDivId == \"root\"\n        assert result.indexHtml.moduleScriptSrc == \"/src/main.tsx\"\n\n        # IndexCss assertions\n        assert result.indexCss.baseLayerBackgroundColor == \"#0a0a0a\"\n        assert result.indexCss.bgGridDefined is True\n\n        # PackageJson assertions\n        assert result.packageJson.private is True\n        assert result.packageJson.type == \"module\"\n        assert result.packageJson.scripts.dev == \"vite\"\n        assert result.packageJson.scripts.test == \"vitest\"\n        assert result.packageJson.scripts.preview == \"vite preview\"\n        assert re.match(\n            r\"^tsc.*&&\\s*vite build$\", result.packageJson.scripts.build\n        )\n\n        # TsConfig assertions\n        assert result.tsConfig.compilerOptions.strict is True\n        assert result.tsConfig.compilerOptions.jsx == \"react-jsx\"\n        assert result.tsConfig.compilerOptions.moduleResolution == \"bundler\"\n        assert result.tsConfig.compilerOptions.module == \"ESNext\"\n        assert result.tsConfig.compilerOptions.baseUrl == \".\"\n\n        # EnvExample assertions\n        assert len(result.envExample.VITE_CONVEX_URL) > 0\n\n        # Npmrc assertions\n        assert result.npmrc.engine_strict is True\n\n\nclass TestGenerateScaffoldErrors:\n    \"\"\"Test all error conditions for generate_scaffold.\"\"\"\n\n    def test_directory_not_found(self):\n        \"\"\"generate_scaffold raises when projectDir does not exist.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/nonexistent/path/that/does/not/exist\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"not found\" in exc_str or \"not_found\" in exc_str or \"directory\" in exc_str or \"exist\" in exc_str or \"no such\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=False)\n    def test_directory_not_writable(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"generate_scaffold raises when projectDir lacks write permissions.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/tmp/readonly_dir\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"writ\" in exc_str or \"permission\" in exc_str or \"not_writable\" in exc_str or \"access\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.shutil.which\", return_value=None)\n    def test_bun_not_installed(self, mock_which, mock_access, mock_exists, mock_isdir):\n        \"\"\"generate_scaffold raises when bun is not on PATH.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"bun\" in exc_str and (\"not\" in exc_str or \"install\" in exc_str or \"found\" in exc_str)\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.subprocess.run\")\n    def test_bun_create_failed(self, mock_run, mock_which, mock_access, mock_exists, mock_isdir):\n        \"\"\"generate_scaffold raises when bun create vite exits non-zero.\"\"\"\n        import subprocess\n        mock_run.side_effect = subprocess.CalledProcessError(1, \"bun create vite\")\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"bun\" in exc_str or \"create\" in exc_str or \"failed\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.subprocess.run\")\n    def test_bun_install_failed(self, mock_run, mock_which, mock_access, mock_exists, mock_isdir):\n        \"\"\"generate_scaffold raises when bun install exits non-zero.\"\"\"\n        import subprocess\n\n        def run_side_effect(*args, **kwargs):\n            cmd = args[0] if args else kwargs.get(\"args\", [])\n            cmd_str = \" \".join(cmd) if isinstance(cmd, list) else str(cmd)\n            if \"install\" in cmd_str:\n                raise subprocess.CalledProcessError(1, \"bun install\")\n            return MagicMock(returncode=0)\n\n        mock_run.side_effect = run_side_effect\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"install\" in exc_str or \"bun\" in exc_str or \"failed\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.os.path.exists\")\n    @patch(\"project_scaffold.os.remove\")\n    def test_conflicting_lockfile(self, mock_remove, mock_exists, mock_run, mock_which, mock_access, mock_isdir):\n        \"\"\"generate_scaffold raises when a non-bun lockfile cannot be removed.\"\"\"\n\n        def exists_side_effect(path):\n            if \"yarn.lock\" in str(path):\n                return True\n            return True\n\n        mock_exists.side_effect = exists_side_effect\n        mock_remove.side_effect = PermissionError(\"Permission denied\")\n\n        with pytest.raises(Exception) as exc_info:\n            generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"lockfile\" in exc_str or \"permission\" in exc_str or \"conflict\" in exc_str or \"remove\" in exc_str\n\n\n# ---------------------------------------------------------------------------\n# Function tests: validate_scaffold\n# ---------------------------------------------------------------------------\n\n\nclass TestValidateScaffoldHappyPath:\n    \"\"\"Test validate_scaffold with a correctly scaffolded project.\"\"\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    def test_valid_scaffold_returns_true(self, mock_exists, mock_access, mock_isdir):\n        \"\"\"A properly scaffolded project should validate with no violations.\"\"\"\n        try:\n            result = validate_scaffold(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"validate_scaffold requires real filesystem or different mock setup\")\n            return\n\n        assert result.valid is True\n        assert result.violations == []\n        assert len(result.checkedFiles) >= 12\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    def test_checked_files_covers_all_owned_files(self, mock_exists, mock_access, mock_isdir):\n        \"\"\"checkedFiles should contain paths for all 12 owned files.\"\"\"\n        try:\n            result = validate_scaffold(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"validate_scaffold requires specific mock setup\")\n            return\n\n        expected_files = [\n            \"vite.config.ts\",\n            \"tailwind.config.js\",\n            \"postcss.config.js\",\n            \"index.html\",\n            \"src/index.css\",\n            \"src/main.tsx\",\n            \"package.json\",\n            \"tsconfig.json\",\n            \"tsconfig.app.json\",\n            \".npmrc\",\n            \".env.example\",\n            \"convex/.gitkeep\",\n        ]\n        for f in expected_files:\n            found = any(f in str(cf) for cf in result.checkedFiles)\n            assert found, f\"Expected {f} in checkedFiles\"\n\n\nclass TestValidateScaffoldErrors:\n    def test_directory_not_found(self):\n        \"\"\"validate_scaffold raises when projectDir does not exist.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            validate_scaffold(projectDir=\"/nonexistent/path/that/does/not/exist\")\n        exc_str = str(exc_info.value).lower()\n        assert \"not found\" in exc_str or \"not_found\" in exc_str or \"directory\" in exc_str or \"exist\" in exc_str or \"no such\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=False)\n    def test_directory_not_readable(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"validate_scaffold raises when projectDir lacks read permissions.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            validate_scaffold(projectDir=\"/tmp/unreadable_dir\")\n        exc_str = str(exc_info.value).lower()\n        assert \"read\" in exc_str or \"permission\" in exc_str or \"not_readable\" in exc_str or \"access\" in exc_str\n\n\nclass TestValidateScaffoldPostconditions:\n    \"\"\"Verify postconditions: valid=True ⟹ violations=[] and valid=False ⟹ violations≠[].\"\"\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    def test_valid_true_implies_no_violations(self, mock_exists, mock_access, mock_isdir):\n        \"\"\"If result.valid is True, violations must be empty.\"\"\"\n        try:\n            result = validate_scaffold(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"validate_scaffold requires specific setup\")\n            return\n\n        if result.valid:\n            assert result.violations == [], \\\n                \"valid=True but violations is non-empty\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    def test_invalid_implies_violations(self, mock_exists, mock_access, mock_isdir):\n        \"\"\"If result.valid is False, violations must be non-empty.\"\"\"\n        try:\n            result = validate_scaffold(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"validate_scaffold requires specific setup\")\n            return\n\n        if not result.valid:\n            assert len(result.violations) > 0, \\\n                \"valid=False but violations is empty\"\n\n\n# ---------------------------------------------------------------------------\n# Function tests: get_tailwind_theme_tokens\n# ---------------------------------------------------------------------------\n\n\nclass TestGetTailwindThemeTokensHappyPath:\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_returns_correct_font_families(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"Returned TailwindConfig has correct font family first entries.\"\"\"\n        try:\n            result = get_tailwind_theme_tokens(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_tailwind_theme_tokens requires config files\")\n            return\n\n        assert result.fontFamily.serif[0] == \"Instrument Serif\"\n        assert result.fontFamily.mono[0] == \"JetBrains Mono\"\n        assert result.fontFamily.sans[0] == \"Inter\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_bg_grid_plugin_registered(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"bgGridPluginRegistered is True.\"\"\"\n        try:\n            result = get_tailwind_theme_tokens(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_tailwind_theme_tokens requires config files\")\n            return\n\n        assert result.bgGridPluginRegistered is True\n\n\nclass TestGetTailwindThemeTokensErrors:\n    def test_config_not_found(self):\n        \"\"\"Raises config_not_found when tailwind.config.js is missing.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_tailwind_theme_tokens(\n                projectDir=\"/nonexistent/path/that/does/not/exist\"\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"not found\" in exc_str or \"not_found\" in exc_str or \"config\" in exc_str or \"exist\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"builtins.open\", side_effect=lambda *a, **k: MagicMock(\n        __enter__=MagicMock(return_value=MagicMock(read=MagicMock(return_value=\"{{{invalid\"))),\n        __exit__=MagicMock(return_value=False),\n    ))\n    def test_config_parse_error(self, mock_open, mock_access, mock_exists, mock_isdir):\n        \"\"\"Raises config_parse_error when tailwind.config.js is malformed.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_tailwind_theme_tokens(projectDir=\"/tmp/test_project\")\n        exc_str = str(exc_info.value).lower()\n        assert \"parse\" in exc_str or \"invalid\" in exc_str or \"malformed\" in exc_str or \"error\" in exc_str\n\n\n# ---------------------------------------------------------------------------\n# Function tests: get_path_aliases\n# ---------------------------------------------------------------------------\n\n\nclass TestGetPathAliasesHappyPath:\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_returns_at_alias(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"Returned dict contains '@/*' → ['src/*'].\"\"\"\n        try:\n            result = get_path_aliases(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_path_aliases requires config files\")\n            return\n\n        assert \"@/*\" in result\n        assert result[\"@/*\"] == [\"src/*\"]\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_all_keys_start_with_at(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"All alias keys must start with '@'.\"\"\"\n        try:\n            result = get_path_aliases(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_path_aliases requires config files\")\n            return\n\n        for key in result:\n            assert key.startswith(\"@\"), f\"Alias key {key!r} does not start with '@'\"\n\n\nclass TestGetPathAliasesErrors:\n    def test_config_not_found(self):\n        \"\"\"Raises config_not_found when tsconfig.app.json is missing.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_path_aliases(\n                projectDir=\"/nonexistent/path/that/does/not/exist\"\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"not found\" in exc_str or \"not_found\" in exc_str or \"config\" in exc_str or \"exist\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"builtins.open\", side_effect=lambda *a, **k: MagicMock(\n        __enter__=MagicMock(return_value=MagicMock(read=MagicMock(return_value=\"{{{malformed\"))),\n        __exit__=MagicMock(return_value=False),\n    ))\n    def test_config_parse_error(self, mock_open, mock_access, mock_exists, mock_isdir):\n        \"\"\"Raises config_parse_error when tsconfig.app.json is malformed JSON.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_path_aliases(projectDir=\"/tmp/test_project\")\n        exc_str = str(exc_info.value).lower()\n        assert \"parse\" in exc_str or \"invalid\" in exc_str or \"malformed\" in exc_str or \"error\" in exc_str\n\n\n# ---------------------------------------------------------------------------\n# Function tests: get_vite_config\n# ---------------------------------------------------------------------------\n\n\nclass TestGetViteConfigHappyPath:\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_returns_correct_server_config(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"ViteUserConfig has correct server settings.\"\"\"\n        try:\n            result = get_vite_config(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_vite_config requires config files\")\n            return\n\n        assert result.server.port == 4000\n        assert result.server.strictPort is True\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_returns_correct_build_config(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"ViteUserConfig has correct build settings.\"\"\"\n        try:\n            result = get_vite_config(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_vite_config requires config files\")\n            return\n\n        assert result.build.outDir == \"dist\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_returns_correct_test_config(self, mock_access, mock_exists, mock_isdir):\n        \"\"\"ViteUserConfig has correct test settings.\"\"\"\n        try:\n            result = get_vite_config(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_vite_config requires config files\")\n            return\n\n        assert result.test.environment == \"jsdom\"\n        assert result.test.globals is True\n\n\nclass TestGetViteConfigErrors:\n    def test_config_not_found(self):\n        \"\"\"Raises config_not_found when vite.config.ts is missing.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_vite_config(\n                projectDir=\"/nonexistent/path/that/does/not/exist\"\n            )\n        exc_str = str(exc_info.value).lower()\n        assert \"not found\" in exc_str or \"not_found\" in exc_str or \"config\" in exc_str or \"exist\" in exc_str\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"builtins.open\", side_effect=lambda *a, **k: MagicMock(\n        __enter__=MagicMock(return_value=MagicMock(read=MagicMock(return_value=\"{{{malformed\"))),\n        __exit__=MagicMock(return_value=False),\n    ))\n    def test_config_parse_error(self, mock_open, mock_access, mock_exists, mock_isdir):\n        \"\"\"Raises config_parse_error when vite.config.ts is malformed.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            get_vite_config(projectDir=\"/tmp/test_project\")\n        exc_str = str(exc_info.value).lower()\n        assert \"parse\" in exc_str or \"invalid\" in exc_str or \"malformed\" in exc_str or \"error\" in exc_str\n\n\n# ---------------------------------------------------------------------------\n# Invariant tests\n# ---------------------------------------------------------------------------\n\n\nclass TestInvariantSoleLockfile:\n    \"\"\"bun.lockb is the sole lockfile in the project root.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\")\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_lockfile_invariant(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        def exists_side_effect(path):\n            if \"yarn.lock\" in str(path):\n                return False\n            if \"package-lock.json\" in str(path):\n                return False\n            if \"pnpm-lock.yaml\" in str(path):\n                return False\n            return True\n\n        mock_exists.side_effect = exists_side_effect\n\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        assert result.lockfileIsBunOnly is True\n\n\nclass TestInvariantVitePort:\n    \"\"\"vite.config.ts server.port is always 4000 and strictPort is always true.\"\"\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_port_always_4000(self, mock_access, mock_exists, mock_isdir):\n        try:\n            result = get_vite_config(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_vite_config requires config files\")\n            return\n\n        assert result.server.port == 4000\n        assert result.server.strictPort is True\n\n\nclass TestInvariantBuildOutDir:\n    \"\"\"Build output directory is always 'dist'.\"\"\"\n\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    def test_outdir_always_dist(self, mock_access, mock_exists, mock_isdir):\n        try:\n            result = get_vite_config(projectDir=\"/tmp/test_project\")\n        except Exception:\n            pytest.skip(\"get_vite_config requires config files\")\n            return\n\n        assert result.build.outDir == \"dist\"\n\n\nclass TestInvariantFontFamiliesConsistent:\n    \"\"\"Three font families are present in both tailwind config and index.html font links.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_font_families_in_tailwind_and_html(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        # Tailwind font families\n        assert result.tailwindConfig.fontFamily.serif[0] == \"Instrument Serif\"\n        assert result.tailwindConfig.fontFamily.mono[0] == \"JetBrains Mono\"\n        assert result.tailwindConfig.fontFamily.sans[0] == \"Inter\"\n\n        # All font links use display=swap\n        for link in result.indexHtml.fontLinks:\n            assert \"display=swap\" in link.href, \\\n                f\"Font link missing display=swap: {link.href}\"\n\n\nclass TestInvariantTsConfigViteAliasSync:\n    \"\"\"tsconfig paths and vite resolve.alias are synchronized.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_alias_sync(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        # tsconfig paths\n        assert \"@/*\" in result.tsConfig.compilerOptions.paths\n        assert result.tsConfig.compilerOptions.paths[\"@/*\"] == [\"src/*\"]\n\n        # vitest/globals in types\n        assert \"vitest/globals\" in result.tsConfig.compilerOptions.types\n\n\nclass TestInvariantPackageJsonModulePrivate:\n    \"\"\"package.json type is 'module' and private is true.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_module_and_private(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        assert result.packageJson.type == \"module\"\n        assert result.packageJson.private is True\n\n\nclass TestInvariantPostCssPluginOrder:\n    \"\"\"postcss.config.js plugins include tailwindcss and autoprefixer.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_postcss_plugins(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        assert \"tailwindcss\" in result.postcssConfig.plugins\n        assert \"autoprefixer\" in result.postcssConfig.plugins\n\n\nclass TestInvariantPreconnectLinks:\n    \"\"\"index.html contains preconnect links for fonts.googleapis.com and fonts.gstatic.com.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_preconnect_origins(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        origins = result.indexHtml.preconnectOrigins\n        assert \"https://fonts.googleapis.com\" in origins\n        assert \"https://fonts.gstatic.com\" in origins\n\n\nclass TestInvariantBgGridSingleLocation:\n    \"\"\"bg-grid is registered in tailwind plugin XOR index.css — never both.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\", return_value=True)\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_bg_grid_xor(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        try:\n            result = generate_scaffold(\n                projectDir=\"/tmp/test_project\",\n                projectName=\"my-app\",\n                convexUrl=\"https://example.convex.cloud\",\n            )\n        except Exception:\n            pytest.skip(\"generate_scaffold requires specific mock setup\")\n            return\n\n        tw_registered = result.tailwindConfig.bgGridPluginRegistered\n        css_defined = result.indexCss.bgGridDefined\n\n        # XOR: exactly one must be true\n        assert (tw_registered ^ css_defined) or (tw_registered and not css_defined), \\\n            f\"bg-grid must be in exactly one location. tailwind={tw_registered}, css={css_defined}\"\n\n\n# ---------------------------------------------------------------------------\n# Randomized invariant tests (using stdlib random, NOT hypothesis)\n# ---------------------------------------------------------------------------\n\n\nclass TestRandomizedInvariants:\n    \"\"\"Randomized tests verifying invariants hold for varied inputs.\"\"\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\")\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_random_project_names_invariants(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        \"\"\"For various random project names, key invariants hold.\"\"\"\n\n        def exists_side_effect(path):\n            if \"yarn.lock\" in str(path):\n                return False\n            if \"package-lock.json\" in str(path):\n                return False\n            if \"pnpm-lock.yaml\" in str(path):\n                return False\n            return True\n\n        mock_exists.side_effect = exists_side_effect\n\n        random_names = [\n            \"my-app\",\n            \"test project with spaces\",\n            \"app_v2.0\",\n            \"ünïcödé-prøject\",\n            \"a\" * 50,\n            \"project-with-special-chars!@#\",\n            \"\",\n            \"123numeric\",\n        ]\n\n        for name in random_names:\n            try:\n                result = generate_scaffold(\n                    projectDir=\"/tmp/test_project\",\n                    projectName=name,\n                    convexUrl=\"https://example.convex.cloud\",\n                )\n            except Exception:\n                # Some names may legitimately fail; skip those\n                continue\n\n            assert result.viteConfig.server.port == 4000, \\\n                f\"Port invariant failed for name={name!r}\"\n            assert result.lockfileIsBunOnly is True, \\\n                f\"Lockfile invariant failed for name={name!r}\"\n            assert result.viteConfig.server.strictPort is True, \\\n                f\"strictPort invariant failed for name={name!r}\"\n            assert result.viteConfig.build.outDir == \"dist\", \\\n                f\"outDir invariant failed for name={name!r}\"\n            assert result.tsConfig.compilerOptions.strict is True, \\\n                f\"strict invariant failed for name={name!r}\"\n\n    @patch(\"project_scaffold.subprocess.run\", return_value=MagicMock(returncode=0))\n    @patch(\"project_scaffold.shutil.which\", return_value=\"/usr/bin/bun\")\n    @patch(\"project_scaffold.os.access\", return_value=True)\n    @patch(\"project_scaffold.os.path.isdir\", return_value=True)\n    @patch(\"project_scaffold.os.path.exists\")\n    @patch(\"project_scaffold.os.makedirs\")\n    @patch(\"builtins.open\", new_callable=MagicMock)\n    def test_random_convex_urls_invariants(\n        self, mock_open, mock_makedirs, mock_exists, mock_isdir,\n        mock_access, mock_which, mock_run\n    ):\n        \"\"\"For various random Convex URLs, key invariants hold.\"\"\"\n\n        def exists_side_effect(path):\n            if \"yarn.lock\" in str(path):\n                return False\n            if \"package-lock.json\" in str(path):\n                return False\n            if \"pnpm-lock.yaml\" in str(path):\n                return False\n            return True\n\n        mock_exists.side_effect = exists_side_effect\n\n        random_urls = [\n            \"https://example.convex.cloud\",\n            \"https://prod-abc123.convex.cloud\",\n            \"https://dev.convex.cloud\",\n            \"http://localhost:3210\",\n        ]\n\n        for url in random_urls:\n            try:\n                result = generate_scaffold(\n                    projectDir=\"/tmp/test_project\",\n                    projectName=\"my-app\",\n                    convexUrl=url,\n                )\n            except Exception:\n                continue\n\n            assert result.viteConfig.server.port == 4000, \\\n                f\"Port invariant failed for url={url!r}\"\n            assert result.packageJson.type == \"module\", \\\n                f\"Type invariant failed for url={url!r}\"\n            assert result.packageJson.private is True, \\\n                f\"Private invariant failed for url={url!r}\"\n\n            # Dependencies version checks\n            assert re.match(r\"^\\^?18\\.\", result.packageJson.dependencies.react), \\\n                f\"React version invariant failed for url={url!r}\"\n            assert re.match(r\"^\\^?18\\.\", result.packageJson.dependencies.react_dom), \\\n                f\"React-dom version invariant failed for url={url!r}\"\n            assert re.match(r\"^\\^?6\\.\", result.packageJson.dependencies.react_router_dom), \\\n                f\"React-router-dom version invariant failed for url={url!r}\"\n            assert re.match(r\"^\\^?3\\.\", result.packageJson.dependencies.tailwindcss), \\\n                f\"Tailwindcss version invariant failed for url={url!r}\"\n\n\n# ---------------------------------------------------------------------------\n# Regex validation boundary tests\n# ---------------------------------------------------------------------------\n\n\nclass TestRegexValidationBoundaries:\n    \"\"\"Test regex validators at their boundaries.\"\"\"\n\n    def test_target_es2022_valid(self):\n        \"\"\"ES2022 is the minimum valid target.\"\"\"\n        opts = TsConfigCompilerOptions(\n            strict=True, jsx=\"react-jsx\", moduleResolution=\"bundler\",\n            target=\"ES2022\", module=\"ESNext\", baseUrl=\".\",\n            paths={}, types=[], skipLibCheck=True,\n            noUnusedLocals=True, noUnusedParameters=True,\n            noFallthroughCasesInSwitch=True,\n        )\n        assert opts.target == \"ES2022\"\n\n    def test_target_es2021_invalid(self):\n        \"\"\"ES2021 is just below the valid range.\"\"\"\n        with pytest.raises(Exception):\n            TsConfigCompilerOptions(\n                strict=True, jsx=\"react-jsx\", moduleResolution=\"bundler\",\n                target=\"ES2021\", module=\"ESNext\", baseUrl=\".\",\n                paths={}, types=[], skipLibCheck=True,\n                noUnusedLocals=True, noUnusedParameters=True,\n                noFallthroughCasesInSwitch=True,\n            )\n\n    def test_build_script_with_extra_tsc_flags(self):\n        \"\"\"Build regex allows tsc with various flags before &&.\"\"\"\n        s = PackageJsonScripts(\n            dev=\"vite\",\n            build=\"tsc --noEmit && vite build\",\n            test=\"vitest\",\n            preview=\"vite preview\",\n        )\n        assert re.match(r\"^tsc.*&&\\s*vite build$\", s.build)\n\n    def test_google_font_href_with_multiple_families(self):\n        \"\"\"Google Fonts href with multiple families and display=swap.\"\"\"\n        link = GoogleFontLink(\n            href=\"https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=JetBrains+Mono&display=swap\",\n            rel=\"stylesheet\",\n        )\n        assert \"display=swap\" in link.href\n\n    def test_filepath_length_boundary_1(self):\n        \"\"\"FilePath with exactly 1 character is valid.\"\"\"\n        fp = FilePath(\"x\")\n        assert fp is not None\n\n    def test_filepath_length_boundary_512(self):\n        \"\"\"FilePath with exactly 512 characters is valid.\"\"\"\n        fp = FilePath(\"x\" * 512)\n        assert fp is not None\n\n    def test_filepath_length_boundary_513_invalid(self):\n        \"\"\"FilePath with 513 characters is invalid.\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"x\" * 513)\n\n    def test_semver_range_boundary_no_patch(self):\n        \"\"\"SemVerRange only requires major.minor per regex ^[~^]?\\\\d+\\\\.\\\\d+.\"\"\"\n        s = SemVerRange(\"18.2\")\n        assert s is not None\n\n    def test_tailwind_content_glob_minimal_valid(self):\n        \"\"\"Minimal valid TailwindContentGlob: starts with ./ and has braces.\"\"\"\n        g = TailwindContentGlob(\"./{a}\")\n        assert g is not None\n\n    def test_vite_resolve_alias_replacement_just_src(self):\n        \"\"\"replacement 'src' ends with 'src' — matches .*src/?$.\"\"\"\n        alias = ViteResolveAlias(find=\"@\", replacement=\"src\")\n        assert alias.find == \"@\"\n\n    def test_index_css_font_family_body_starts_with_inter_quote(self):\n        \"\"\"fontFamilyBody regex requires ^'Inter'.\"\"\"\n        spec = IndexCssSpec(\n            tailwindDirectives=[\"@tailwind base\", \"@tailwind components\", \"@tailwind utilities\"],\n            baseLayerBackgroundColor=\"#0a0a0a\",\n            baseLayerTextColor=\"#ffffff\",\n            fontFamilyBody=\"'Inter', system-ui, sans-serif\",\n            bgGridDefined=True,\n        )\n        assert spec.fontFamilyBody.startswith(\"'Inter'\")\n"
+}

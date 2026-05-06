@@ -1,0 +1,44 @@
+version: '1.0'
+sources:
+  - type: file
+    path: .baton/service_logs.jsonl
+    format: jsonl
+    error_patterns:
+      - '"severity": "error"'
+      - 'Traceback'
+      - '500 Internal Server Error'
+pact_key_pattern: PACT:[a-zA-Z0-9_]+:[a-zA-Z0-9_]+
+error_threshold:
+  count: 1
+  window_seconds: 300
+llm:
+  provider: anthropic
+  model: claude-sonnet-4-20250514
+  max_tokens: 8192
+  budget_per_fix: 2.0
+pact:
+  project_dir: null
+  api_endpoint: null
+arbiter:
+  api_endpoint: null
+  trust_event_on_fix: true
+stigmergy:
+  endpoint: null
+chronicler:
+  chronicler_enabled: false
+  chronicler_endpoint: http://localhost:8485
+notify:
+  webhook_url: null
+  on_error: true
+  on_fix: true
+  on_contract_push: true
+ledger:
+  ledger_api: null
+budget:
+  per_incident_cap: 5.0
+  hourly_cap: 10.0
+  daily_cap: 25.0
+  weekly_cap: 100.0
+  monthly_cap: 300.0
+auto_remediate: false
+state_dir: .sentinel

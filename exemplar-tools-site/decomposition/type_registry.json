@@ -1,0 +1,456 @@
+{
+  "types": [
+    {
+      "name": "ToolSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "URL-safe identifier for each tool, used as route param and Convex page key.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "StepNumber",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Integer 1–11 representing the tool's position in the exemplar.tools workflow order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "HexColor",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "CSS hex color string (e.g. '#00e5ff') used for per-tool accent theming.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStep",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Short human-readable title for this instruction step.",
+          "validators": []
+        },
+        {
+          "name": "bash",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Bash code block content to display in a terminal-styled card.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single step-by-step instruction entry containing a human title and a bash snippet.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "OptionalVideoUrl",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "string",
+      "variants": [],
+      "inner_types": [],
+      "description": "YouTube embed URL if the tool has a video; undefined otherwise (e.g. kindex).",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStepList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "InstructionStep",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of InstructionStep objects for a tool's how-to section.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolDef",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "URL-safe identifier used as route parameter and sidebar key.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable display name of the tool (e.g. 'Constrain').",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "One-line description shown on the tool page and in the quick-start table.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Workflow step number (1–11) displayed in the StepBadge.",
+          "validators": []
+        },
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Semver version string displayed in the VersionBadge.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Per-tool accent color hex for badges, headings, and diagram nodes.",
+          "validators": []
+        },
+        {
+          "name": "videoUrl",
+          "type_ref": "OptionalVideoUrl",
+          "required": false,
+          "default": "undefined",
+          "description": "YouTube embed URL; omitted for kindex.",
+          "validators": []
+        },
+        {
+          "name": "instructions",
+          "type_ref": "InstructionStepList",
+          "required": true,
+          "default": "",
+          "description": "Ordered step-by-step instructions rendered on the tool page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Complete static definition of one tool including display metadata, instructions, and video URL.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolDefList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "ToolDef",
+      "variants": [],
+      "inner_types": [],
+      "description": "The canonical ordered array of all 11 ToolDef objects, indexed by workflow step order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "Comment",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "_id",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Convex-generated unique document ID.",
+          "validators": []
+        },
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying which page this comment belongs to.",
+          "validators": []
+        },
+        {
+          "name": "author",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name of the comment author.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Author name must be between 1 and 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Comment body text.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..2000",
+              "error_message": "Comment body must be between 1 and 2000 characters."
+            }
+          ]
+        },
+        {
+          "name": "createdAt",
+          "type_ref": "number",
+          "required": true,
+          "default": "",
+          "description": "Unix epoch millisecond timestamp set via Date.now() at insertion time.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A user-submitted comment persisted in Convex, displayed in the CommentsSection.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "CommentList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "Comment",
+      "variants": [],
+      "inner_types": [],
+      "description": "Array of Comment objects returned by the listComments query, sorted by createdAt ascending.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "AddCommentArgs",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying the target page.",
+          "validators": []
+        },
+        {
+          "name": "author",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name of the comment author.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Author name must be non-empty and at most 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Comment body text.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..2000",
+              "error_message": "Comment body must be non-empty and at most 2000 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Arguments for the Convex addComment mutation, submitted from CommentsSection form.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ListCommentsArgs",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug to filter comments by page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Arguments for the Convex listComments query function.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "SidebarItem",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Route parameter for navigation link.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name shown in the sidebar.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number rendered as a badge in the sidebar row.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Accent color used to highlight the active sidebar item.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Derived view-model for a single sidebar navigation entry, projected from ToolDef.",
+      "owner_component": "app_shell"
+    },
+    {
+      "name": "DiagramNode",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool identifier for link target from diagram node.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Label rendered inside the diagram node.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number for ordering nodes around the circular layout.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Fill/stroke color for this tool's node in the diagram.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Data for one node in the ClosedLoopDiagram SVG, projected from ToolDef.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "DiagramNodeList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "DiagramNode",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of DiagramNode objects passed into the ClosedLoopDiagram component.",
+      "owner_component": "home_page"
+    },
+    {
+      "name": "QuickStartRow",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number column value.",
+          "validators": []
+        },
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Route slug for the tool name link.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Tool display name rendered as a router link.",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "One-line description column value.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "One row in the HomePage quick-start table, projected from ToolDef.",
+      "owner_component": "home_page"
+    }
+  ]
+}

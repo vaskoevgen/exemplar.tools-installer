@@ -45,31 +45,65 @@ deactivate
 ## ledger — `ledger backend add` crashes with wrong argument count
 
 **Repo:** `https://github.com/jmcentire/ledger`
-**File:** CLI handler for `backend add` subcommand
-**Status:** PR open — https://github.com/jmcentire/ledger/pull/2
+**File:** `src/cli/cli.py`
+**Status:** Fixed locally (2026-05-04)
 
 ### Problem
 
-Running `ledger backend add <name>` raises:
+Running `ledger backend add <name>` raised:
 
 ```
 TypeError: BackendConfig.__init__() takes 3 positional arguments but 4 were given
 ```
 
-The CLI passes 4 arguments to a constructor that only accepts 3. The backend is never registered.
+The CLI passed 4 raw string arguments to `register_backend()`, which expects `(root: Path, metadata: BackendMetadata, actor: str)`.
 
-### Workaround
+A second related bug: `ledger init` only called `config.init_config()` but never called `registry.init()`, so the `.ledger/` directory was never created — causing `register_backend` to raise `LedgerNotInitializedError` even after the first bug was fixed.
 
-Register backends directly in `ledger.yaml` instead of using the CLI:
+A third related bug: `registry.DuplicateBackendError` (from `registry.py`) was not caught by the CLI's `except LedgerError` clause (a different class in `cli.py`), causing an unhandled traceback on repeat runs.
 
-```yaml
-# ledger.yaml
-backends:
-  - name: my_db        # required
-    base_url: ""       # optional, default ""
+### Fix applied locally
+
+Three changes in `exemplar.tools/ledger/src/cli/cli.py`:
+
+**1. Added `datetime` import:**
+```python
+from datetime import datetime, timezone
 ```
 
-Valid model fields: `name`, `enabled`, `base_url`, `timeout_ms`. There is no `owner` or `type` field.
+**2. `cmd_init` now also initializes the registry:**
+```python
+config.init_config(cli_ctx.config_path)
+registry.init(Path(cli_ctx.config_path).parent)   # ← added
+```
+
+**3. `cmd_backend_add` constructs `BackendMetadata` correctly and handles duplicates:**
+```python
+metadata = registry.BackendMetadata(
+    backend_id=backend_id,
+    backend_type=registry.BackendType(backend_type),
+    owner_component=owner,
+    registered_at=datetime.now(timezone.utc),
+)
+root = Path(cli_ctx.config_path).parent
+registry.register_backend(root, metadata, owner)
+```
+Plus a new `except registry.DuplicateBackendError` clause that exits silently (idempotent).
+
+After editing, reinstall:
+
+```bash
+pip install -e "exemplar.tools/ledger/.[api,mock,dev]" -q
+```
+
+### Usage (after fix)
+
+```bash
+ledger backend add tasks-db --type postgres --owner fastapi-backend
+# Silent on success. Silent on duplicate (idempotent).
+```
+
+Valid `--type` values: `postgres`, `mysql`, `sqlite`, `redis`, `s3`, `dynamodb`, `kafka`, `custom`.
 
 ---
 

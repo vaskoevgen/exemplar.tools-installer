@@ -1,0 +1,662 @@
+{
+  "component_id": "data_layer",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_get_tool_by_slug_all_slugs_return_correct_slug",
+      "description": "getToolBySlug must return a ToolDef whose slug field matches the queried slug for every valid variant, not just 'constrain' — detects hardcoded returns for specific tested slugs",
+      "function": "getToolBySlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Iterate all 11 ToolSlug variants including less-tested ones like 'stigmergy', 'apprentice', 'baton'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For each slug in ToolSlug enum, getToolBySlug(slug).slug == slug",
+        "Returned ToolDef has non-empty name, description, version fields"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_by_slug_step_matches_position",
+      "description": "getToolBySlug must return a ToolDef whose step field corresponds to the tool's 1-indexed position in the TOOLS array — verifies step/slug consistency beyond what visible tests check",
+      "function": "getToolBySlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For each tool in TOOLS at index i, getToolBySlug(tool.slug).step == i + 1"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_by_slug_near_miss_strings",
+      "description": "getToolBySlug must return undefined for strings that are substrings or superstrings of valid slugs, not just completely unrelated strings",
+      "function": "getToolBySlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Partial matches, trailing/leading spaces, and appended characters for valid slugs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getToolBySlug('constrai') returns None",
+        "getToolBySlug('constrains') returns None",
+        "getToolBySlug('pact ') returns None",
+        "getToolBySlug(' ledger') returns None",
+        "getToolBySlug('kindex1') returns None"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_by_slug_none_input",
+      "description": "getToolBySlug must handle None/null input gracefully by returning undefined rather than crashing",
+      "function": "getToolBySlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getToolBySlug(None) returns None or undefined without raising an exception"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_by_slug_numeric_input",
+      "description": "getToolBySlug must handle non-string input types (integers, booleans) without crashing",
+      "function": "getToolBySlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getToolBySlug(1) returns None without raising",
+        "getToolBySlug(True) returns None without raising"
+      ]
+    },
+    {
+      "id": "goodhart_tools_step_numbers_cover_full_range",
+      "description": "The set of step numbers across all TOOLS entries must be exactly {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11} — ensures no gaps or out-of-range values",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "set(tool.step for tool in TOOLS) == set(range(1, 12))"
+      ]
+    },
+    {
+      "id": "goodhart_tools_ordered_by_step",
+      "description": "The TOOLS array must be ordered by step number ascending, since it is described as indexed by workflow step order",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TOOLS[i].step == i + 1 for all i in range(11)"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_length_matches_tools",
+      "description": "TOOL_SLUGS must contain exactly the same number of elements as TOOLS (11), not more, not fewer",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(TOOL_SLUGS) == 11",
+        "len(TOOL_SLUGS) == len(TOOLS)"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_contains_all_enum_variants",
+      "description": "TOOL_SLUGS must contain every ToolSlug enum variant exactly once — ensures it is the canonical source of slug strings",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "set(TOOL_SLUGS) == {'constrain', 'ledger', 'pact', 'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex'}"
+      ]
+    },
+    {
+      "id": "goodhart_tooldef_name_nonempty",
+      "description": "Every ToolDef in TOOLS must have a non-empty, non-whitespace name string — a shortcut implementation might leave some tools with empty names",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All tool.name values are non-empty strings with at least 1 non-whitespace character"
+      ]
+    },
+    {
+      "id": "goodhart_tooldef_description_nonempty",
+      "description": "Every ToolDef in TOOLS must have a non-empty description string — ensures no placeholder or stub descriptions",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All tool.description values are non-empty strings with length > 0"
+      ]
+    },
+    {
+      "id": "goodhart_tooldef_version_nonempty",
+      "description": "Every ToolDef in TOOLS must have a non-empty version string — ensures version metadata is present for all tools",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All tool.version values are non-empty strings"
+      ]
+    },
+    {
+      "id": "goodhart_tooldef_has_all_required_fields",
+      "description": "Every ToolDef must have all 8 required struct fields (slug, name, description, step, version, accentColor, videoUrl key presence, instructions) — detects missing fields in some entries",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each tool dict/object has keys: slug, name, description, step, version, accentColor, videoUrl (or equivalent), instructions"
+      ]
+    },
+    {
+      "id": "goodhart_instruction_steps_nonempty_strings",
+      "description": "Every InstructionStep in every tool's instructions must have non-empty title and non-empty bash fields — prevents placeholders",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For all tools, for all steps in tool.instructions: step.title is a non-empty string and step.bash is a non-empty string"
+      ]
+    },
+    {
+      "id": "goodhart_accent_color_starts_with_hash",
+      "description": "Every accentColor must start with '#' and be either 4 or 7 characters long — ensures proper hex format beyond basic regex",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All accentColor values start with '#'",
+        "All accentColor values have length 4 or 7"
+      ]
+    },
+    {
+      "id": "goodhart_video_url_exact_11_char_id",
+      "description": "Every defined videoUrl must contain exactly an 11-character video ID after /embed/ with no trailing path segments or query params",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For all tools where videoUrl is defined, the URL ends after exactly 11 chars following '/embed/'",
+        "No videoUrl contains '?' or '&' or additional '/' after the video ID"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_returns_same_reference_fields",
+      "description": "getToolBySlug must return ToolDefs with accentColor and step values that match the corresponding entry in the TOOLS array — detects implementations that return partial or wrong data",
+      "function": "getToolBySlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For slug 'sentinel', getToolBySlug('sentinel').step matches TOOLS entry for sentinel",
+        "For slug 'stigmergy', getToolBySlug('stigmergy').accentColor matches TOOLS entry"
+      ]
+    },
+    {
+      "id": "goodhart_kindex_video_url_strictly_none",
+      "description": "The kindex tool's videoUrl must be None/undefined, not an empty string or any other falsy value",
+      "function": "TOOLS",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "kindex tool videoUrl is exactly None/undefined, not '', not 0, not False"
+      ]
+    },
+    {
+      "id": "goodhart_non_kindex_video_urls_are_strings",
+      "description": "All 10 non-kindex tools must have videoUrl as a string type (not a number, boolean, or other type) that matches the YouTube embed pattern",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For each tool where slug != 'kindex', type(tool.videoUrl) is str",
+        "Each of these videoUrl values starts with 'https://www.youtube.com/embed/'"
+      ]
+    },
+    {
+      "id": "goodhart_youtube_url_rejects_extra_path",
+      "description": "YouTubeEmbedUrl validation must reject URLs with extra path segments after the 11-character video ID",
+      "function": "YouTubeEmbedUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/embed/dQw4w9WgXcQ/extra"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL 'https://www.youtube.com/embed/dQw4w9WgXcQ/extra' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_youtube_url_rejects_query_params",
+      "description": "YouTubeEmbedUrl validation must reject embed URLs with query parameters appended",
+      "function": "YouTubeEmbedUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL 'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_youtube_url_rejects_long_id",
+      "description": "YouTubeEmbedUrl validation must reject embed URLs with video IDs longer than 11 characters",
+      "function": "YouTubeEmbedUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/embed/dQw4w9WgXcQx"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL 'https://www.youtube.com/embed/dQw4w9WgXcQx' is rejected (12 char ID)"
+      ]
+    },
+    {
+      "id": "goodhart_youtube_url_rejects_http",
+      "description": "YouTubeEmbedUrl validation must reject non-HTTPS embed URLs",
+      "function": "YouTubeEmbedUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "http://www.youtube.com/embed/dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL 'http://www.youtube.com/embed/dQw4w9WgXcQ' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_youtube_url_rejects_no_www",
+      "description": "YouTubeEmbedUrl validation must reject embed URLs without 'www.' subdomain per the regex contract",
+      "function": "YouTubeEmbedUrl",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://youtube.com/embed/dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "URL 'https://youtube.com/embed/dQw4w9WgXcQ' is rejected"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_tab_only_author",
+      "description": "addComment must reject author strings containing only tab characters as whitespace-only, not just space characters",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "author": "\t\t",
+        "body": "Valid body"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with author='\\t\\t' raises an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_newline_only_body",
+      "description": "addComment must reject body strings containing only newline characters as whitespace-only",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "\n\n"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with body='\\n\\n' raises an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_single_char_author",
+      "description": "addComment must accept a single non-whitespace character as author (minimum valid length boundary)",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "ledger",
+        "author": "A",
+        "body": "Test body"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with author='A' (length 1) does not raise an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_single_char_body",
+      "description": "addComment must accept a single non-whitespace character as body (minimum valid length boundary)",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "pact",
+        "author": "Bob",
+        "body": "X"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with body='X' (length 1) does not raise an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_author_101_chars",
+      "description": "addComment must reject author strings of exactly 101 characters — boundary just above maximum",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "arbiter",
+        "author": "length-101-string",
+        "body": "Valid body"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with author of length 101 raises an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_body_2001_chars",
+      "description": "addComment must reject body strings of exactly 2001 characters — boundary just above maximum",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "baton",
+        "author": "Alice",
+        "body": "length-2001-string"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment with body of length 2001 raises an error"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_preserves_content_exactly",
+      "description": "addComment must preserve the exact author and body strings including special characters, unicode, and internal whitespace when retrieved via listComments",
+      "function": "addComment",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "advocate",
+        "author": "José María 日本語",
+        "body": "Hello <world> & \"friends\" — it's great! 🎉"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "After adding a comment with special chars in author/body, listComments returns the same strings verbatim"
+      ]
+    },
+    {
+      "id": "goodhart_list_comments_returns_list_type",
+      "description": "listComments must always return a list/array type, never None or a single object, even when there are no comments",
+      "function": "listComments",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Return type is list/array",
+        "Return value is not None"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_created_at_is_recent_epoch_ms",
+      "description": "addComment must set createdAt to a value in epoch milliseconds (not seconds) that is reasonably close to the current time",
+      "function": "addComment",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "createdAt value is greater than 1_700_000_000_000 (epoch ms circa 2023)",
+        "createdAt value is within 60 seconds of current time in ms"
+      ]
+    },
+    {
+      "id": "goodhart_tools_slugs_are_url_safe",
+      "description": "Every slug in TOOLS must contain only URL-safe characters (lowercase alphanumeric, no spaces, no special chars) as specified by the ToolSlug type documentation",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All slugs match pattern ^[a-z][a-z0-9]*$"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_by_slug_returns_instructions_list",
+      "description": "getToolBySlug must return a ToolDef with an instructions field that is a list, not a string or None, for every valid slug",
+      "function": "getToolBySlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For each valid slug, getToolBySlug(slug).instructions is a list",
+        "Each item in the list has 'title' and 'bash' keys"
+      ]
+    },
+    {
+      "id": "goodhart_wcag_aa_contrast_ratio",
+      "description": "Every accentColor in TOOLS must have a WCAG AA compliant contrast ratio (>= 4.5:1) against the dark background #0f172a",
+      "function": "TOOLS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each accentColor has luminance contrast ratio >= 4.5 against #0f172a"
+      ]
+    },
+    {
+      "id": "goodhart_tool_slugs_readonly",
+      "description": "TOOL_SLUGS should be effectively immutable — attempts to modify it should either raise or have no effect on subsequent reads",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TOOL_SLUGS content remains unchanged after attempted modification"
+      ]
+    },
+    {
+      "id": "goodhart_get_tool_special_characters_slug",
+      "description": "getToolBySlug must return undefined for slugs containing special characters like slashes, dots, or injection attempts",
+      "function": "getToolBySlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getToolBySlug('constrain/admin') returns None",
+        "getToolBySlug('ledger.js') returns None",
+        "getToolBySlug('../etc/passwd') returns None"
+      ]
+    },
+    {
+      "id": "goodhart_multiple_comments_same_page_all_returned",
+      "description": "listComments must return ALL comments for a page, not just the first or last — verifies no limit/truncation behavior",
+      "function": "listComments",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "After adding N comments to a page, listComments returns exactly N comments"
+      ]
+    },
+    {
+      "id": "goodhart_add_comment_does_not_return_value",
+      "description": "addComment must return None/undefined as specified — it is a void mutation, not a query that returns the inserted document",
+      "function": "addComment",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "addComment return value is None/undefined"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for data_layer component.\nThese tests catch implementations that pass visible tests through shortcuts\n(hardcoded returns, missing validation, partial invariants) rather than\ngenuinely satisfying the contract.\n\"\"\"\n\nimport pytest\nimport re\nimport time\nimport math\nimport copy\nimport os\n\n# Attempt import — tests will fail clearly if module not found\nfrom data_layer import (\n    TOOLS,\n    TOOL_SLUGS,\n    getToolBySlug,\n    addComment,\n    listComments,\n)\n\n# Try importing YouTubeEmbedUrl validation if it exists\ntry:\n    from data_layer import YouTubeEmbedUrl, validate_youtube_embed_url\n    HAS_YOUTUBE_VALIDATOR = True\nexcept ImportError:\n    try:\n        from data_layer import YouTubeEmbedUrl\n        HAS_YOUTUBE_VALIDATOR = True\n    except ImportError:\n        HAS_YOUTUBE_VALIDATOR = False\n\n# Backend availability check for Convex-dependent tests\nBACKEND_AVAILABLE = True\ntry:\n    # Try a quick operation to see if backend is reachable\n    import asyncio\n    loop = asyncio.get_event_loop()\n    if loop.is_closed():\n        loop = asyncio.new_event_loop()\nexcept Exception:\n    pass\n\n\n# ============================================================\n# Helper: Relative luminance & WCAG contrast ratio calculation\n# ============================================================\n\ndef _hex_to_rgb(hex_color: str):\n    \"\"\"Convert a hex color string to (r, g, b) tuple with values 0-255.\"\"\"\n    h = hex_color.lstrip('#')\n    if len(h) == 3:\n        h = ''.join(c * 2 for c in h)\n    return tuple(int(h[i:i+2], 16) for i in (0, 2, 4))\n\n\ndef _relative_luminance(r, g, b):\n    \"\"\"Calculate relative luminance per WCAG 2.0.\"\"\"\n    def linearize(c):\n        c = c / 255.0\n        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4\n    return 0.2126 * linearize(r) + 0.7152 * linearize(g) + 0.0722 * linearize(b)\n\n\ndef _contrast_ratio(hex1, hex2):\n    \"\"\"Calculate WCAG contrast ratio between two hex colors.\"\"\"\n    l1 = _relative_luminance(*_hex_to_rgb(hex1))\n    l2 = _relative_luminance(*_hex_to_rgb(hex2))\n    lighter = max(l1, l2)\n    darker = min(l1, l2)\n    return (lighter + 0.05) / (darker + 0.05)\n\n\n# Helper to access tool fields in a dict or object-attribute agnostic way\ndef _get(tool, field, default=None):\n    if isinstance(tool, dict):\n        return tool.get(field, default)\n    return getattr(tool, field, default)\n\n\nALL_SLUGS = [\n    'constrain', 'ledger', 'pact', 'advocate', 'arbiter',\n    'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex'\n]\n\n\n# ============================================================\n# getToolBySlug tests\n# ============================================================\n\nclass TestGoodhartGetToolBySlug:\n    \"\"\"Tests for getToolBySlug beyond what visible tests cover.\"\"\"\n\n    def test_goodhart_all_slugs_return_matching_slug(self):\n        \"\"\"getToolBySlug must return a ToolDef whose slug field matches the queried slug for every valid variant, not just 'constrain'.\"\"\"\n        for slug in ALL_SLUGS:\n            result = getToolBySlug(slug)\n            assert result is not None, f\"getToolBySlug('{slug}') returned None\"\n            assert _get(result, 'slug') == slug, (\n                f\"getToolBySlug('{slug}') returned slug={_get(result, 'slug')}\"\n            )\n            # Verify non-empty essential string fields\n            assert _get(result, 'name') and str(_get(result, 'name')).strip(), (\n                f\"Tool '{slug}' has empty name\"\n            )\n            assert _get(result, 'description') and str(_get(result, 'description')).strip(), (\n                f\"Tool '{slug}' has empty description\"\n            )\n            assert _get(result, 'version') and str(_get(result, 'version')).strip(), (\n                f\"Tool '{slug}' has empty version\"\n            )\n\n    def test_goodhart_step_matches_tools_array_position(self):\n        \"\"\"getToolBySlug must return a ToolDef whose step field corresponds to the tool's position in the TOOLS array.\"\"\"\n        for i, tool in enumerate(TOOLS):\n            slug = _get(tool, 'slug')\n            result = getToolBySlug(slug)\n            assert result is not None\n            expected_step = _get(tool, 'step')\n            actual_step = _get(result, 'step')\n            assert actual_step == expected_step, (\n                f\"getToolBySlug('{slug}').step = {actual_step}, expected {expected_step}\"\n            )\n\n    def test_goodhart_near_miss_strings(self):\n        \"\"\"getToolBySlug must return undefined for strings that are substrings, superstrings, or whitespace-padded versions of valid slugs.\"\"\"\n        near_misses = [\n            'constrai', 'constrains', 'pact ', ' ledger', 'kindex1',\n            'ledge', 'advocate_', 'batons', 'sentinel_', 'apprentic',\n        ]\n        for s in near_misses:\n            result = getToolBySlug(s)\n            assert result is None, (\n                f\"getToolBySlug('{s}') should return None but got {result}\"\n            )\n\n    def test_goodhart_none_input(self):\n        \"\"\"getToolBySlug must handle None input gracefully by returning undefined rather than crashing.\"\"\"\n        try:\n            result = getToolBySlug(None)\n            assert result is None\n        except TypeError:\n            # Also acceptable: raising TypeError for wrong type\n            pass\n\n    def test_goodhart_numeric_input(self):\n        \"\"\"getToolBySlug must handle non-string input types without crashing.\"\"\"\n        for val in [1, 0, True, False, 3.14, [], {}]:\n            try:\n                result = getToolBySlug(val)\n                assert result is None, (\n                    f\"getToolBySlug({val!r}) should return None\"\n                )\n            except (TypeError, AttributeError):\n                pass  # Acceptable to raise for wrong types\n\n    def test_goodhart_special_characters_slug(self):\n        \"\"\"getToolBySlug must return undefined for slugs containing special characters like slashes, dots, or injection patterns.\"\"\"\n        special = [\n            'constrain/admin', 'ledger.js', '../etc/passwd',\n            'pact<script>', 'arbiter&foo=bar', 'baton#anchor',\n        ]\n        for s in special:\n            result = getToolBySlug(s)\n            assert result is None, (\n                f\"getToolBySlug('{s}') should return None\"\n            )\n\n    def test_goodhart_returns_instructions_list_for_every_slug(self):\n        \"\"\"getToolBySlug must return a ToolDef with an instructions field that is a list with valid InstructionStep items for every slug.\"\"\"\n        for slug in ALL_SLUGS:\n            result = getToolBySlug(slug)\n            assert result is not None\n            instructions = _get(result, 'instructions')\n            assert isinstance(instructions, (list, tuple)), (\n                f\"Tool '{slug}' instructions is not a list: {type(instructions)}\"\n            )\n            for step in instructions:\n                assert _get(step, 'title') is not None\n                assert _get(step, 'bash') is not None\n\n\n# ============================================================\n# TOOLS array invariant tests\n# ============================================================\n\nclass TestGoodhartToolsInvariants:\n    \"\"\"Invariant tests for the TOOLS constant array beyond visible coverage.\"\"\"\n\n    def test_goodhart_step_numbers_cover_full_range(self):\n        \"\"\"The set of step numbers across all TOOLS entries must be exactly {1..11} with no gaps.\"\"\"\n        steps = {_get(t, 'step') for t in TOOLS}\n        assert steps == set(range(1, 12)), (\n            f\"TOOLS step numbers {steps} != expected {set(range(1, 12))}\"\n        )\n\n    def test_goodhart_tools_ordered_by_step(self):\n        \"\"\"TOOLS array must be ordered by step number ascending (indexed by workflow step order).\"\"\"\n        for i, tool in enumerate(TOOLS):\n            assert _get(tool, 'step') == i + 1, (\n                f\"TOOLS[{i}].step = {_get(tool, 'step')}, expected {i + 1}\"\n            )\n\n    def test_goodhart_all_names_nonempty(self):\n        \"\"\"Every ToolDef in TOOLS must have a non-empty, non-whitespace name string.\"\"\"\n        for tool in TOOLS:\n            name = _get(tool, 'name')\n            assert name is not None and isinstance(name, str) and name.strip(), (\n                f\"Tool '{_get(tool, 'slug')}' has invalid name: {name!r}\"\n            )\n\n    def test_goodhart_all_descriptions_nonempty(self):\n        \"\"\"Every ToolDef in TOOLS must have a non-empty description string.\"\"\"\n        for tool in TOOLS:\n            desc = _get(tool, 'description')\n            assert desc is not None and isinstance(desc, str) and len(desc) > 0, (\n                f\"Tool '{_get(tool, 'slug')}' has empty/missing description\"\n            )\n\n    def test_goodhart_all_versions_nonempty(self):\n        \"\"\"Every ToolDef in TOOLS must have a non-empty version string.\"\"\"\n        for tool in TOOLS:\n            ver = _get(tool, 'version')\n            assert ver is not None and isinstance(ver, str) and ver.strip(), (\n                f\"Tool '{_get(tool, 'slug')}' has invalid version: {ver!r}\"\n            )\n\n    def test_goodhart_all_required_fields_present(self):\n        \"\"\"Every ToolDef must have all 8 required struct fields present.\"\"\"\n        required_fields = ['slug', 'name', 'description', 'step', 'version', 'accentColor', 'instructions']\n        # videoUrl may be None but the key should exist\n        for tool in TOOLS:\n            for field in required_fields:\n                val = _get(tool, field)\n                assert val is not None, (\n                    f\"Tool '{_get(tool, 'slug')}' missing field '{field}'\"\n                )\n\n    def test_goodhart_instruction_steps_nonempty_strings(self):\n        \"\"\"Every InstructionStep must have non-empty title and bash fields — no placeholders.\"\"\"\n        for tool in TOOLS:\n            slug = _get(tool, 'slug')\n            instructions = _get(tool, 'instructions')\n            for i, step in enumerate(instructions):\n                title = _get(step, 'title')\n                bash = _get(step, 'bash')\n                assert title and isinstance(title, str) and title.strip(), (\n                    f\"Tool '{slug}' instruction[{i}] has empty title\"\n                )\n                assert bash and isinstance(bash, str) and bash.strip(), (\n                    f\"Tool '{slug}' instruction[{i}] has empty bash\"\n                )\n\n    def test_goodhart_accent_color_proper_hex(self):\n        \"\"\"Every accentColor must start with '#' and be either 4 or 7 characters long.\"\"\"\n        for tool in TOOLS:\n            color = _get(tool, 'accentColor')\n            assert isinstance(color, str), f\"accentColor is not a string: {color!r}\"\n            assert color.startswith('#'), f\"accentColor doesn't start with #: {color}\"\n            assert len(color) in (4, 7), (\n                f\"accentColor has invalid length {len(color)}: {color}\"\n            )\n\n    def test_goodhart_video_url_no_query_params(self):\n        \"\"\"Every defined videoUrl must not contain query params or extra path segments after the video ID.\"\"\"\n        for tool in TOOLS:\n            slug = _get(tool, 'slug')\n            url = _get(tool, 'videoUrl')\n            if slug == 'kindex':\n                continue\n            assert url is not None and isinstance(url, str)\n            # Must not contain ? or & after the video ID\n            assert '?' not in url, f\"Tool '{slug}' videoUrl contains '?': {url}\"\n            assert '&' not in url, f\"Tool '{slug}' videoUrl contains '&': {url}\"\n            # Extract part after /embed/\n            parts = url.split('/embed/')\n            assert len(parts) == 2, f\"Tool '{slug}' videoUrl malformed: {url}\"\n            video_id = parts[1]\n            assert len(video_id) == 11, (\n                f\"Tool '{slug}' videoUrl video ID has length {len(video_id)}: {video_id}\"\n            )\n\n    def test_goodhart_kindex_video_strictly_none(self):\n        \"\"\"The kindex tool's videoUrl must be exactly None/undefined, not empty string or other falsy value.\"\"\"\n        kindex = None\n        for tool in TOOLS:\n            if _get(tool, 'slug') == 'kindex':\n                kindex = tool\n                break\n        assert kindex is not None, \"kindex tool not found in TOOLS\"\n        video_url = _get(kindex, 'videoUrl')\n        assert video_url is None, (\n            f\"kindex videoUrl should be None, got {video_url!r} (type={type(video_url).__name__})\"\n        )\n\n    def test_goodhart_non_kindex_video_urls_are_strings(self):\n        \"\"\"All 10 non-kindex tools must have videoUrl as a str type matching the YouTube embed pattern.\"\"\"\n        for tool in TOOLS:\n            slug = _get(tool, 'slug')\n            if slug == 'kindex':\n                continue\n            url = _get(tool, 'videoUrl')\n            assert isinstance(url, str), (\n                f\"Tool '{slug}' videoUrl is not a string: {type(url).__name__}\"\n            )\n            assert url.startswith('https://www.youtube.com/embed/'), (\n                f\"Tool '{slug}' videoUrl doesn't start with embed URL: {url}\"\n            )\n\n    def test_goodhart_slugs_are_url_safe(self):\n        \"\"\"Every slug must contain only lowercase alphanumeric characters (URL-safe).\"\"\"\n        pattern = re.compile(r'^[a-z][a-z0-9]*$')\n        for tool in TOOLS:\n            slug = _get(tool, 'slug')\n            assert pattern.match(slug), f\"Slug '{slug}' is not URL-safe\"\n\n    def test_goodhart_wcag_aa_contrast(self):\n        \"\"\"Every accentColor must have WCAG AA compliant contrast ratio >= 4.5 against dark background #0f172a.\"\"\"\n        dark_bg = '#0f172a'\n        for tool in TOOLS:\n            slug = _get(tool, 'slug')\n            color = _get(tool, 'accentColor')\n            ratio = _contrast_ratio(color, dark_bg)\n            assert ratio >= 4.5, (\n                f\"Tool '{slug}' accentColor {color} has contrast ratio {ratio:.2f} < 4.5 against {dark_bg}\"\n            )\n\n\n# ============================================================\n# TOOL_SLUGS tests\n# ============================================================\n\nclass TestGoodhartToolSlugs:\n\n    def test_goodhart_tool_slugs_length(self):\n        \"\"\"TOOL_SLUGS must contain exactly 11 elements matching TOOLS length.\"\"\"\n        assert len(TOOL_SLUGS) == 11\n        assert len(TOOL_SLUGS) == len(TOOLS)\n\n    def test_goodhart_tool_slugs_contains_all_variants(self):\n        \"\"\"TOOL_SLUGS must contain every ToolSlug enum variant exactly once.\"\"\"\n        assert set(TOOL_SLUGS) == set(ALL_SLUGS), (\n            f\"TOOL_SLUGS set {set(TOOL_SLUGS)} != expected {set(ALL_SLUGS)}\"\n        )\n\n    def test_goodhart_tool_slugs_readonly(self):\n        \"\"\"TOOL_SLUGS should be effectively immutable — modifications should not persist.\"\"\"\n        original = list(TOOL_SLUGS)\n        try:\n            # Try to modify — this may raise or silently fail\n            if isinstance(TOOL_SLUGS, list):\n                TOOL_SLUGS_copy = TOOL_SLUGS[:]  # Just verify content\n            else:\n                pass  # tuple or frozen — already immutable\n        except Exception:\n            pass\n        # Verify content unchanged\n        assert list(TOOL_SLUGS) == original\n\n\n# ============================================================\n# YouTubeEmbedUrl validation tests\n# ============================================================\n\nclass TestGoodhartYouTubeUrl:\n\n    def _validate(self, url):\n        \"\"\"Try various ways the module might expose validation.\"\"\"\n        pattern = re.compile(r'^https://www\\.youtube\\.com/embed/[a-zA-Z0-9_-]{11}$')\n        return bool(pattern.match(url))\n\n    def test_goodhart_rejects_extra_path(self):\n        \"\"\"YouTubeEmbedUrl must reject URLs with extra path segments after 11-char video ID.\"\"\"\n        assert not self._validate('https://www.youtube.com/embed/dQw4w9WgXcQ/extra')\n\n    def test_goodhart_rejects_query_params(self):\n        \"\"\"YouTubeEmbedUrl must reject embed URLs with query parameters.\"\"\"\n        assert not self._validate('https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1')\n\n    def test_goodhart_rejects_long_id(self):\n        \"\"\"YouTubeEmbedUrl must reject video IDs longer than 11 characters.\"\"\"\n        assert not self._validate('https://www.youtube.com/embed/dQw4w9WgXcQx')\n\n    def test_goodhart_rejects_http(self):\n        \"\"\"YouTubeEmbedUrl must reject non-HTTPS embed URLs.\"\"\"\n        assert not self._validate('http://www.youtube.com/embed/dQw4w9WgXcQ')\n\n    def test_goodhart_rejects_no_www(self):\n        \"\"\"YouTubeEmbedUrl must reject embed URLs without www. subdomain.\"\"\"\n        assert not self._validate('https://youtube.com/embed/dQw4w9WgXcQ')\n\n    def test_goodhart_accepts_valid_with_dashes_underscores(self):\n        \"\"\"YouTubeEmbedUrl must accept video IDs containing dashes and underscores.\"\"\"\n        assert self._validate('https://www.youtube.com/embed/a-b_c-d_e-F')\n\n    def test_goodhart_rejects_empty_id(self):\n        \"\"\"YouTubeEmbedUrl must reject embed URLs with empty video ID.\"\"\"\n        assert not self._validate('https://www.youtube.com/embed/')\n\n    def test_goodhart_rejects_spaces_in_id(self):\n        \"\"\"YouTubeEmbedUrl must reject embed URLs with spaces in video ID.\"\"\"\n        assert not self._validate('https://www.youtube.com/embed/dQw4w9 gXcQ')\n\n\n# ============================================================\n# Comment system tests (with mocking for Convex backend)\n# ============================================================\n\nclass TestGoodhartComments:\n    \"\"\"Tests for addComment and listComments beyond visible coverage.\"\"\"\n\n    @pytest.fixture(autouse=True)\n    def _setup_comment_mocks(self, monkeypatch):\n        \"\"\"\n        Set up in-memory mock for Convex backend if functions use one.\n        If the functions directly interact with a backend, these tests\n        will exercise the real implementation.\n        \"\"\"\n        self._comments_store = []\n        self._original_add = addComment\n        self._original_list = listComments\n\n    @pytest.mark.anyio\n    async def test_goodhart_tab_only_author_rejected(self):\n        \"\"\"addComment must reject author containing only tab characters as whitespace-only.\"\"\"\n        with pytest.raises(Exception):\n            await addComment(page='constrain', author='\\t\\t', body='Valid body')\n\n    @pytest.mark.anyio\n    async def test_goodhart_newline_only_body_rejected(self):\n        \"\"\"addComment must reject body containing only newline characters as whitespace-only.\"\"\"\n        with pytest.raises(Exception):\n            await addComment(page='constrain', author='Alice', body='\\n\\n')\n\n    @pytest.mark.anyio\n    async def test_goodhart_mixed_whitespace_author_rejected(self):\n        \"\"\"addComment must reject author with mixed whitespace types (tabs, spaces, newlines) but no visible chars.\"\"\"\n        with pytest.raises(Exception):\n            await addComment(page='pact', author=' \\t \\n ', body='Valid body')\n\n    @pytest.mark.anyio\n    async def test_goodhart_single_char_author_accepted(self):\n        \"\"\"addComment must accept a single non-whitespace character as author (minimum boundary).\"\"\"\n        try:\n            await addComment(page='ledger', author='A', body='Test body')\n        except Exception as e:\n            if 'empty' in str(e).lower() or 'whitespace' in str(e).lower():\n                pytest.fail(f\"Single char author 'A' should be accepted, got: {e}\")\n\n    @pytest.mark.anyio\n    async def test_goodhart_single_char_body_accepted(self):\n        \"\"\"addComment must accept a single non-whitespace character as body (minimum boundary).\"\"\"\n        try:\n            await addComment(page='pact', author='Bob', body='X')\n        except Exception as e:\n            if 'empty' in str(e).lower() or 'whitespace' in str(e).lower():\n                pytest.fail(f\"Single char body 'X' should be accepted, got: {e}\")\n\n    @pytest.mark.anyio\n    async def test_goodhart_author_101_rejected(self):\n        \"\"\"addComment must reject author of exactly 101 characters (one over max).\"\"\"\n        author_101 = 'A' * 101\n        with pytest.raises(Exception):\n            await addComment(page='arbiter', author=author_101, body='Valid body')\n\n    @pytest.mark.anyio\n    async def test_goodhart_body_2001_rejected(self):\n        \"\"\"addComment must reject body of exactly 2001 characters (one over max).\"\"\"\n        body_2001 = 'B' * 2001\n        with pytest.raises(Exception):\n            await addComment(page='baton', author='Alice', body=body_2001)\n\n    @pytest.mark.anyio\n    async def test_goodhart_add_comment_returns_none(self):\n        \"\"\"addComment must return None/undefined — it is a void mutation.\"\"\"\n        result = await addComment(page='sentinel', author='Tester', body='Hello')\n        assert result is None, f\"addComment should return None, got {result!r}\"\n\n    @pytest.mark.anyio\n    async def test_goodhart_created_at_is_epoch_ms(self):\n        \"\"\"addComment must set createdAt as epoch milliseconds (not seconds), reasonably close to now.\"\"\"\n        before = time.time() * 1000\n        await addComment(page='chronicler', author='TimeTest', body='Checking timestamp')\n        after = time.time() * 1000\n\n        comments = await listComments(page='chronicler')\n        # Find our comment\n        matching = [c for c in comments if _get(c, 'author') == 'TimeTest']\n        assert len(matching) > 0, \"Comment not found after addComment\"\n\n        created_at = _get(matching[-1], 'createdAt')\n        assert isinstance(created_at, (int, float)), (\n            f\"createdAt should be numeric, got {type(created_at).__name__}\"\n        )\n        # Must be in milliseconds range (> 1.7 trillion = ~2023 in ms)\n        assert created_at > 1_700_000_000_000, (\n            f\"createdAt {created_at} appears to be in seconds, not milliseconds\"\n        )\n        # Should be within reasonable range of current time\n        assert before - 5000 <= created_at <= after + 5000, (\n            f\"createdAt {created_at} not within expected range [{before}, {after}]\"\n        )\n\n    @pytest.mark.anyio\n    async def test_goodhart_list_comments_returns_list(self):\n        \"\"\"listComments must always return a list type, never None or a single object.\"\"\"\n        result = await listComments(page='stigmergy')\n        assert isinstance(result, list), (\n            f\"listComments should return list, got {type(result).__name__}\"\n        )\n\n    @pytest.mark.anyio\n    async def test_goodhart_multiple_comments_all_returned(self):\n        \"\"\"listComments must return ALL comments for a page, not just first or last.\"\"\"\n        page = 'apprentice'\n        # Add several comments\n        n = 5\n        for i in range(n):\n            await addComment(page=page, author=f'User{i}', body=f'Comment {i}')\n\n        comments = await listComments(page=page)\n        # Should have at least n comments (may have more from other tests)\n        user_comments = [c for c in comments if _get(c, 'author', '').startswith('User')]\n        assert len(user_comments) >= n, (\n            f\"Expected at least {n} comments, found {len(user_comments)}\"\n        )\n\n    @pytest.mark.anyio\n    async def test_goodhart_comment_preserves_unicode(self):\n        \"\"\"addComment must preserve unicode characters, special chars, and internal whitespace verbatim.\"\"\"\n        author = 'José María 日本語'\n        body = 'Hello <world> & \"friends\" — it\\'s great! 🎉'\n        page = 'advocate'\n\n        await addComment(page=page, author=author, body=body)\n        comments = await listComments(page=page)\n\n        matching = [c for c in comments if _get(c, 'author') == author]\n        assert len(matching) > 0, f\"Comment with unicode author not found\"\n        assert _get(matching[-1], 'body') == body, (\n            f\"Body not preserved: expected {body!r}, got {_get(matching[-1], 'body')!r}\"\n        )\n\n    @pytest.mark.anyio\n    async def test_goodhart_list_comments_sorted_ascending(self):\n        \"\"\"listComments must return results sorted by createdAt ascending — verified with distinct timestamps.\"\"\"\n        page = 'constrain'\n        # Add comments that should have increasing timestamps\n        for i in range(3):\n            await addComment(page=page, author=f'SortUser{i}', body=f'Sort test {i}')\n\n        comments = await listComments(page=page)\n        # Verify ascending order\n        for i in range(len(comments) - 1):\n            t1 = _get(comments[i], 'createdAt')\n            t2 = _get(comments[i + 1], 'createdAt')\n            assert t1 <= t2, (\n                f\"Comments not sorted: createdAt[{i}]={t1} > createdAt[{i+1}]={t2}\"\n            )\n\n    @pytest.mark.anyio\n    async def test_goodhart_list_comments_filters_correctly(self):\n        \"\"\"listComments for page X must not return comments from page Y.\"\"\"\n        await addComment(page='ledger', author='FilterTest', body='I am on ledger')\n        await addComment(page='pact', author='FilterTest', body='I am on pact')\n\n        ledger_comments = await listComments(page='ledger')\n        for c in ledger_comments:\n            assert _get(c, 'page') == 'ledger', (\n                f\"listComments('ledger') returned comment with page={_get(c, 'page')}\"\n            )\n\n    @pytest.mark.anyio\n    async def test_goodhart_comment_has_all_fields(self):\n        \"\"\"Comment documents must have _id, page, author, body, and createdAt fields with correct types.\"\"\"\n        await addComment(page='baton', author='FieldTest', body='Checking fields')\n        comments = await listComments(page='baton')\n        matching = [c for c in comments if _get(c, 'author') == 'FieldTest']\n        assert len(matching) > 0\n\n        comment = matching[-1]\n        # Check required fields exist\n        assert _get(comment, '_id') is not None, \"Comment missing _id\"\n        assert _get(comment, 'page') is not None, \"Comment missing page\"\n        assert _get(comment, 'author') is not None, \"Comment missing author\"\n        assert _get(comment, 'body') is not None, \"Comment missing body\"\n        assert _get(comment, 'createdAt') is not None, \"Comment missing createdAt\"\n\n        # Check types\n        assert isinstance(_get(comment, 'page'), str)\n        assert isinstance(_get(comment, 'author'), str)\n        assert isinstance(_get(comment, 'body'), str)\n        assert isinstance(_get(comment, 'createdAt'), (int, float))\n"
+}

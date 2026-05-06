@@ -1,0 +1,707 @@
+{
+  "component_id": "app_shell",
+  "name": "App Shell, Routing & Layout",
+  "description": "Top-level application shell comprising the Convex real-time provider, React Router v6 route tree, responsive sidebar layout with mobile hamburger toggle, and animated page transitions. Owns route definitions, tool-slug validation, sidebar rendering, and the fade-in animation/background-grid visual layers. Delegates page content to HomePage and ToolPage via Outlet. Dynamic accent colors applied via inline style props; Google Fonts loaded via link tags in index.html.",
+  "version": 1,
+  "types": [
+    {
+      "name": "ToolSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "URL-safe identifier for each tool, used as route param and Convex page key.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "HexColorString",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The raw hex color string.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$",
+              "error_message": "Must be a valid 3- or 6-digit CSS hex color prefixed with #."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A CSS hex color string (e.g. '#4F46E5'). Validated by regex. Used for tool accent colors applied via inline style.",
+      "owner_component": ""
+    },
+    {
+      "name": "ConvexUrl",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The Convex deployment URL from VITE_CONVEX_URL.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https?://.+",
+              "error_message": "VITE_CONVEX_URL must be a valid HTTP(S) URL."
+            },
+            {
+              "kind": "length",
+              "expression": "min:10,max:256",
+              "error_message": "VITE_CONVEX_URL must be between 10 and 256 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated Convex deployment URL string. Must be an HTTPS URL ending with .convex.cloud or matching local dev patterns.",
+      "owner_component": ""
+    },
+    {
+      "name": "SidebarItem",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Route parameter for navigation link.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name shown in the sidebar.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Step number rendered as a badge in the sidebar row.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Accent color used to highlight the active sidebar item.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Derived view-model for a single sidebar navigation entry, projected from ToolDef.",
+      "owner_component": "app_shell"
+    },
+    {
+      "name": "SidebarProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "items",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered list of all 11 tool entries to render in the sidebar.",
+          "validators": []
+        },
+        {
+          "name": "currentSlug",
+          "type_ref": "ToolSlug",
+          "required": false,
+          "default": "null",
+          "description": "Currently active tool slug, or null if on the home page. Determines which item receives accent-color highlighting.",
+          "validators": []
+        },
+        {
+          "name": "onNavigate",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Callback invoked after any sidebar navigation link is clicked. Used by Layout to close the mobile sidebar.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props interface for the Sidebar component.",
+      "owner_component": ""
+    },
+    {
+      "name": "RoutesObject",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "HOME",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Home page path. Always '/'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === '/'",
+              "error_message": "HOME route must be '/'."
+            }
+          ]
+        },
+        {
+          "name": "TOOL",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Dynamic tool page route pattern. Always '/:toolSlug'.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === '/:toolSlug'",
+              "error_message": "TOOL route must be '/:toolSlug'."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Frozen object containing all route path constants.",
+      "owner_component": ""
+    },
+    {
+      "name": "FadeInKeyframes",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "from_opacity",
+          "type_ref": "float",
+          "required": true,
+          "default": "",
+          "description": "Starting opacity value.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 0",
+              "error_message": "fadeIn must start at opacity 0."
+            }
+          ]
+        },
+        {
+          "name": "to_opacity",
+          "type_ref": "float",
+          "required": true,
+          "default": "",
+          "description": "Ending opacity value.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 1",
+              "error_message": "fadeIn must end at opacity 1."
+            }
+          ]
+        },
+        {
+          "name": "duration",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Animation duration string.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === '200ms'",
+              "error_message": "fadeIn duration must be 200ms."
+            }
+          ]
+        },
+        {
+          "name": "easing",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Animation timing function.",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === 'ease-out'",
+              "error_message": "fadeIn easing must be ease-out."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Tailwind keyframe definition for the animate-fadeIn utility class. Defined in tailwind.config.ts extend.keyframes.fadeIn.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindFontConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "serif",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Font stack for the serif family key. Must be ['Instrument Serif', 'serif'].",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Font family extension in tailwind.config.ts for the Instrument Serif typeface.",
+      "owner_component": ""
+    },
+    {
+      "name": "GoogleFontLink",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "href",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Full Google Fonts CSS2 URL including family and display=swap parameters.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https://fonts\\.googleapis\\.com/css2\\?family=.+&display=swap$",
+              "error_message": "Must be a valid Google Fonts CSS2 URL with display=swap."
+            }
+          ]
+        },
+        {
+          "name": "preconnect_origins",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Origins requiring preconnect hints. Must include 'https://fonts.googleapis.com' and 'https://fonts.gstatic.com'.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Descriptor for a Google Fonts <link> tag to be placed in index.html.",
+      "owner_component": ""
+    },
+    {
+      "name": "StepNumber",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Integer 1–11 representing the tool's position in the exemplar.tools workflow order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "HexColor",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "CSS hex color string (e.g. '#00e5ff') used for per-tool accent theming.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'app_shell'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "createConvexClient",
+      "description": "Reads VITE_CONVEX_URL from import.meta.env, validates it is a non-empty string, and returns a singleton ConvexReactClient instance. Throws at module load time if the env var is missing or empty, preventing silent misconfiguration.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [
+        {
+          "name": "missing_convex_url",
+          "condition": "import.meta.env.VITE_CONVEX_URL is undefined, null, or empty string.",
+          "error_type": "Error",
+          "error_data": {
+            "message": "VITE_CONVEX_URL environment variable is not set. Add it to your .env.local file."
+          }
+        }
+      ],
+      "preconditions": [
+        "import.meta.env.VITE_CONVEX_URL is defined and is a non-empty string matching ConvexUrl validation."
+      ],
+      "postconditions": [
+        "Returns a ConvexReactClient instance connected to the specified deployment URL.",
+        "Subsequent calls return the same instance (module-level singleton)."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "Convex deployment at VITE_CONVEX_URL",
+          "description": "ConvexReactClient opens a WebSocket connection to the Convex backend upon instantiation."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "isValidToolSlug",
+      "description": "Type guard function that narrows an arbitrary string to the ToolSlug union type. Checks membership in the frozen TOOL_SLUGS array via Array.prototype.includes.",
+      "inputs": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Candidate string to test for ToolSlug membership.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returns true if and only if value is one of the 11 ToolSlug variants.",
+        "When true, TypeScript narrows value to type ToolSlug in the calling scope."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function with no side effects."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(n)"
+      }
+    },
+    {
+      "name": "toolPath",
+      "description": "Constructs a resolved route path string for a given tool slug. Replaces the :toolSlug parameter in ROUTES.TOOL with the provided slug value. Used for programmatic navigation and NavLink href generation.",
+      "inputs": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "A valid tool slug to interpolate into the route pattern.",
+          "validators": []
+        }
+      ],
+      "output_type": "str",
+      "error_cases": [],
+      "preconditions": [
+        "slug is a valid ToolSlug (one of the 11 variants)."
+      ],
+      "postconditions": [
+        "Returned string matches the pattern '/[a-z0-9-]+' (leading slash, then the kebab-case slug).",
+        "Returned string equals '/' + slug."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure string interpolation, no side effects."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "renderApp",
+      "description": "Top-level App component render function (src/App.tsx default export). Returns the JSX tree: ConvexProvider(client) > BrowserRouter > Routes > Route(path='/', element=Layout) with children Route(index, element=HomePage) and Route(path=':toolSlug', element=ToolPage). No props.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [
+        {
+          "name": "convex_client_unavailable",
+          "condition": "createConvexClient threw because VITE_CONVEX_URL was missing.",
+          "error_type": "Error",
+          "error_data": {
+            "message": "App cannot render: Convex client failed to initialize."
+          }
+        }
+      ],
+      "preconditions": [
+        "ConvexReactClient singleton has been successfully created (VITE_CONVEX_URL was valid).",
+        "HomePage and ToolPage components are importable from their respective modules."
+      ],
+      "postconditions": [
+        "Renders a single ConvexProvider wrapping the entire route tree.",
+        "All routes are reachable: '/' renders HomePage inside Layout, '/:toolSlug' renders ToolPage inside Layout.",
+        "No props are required to mount this component."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "React DOM tree",
+          "description": "Mounts the full application component tree into the React root."
+        },
+        {
+          "kind": "network_call",
+          "target": "Convex backend via ConvexProvider",
+          "description": "ConvexProvider establishes and maintains a real-time WebSocket subscription to the Convex deployment."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "renderLayout",
+      "description": "Layout component render function (src/components/Layout.tsx default export). Manages mobile sidebar toggle state. Reads current location via useLocation and current toolSlug via useParams. Imports ToolDefList from data_layer and projects it to SidebarItem[]. Renders: background grid layer (fixed, z-0), Sidebar (fixed, z-20), hamburger toggle button (md:hidden, z-30), main content area with <div key={location.pathname} className='animate-fadeIn'><Outlet /></div>.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [
+        {
+          "name": "tool_def_list_empty",
+          "condition": "ToolDefList import resolves to an empty array (data_layer misconfiguration).",
+          "error_type": "Error",
+          "error_data": {
+            "message": "ToolDefList is empty. Sidebar cannot render without tool definitions."
+          }
+        }
+      ],
+      "preconditions": [
+        "Component is rendered as a Route element within BrowserRouter (useLocation and useParams are available).",
+        "ToolDefList is importable from data_layer and contains exactly 11 entries."
+      ],
+      "postconditions": [
+        "sidebarOpen is false on initial mount.",
+        "sidebarOpen resets to false whenever location.pathname changes.",
+        "Outlet wrapper div has key={location.pathname}, causing remount and fade-in replay on route change.",
+        "Background grid pattern div is rendered behind all content.",
+        "Sidebar receives correctly projected SidebarItem[] with stepNumber, label, slug, and accentColor.",
+        "On screens < 768px, sidebar is conditionally visible based on sidebarOpen state.",
+        "On screens >= 768px, sidebar is always visible and hamburger button is hidden."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "React component state: sidebarOpen",
+          "description": "useState<boolean> toggled by hamburger button click and reset on navigation."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 16,
+        "max_memory_mb": null,
+        "complexity": "O(n)"
+      }
+    },
+    {
+      "name": "renderSidebar",
+      "description": "Sidebar presentational component (src/components/Sidebar.tsx default export). Renders the 'exemplar.tools' text logo as a NavLink to '/', followed by an ordered list of SidebarItem entries. Each entry shows a step-number badge and the tool label. The active entry (matching currentSlug) is highlighted using inline style with the item's accentColor. Calls onNavigate after any link click to allow the parent to close the mobile sidebar.",
+      "inputs": [
+        {
+          "name": "items",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered array of SidebarItem view-models to render.",
+          "validators": []
+        },
+        {
+          "name": "currentSlug",
+          "type_ref": "ToolSlug",
+          "required": false,
+          "default": "null",
+          "description": "Active tool slug or null when on the home page.",
+          "validators": []
+        },
+        {
+          "name": "onNavigate",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Callback function () => void invoked after clicking any navigation link.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [
+        "items array is non-empty and contains exactly 11 SidebarItem entries.",
+        "If currentSlug is not null, it matches one of the items' slug fields."
+      ],
+      "postconditions": [
+        "Logo link navigates to '/' and triggers onNavigate.",
+        "Each tool entry is rendered in items array order with stepNumber badge and label.",
+        "Exactly one entry (or zero, if currentSlug is null) has accent-color inline styling.",
+        "Active item's background/border/text color uses accentColor from the matching SidebarItem, applied via inline style attribute.",
+        "onNavigate is called exactly once per link click."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component. Navigation side effects are handled by React Router internally upon link click."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 8,
+        "max_memory_mb": null,
+        "complexity": "O(n)"
+      }
+    },
+    {
+      "name": "projectToolDefToSidebarItem",
+      "description": "Pure mapping function that transforms a ToolDef (from data_layer) into a SidebarItem view-model. Extracts slug, name (as label), stepNumber, and accentColor. May be inlined in Layout or extracted as a helper.",
+      "inputs": [
+        {
+          "name": "toolDef",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "A ToolDef object from data_layer containing at minimum: slug (ToolSlug), name (string), stepNumber (int), accentColor (HexColorString).",
+          "validators": []
+        }
+      ],
+      "output_type": "SidebarItem",
+      "error_cases": [],
+      "preconditions": [
+        "toolDef has non-null slug, name, stepNumber, and accentColor fields.",
+        "toolDef.slug is a valid ToolSlug.",
+        "toolDef.stepNumber is between 1 and 11 inclusive."
+      ],
+      "postconditions": [
+        "Returned SidebarItem.slug === toolDef.slug.",
+        "Returned SidebarItem.label === toolDef.name.",
+        "Returned SidebarItem.stepNumber === toolDef.stepNumber.",
+        "Returned SidebarItem.accentColor === toolDef.accentColor."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure data projection with no side effects."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    }
+  ],
+  "dependencies": [
+    "data_layer"
+  ],
+  "dependency_contracts": {
+    "data_layer": [
+      "ToolDef",
+      "ToolDefList",
+      "ToolSlug",
+      "HexColorString"
+    ]
+  },
+  "invariants": [
+    "Exactly one ConvexReactClient instance exists per application lifecycle, instantiated in src/lib/convexClient.ts.",
+    "ROUTES object and TOOL_SLUGS array are frozen at module load; no runtime mutation is possible.",
+    "TOOL_SLUGS.length === 11 — one entry per documented tool.",
+    "The route tree contains exactly two leaf routes under the Layout route: index (HomePage) and :toolSlug (ToolPage).",
+    "sidebarOpen state is false on initial render and resets to false on any navigation.",
+    "Fade-in animation (animate-fadeIn) replays on every route change because the wrapper div is keyed on location.pathname.",
+    "Active sidebar item is highlighted using the tool's accentColor applied via inline style, never via dynamic Tailwind class generation.",
+    "On viewports < 768px the sidebar is hidden behind a hamburger toggle; on viewports >= 768px the sidebar is always visible and the hamburger is hidden.",
+    "Background grid pattern is rendered on every page (applied to layout wrapper, not per-page).",
+    "An unrecognized :toolSlug parameter renders the NotFoundFallback, not a crash."
+  ],
+  "requires": [
+    "data_layer.getToolDefList"
+  ],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Reads the VITE_CONVEX_URL environment variable (PUBLIC tier, non-secret deployment URL) at module load time to instantiate ConvexReactClient. Reads the static ToolDefList from data_layer (PUBLIC tier, no PII) to project sidebar items. No writes; all state is ephemeral React component state (sidebarOpen boolean).",
+    "side_effects": [
+      {
+        "type": "env_var_read",
+        "classification": "PUBLIC",
+        "fields": [
+          "VITE_CONVEX_URL"
+        ],
+        "rationale": "ConvexReactClient requires the deployment URL injected via Vite env var at build/dev time."
+      },
+      {
+        "type": "dom_mutation",
+        "classification": "PUBLIC",
+        "fields": [
+          "document.head (Google Fonts link)",
+          "document.body (background grid, sidebar, outlet)"
+        ],
+        "rationale": "Renders the full application shell into the DOM, including preconnect/font link tags in index.html and the React component tree."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "routing",
+      "layout",
+      "sidebar"
+    ],
+    "rationale": "This component is the single authority for client-side route definitions (ROUTES constant, toolPath builder), the application layout structure (sidebar + main content + background grid), and sidebar presentation state (open/closed toggle, active-route highlighting). No other component may define routes or alter the shell layout."
+  }
+}

@@ -1,0 +1,1075 @@
+{
+  "component_id": "project_scaffold",
+  "name": "Project Scaffold & Configuration",
+  "description": "Initializes the Vite + React 18 + TypeScript project via bun create vite. Produces a deterministic set of configuration file artifacts (package.json, vite.config.ts, tsconfig*.json, tailwind.config.js, postcss.config.js, index.html, src/index.css, src/main.tsx, .env.local.example, convex/ stub) that serve as the foundation for all downstream components. Configures dev server on port 4000, Tailwind CSS v3 with custom theme tokens (fonts, colors, grid utility), React Router v6 and Convex dependencies, vitest in jsdom environment, and @/ path alias. Ensures bun.lockb is the sole lockfile.",
+  "version": 1,
+  "types": [
+    {
+      "name": "FilePath",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The relative file path string.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(?!/)(?!.*\\.\\.)[\\.a-zA-Z0-9_/@\\-]+(\\.([a-z]+))?$",
+              "error_message": "FilePath must be a relative POSIX path with no '..' traversals and no absolute prefix."
+            },
+            {
+              "kind": "length",
+              "expression": "1..256",
+              "error_message": "FilePath must be between 1 and 256 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A POSIX-relative file path rooted at the project directory. Must not contain '..' traversals or absolute prefixes.",
+      "owner_component": ""
+    },
+    {
+      "name": "FileContent",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The UTF-8 content of the file.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "UTF-8 encoded file content string. Binary files (bun.lockb) are excluded from this type.",
+      "owner_component": ""
+    },
+    {
+      "name": "FileArtifact",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Relative path from project root where the file must be written.",
+          "validators": []
+        },
+        {
+          "name": "content",
+          "type_ref": "FileContent",
+          "required": true,
+          "default": "",
+          "description": "Complete UTF-8 content of the file.",
+          "validators": []
+        },
+        {
+          "name": "overwritable",
+          "type_ref": "bool",
+          "required": true,
+          "default": "true",
+          "description": "Whether this file may be overwritten if it already exists. False for files that downstream components may have modified.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single file artifact produced by the scaffold. Pairs a deterministic path with its full content.",
+      "owner_component": ""
+    },
+    {
+      "name": "DependencyEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "package_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "npm package name (scoped or unscoped).",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^(@[a-z0-9\\-]+/)?[a-z0-9\\-\\.]+$",
+              "error_message": "package_name must be a valid npm package name."
+            }
+          ]
+        },
+        {
+          "name": "version_range",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Semver range string (e.g. '^18.2.0', '~3.4.0').",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[\\^~>=<*0-9\\.x\\-\\s\\|]+$",
+              "error_message": "version_range must be a valid semver range expression."
+            }
+          ]
+        },
+        {
+          "name": "is_dev",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "True if this is a devDependency, false for production dependency.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single npm dependency with its semver range constraint.",
+      "owner_component": ""
+    },
+    {
+      "name": "DependencyCategory",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "production",
+        "dev"
+      ],
+      "inner_types": [],
+      "description": "Classification of npm dependency as production or development.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScriptEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Script key in package.json scripts object.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z][a-z0-9:\\-]*$",
+              "error_message": "Script name must be lowercase alphanumeric with optional hyphens/colons."
+            }
+          ]
+        },
+        {
+          "name": "command",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Shell command string executed by bun run <name>.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A package.json script definition.",
+      "owner_component": ""
+    },
+    {
+      "name": "TailwindThemeTokens",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "font_families",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Registered font-family keys: serif (Instrument Serif), mono (JetBrains Mono), sans (Inter).",
+          "validators": []
+        },
+        {
+          "name": "colors",
+          "type_ref": "dict",
+          "required": true,
+          "default": "",
+          "description": "Extended color tokens. Keys are Tailwind token names, values are hex strings. Must include background: '#0a0a0a'.",
+          "validators": []
+        },
+        {
+          "name": "utility_classes",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Custom utility classes registered via @layer utilities or Tailwind plugin. Must include 'bg-grid'.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "The set of Tailwind CSS theme extension tokens registered by the scaffold, available to all downstream components via className.",
+      "owner_component": ""
+    },
+    {
+      "name": "PathAlias",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "alias",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The import alias prefix (e.g. '@/').",
+          "validators": []
+        },
+        {
+          "name": "target",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The filesystem directory the alias resolves to (e.g. 'src/').",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A TypeScript/Vite path alias mapping.",
+      "owner_component": ""
+    },
+    {
+      "name": "EnvironmentVariable",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Variable name. Must be prefixed with VITE_ for client-side access.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^VITE_[A-Z][A-Z0-9_]*$",
+              "error_message": "Environment variable must start with VITE_ and be uppercase alphanumeric with underscores."
+            }
+          ]
+        },
+        {
+          "name": "placeholder_value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Placeholder value shown in .env.local.example.",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Human-readable description of what this variable configures.",
+          "validators": []
+        },
+        {
+          "name": "required_at_runtime",
+          "type_ref": "bool",
+          "required": true,
+          "default": "true",
+          "description": "Whether the application will fail to function without this variable set.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "An environment variable expected at runtime, documented in .env.local.example.",
+      "owner_component": ""
+    },
+    {
+      "name": "ServerConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "port",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Port number the dev server binds to.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "1024..65535",
+              "error_message": "Port must be a non-privileged port between 1024 and 65535."
+            }
+          ]
+        },
+        {
+          "name": "strict_port",
+          "type_ref": "bool",
+          "required": true,
+          "default": "true",
+          "description": "If true, Vite will fail rather than trying another port if the configured port is occupied.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Vite dev server configuration parameters.",
+      "owner_component": ""
+    },
+    {
+      "name": "BuildConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "out_dir",
+          "type_ref": "str",
+          "required": true,
+          "default": "dist",
+          "description": "Build output directory relative to project root.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Vite build output configuration.",
+      "owner_component": ""
+    },
+    {
+      "name": "VitestConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "environment",
+          "type_ref": "str",
+          "required": true,
+          "default": "jsdom",
+          "description": "Test environment: must be 'jsdom' for React component testing.",
+          "validators": []
+        },
+        {
+          "name": "globals",
+          "type_ref": "bool",
+          "required": true,
+          "default": "true",
+          "description": "When true, vitest globals (describe, it, expect) are available without import.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Vitest test runner configuration embedded in vite.config.ts.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "project_name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The name field in package.json.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z][a-z0-9\\-\\.]*$",
+              "error_message": "project_name must be a valid npm package name (lowercase, hyphens, dots, no spaces)."
+            },
+            {
+              "kind": "length",
+              "expression": "1..214",
+              "error_message": "project_name must be 1-214 characters per npm spec."
+            }
+          ]
+        },
+        {
+          "name": "server",
+          "type_ref": "ServerConfig",
+          "required": true,
+          "default": "",
+          "description": "Dev server configuration. Defaults to port 4000 with strict port.",
+          "validators": []
+        },
+        {
+          "name": "build",
+          "type_ref": "BuildConfig",
+          "required": true,
+          "default": "",
+          "description": "Build output configuration. Defaults to dist/.",
+          "validators": []
+        },
+        {
+          "name": "vitest",
+          "type_ref": "VitestConfig",
+          "required": true,
+          "default": "",
+          "description": "Vitest configuration. Defaults to jsdom environment with globals.",
+          "validators": []
+        },
+        {
+          "name": "path_aliases",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of PathAlias entries. Must include @/ -> src/.",
+          "validators": []
+        },
+        {
+          "name": "env_vars",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of EnvironmentVariable entries to document in .env.local.example.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Complete configuration input for project scaffold generation. Aggregates all configurable parameters with their required defaults.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "files",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered list of FileArtifact instances to write to disk.",
+          "validators": []
+        },
+        {
+          "name": "dependencies",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Complete list of DependencyEntry instances (both production and dev).",
+          "validators": []
+        },
+        {
+          "name": "scripts",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of ScriptEntry instances for package.json scripts.",
+          "validators": []
+        },
+        {
+          "name": "theme_tokens",
+          "type_ref": "TailwindThemeTokens",
+          "required": true,
+          "default": "",
+          "description": "The Tailwind theme tokens established by this scaffold, for downstream reference.",
+          "validators": []
+        },
+        {
+          "name": "path_aliases",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of PathAlias entries configured in both vite.config.ts and tsconfig.json.",
+          "validators": []
+        },
+        {
+          "name": "env_vars",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of EnvironmentVariable entries documented in .env.local.example.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "The complete output of scaffold generation: all file artifacts, dependency manifest, theme tokens, and configuration metadata.",
+      "owner_component": ""
+    },
+    {
+      "name": "VerificationResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "all_passed",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True only if every individual check passed.",
+          "validators": []
+        },
+        {
+          "name": "checks",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "List of VerificationCheck results.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of running the scaffold verification suite. Each check is independent.",
+      "owner_component": ""
+    },
+    {
+      "name": "VerificationCheck",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "name",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Human-readable identifier for the check (e.g. 'bun_install', 'dev_server_port_4000').",
+          "validators": []
+        },
+        {
+          "name": "passed",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether the check passed.",
+          "validators": []
+        },
+        {
+          "name": "error_message",
+          "type_ref": "str",
+          "required": false,
+          "default": "",
+          "description": "Error detail if the check failed, empty string if passed.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single verification check result.",
+      "owner_component": ""
+    },
+    {
+      "name": "VerificationCheckName",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "bun_install_succeeds",
+        "only_bun_lockb_present",
+        "no_package_lock_json",
+        "no_yarn_lock",
+        "dev_server_starts_port_4000",
+        "dev_server_serves_index_html",
+        "fonts_loaded_in_index_html",
+        "build_produces_dist",
+        "build_no_typescript_errors",
+        "vitest_runs_jsdom",
+        "tailwind_font_serif_compiles",
+        "tailwind_font_mono_compiles",
+        "tailwind_font_sans_compiles",
+        "tailwind_bg_background_compiles",
+        "tailwind_bg_grid_compiles",
+        "path_alias_at_resolves",
+        "convex_directory_exists",
+        "env_example_exists"
+      ],
+      "inner_types": [],
+      "description": "Canonical names for all scaffold verification checks.",
+      "owner_component": ""
+    },
+    {
+      "name": "ScaffoldError",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "directory_not_empty",
+        "bun_not_found",
+        "bun_install_failed",
+        "file_write_failed",
+        "port_in_use",
+        "invalid_config",
+        "verification_failed",
+        "font_link_unreachable"
+      ],
+      "inner_types": [],
+      "description": "Error categories that scaffold operations can produce.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "generate_scaffold",
+      "description": "Produces the complete set of file artifacts, dependency declarations, and configuration metadata for the project scaffold. This is a pure computation: it takes a ScaffoldConfig and returns a ScaffoldResult without writing to disk. The returned ScaffoldResult contains every file with its exact content, enabling deterministic and testable scaffold generation.",
+      "inputs": [
+        {
+          "name": "config",
+          "type_ref": "ScaffoldConfig",
+          "required": true,
+          "default": "",
+          "description": "Full scaffold configuration. Callers should use the canonical defaults: project_name='exemplar-docs', server.port=4000, server.strict_port=true, build.out_dir='dist', vitest.environment='jsdom', vitest.globals=true, path_aliases=[{alias:'@/', target:'src/'}], env_vars=[{name:'VITE_CONVEX_URL', ...}].",
+          "validators": []
+        }
+      ],
+      "output_type": "ScaffoldResult",
+      "error_cases": [
+        {
+          "name": "invalid_project_name",
+          "condition": "config.project_name fails npm package name validation (regex or length)",
+          "error_type": "ScaffoldError.invalid_config",
+          "error_data": {
+            "field": "project_name"
+          }
+        },
+        {
+          "name": "invalid_port",
+          "condition": "config.server.port is outside 1024-65535 range",
+          "error_type": "ScaffoldError.invalid_config",
+          "error_data": {
+            "field": "server.port"
+          }
+        },
+        {
+          "name": "missing_path_alias",
+          "condition": "config.path_aliases does not contain an entry with alias='@/'",
+          "error_type": "ScaffoldError.invalid_config",
+          "error_data": {
+            "field": "path_aliases",
+            "detail": "Must include @/ alias"
+          }
+        },
+        {
+          "name": "missing_convex_env_var",
+          "condition": "config.env_vars does not contain an entry with name='VITE_CONVEX_URL'",
+          "error_type": "ScaffoldError.invalid_config",
+          "error_data": {
+            "field": "env_vars",
+            "detail": "Must include VITE_CONVEX_URL"
+          }
+        }
+      ],
+      "preconditions": [
+        "config.server.port == 4000 (per project operating procedures)",
+        "config.build.out_dir == 'dist' (per project operating procedures)",
+        "config.vitest.environment == 'jsdom'",
+        "config.path_aliases contains at least one entry with alias='@/' and target='src/'",
+        "config.env_vars contains at least one entry with name='VITE_CONVEX_URL'"
+      ],
+      "postconditions": [
+        "result.files contains exactly these paths: package.json, vite.config.ts, tsconfig.json, tsconfig.app.json, tsconfig.node.json, tailwind.config.js, postcss.config.js, index.html, src/index.css, src/main.tsx, .env.local.example, convex/schema.ts",
+        "result.dependencies includes react@^18, react-dom@^18, react-router-dom@^6, convex as production deps",
+        "result.dependencies includes typescript, @vitejs/plugin-react, vite, tailwindcss@^3.4, postcss, autoprefixer, vitest, jsdom, @types/react, @types/react-dom as dev deps",
+        "result.scripts contains entries for 'dev', 'build', 'test', 'preview'",
+        "result.theme_tokens.font_families == ['serif', 'mono', 'sans']",
+        "result.theme_tokens.colors contains key 'background' with value '#0a0a0a'",
+        "result.theme_tokens.utility_classes contains 'bg-grid'",
+        "result.path_aliases contains entry with alias='@/' and target='src/'",
+        "Every file in result.files has non-empty content",
+        "package.json content includes '\"type\": \"module\"'",
+        "vite.config.ts content includes 'server: { port: 4000, strictPort: true }'",
+        "vite.config.ts content includes react() plugin import",
+        "vite.config.ts content includes vitest test config with environment 'jsdom' and globals true",
+        "tsconfig.json enables strict mode",
+        "tailwind.config.js content includes fontFamily extend with 'Instrument Serif', 'JetBrains Mono', 'Inter'",
+        "tailwind.config.js content includes colors.background: '#0a0a0a'",
+        "index.html content includes Google Fonts preconnect links for fonts.googleapis.com and fonts.gstatic.com",
+        "index.html content includes stylesheet link loading Instrument+Serif, JetBrains+Mono, and Inter font families",
+        "index.html content includes <div id='root'>",
+        "index.html content includes <script type='module' src='/src/main.tsx'>",
+        "src/index.css content includes @tailwind base; @tailwind components; @tailwind utilities;",
+        "src/index.css content includes @layer base with body background-color #0a0a0a",
+        "src/index.css content includes @layer utilities with .bg-grid class",
+        "src/main.tsx content uses ReactDOM.createRoot with document.getElementById('root')",
+        "postcss.config.js content includes tailwindcss and autoprefixer plugins"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure computation: transforms ScaffoldConfig into ScaffoldResult without I/O."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "write_scaffold",
+      "description": "Takes a ScaffoldResult and writes all file artifacts to the target directory on disk, then runs 'bun install' to produce bun.lockb and install node_modules. Ensures no npm/yarn lockfiles exist after completion. This is the effectful complement to generate_scaffold.",
+      "inputs": [
+        {
+          "name": "target_dir",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Absolute or relative path to the project root directory where files will be written.",
+          "validators": []
+        },
+        {
+          "name": "scaffold",
+          "type_ref": "ScaffoldResult",
+          "required": true,
+          "default": "",
+          "description": "The scaffold result from generate_scaffold. Must be a complete, valid ScaffoldResult.",
+          "validators": []
+        },
+        {
+          "name": "force_overwrite",
+          "type_ref": "bool",
+          "required": false,
+          "default": "false",
+          "description": "If true, overwrite existing files in target_dir. If false, fail if target_dir contains any files that would be overwritten and whose FileArtifact.overwritable is false.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "directory_not_empty",
+          "condition": "target_dir contains non-overwritable files and force_overwrite is false",
+          "error_type": "ScaffoldError.directory_not_empty",
+          "error_data": {
+            "conflicting_files": "comma-separated list of conflicting paths"
+          }
+        },
+        {
+          "name": "bun_not_found",
+          "condition": "bun executable is not found on PATH",
+          "error_type": "ScaffoldError.bun_not_found",
+          "error_data": {}
+        },
+        {
+          "name": "bun_install_failed",
+          "condition": "bun install exits with non-zero code",
+          "error_type": "ScaffoldError.bun_install_failed",
+          "error_data": {
+            "exit_code": "integer exit code",
+            "stderr": "captured stderr output"
+          }
+        },
+        {
+          "name": "file_write_failed",
+          "condition": "OS-level file write fails (permission denied, disk full, etc.)",
+          "error_type": "ScaffoldError.file_write_failed",
+          "error_data": {
+            "path": "path that failed",
+            "os_error": "OS error message"
+          }
+        }
+      ],
+      "preconditions": [
+        "target_dir is a valid writable directory path",
+        "scaffold is a complete ScaffoldResult (all required files present)",
+        "bun executable is available on PATH"
+      ],
+      "postconditions": [
+        "All files from scaffold.files exist at target_dir/<file.path> with exact content",
+        "bun.lockb exists at target_dir/bun.lockb",
+        "node_modules/ directory exists at target_dir/node_modules/",
+        "No package-lock.json exists at target_dir/",
+        "No yarn.lock exists at target_dir/",
+        "File permissions are set to 0644 for regular files",
+        "Directories are created recursively as needed (e.g. src/, convex/)"
+      ],
+      "idempotent": true,
+      "is_async": true,
+      "side_effects": [
+        "Writes files to target_dir filesystem",
+        "Executes 'bun install' subprocess",
+        "Creates node_modules/ directory tree",
+        "Creates bun.lockb binary lockfile",
+        "Removes package-lock.json and yarn.lock if they exist"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "target_dir/**",
+          "description": "Writes all FileArtifact entries from ScaffoldResult to disk under target_dir."
+        },
+        {
+          "kind": "writes_file",
+          "target": "target_dir/bun.lockb",
+          "description": "bun install produces the binary lockfile."
+        },
+        {
+          "kind": "writes_file",
+          "target": "target_dir/node_modules/",
+          "description": "bun install creates the node_modules directory tree with resolved packages."
+        },
+        {
+          "kind": "network_call",
+          "target": "npm registry (registry.npmjs.org)",
+          "description": "bun install fetches packages from the npm registry."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 60000,
+        "max_memory_mb": null,
+        "complexity": "O(n) where n is the number of files + dependencies"
+      }
+    },
+    {
+      "name": "verify_scaffold",
+      "description": "Runs all verification checks against an existing scaffold installation in the target directory. Each check is independent: failure of one check does not prevent others from running. Checks include: bun install success, lockfile exclusivity, dev server on port 4000, build producing dist/, vitest running in jsdom, all Tailwind theme tokens compiling, path alias resolution, convex directory existence, and .env.local.example presence.",
+      "inputs": [
+        {
+          "name": "target_dir",
+          "type_ref": "FilePath",
+          "required": true,
+          "default": "",
+          "description": "Path to the project root directory to verify.",
+          "validators": []
+        }
+      ],
+      "output_type": "VerificationResult",
+      "error_cases": [
+        {
+          "name": "target_dir_not_found",
+          "condition": "target_dir does not exist or is not a directory",
+          "error_type": "ScaffoldError.invalid_config",
+          "error_data": {
+            "field": "target_dir",
+            "detail": "Directory does not exist"
+          }
+        },
+        {
+          "name": "no_package_json",
+          "condition": "target_dir/package.json does not exist",
+          "error_type": "ScaffoldError.verification_failed",
+          "error_data": {
+            "detail": "No package.json found — is this a scaffold directory?"
+          }
+        },
+        {
+          "name": "bun_not_available",
+          "condition": "bun executable is not found on PATH",
+          "error_type": "ScaffoldError.bun_not_found",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "target_dir exists and contains a scaffold installation (package.json present)",
+        "bun executable is available on PATH"
+      ],
+      "postconditions": [
+        "result.checks contains one VerificationCheck for each variant in VerificationCheckName enum (18 checks)",
+        "result.all_passed == true if and only if every check in result.checks has passed == true",
+        "No files in target_dir are modified by verification (read-only inspection where possible)",
+        "Dev server started for port check is terminated before function returns",
+        "Any temporary build artifacts created during verification are cleaned up"
+      ],
+      "idempotent": true,
+      "is_async": true,
+      "side_effects": [
+        "Reads files from target_dir filesystem",
+        "Temporarily starts dev server on port 4000 for port verification check",
+        "Runs 'bun run build' to verify build output",
+        "Runs 'bun run test --run' to verify vitest execution"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "reads_file",
+          "target": "target_dir/**",
+          "description": "Reads configuration files and build output to verify correctness."
+        },
+        {
+          "kind": "network_call",
+          "target": "localhost:4000",
+          "description": "Starts and connects to dev server to verify port binding and font loading."
+        },
+        {
+          "kind": "writes_file",
+          "target": "target_dir/dist/",
+          "description": "Build verification produces dist/ output (cleaned up after check)."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 120000,
+        "max_memory_mb": null,
+        "complexity": "O(n) where n is the number of verification checks"
+      }
+    },
+    {
+      "name": "get_canonical_dependencies",
+      "description": "Returns the canonical, pinned list of all npm dependencies required by the scaffold. This is a pure reference function for downstream components to query the exact dependency versions established by the scaffold without needing to parse package.json.",
+      "inputs": [],
+      "output_type": "list",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains exactly these production dependencies: react@^18, react-dom@^18, react-router-dom@^6, convex",
+        "Returned list contains exactly these dev dependencies: typescript, @vitejs/plugin-react, vite, tailwindcss@^3.4, postcss, autoprefixer, vitest, jsdom, @types/react, @types/react-dom",
+        "Every entry has a non-empty package_name and version_range",
+        "No duplicate package_name entries exist"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static dependency manifest."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_theme_tokens",
+      "description": "Returns the canonical TailwindThemeTokens established by the scaffold. Downstream components use this to reference available Tailwind classes without hardcoding values.",
+      "inputs": [],
+      "output_type": "TailwindThemeTokens",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "result.font_families == ['serif', 'mono', 'sans']",
+        "result.colors == {'background': '#0a0a0a'}",
+        "result.utility_classes contains 'bg-grid'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static theme token manifest."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "get_canonical_scripts",
+      "description": "Returns the canonical set of package.json scripts established by the scaffold. All scripts are executed via bun run <name>.",
+      "inputs": [],
+      "output_type": "list",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned list contains exactly 4 entries: dev, build, test, preview",
+        "dev script command is 'vite'",
+        "build script command is 'tsc && vite build'",
+        "test script command is 'vitest'",
+        "preview script command is 'vite preview'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static script manifest."
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "bun is the sole package manager: no npm, yarn, or npx invocations are ever used",
+    "bun.lockb is the only lockfile; package-lock.json and yarn.lock must never exist in the project root",
+    "Dev server always binds to port 4000 with strictPort: true — no fallback to alternative ports",
+    "Build output is always written to dist/ relative to project root",
+    "All TypeScript imports using @/ resolve to the src/ directory",
+    "The Tailwind theme tokens (font-serif, font-mono, font-sans, bg-background, bg-grid) are globally available to all components via className",
+    "index.html always loads Instrument Serif, JetBrains Mono, and Inter via Google Fonts CDN links",
+    "src/index.css always includes @tailwind base/components/utilities directives",
+    "Body background color is always #0a0a0a (near-black) set via @layer base",
+    "The .bg-grid utility class is always available via @layer utilities or Tailwind plugin",
+    "vitest runs in jsdom environment with globals enabled",
+    "tsconfig.json always enables strict mode",
+    "package.json always specifies \"type\": \"module\"",
+    "All file artifacts are deterministic: the same ScaffoldConfig always produces the same ScaffoldResult",
+    "The convex/ directory always exists with at least a stub schema.ts file",
+    "VITE_CONVEX_URL is always documented in .env.local.example"
+  ],
+  "requires": [],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [
+      "PUBLIC"
+    ],
+    "rationale": "Reads and writes project configuration files (package.json, vite.config.ts, tsconfig*.json, tailwind.config.js, postcss.config.js, index.html, src/index.css, src/main.tsx, .env.local.example, convex/schema.ts) which are all PUBLIC-tier source code artifacts committed to version control. The .env.local.example contains only placeholder values, not actual secrets. During verification, reads build output (dist/) which is also PUBLIC-tier. No PII, secrets, or INTERNAL data is accessed.",
+    "side_effects": [
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "package.json",
+          "vite.config.ts",
+          "tsconfig.json",
+          "tsconfig.app.json",
+          "tsconfig.node.json",
+          "tailwind.config.js",
+          "postcss.config.js",
+          "index.html",
+          "src/index.css",
+          "src/main.tsx",
+          ".env.local.example",
+          "convex/schema.ts"
+        ],
+        "rationale": "Writes deterministic configuration file artifacts to the project directory. All files are public source code."
+      },
+      {
+        "type": "filesystem_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "bun.lockb",
+          "node_modules/"
+        ],
+        "rationale": "bun install produces the binary lockfile and installs npm packages to node_modules/. Both are derived from the public package.json manifest."
+      },
+      {
+        "type": "network_fetch",
+        "classification": "PUBLIC",
+        "fields": [
+          "npm package tarballs"
+        ],
+        "rationale": "bun install fetches package tarballs from the public npm registry (registry.npmjs.org) to populate node_modules/."
+      },
+      {
+        "type": "subprocess_execution",
+        "classification": "PUBLIC",
+        "fields": [
+          "bun install",
+          "bun run dev",
+          "bun run build",
+          "bun run test"
+        ],
+        "rationale": "Verification runs bun subprocesses to confirm the scaffold is functional. All subprocess commands are deterministic and operate on public project files."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "project_configuration",
+      "build_toolchain",
+      "tailwind_theme",
+      "dependency_manifest",
+      "path_aliases",
+      "dev_server_config",
+      "test_runner_config"
+    ],
+    "rationale": "project_scaffold is the single authoritative source for all foundational project configuration. It owns the build toolchain setup (Vite, TypeScript), the Tailwind CSS theme definition (font families, colors, utility classes), the complete npm dependency manifest with pinned versions, the @/ path alias mapping, the dev server port/strictPort configuration, and the vitest test runner configuration. All downstream components depend on these configurations being established exactly as specified by this component. No other component may modify package.json dependencies, vite.config.ts, tsconfig*.json, tailwind.config.js, postcss.config.js, or the Tailwind theme tokens without coordinating through this component's contract."
+  }
+}

@@ -1,0 +1,63 @@
+{
+  "components": {
+    "project_scaffold": {
+      "node_id": "project_scaffold",
+      "authority_domains": ["build_config", "package_manifest"],
+      "edges": [],
+      "metadata": {"description": "Vite + Bun build pipeline, TypeScript config, Tailwind setup"}
+    },
+    "data_layer": {
+      "node_id": "data_layer",
+      "authority_domains": ["comment_data", "tool_definitions"],
+      "edges": [],
+      "metadata": {"description": "Convex backend, tool constants, comment CRUD"}
+    },
+    "app_shell": {
+      "node_id": "app_shell",
+      "authority_domains": ["routing", "layout"],
+      "edges": [
+        {"target": "data_layer", "relation_type": "CALLS"},
+        {"target": "home_page", "relation_type": "MANAGES"},
+        {"target": "tool_page", "relation_type": "MANAGES"}
+      ],
+      "metadata": {"description": "React Router, sidebar nav, page layout"}
+    },
+    "home_page": {
+      "node_id": "home_page",
+      "authority_domains": [],
+      "edges": [
+        {"target": "data_layer", "relation_type": "READS"}
+      ],
+      "metadata": {"description": "Landing page with quick-start and closed loop diagram"}
+    },
+    "tool_page": {
+      "node_id": "tool_page",
+      "authority_domains": [],
+      "edges": [
+        {"target": "data_layer", "relation_type": "READS"},
+        {"target": "data_layer", "relation_type": "WRITES"}
+      ],
+      "metadata": {"description": "Per-tool doc page with video embed, badges, comments"}
+    },
+    "tests": {
+      "node_id": "tests",
+      "authority_domains": [],
+      "edges": [
+        {"target": "app_shell", "relation_type": "CALLS"},
+        {"target": "data_layer", "relation_type": "CALLS"},
+        {"target": "home_page", "relation_type": "CALLS"},
+        {"target": "tool_page", "relation_type": "CALLS"}
+      ],
+      "metadata": {"description": "Vitest smoke tests for all components"}
+    },
+    "root": {
+      "node_id": "root",
+      "authority_domains": ["app_entry"],
+      "edges": [
+        {"target": "app_shell", "relation_type": "MANAGES"},
+        {"target": "project_scaffold", "relation_type": "DEPENDS_ON"}
+      ],
+      "metadata": {"description": "Root integration layer, main.tsx entry point"}
+    }
+  }
+}

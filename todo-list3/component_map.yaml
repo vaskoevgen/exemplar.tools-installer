@@ -1,0 +1,60 @@
+version: "1.0"
+generated_by: constrain
+session_id: "demo_task_mgmt"
+
+components:
+  - name: "react_frontend"
+    description: "React UI for task management operations"
+    type: service
+    port: 5173
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Frontend displays and collects task data via API calls"
+    authority:
+      domains: []
+      rationale: "Frontend has no authoritative domains, delegates to backend"
+    dependencies: ["fastapi_backend"]
+    constraints: ["C002", "C004", "C006"]
+
+  - name: "fastapi_backend"
+    description: "Python FastAPI REST service providing task CRUD operations"
+    type: service
+    port: 8000
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Backend processes all task data operations and enforces business logic"
+    authority:
+      domains: ["tasks.*"]
+      rationale: "Backend is authoritative source for all task data and validation"
+    dependencies: ["postgres_db"]
+    constraints: ["C001", "C002", "C003", "C004", "C005", "C006"]
+
+  - name: "postgres_db"
+    description: "PostgreSQL database storing task data"
+    type: service
+    port: 5432
+    protocol: tcp
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Database stores and retrieves task records"
+    authority:
+      domains: []
+      rationale: "Database provides storage only, backend owns data logic"
+    dependencies: []
+    constraints: ["C001", "C003", "C005", "C006"]
+
+edges:
+  - from: "react_frontend"
+    to: "fastapi_backend"
+    protocol: http
+    description: "REST API calls for task CRUD operations"
+
+  - from: "fastapi_backend"
+    to: "postgres_db"
+    protocol: tcp
+    description: "SQL queries for task data persistence"

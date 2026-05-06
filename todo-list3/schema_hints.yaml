@@ -1,0 +1,45 @@
+version: "1.0"
+generated_by: constrain
+session_id: "demo_task_mgmt"
+
+storage_backends:
+  - owner_component: "fastapi_backend"
+    type: postgres
+    description: "Task data storage with CRUD operations"
+
+field_hints:
+  - backend_owner: "fastapi_backend"
+    field_description: "Task unique identifier"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "Primary key should not change after creation"
+
+  - backend_owner: "fastapi_backend"
+    field_description: "Task title (required)"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Demo project with no sensitive content"
+
+  - backend_owner: "fastapi_backend"
+    field_description: "Task description (optional)"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Demo project with no sensitive content"
+
+  - backend_owner: "fastapi_backend"
+    field_description: "Task status (pending, in_progress, done)"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Demo project with no sensitive content"
+
+  - backend_owner: "fastapi_backend"
+    field_description: "Task creation timestamp"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable, audit_field]
+    rationale: "Timestamp should not change after creation, useful for tracking"
+
+  - backend_owner: "fastapi_backend"
+    field_description: "Task last updated timestamp"
+    likely_classification: PUBLIC
+    likely_annotations: [audit_field]
+    rationale: "Updated automatically on each modification"

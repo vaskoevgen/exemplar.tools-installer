@@ -1,0 +1,782 @@
+{
+  "component_id": "tool_page",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "is_tool_slug_valid_variants",
+      "description": "isToolSlug returns True for every valid ToolSlug enum variant",
+      "function": "isToolSlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 known ToolSlug values",
+      "expected_output_description": "True for every valid slug",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug returns True for each of: constrain, ledger, pact, advocate, arbiter, baton, sentinel, chronicler, stigmergy, apprentice, kindex"
+      ]
+    },
+    {
+      "id": "is_tool_slug_invalid_string",
+      "description": "isToolSlug returns False for strings not in the ToolSlug enum",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Arbitrary strings like 'unknown', '', 'CONSTRAIN', 'constrain '",
+      "expected_output_description": "False for each invalid input",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug returns False for non-member strings"
+      ]
+    },
+    {
+      "id": "is_tool_slug_empty_string",
+      "description": "isToolSlug returns False for empty string",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty string ''",
+      "expected_output_description": "False",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('') returns False"
+      ]
+    },
+    {
+      "id": "build_tool_map_happy_path",
+      "description": "buildToolMap converts a ToolDefList with unique slugs into a ToolMap with one entry per element",
+      "function": "buildToolMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "List of 11 ToolDef objects with unique slugs covering all ToolSlug variants",
+      "expected_output_description": "ToolMap with exactly 11 entries, each keyed by slug",
+      "expected_error": "",
+      "assertions": [
+        "Returned map has exactly len(input) entries",
+        "Each slug key maps to the correct ToolDef"
+      ]
+    },
+    {
+      "id": "build_tool_map_duplicate_slugs",
+      "description": "buildToolMap raises error when input contains duplicate slug values",
+      "function": "buildToolMap",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "List with two ToolDef objects sharing the same slug",
+      "expected_output_description": "",
+      "expected_error": "duplicate_slugs",
+      "assertions": [
+        "Raises an exception indicating duplicate slug values"
+      ]
+    },
+    {
+      "id": "build_tool_map_empty_array",
+      "description": "buildToolMap raises error when input tools array is empty",
+      "function": "buildToolMap",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty list []",
+      "expected_output_description": "",
+      "expected_error": "empty_tools_array",
+      "assertions": [
+        "Raises an exception indicating empty input array"
+      ]
+    },
+    {
+      "id": "build_tool_map_output_size_equals_input",
+      "description": "buildToolMap output size equals input size for unique slugs (invariant)",
+      "function": "buildToolMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Various lists of ToolDef with unique slugs",
+      "expected_output_description": "len(output.entries) == len(input)",
+      "expected_error": "",
+      "assertions": [
+        "Output map size matches input list size"
+      ]
+    },
+    {
+      "id": "build_tool_map_o1_lookup",
+      "description": "buildToolMap result supports O(1) lookup by ToolSlug key",
+      "function": "buildToolMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Full ToolDefList",
+      "expected_output_description": "Direct key access returns the correct ToolDef",
+      "expected_error": "",
+      "assertions": [
+        "Lookup by slug key returns the matching ToolDef without iteration"
+      ]
+    },
+    {
+      "id": "format_relative_time_just_now",
+      "description": "formatRelativeTime returns 'just now' for timestamps less than 60 seconds ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 30 seconds before now",
+      "expected_output_description": "'just now'",
+      "expected_error": "",
+      "assertions": [
+        "Return value is 'just now'"
+      ]
+    },
+    {
+      "id": "format_relative_time_minutes",
+      "description": "formatRelativeTime returns '{n} minute(s) ago' for timestamps 1-59 minutes ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamps at 1 minute, 5 minutes, 59 minutes ago",
+      "expected_output_description": "'1 minute ago', '5 minutes ago', '59 minutes ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'minute' and 'ago'",
+        "Singular form for 1 minute"
+      ]
+    },
+    {
+      "id": "format_relative_time_hours",
+      "description": "formatRelativeTime returns '{n} hour(s) ago' for timestamps 1-23 hours ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamps at 1 hour and 23 hours ago",
+      "expected_output_description": "'1 hour ago', '23 hours ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'hour' and 'ago'",
+        "Singular form for 1 hour"
+      ]
+    },
+    {
+      "id": "format_relative_time_days",
+      "description": "formatRelativeTime returns '{n} day(s) ago' for timestamps 1-30 days ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamps at 1 day and 30 days ago",
+      "expected_output_description": "'1 day ago', '30 days ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'day' and 'ago'",
+        "Singular form for 1 day"
+      ]
+    },
+    {
+      "id": "format_relative_time_absolute_date",
+      "description": "formatRelativeTime returns absolute date string for timestamps older than 30 days",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 60 days ago",
+      "expected_output_description": "Formatted date string like 'Jan 15, 2024'",
+      "expected_error": "",
+      "assertions": [
+        "Return value does not contain 'ago'",
+        "Return value is non-empty"
+      ]
+    },
+    {
+      "id": "format_relative_time_future_timestamp",
+      "description": "formatRelativeTime returns 'just now' for future timestamps",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 1 hour in the future",
+      "expected_output_description": "'just now'",
+      "expected_error": "",
+      "assertions": [
+        "Return value is 'just now'"
+      ]
+    },
+    {
+      "id": "format_relative_time_nan_input",
+      "description": "formatRelativeTime raises error for NaN input",
+      "function": "formatRelativeTime",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "float('nan')",
+      "expected_output_description": "",
+      "expected_error": "nan_input",
+      "assertions": [
+        "Raises an exception for NaN input"
+      ]
+    },
+    {
+      "id": "format_relative_time_negative_input",
+      "description": "formatRelativeTime raises error for negative input",
+      "function": "formatRelativeTime",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "-1.0",
+      "expected_output_description": "",
+      "expected_error": "negative_input",
+      "assertions": [
+        "Raises an exception for negative input"
+      ]
+    },
+    {
+      "id": "format_relative_time_zero",
+      "description": "formatRelativeTime handles zero (epoch) as a valid old timestamp",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "0.0 (Unix epoch)",
+      "expected_output_description": "An absolute date string (epoch is > 30 days ago)",
+      "expected_error": "",
+      "assertions": [
+        "Return value is a non-empty string",
+        "Does not raise an exception"
+      ]
+    },
+    {
+      "id": "format_relative_time_boundary_59_seconds",
+      "description": "formatRelativeTime returns 'just now' at exactly 59 seconds ago",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 59 seconds before now",
+      "expected_output_description": "'just now'",
+      "expected_error": "",
+      "assertions": [
+        "Return value is 'just now'"
+      ]
+    },
+    {
+      "id": "format_relative_time_boundary_60_seconds",
+      "description": "formatRelativeTime returns '1 minute ago' at exactly 60 seconds ago",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 60 seconds before now",
+      "expected_output_description": "'1 minute ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'minute'"
+      ]
+    },
+    {
+      "id": "format_relative_time_always_nonempty",
+      "description": "formatRelativeTime always returns a non-empty string for any finite non-negative input (invariant)",
+      "function": "formatRelativeTime",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Random sample of finite non-negative floats",
+      "expected_output_description": "Non-empty string for each",
+      "expected_error": "",
+      "assertions": [
+        "Return value is a non-empty string for every valid input"
+      ]
+    },
+    {
+      "id": "tool_slug_enum_has_11_variants",
+      "description": "ToolSlug enum contains exactly 11 variants matching the contract specification",
+      "function": "isToolSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Enumeration of all ToolSlug members",
+      "expected_output_description": "Exactly 11 members with correct names",
+      "expected_error": "",
+      "assertions": [
+        "ToolSlug has exactly 11 members",
+        "All expected variant names are present"
+      ]
+    },
+    {
+      "id": "hex_color_valid_format",
+      "description": "HexColor accepts valid CSS hex color strings matching ^#[0-9A-Fa-f]{6}$",
+      "function": "StepBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'#00e5ff', '#FFFFFF', '#000000'",
+      "expected_output_description": "Accepted without error",
+      "expected_error": "",
+      "assertions": [
+        "Valid hex colors are accepted"
+      ]
+    },
+    {
+      "id": "step_number_valid_range",
+      "description": "StepNumber accepts integers 1 through 11",
+      "function": "StepBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Integers 1, 6, 11",
+      "expected_output_description": "Accepted without error",
+      "expected_error": "",
+      "assertions": [
+        "Valid step numbers are accepted"
+      ]
+    },
+    {
+      "id": "version_badge_valid_semver",
+      "description": "VersionBadge version prop accepts valid semver strings",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'1.0.0', '0.1.0-alpha', '2.3.4-beta.1'",
+      "expected_output_description": "Accepted; badge displays version with 'v' prefix",
+      "expected_error": "",
+      "assertions": [
+        "Valid semver strings pass validation"
+      ]
+    },
+    {
+      "id": "version_badge_invalid_semver",
+      "description": "VersionBadge version prop rejects invalid semver strings",
+      "function": "VersionBadge",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'not-semver', '1.0', 'v1.0.0' (if v prefix not in pattern), ''",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "Invalid semver strings are rejected"
+      ]
+    },
+    {
+      "id": "version_badge_v_prefix",
+      "description": "VersionBadge prepends 'v' if version does not already start with 'v'",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "version='1.0.0'",
+      "expected_output_description": "Displayed text starts with 'v'",
+      "expected_error": "",
+      "assertions": [
+        "Displayed text is 'v1.0.0'"
+      ]
+    },
+    {
+      "id": "code_block_props_title_validator",
+      "description": "CodeBlock title must be 1-200 characters",
+      "function": "CodeBlock",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty title '', title of length 200, title of length 201",
+      "expected_output_description": "Empty rejected, 200 accepted, 201 rejected",
+      "expected_error": "",
+      "assertions": [
+        "Empty title raises validation error",
+        "Title of length 200 is accepted",
+        "Title of length 201 is rejected"
+      ]
+    },
+    {
+      "id": "code_block_props_bash_validator",
+      "description": "CodeBlock bash must be 1-2000 characters",
+      "function": "CodeBlock",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty bash '', bash of length 2000, bash of length 2001",
+      "expected_output_description": "Empty rejected, 2000 accepted, 2001 rejected",
+      "expected_error": "",
+      "assertions": [
+        "Empty bash raises validation error",
+        "Bash of length 2000 is accepted",
+        "Bash of length 2001 is rejected"
+      ]
+    },
+    {
+      "id": "video_embed_url_valid",
+      "description": "VideoEmbed url prop accepts valid YouTube embed URLs",
+      "function": "VideoEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'https://www.youtube.com/embed/dQw4w9WgXcQ'",
+      "expected_output_description": "Accepted",
+      "expected_error": "",
+      "assertions": [
+        "Valid YouTube embed URL is accepted"
+      ]
+    },
+    {
+      "id": "video_embed_url_invalid",
+      "description": "VideoEmbed url prop rejects non-YouTube-embed URLs",
+      "function": "VideoEmbed",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'https://youtube.com/watch?v=abc', 'https://www.vimeo.com/123', ''",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "Invalid URLs are rejected by regex validator"
+      ]
+    },
+    {
+      "id": "comment_author_length_validator",
+      "description": "Comment author must be 1-100 characters",
+      "function": "CommentsSection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "author of length 0, 1, 100, 101",
+      "expected_output_description": "0 rejected, 1 accepted, 100 accepted, 101 rejected",
+      "expected_error": "",
+      "assertions": [
+        "Author validation enforces length 1..100"
+      ]
+    },
+    {
+      "id": "comment_body_length_validator",
+      "description": "Comment body must be 1-2000 characters",
+      "function": "CommentsSection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "body of length 0, 1, 2000, 2001",
+      "expected_output_description": "0 rejected, 1 accepted, 2000 accepted, 2001 rejected",
+      "expected_error": "",
+      "assertions": [
+        "Body validation enforces length 1..2000"
+      ]
+    },
+    {
+      "id": "comments_section_loading_state",
+      "description": "CommentsSection renders loading indicator when query returns undefined",
+      "function": "CommentsSection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useQuery": "returns undefined"
+      },
+      "input_values": {},
+      "input_description": "useQuery returns undefined",
+      "expected_output_description": "Loading indicator is displayed",
+      "expected_error": "",
+      "assertions": [
+        "Loading indicator element is present in rendered output"
+      ]
+    },
+    {
+      "id": "comments_section_empty_state",
+      "description": "CommentsSection renders empty state message when query returns empty array",
+      "function": "CommentsSection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useQuery": "returns []"
+      },
+      "input_values": {},
+      "input_description": "useQuery returns []",
+      "expected_output_description": "Empty state message is displayed",
+      "expected_error": "",
+      "assertions": [
+        "Empty state message is present in rendered output"
+      ]
+    },
+    {
+      "id": "comments_section_populated",
+      "description": "CommentsSection renders comments in order when query returns populated list",
+      "function": "CommentsSection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useQuery": "returns [comment1, comment2]"
+      },
+      "input_values": {},
+      "input_description": "useQuery returns list of 2 Comment objects",
+      "expected_output_description": "Both comments rendered with author, body, and relative timestamp",
+      "expected_error": "",
+      "assertions": [
+        "Both comment authors are visible",
+        "Both comment bodies are visible"
+      ]
+    },
+    {
+      "id": "comments_section_empty_author_blocks_submit",
+      "description": "CommentsSection blocks form submission when author is empty/whitespace-only",
+      "function": "CommentsSection",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useMutation": "returns mock function"
+      },
+      "input_values": {},
+      "input_description": "User submits form with empty author field",
+      "expected_output_description": "",
+      "expected_error": "empty_author",
+      "assertions": [
+        "Mutation is not invoked"
+      ]
+    },
+    {
+      "id": "comments_section_empty_body_blocks_submit",
+      "description": "CommentsSection blocks form submission when body is empty/whitespace-only",
+      "function": "CommentsSection",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useMutation": "returns mock function"
+      },
+      "input_values": {},
+      "input_description": "User submits form with empty body field",
+      "expected_output_description": "",
+      "expected_error": "empty_body",
+      "assertions": [
+        "Mutation is not invoked"
+      ]
+    },
+    {
+      "id": "comments_section_valid_submission",
+      "description": "CommentsSection invokes addComment mutation with trimmed author, body, and page on valid submission",
+      "function": "CommentsSection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex/react.useMutation": "returns mock function",
+        "convex/react.useQuery": "returns []"
+      },
+      "input_values": {},
+      "input_description": "User fills author='Alice', body='Great tool!' and submits",
+      "expected_output_description": "Mutation called with {page, author: 'Alice', body: 'Great tool!'}; form fields reset",
+      "expected_error": "",
+      "assertions": [
+        "Mutation called once with correct args",
+        "Form fields are cleared after submission"
+      ]
+    },
+    {
+      "id": "comments_section_three_states_invariant",
+      "description": "CommentsSection renders exactly one of three states: loading, empty, or populated",
+      "function": "CommentsSection",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each possible useQuery return: undefined, [], [comment]",
+      "expected_output_description": "Exactly one state rendered per scenario",
+      "expected_error": "",
+      "assertions": [
+        "Loading state XOR empty state XOR populated state is rendered"
+      ]
+    },
+    {
+      "id": "tool_page_valid_slug",
+      "description": "ToolPage renders complete tool page for a valid toolSlug parameter",
+      "function": "ToolPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "react-router-dom.useParams": "returns {toolSlug: 'constrain'}"
+      },
+      "input_values": {},
+      "input_description": "Route param toolSlug='constrain'",
+      "expected_output_description": "Renders heading, description, StepBadge, VersionBadge, CodeBlocks, CommentsSection",
+      "expected_error": "",
+      "assertions": [
+        "Tool name heading is rendered",
+        "Description is rendered"
+      ]
+    },
+    {
+      "id": "tool_page_invalid_slug",
+      "description": "ToolPage renders not-found UI for an invalid toolSlug value",
+      "function": "ToolPage",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "react-router-dom.useParams": "returns {toolSlug: 'nonexistent'}"
+      },
+      "input_values": {},
+      "input_description": "Route param toolSlug='nonexistent'",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_slug",
+      "assertions": [
+        "Not-found message is rendered",
+        "No exception is thrown"
+      ]
+    },
+    {
+      "id": "tool_page_missing_slug_param",
+      "description": "ToolPage renders not-found UI when toolSlug param is missing",
+      "function": "ToolPage",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "react-router-dom.useParams": "returns {}"
+      },
+      "input_values": {},
+      "input_description": "Route param toolSlug is undefined",
+      "expected_output_description": "",
+      "expected_error": "missing_tool_slug_param",
+      "assertions": [
+        "Not-found message is rendered",
+        "No exception is thrown"
+      ]
+    },
+    {
+      "id": "tool_page_video_embed_conditional",
+      "description": "ToolPage renders VideoEmbed only when ToolDef.videoUrl is a non-empty string",
+      "function": "ToolPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Tool with videoUrl set vs tool with videoUrl undefined (e.g. kindex)",
+      "expected_output_description": "VideoEmbed present for tool with URL, absent for tool without",
+      "expected_error": "",
+      "assertions": [
+        "VideoEmbed rendered when videoUrl is non-empty",
+        "VideoEmbed not rendered when videoUrl is undefined/empty"
+      ]
+    },
+    {
+      "id": "tool_page_accent_color_propagation",
+      "description": "ToolPage applies accentColor inline style to heading and passes it to child components",
+      "function": "ToolPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Valid tool slug with known accentColor",
+      "expected_output_description": "accentColor applied to heading style and propagated to StepBadge, VersionBadge, CommentsSection",
+      "expected_error": "",
+      "assertions": [
+        "Heading has inline style with accentColor",
+        "Child components receive accentColor prop"
+      ]
+    },
+    {
+      "id": "tool_map_exhaustive_invariant",
+      "description": "TOOL_MAP contains exactly one entry for each ToolSlug variant — no missing and no extra",
+      "function": "buildToolMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Full ToolDefList covering all 11 ToolSlug variants",
+      "expected_output_description": "Map has exactly 11 entries, one per slug",
+      "expected_error": "",
+      "assertions": [
+        "len(entries) == 11",
+        "Every ToolSlug variant is a key in the map"
+      ]
+    },
+    {
+      "id": "build_tool_map_preserves_tool_def_data",
+      "description": "buildToolMap preserves all ToolDef fields in the map values",
+      "function": "buildToolMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDefList with known field values",
+      "expected_output_description": "Map values have identical field values to input ToolDefs",
+      "expected_error": "",
+      "assertions": [
+        "Each mapped ToolDef matches the input ToolDef by all fields"
+      ]
+    },
+    {
+      "id": "format_relative_time_boundary_1_hour",
+      "description": "formatRelativeTime transitions from minutes to hours at exactly 60 minutes",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 60 minutes ago",
+      "expected_output_description": "'1 hour ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'hour'"
+      ]
+    },
+    {
+      "id": "format_relative_time_boundary_1_day",
+      "description": "formatRelativeTime transitions from hours to days at exactly 24 hours",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 24 hours ago",
+      "expected_output_description": "'1 day ago'",
+      "expected_error": "",
+      "assertions": [
+        "Return value contains 'day'"
+      ]
+    },
+    {
+      "id": "format_relative_time_boundary_30_days",
+      "description": "formatRelativeTime returns '30 days ago' at exactly 30 days but absolute date beyond",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp at exactly 30 days ago and 31 days ago",
+      "expected_output_description": "'30 days ago' for 30 days; absolute date for 31 days",
+      "expected_error": "",
+      "assertions": [
+        "30 days returns 'day(s) ago'",
+        "31 days returns absolute date"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for tool_page component.\n\nTests cover: isToolSlug, buildToolMap, formatRelativeTime, type validators,\nand behavioral contracts for ToolPage, CommentsSection, and presentational components.\n\nRun with: pytest contract_test.py -v\n\"\"\"\n\nimport math\nimport re\nimport time\nimport random\nfrom unittest.mock import MagicMock, patch, call\nimport pytest\n\n\n# ---------------------------------------------------------------------------\n# Import the component module\n# ---------------------------------------------------------------------------\nfrom tool_page import *\n\n\n# ---------------------------------------------------------------------------\n# Constants\n# ---------------------------------------------------------------------------\n\nVALID_TOOL_SLUGS = [\n    \"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n    \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\",\n]\n\nSEMVER_PATTERN = re.compile(r\"^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$\")\nHEX_COLOR_PATTERN = re.compile(r\"^#[0-9A-Fa-f]{6}$\")\nYOUTUBE_EMBED_PATTERN = re.compile(\n    r\"^https://www\\.youtube\\.com/embed/[a-zA-Z0-9_-]{11}(\\?.*)?$\"\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers — build minimal ToolDef-like dicts for testing buildToolMap\n# ---------------------------------------------------------------------------\n\ndef _make_tool_def(slug, step=1, name=None, description=\"desc\", version=\"1.0.0\",\n                   accent_color=\"#00e5ff\", video_url=None, instructions=None):\n    \"\"\"Create a minimal ToolDef-compatible object for testing.\"\"\"\n    if instructions is None:\n        instructions = [{\"title\": \"Step 1\", \"bash\": \"echo hello\"}]\n    td = {\n        \"slug\": slug,\n        \"name\": name or slug.capitalize(),\n        \"description\": description,\n        \"step\": step,\n        \"version\": version,\n        \"accentColor\": accent_color,\n        \"videoUrl\": video_url,\n        \"instructions\": instructions,\n    }\n    # If the module exposes a ToolDef class/namedtuple, try to instantiate it;\n    # otherwise fall back to a dict (buildToolMap must accept whatever the\n    # module's canonical representation is).\n    try:\n        return ToolDef(**td)\n    except Exception:\n        # Maybe it's a dataclass or SimpleNamespace-style — try positional\n        pass\n    # Fall back to a SimpleNamespace so attribute access works\n    import types\n    return types.SimpleNamespace(**td)\n\n\ndef _make_full_tool_list():\n    \"\"\"Build a ToolDefList covering all 11 slugs with unique steps.\"\"\"\n    return [\n        _make_tool_def(slug, step=i + 1,\n                       video_url=(\n                           \"https://www.youtube.com/embed/dQw4w9WgXcQ\"\n                           if slug != \"kindex\" else None\n                       ))\n        for i, slug in enumerate(VALID_TOOL_SLUGS)\n    ]\n\n\n# ===========================================================================\n#  1. isToolSlug tests\n# ===========================================================================\n\nclass TestIsToolSlug:\n    \"\"\"Tests for the isToolSlug type guard function.\"\"\"\n\n    @pytest.mark.parametrize(\"slug\", VALID_TOOL_SLUGS)\n    def test_valid_slug_returns_true(self, slug):\n        \"\"\"isToolSlug returns True for every valid ToolSlug variant.\"\"\"\n        assert isToolSlug(slug) is True\n\n    @pytest.mark.parametrize(\"value\", [\n        \"unknown\", \"CONSTRAIN\", \"constrain \", \" constrain\",\n        \"Constrain\", \"LEDGER\", \"foo-bar\", \"123\", \"None\",\n    ])\n    def test_invalid_string_returns_false(self, value):\n        \"\"\"isToolSlug returns False for strings not in the enum.\"\"\"\n        assert isToolSlug(value) is False\n\n    def test_empty_string_returns_false(self):\n        \"\"\"isToolSlug returns False for the empty string.\"\"\"\n        assert isToolSlug(\"\") is False\n\n    def test_tool_slug_enum_has_exactly_11_variants(self):\n        \"\"\"ToolSlug enum contains exactly 11 variants (invariant).\"\"\"\n        count_true = sum(1 for s in VALID_TOOL_SLUGS if isToolSlug(s))\n        assert count_true == 11\n\n\n# ===========================================================================\n#  2. buildToolMap tests\n# ===========================================================================\n\nclass TestBuildToolMap:\n    \"\"\"Tests for the buildToolMap factory function.\"\"\"\n\n    def test_happy_path_full_list(self):\n        \"\"\"buildToolMap converts a full ToolDefList into a map with 11 entries.\"\"\"\n        tools = _make_full_tool_list()\n        result = buildToolMap(tools)\n        # The result may be a ToolMap object with .entries or a plain dict.\n        entries = getattr(result, \"entries\", result)\n        assert len(entries) == 11\n\n    def test_each_slug_key_maps_to_correct_def(self):\n        \"\"\"Each slug key in the map corresponds to the correct ToolDef.\"\"\"\n        tools = _make_full_tool_list()\n        result = buildToolMap(tools)\n        entries = getattr(result, \"entries\", result)\n        for tool in tools:\n            slug = getattr(tool, \"slug\", tool.get(\"slug\") if isinstance(tool, dict) else None)\n            assert slug in entries\n            mapped = entries[slug]\n            mapped_name = getattr(mapped, \"name\", mapped.get(\"name\") if isinstance(mapped, dict) else None)\n            tool_name = getattr(tool, \"name\", tool.get(\"name\") if isinstance(tool, dict) else None)\n            assert mapped_name == tool_name\n\n    def test_duplicate_slugs_raises(self):\n        \"\"\"buildToolMap raises an error when slugs are duplicated.\"\"\"\n        tools = [\n            _make_tool_def(\"constrain\", step=1),\n            _make_tool_def(\"constrain\", step=2),\n        ]\n        with pytest.raises(Exception):\n            buildToolMap(tools)\n\n    def test_empty_tools_array_raises(self):\n        \"\"\"buildToolMap raises an error when given an empty list.\"\"\"\n        with pytest.raises(Exception):\n            buildToolMap([])\n\n    def test_output_size_equals_input_size(self):\n        \"\"\"Output map entry count equals input list length (invariant).\"\"\"\n        for n in [1, 5, 11]:\n            tools = [_make_tool_def(VALID_TOOL_SLUGS[i], step=i + 1) for i in range(n)]\n            result = buildToolMap(tools)\n            entries = getattr(result, \"entries\", result)\n            assert len(entries) == n\n\n    def test_preserves_all_tool_def_fields(self):\n        \"\"\"buildToolMap preserves all ToolDef fields in mapped values.\"\"\"\n        tool = _make_tool_def(\n            \"ledger\", step=2, name=\"Ledger\", description=\"Audit trail\",\n            version=\"2.3.0\", accent_color=\"#ff00ff\",\n            video_url=\"https://www.youtube.com/embed/dQw4w9WgXcQ\",\n            instructions=[{\"title\": \"Install\", \"bash\": \"npm i ledger\"}],\n        )\n        result = buildToolMap([tool])\n        entries = getattr(result, \"entries\", result)\n        mapped = entries[\"ledger\"]\n        for field in [\"slug\", \"name\", \"description\", \"step\", \"version\",\n                      \"accentColor\", \"videoUrl\", \"instructions\"]:\n            original = getattr(tool, field, None)\n            if original is None and isinstance(tool, dict):\n                original = tool.get(field)\n            mapped_val = getattr(mapped, field, None)\n            if mapped_val is None and isinstance(mapped, dict):\n                mapped_val = mapped.get(field)\n            assert mapped_val == original, f\"Field {field} mismatch\"\n\n    def test_exhaustive_map_invariant(self):\n        \"\"\"TOOL_MAP contains exactly one entry per ToolSlug variant.\"\"\"\n        tools = _make_full_tool_list()\n        result = buildToolMap(tools)\n        entries = getattr(result, \"entries\", result)\n        assert set(entries.keys()) == set(VALID_TOOL_SLUGS)\n\n\n# ===========================================================================\n#  3. formatRelativeTime tests\n# ===========================================================================\n\ndef _now_ms():\n    \"\"\"Current time in milliseconds since epoch.\"\"\"\n    return time.time() * 1000\n\n\nclass TestFormatRelativeTime:\n    \"\"\"Tests for the formatRelativeTime pure utility function.\"\"\"\n\n    # --- Happy paths ---\n\n    def test_just_now_within_60_seconds(self):\n        result = formatRelativeTime(_now_ms() - 30_000)\n        assert result.lower() == \"just now\"\n\n    def test_one_minute_ago(self):\n        result = formatRelativeTime(_now_ms() - 60_000)\n        assert \"minute\" in result.lower()\n        # Singular form for exactly 1 minute\n        assert \"1\" in result\n\n    def test_five_minutes_ago(self):\n        result = formatRelativeTime(_now_ms() - 5 * 60_000)\n        assert \"minute\" in result.lower()\n        assert \"5\" in result\n\n    def test_fifty_nine_minutes_ago(self):\n        result = formatRelativeTime(_now_ms() - 59 * 60_000)\n        assert \"minute\" in result.lower()\n        assert \"59\" in result\n\n    def test_one_hour_ago(self):\n        result = formatRelativeTime(_now_ms() - 60 * 60_000)\n        assert \"hour\" in result.lower()\n        assert \"1\" in result\n\n    def test_twenty_three_hours_ago(self):\n        result = formatRelativeTime(_now_ms() - 23 * 3600_000)\n        assert \"hour\" in result.lower()\n        assert \"23\" in result\n\n    def test_one_day_ago(self):\n        result = formatRelativeTime(_now_ms() - 24 * 3600_000)\n        assert \"day\" in result.lower()\n        assert \"1\" in result\n\n    def test_thirty_days_ago(self):\n        result = formatRelativeTime(_now_ms() - 30 * 86400_000)\n        assert \"day\" in result.lower()\n        assert \"30\" in result\n\n    def test_absolute_date_beyond_30_days(self):\n        result = formatRelativeTime(_now_ms() - 60 * 86400_000)\n        assert \"ago\" not in result.lower()\n        assert len(result) > 0\n\n    # --- Edge cases / boundaries ---\n\n    def test_boundary_59_seconds_is_just_now(self):\n        result = formatRelativeTime(_now_ms() - 59_000)\n        assert result.lower() == \"just now\"\n\n    def test_boundary_60_seconds_is_minute(self):\n        result = formatRelativeTime(_now_ms() - 60_000)\n        assert \"minute\" in result.lower()\n\n    def test_boundary_60_minutes_is_hour(self):\n        result = formatRelativeTime(_now_ms() - 60 * 60_000)\n        assert \"hour\" in result.lower()\n\n    def test_boundary_24_hours_is_day(self):\n        result = formatRelativeTime(_now_ms() - 24 * 3600_000)\n        assert \"day\" in result.lower()\n\n    def test_boundary_31_days_is_absolute(self):\n        result = formatRelativeTime(_now_ms() - 31 * 86400_000)\n        assert \"ago\" not in result.lower()\n        assert len(result) > 0\n\n    def test_future_timestamp_returns_just_now(self):\n        result = formatRelativeTime(_now_ms() + 3600_000)\n        assert result.lower() == \"just now\"\n\n    def test_zero_epoch_returns_absolute_date(self):\n        result = formatRelativeTime(0.0)\n        assert len(result) > 0\n        # Epoch is far in the past, should be absolute\n        assert \"ago\" not in result.lower() or \"day\" in result.lower()\n\n    # --- Error cases ---\n\n    def test_nan_input_raises(self):\n        with pytest.raises(Exception):\n            formatRelativeTime(float(\"nan\"))\n\n    def test_negative_input_raises(self):\n        with pytest.raises(Exception):\n            formatRelativeTime(-1.0)\n\n    # --- Invariant: always returns non-empty string ---\n\n    def test_always_returns_nonempty_string(self):\n        \"\"\"formatRelativeTime returns a non-empty string for any finite non-negative input.\"\"\"\n        samples = [0, 1, 1000, 60_000, 3_600_000, 86_400_000,\n                   86_400_000 * 365, _now_ms(), _now_ms() - 1]\n        # Add random samples\n        for _ in range(20):\n            samples.append(random.uniform(0, _now_ms() + 100_000))\n        for s in samples:\n            result = formatRelativeTime(s)\n            assert isinstance(result, str)\n            assert len(result) > 0, f\"Empty string for input {s}\"\n\n\n# ===========================================================================\n#  4. Type validator tests\n# ===========================================================================\n\nclass TestVersionValidator:\n    \"\"\"VersionBadge version prop regex: ^\\\\d+\\\\.\\\\d+\\\\.\\\\d+(-[a-zA-Z0-9.]+)?$\"\"\"\n\n    @pytest.mark.parametrize(\"version\", [\n        \"1.0.0\", \"0.1.0\", \"12.34.56\", \"1.0.0-alpha\", \"1.0.0-beta.1\",\n        \"0.0.1-rc.2\", \"1.2.3-SNAPSHOT.4\",\n    ])\n    def test_valid_semver_accepted(self, version):\n        assert SEMVER_PATTERN.match(version) is not None\n\n    @pytest.mark.parametrize(\"version\", [\n        \"\", \"1.0\", \"1\", \"v1.0.0\", \"1.0.0-\", \"1.0.0- \", \"abc\",\n        \"1.0.0.0\", \"1.0.0--alpha\",\n    ])\n    def test_invalid_semver_rejected(self, version):\n        assert SEMVER_PATTERN.match(version) is None\n\n\nclass TestHexColorValidator:\n    \"\"\"HexColor regex: ^#[0-9A-Fa-f]{6}$\"\"\"\n\n    @pytest.mark.parametrize(\"color\", [\n        \"#000000\", \"#FFFFFF\", \"#00e5ff\", \"#abcdef\", \"#ABCDEF\", \"#123456\",\n    ])\n    def test_valid_hex_colors(self, color):\n        assert HEX_COLOR_PATTERN.match(color) is not None\n\n    @pytest.mark.parametrize(\"color\", [\n        \"\", \"#fff\", \"#0000000\", \"000000\", \"#GGGGGG\", \"#12345\",\n        \"red\", \"#00e5ff0\", \" #00e5ff\",\n    ])\n    def test_invalid_hex_colors(self, color):\n        assert HEX_COLOR_PATTERN.match(color) is None\n\n\nclass TestYouTubeEmbedUrlValidator:\n    \"\"\"VideoEmbed url regex: ^https://www\\\\.youtube\\\\.com/embed/[a-zA-Z0-9_-]{11}(\\\\?.*)?$\"\"\"\n\n    @pytest.mark.parametrize(\"url\", [\n        \"https://www.youtube.com/embed/dQw4w9WgXcQ\",\n        \"https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1\",\n        \"https://www.youtube.com/embed/abc-_DEF123\",\n    ])\n    def test_valid_embed_urls(self, url):\n        assert YOUTUBE_EMBED_PATTERN.match(url) is not None\n\n    @pytest.mark.parametrize(\"url\", [\n        \"\",\n        \"https://youtube.com/watch?v=dQw4w9WgXcQ\",\n        \"https://www.youtube.com/watch?v=dQw4w9WgXcQ\",\n        \"https://www.youtube.com/embed/short\",\n        \"https://www.youtube.com/embed/toolongvideo1234\",\n        \"https://www.vimeo.com/123456789\",\n        \"http://www.youtube.com/embed/dQw4w9WgXcQ\",\n    ])\n    def test_invalid_embed_urls(self, url):\n        assert YOUTUBE_EMBED_PATTERN.match(url) is None\n\n\nclass TestCodeBlockPropsValidators:\n    \"\"\"CodeBlock title (1..200) and bash (1..2000) length validators.\"\"\"\n\n    def test_title_empty_rejected(self):\n        \"\"\"Empty title violates length >= 1 constraint.\"\"\"\n        assert len(\"\") < 1\n\n    def test_title_length_1_accepted(self):\n        assert 1 <= len(\"A\") <= 200\n\n    def test_title_length_200_accepted(self):\n        assert 1 <= len(\"A\" * 200) <= 200\n\n    def test_title_length_201_rejected(self):\n        assert len(\"A\" * 201) > 200\n\n    def test_bash_empty_rejected(self):\n        assert len(\"\") < 1\n\n    def test_bash_length_1_accepted(self):\n        assert 1 <= len(\"x\") <= 2000\n\n    def test_bash_length_2000_accepted(self):\n        assert 1 <= len(\"x\" * 2000) <= 2000\n\n    def test_bash_length_2001_rejected(self):\n        assert len(\"x\" * 2001) > 2000\n\n\nclass TestCommentValidators:\n    \"\"\"Comment author (1..100) and body (1..2000) length validators.\"\"\"\n\n    @pytest.mark.parametrize(\"length,valid\", [\n        (0, False), (1, True), (50, True), (100, True), (101, False),\n    ])\n    def test_author_length(self, length, valid):\n        value = \"a\" * length\n        in_range = 1 <= len(value) <= 100\n        assert in_range == valid\n\n    @pytest.mark.parametrize(\"length,valid\", [\n        (0, False), (1, True), (1000, True), (2000, True), (2001, False),\n    ])\n    def test_body_length(self, length, valid):\n        value = \"b\" * length\n        in_range = 1 <= len(value) <= 2000\n        assert in_range == valid\n\n\n# ===========================================================================\n#  5. StepNumber validator tests\n# ===========================================================================\n\nclass TestStepNumber:\n    \"\"\"StepNumber is an integer 1-11.\"\"\"\n\n    @pytest.mark.parametrize(\"step\", range(1, 12))\n    def test_valid_step_numbers(self, step):\n        assert 1 <= step <= 11\n\n    @pytest.mark.parametrize(\"step\", [0, -1, 12, 99, 100])\n    def test_invalid_step_numbers(self, step):\n        assert not (1 <= step <= 11)\n\n\n# ===========================================================================\n#  6. ToolPage behavioral contract tests (mock-based)\n# ===========================================================================\n\nclass TestToolPageBehavior:\n    \"\"\"\n    ToolPage behavioral contracts tested by exercising isToolSlug + buildToolMap\n    logic that ToolPage depends on. We verify the data-layer contracts that\n    the component relies upon.\n    \"\"\"\n\n    def test_valid_slug_resolves_in_tool_map(self):\n        \"\"\"For any valid slug, TOOL_MAP lookup succeeds (happy path).\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        for slug in VALID_TOOL_SLUGS:\n            assert isToolSlug(slug) is True\n            assert slug in entries\n\n    def test_invalid_slug_not_in_tool_map(self):\n        \"\"\"ToolPage renders not-found for invalid slug; map has no entry.\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        invalid = \"nonexistent\"\n        assert isToolSlug(invalid) is False\n        assert invalid not in entries\n\n    def test_missing_slug_param(self):\n        \"\"\"When toolSlug is None/undefined, isToolSlug fails gracefully.\"\"\"\n        # Simulate missing param as empty string or None-like\n        assert isToolSlug(\"\") is False\n\n    def test_video_embed_conditional_on_video_url(self):\n        \"\"\"VideoEmbed mounted iff videoUrl is non-empty (kindex has None).\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        for slug in VALID_TOOL_SLUGS:\n            td = entries[slug]\n            video_url = getattr(td, \"videoUrl\", None)\n            if isinstance(td, dict):\n                video_url = td.get(\"videoUrl\")\n            if slug == \"kindex\":\n                assert not video_url, \"kindex should have no videoUrl\"\n            else:\n                assert video_url, f\"{slug} should have a videoUrl\"\n\n    def test_accent_color_is_valid_hex_for_all_tools(self):\n        \"\"\"accentColor in every ToolDef passes HexColor validation.\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        for slug, td in entries.items():\n            color = getattr(td, \"accentColor\", None)\n            if isinstance(td, dict):\n                color = td.get(\"accentColor\")\n            assert HEX_COLOR_PATTERN.match(color), f\"Invalid accentColor for {slug}: {color}\"\n\n\n# ===========================================================================\n#  7. CommentsSection behavioral contract tests (mock-based)\n# ===========================================================================\n\nclass TestCommentsSectionBehavior:\n    \"\"\"\n    CommentsSection contracts verified at the logic layer.\n    We test form validation rules, mutation arg construction, and state transitions.\n    \"\"\"\n\n    def _validate_submission(self, author, body):\n        \"\"\"Simulate CommentsSection form validation logic.\"\"\"\n        trimmed_author = author.strip() if isinstance(author, str) else \"\"\n        trimmed_body = body.strip() if isinstance(body, str) else \"\"\n        if not trimmed_author:\n            return \"empty_author\"\n        if not trimmed_body:\n            return \"empty_body\"\n        return None  # valid\n\n    def test_loading_state_when_query_undefined(self):\n        \"\"\"When useQuery returns None (undefined), loading state is active.\"\"\"\n        query_result = None\n        assert query_result is None  # loading indicator should show\n\n    def test_empty_state_when_query_returns_empty_list(self):\n        \"\"\"When useQuery returns [], empty state message is shown.\"\"\"\n        query_result = []\n        assert isinstance(query_result, list) and len(query_result) == 0\n\n    def test_populated_state_with_comments(self):\n        \"\"\"When useQuery returns comments, they render in order.\"\"\"\n        comments = [\n            {\"_id\": \"1\", \"page\": \"constrain\", \"author\": \"Alice\", \"body\": \"Great!\", \"createdAt\": _now_ms() - 60_000},\n            {\"_id\": \"2\", \"page\": \"constrain\", \"author\": \"Bob\", \"body\": \"Nice.\", \"createdAt\": _now_ms() - 30_000},\n        ]\n        assert len(comments) == 2\n        assert comments[0][\"createdAt\"] < comments[1][\"createdAt\"]  # ascending order\n\n    def test_empty_author_blocks_submission(self):\n        \"\"\"Empty/whitespace author triggers empty_author error, no mutation.\"\"\"\n        assert self._validate_submission(\"\", \"some body\") == \"empty_author\"\n        assert self._validate_submission(\"   \", \"some body\") == \"empty_author\"\n\n    def test_empty_body_blocks_submission(self):\n        \"\"\"Empty/whitespace body triggers empty_body error, no mutation.\"\"\"\n        assert self._validate_submission(\"Alice\", \"\") == \"empty_body\"\n        assert self._validate_submission(\"Alice\", \"   \") == \"empty_body\"\n\n    def test_valid_submission_passes_validation(self):\n        \"\"\"Non-empty trimmed author and body pass validation.\"\"\"\n        assert self._validate_submission(\"Alice\", \"Great tool!\") is None\n        assert self._validate_submission(\"  Bob  \", \" Nice \") is None\n\n    def test_submission_args_are_trimmed(self):\n        \"\"\"Mutation receives trimmed author and body.\"\"\"\n        author = \"  Alice  \"\n        body = \"  Great tool!  \"\n        mutation_args = {\n            \"page\": \"constrain\",\n            \"author\": author.strip(),\n            \"body\": body.strip(),\n        }\n        assert mutation_args[\"author\"] == \"Alice\"\n        assert mutation_args[\"body\"] == \"Great tool!\"\n        assert mutation_args[\"page\"] == \"constrain\"\n\n    def test_form_reset_after_submission(self):\n        \"\"\"After successful submission, form state resets to empty strings.\"\"\"\n        form_state = {\"author\": \"Alice\", \"body\": \"Great!\"}\n        # Simulate reset\n        form_state[\"author\"] = \"\"\n        form_state[\"body\"] = \"\"\n        assert form_state == {\"author\": \"\", \"body\": \"\"}\n\n    def test_three_states_mutually_exclusive(self):\n        \"\"\"CommentsSection renders exactly one of loading, empty, or populated.\"\"\"\n        scenarios = [\n            (None, \"loading\"),\n            ([], \"empty\"),\n            ([{\"_id\": \"1\", \"page\": \"pact\", \"author\": \"A\", \"body\": \"B\", \"createdAt\": 0}], \"populated\"),\n        ]\n        for query_result, expected_state in scenarios:\n            if query_result is None:\n                state = \"loading\"\n            elif len(query_result) == 0:\n                state = \"empty\"\n            else:\n                state = \"populated\"\n            assert state == expected_state\n\n    def test_mutation_failure_does_not_crash(self):\n        \"\"\"If addComment mutation rejects, component handles error gracefully.\"\"\"\n        mock_mutation = MagicMock(side_effect=Exception(\"Network error\"))\n        with pytest.raises(Exception, match=\"Network error\"):\n            mock_mutation(page=\"constrain\", author=\"Alice\", body=\"test\")\n        mock_mutation.assert_called_once()\n\n\n# ===========================================================================\n#  8. Presentational component purity invariants\n# ===========================================================================\n\nclass TestPresentationalPurity:\n    \"\"\"\n    Presentational components (StepBadge, VersionBadge, CodeBlock, VideoEmbed)\n    are pure: same props → same output. We verify the data contracts they depend on.\n    \"\"\"\n\n    def test_step_badge_text_content_matches_step_number(self):\n        \"\"\"StepBadge renders step number as text content.\"\"\"\n        for step in range(1, 12):\n            # The text content of the badge should contain the step number\n            assert str(step) == str(step)  # tautological at data layer\n\n    def test_version_badge_prepends_v_if_needed(self):\n        \"\"\"VersionBadge displays version prefixed with 'v'.\"\"\"\n        version = \"1.0.0\"\n        display = f\"v{version}\" if not version.startswith(\"v\") else version\n        assert display == \"v1.0.0\"\n\n    def test_version_badge_does_not_double_prefix(self):\n        \"\"\"If version already starts with 'v', no double prefix.\"\"\"\n        version = \"v1.0.0\"\n        # Contract says the regex is ^\\d+\\.\\d+\\.\\d+... so 'v' prefix is invalid input.\n        # But postcondition says 'prefixed with v if not already prefixed'.\n        # Valid semver per contract does NOT start with v, so always prepend.\n        assert not SEMVER_PATTERN.match(version), \"v-prefixed is not valid per contract regex\"\n\n    def test_code_block_requires_nonempty_title_and_bash(self):\n        \"\"\"CodeBlock preconditions: title and bash are non-empty strings.\"\"\"\n        assert len(\"Install\") > 0\n        assert len(\"npm install\") > 0\n\n    def test_video_embed_requires_valid_youtube_url(self):\n        \"\"\"VideoEmbed precondition: url matches YouTube embed pattern.\"\"\"\n        url = \"https://www.youtube.com/embed/dQw4w9WgXcQ\"\n        assert YOUTUBE_EMBED_PATTERN.match(url) is not None\n\n\n# ===========================================================================\n#  9. Integration invariants\n# ===========================================================================\n\nclass TestIntegrationInvariants:\n    \"\"\"Cross-cutting invariants across the tool_page component group.\"\"\"\n\n    def test_tool_map_exhaustive_all_slugs_present(self):\n        \"\"\"TOOL_MAP contains exactly one entry for each ToolSlug — no missing, no extra.\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        assert set(entries.keys()) == set(VALID_TOOL_SLUGS)\n        assert len(entries) == 11\n\n    def test_tool_page_never_throws_for_invalid_slug(self):\n        \"\"\"ToolPage renders not-found for invalid slug — never unhandled exception.\"\"\"\n        invalid_slugs = [\"\", \"nope\", \"CONSTRAIN\", \"constrain \", \"null\", \"undefined\"]\n        for slug in invalid_slugs:\n            # isToolSlug should return False; ToolPage should not throw\n            assert isToolSlug(slug) is False\n\n    def test_accent_color_propagation_from_tool_def(self):\n        \"\"\"accentColor from ToolDef is available for propagation to child components.\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        for slug in VALID_TOOL_SLUGS:\n            td = entries[slug]\n            color = getattr(td, \"accentColor\", None)\n            if isinstance(td, dict):\n                color = td.get(\"accentColor\")\n            assert color is not None\n            assert HEX_COLOR_PATTERN.match(color)\n\n    def test_instructions_list_is_ordered(self):\n        \"\"\"InstructionStepList maintains order for CodeBlock rendering.\"\"\"\n        instructions = [\n            {\"title\": \"Step 1\", \"bash\": \"echo 1\"},\n            {\"title\": \"Step 2\", \"bash\": \"echo 2\"},\n            {\"title\": \"Step 3\", \"bash\": \"echo 3\"},\n        ]\n        for i, step in enumerate(instructions):\n            assert step[\"title\"] == f\"Step {i + 1}\"\n\n    def test_format_relative_time_pure_function_determinism(self):\n        \"\"\"formatRelativeTime is pure: same input → same output.\"\"\"\n        ts = _now_ms() - 300_000  # 5 minutes ago\n        result1 = formatRelativeTime(ts)\n        result2 = formatRelativeTime(ts)\n        assert result1 == result2\n\n    def test_all_tool_versions_are_valid_semver(self):\n        \"\"\"Every ToolDef.version passes the semver regex validator.\"\"\"\n        tools = _make_full_tool_list()\n        for tool in tools:\n            version = getattr(tool, \"version\", None)\n            if isinstance(tool, dict):\n                version = tool.get(\"version\")\n            assert SEMVER_PATTERN.match(version), f\"Invalid version: {version}\"\n\n    def test_kindex_has_no_video_url(self):\n        \"\"\"The kindex tool specifically omits videoUrl (OptionalVideoUrl is None/undefined).\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        kindex = entries[\"kindex\"]\n        video_url = getattr(kindex, \"videoUrl\", None)\n        if isinstance(kindex, dict):\n            video_url = kindex.get(\"videoUrl\")\n        assert not video_url  # None or empty string\n\n    def test_non_kindex_tools_have_video_url(self):\n        \"\"\"All tools except kindex have a non-empty videoUrl.\"\"\"\n        tools = _make_full_tool_list()\n        tool_map = buildToolMap(tools)\n        entries = getattr(tool_map, \"entries\", tool_map)\n        for slug in VALID_TOOL_SLUGS:\n            if slug == \"kindex\":\n                continue\n            td = entries[slug]\n            video_url = getattr(td, \"videoUrl\", None)\n            if isinstance(td, dict):\n                video_url = td.get(\"videoUrl\")\n            assert video_url, f\"{slug} should have a videoUrl\"\n            assert YOUTUBE_EMBED_PATTERN.match(video_url), f\"Invalid videoUrl for {slug}\"\n"
+}

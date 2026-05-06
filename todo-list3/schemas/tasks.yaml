@@ -1,0 +1,48 @@
+name: tasks
+version: 1
+
+fields:
+  - name: id
+    field_type: integer
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: primary_key
+      - name: immutable
+      - name: not_null
+
+  - name: title
+    field_type: varchar(255)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: description
+    field_type: text
+    classification: PUBLIC
+    nullable: true
+
+  - name: status
+    field_type: varchar(20)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
+      - name: audit_field
+
+  - name: updated_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+      - name: audit_field

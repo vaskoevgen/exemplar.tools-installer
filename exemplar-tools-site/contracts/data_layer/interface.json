@@ -1,0 +1,664 @@
+{
+  "component_id": "data_layer",
+  "name": "Data Constants & Convex Backend",
+  "description": "Provides the canonical typed registry of all 11 exemplar.tools tool definitions (slug, name, description, step number, version, accent color, optional YouTube embed URL, and placeholder step-by-step instructions) as a static constant array exported from src/data/tools.ts. Also defines the Convex backend schema for user-submitted comments (convex/schema.ts) and exposes fully-typed Convex query/mutation functions (convex/comments.ts) for listing comments filtered by page and adding new comments with server-side timestamps. This component is the single source of truth for tool metadata and the comments data model.",
+  "version": 1,
+  "types": [
+    {
+      "name": "ToolSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "URL-safe identifier for each tool, used as route param and Convex page key.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "StepNumber",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Integer 1–11 representing the tool's position in the exemplar.tools workflow order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "HexColor",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "CSS hex color string (e.g. '#00e5ff') used for per-tool accent theming.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStep",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Short human-readable title for this instruction step.",
+          "validators": []
+        },
+        {
+          "name": "bash",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Bash code block content to display in a terminal-styled card.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single step-by-step instruction entry containing a human title and a bash snippet.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolDef",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "slug",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "URL-safe identifier used as route parameter and sidebar key.",
+          "validators": []
+        },
+        {
+          "name": "name",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable display name of the tool (e.g. 'Constrain').",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "One-line description shown on the tool page and in the quick-start table.",
+          "validators": []
+        },
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "Workflow step number (1–11) displayed in the StepBadge.",
+          "validators": []
+        },
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Semver version string displayed in the VersionBadge.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Per-tool accent color hex for badges, headings, and diagram nodes.",
+          "validators": []
+        },
+        {
+          "name": "videoUrl",
+          "type_ref": "OptionalVideoUrl",
+          "required": false,
+          "default": "undefined",
+          "description": "YouTube embed URL; omitted for kindex.",
+          "validators": []
+        },
+        {
+          "name": "instructions",
+          "type_ref": "InstructionStepList",
+          "required": true,
+          "default": "",
+          "description": "Ordered step-by-step instructions rendered on the tool page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Complete static definition of one tool including display metadata, instructions, and video URL.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ToolDefArray",
+      "kind": "list",
+      "fields": [],
+      "item_type": "ToolDef",
+      "variants": [],
+      "inner_types": [],
+      "description": "The TOOLS constant: an ordered array of exactly 11 ToolDef objects, one per tool, sorted by step number ascending.",
+      "owner_component": ""
+    },
+    {
+      "name": "ConvexDocumentId",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Convex-generated unique document identifier. Serialized as a string on the client side. Corresponds to Id<'comments'> in the Convex type system.",
+      "owner_component": ""
+    },
+    {
+      "name": "Comment",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "_id",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Convex-generated unique document ID.",
+          "validators": []
+        },
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying which page this comment belongs to.",
+          "validators": []
+        },
+        {
+          "name": "author",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name of the comment author.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Author name must be between 1 and 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Comment body text.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..2000",
+              "error_message": "Comment body must be between 1 and 2000 characters."
+            }
+          ]
+        },
+        {
+          "name": "createdAt",
+          "type_ref": "number",
+          "required": true,
+          "default": "",
+          "description": "Unix epoch millisecond timestamp set via Date.now() at insertion time.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A user-submitted comment persisted in Convex, displayed in the CommentsSection.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "ListCommentsArgs",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug to filter comments by page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Arguments for the Convex listComments query function.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "AddCommentArgs",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying the target page.",
+          "validators": []
+        },
+        {
+          "name": "author",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Display name of the comment author.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Author name must be non-empty and at most 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Comment body text.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..2000",
+              "error_message": "Comment body must be non-empty and at most 2000 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Arguments for the Convex addComment mutation, submitted from CommentsSection form.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "CommentList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "Comment",
+      "variants": [],
+      "inner_types": [],
+      "description": "Array of Comment objects returned by the listComments query, sorted by createdAt ascending.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "OptionalVideoUrl",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "string",
+      "variants": [],
+      "inner_types": [],
+      "description": "YouTube embed URL if the tool has a video; undefined otherwise (e.g. kindex).",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "InstructionStepList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "InstructionStep",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of InstructionStep objects for a tool's how-to section.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "number",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'data_layer'",
+      "owner_component": ""
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'data_layer'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "getTools",
+      "description": "Returns the static TOOLS constant: a readonly array of all 11 ToolDef objects ordered by step number (1–11). Pure synchronous access to the in-memory tool registry. This is a module-level export, not a runtime function call — modeled here as a function for contract completeness.",
+      "inputs": [],
+      "output_type": "ToolDefArray",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned array has exactly 11 elements.",
+        "Elements are sorted by step field ascending (1 through 11).",
+        "All step values are unique across the array.",
+        "All slug values are unique across the array.",
+        "Exactly one element (kindex) has videoUrl undefined; all other 10 elements have a defined videoUrl.",
+        "Each element's instructions array contains between 3 and 5 InstructionStep objects.",
+        "Each accentColor is a unique 6-digit hex color from the canonical dark-theme palette."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure synchronous read of a compile-time constant. No I/O, no state mutation."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getToolBySlugs",
+      "description": "Utility lookup: finds a ToolDef by its slug from the TOOLS array. Returns undefined if the slug does not match any of the 11 known tools. Pure synchronous function.",
+      "inputs": [
+        {
+          "name": "slug",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The tool slug to look up.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z]+$",
+              "error_message": "Slug must be lowercase alphabetic characters only."
+            }
+          ]
+        }
+      ],
+      "output_type": "ToolDef",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "If slug matches a known ToolSlug variant, the returned ToolDef has that slug.",
+        "If slug does not match any ToolSlug variant, returns undefined."
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure synchronous lookup against an in-memory constant array."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "listComments",
+      "description": "Convex query function (convex/comments.ts). Retrieves all comments for a given page slug from the 'comments' table, using the compound index 'by_page_createdAt' to filter by page and sort by createdAt ascending. Returns Doc<'comments'>[] which maps to CommentList on the client. Invoked via useQuery(api.comments.listComments, { page }).",
+      "inputs": [
+        {
+          "name": "page",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying the page whose comments to retrieve. Validated by Convex args as v.string().",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z]+$",
+              "error_message": "Page must be a valid lowercase alphabetic tool slug."
+            }
+          ]
+        }
+      ],
+      "output_type": "CommentList",
+      "error_cases": [
+        {
+          "name": "missing_page_argument",
+          "condition": "The 'page' argument is not provided or is not a string.",
+          "error_type": "ConvexValidationError",
+          "error_data": {
+            "message": "Argument 'page' is required and must be a string."
+          }
+        }
+      ],
+      "preconditions": [
+        "page is a non-empty string."
+      ],
+      "postconditions": [
+        "Returned array contains only comments where comment.page === args.page.",
+        "Returned array is sorted by createdAt ascending (oldest first).",
+        "Each element in the returned array is a complete Comment document with _id, page, author, body, and createdAt.",
+        "If no comments exist for the given page, returns an empty array."
+      ],
+      "idempotent": true,
+      "is_async": true,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "Convex 'comments' table via indexed query 'by_page_createdAt'",
+          "description": "Executes a Convex indexed read query against the 'comments' table filtered by page slug using the compound index. Read-only; no state mutation."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 200,
+        "max_memory_mb": null,
+        "complexity": "O(k) where k is the number of comments for the given page"
+      }
+    },
+    {
+      "name": "addComment",
+      "description": "Convex mutation function (convex/comments.ts). Inserts a new comment document into the 'comments' table with the provided page slug, author name, body text, and a server-generated Date.now() timestamp for createdAt. Returns the Convex-generated Id<'comments'> of the new document. Invoked via useMutation(api.comments.addComment).",
+      "inputs": [
+        {
+          "name": "page",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tool slug identifying which page this comment belongs to. Validated by Convex args as v.string().",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^[a-z]+$",
+              "error_message": "Page must be a valid lowercase alphabetic tool slug."
+            }
+          ]
+        },
+        {
+          "name": "author",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Display name of the comment author. Validated by Convex args as v.string().",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Author name must be between 1 and 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The comment text content. Validated by Convex args as v.string().",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..5000",
+              "error_message": "Comment body must be between 1 and 5000 characters."
+            }
+          ]
+        }
+      ],
+      "output_type": "ConvexDocumentId",
+      "error_cases": [
+        {
+          "name": "missing_page_argument",
+          "condition": "The 'page' argument is not provided or is not a string.",
+          "error_type": "ConvexValidationError",
+          "error_data": {
+            "message": "Argument 'page' is required and must be a string."
+          }
+        },
+        {
+          "name": "missing_author_argument",
+          "condition": "The 'author' argument is not provided or is not a string.",
+          "error_type": "ConvexValidationError",
+          "error_data": {
+            "message": "Argument 'author' is required and must be a string."
+          }
+        },
+        {
+          "name": "missing_body_argument",
+          "condition": "The 'body' argument is not provided or is not a string.",
+          "error_type": "ConvexValidationError",
+          "error_data": {
+            "message": "Argument 'body' is required and must be a string."
+          }
+        },
+        {
+          "name": "empty_author",
+          "condition": "The 'author' argument is an empty string after trimming.",
+          "error_type": "ValidationError",
+          "error_data": {
+            "message": "Author name must not be empty."
+          }
+        },
+        {
+          "name": "empty_body",
+          "condition": "The 'body' argument is an empty string after trimming.",
+          "error_type": "ValidationError",
+          "error_data": {
+            "message": "Comment body must not be empty."
+          }
+        },
+        {
+          "name": "convex_internal_error",
+          "condition": "Convex runtime encounters an internal failure during the mutation (e.g. write conflict, system overload).",
+          "error_type": "ConvexInternalError",
+          "error_data": {
+            "message": "An internal Convex error occurred while inserting the comment."
+          }
+        }
+      ],
+      "preconditions": [
+        "page is a non-empty string corresponding to a valid tool slug.",
+        "author is a non-empty string of at most 100 characters.",
+        "body is a non-empty string of at most 5000 characters."
+      ],
+      "postconditions": [
+        "A new document exists in the 'comments' table with the provided page, author, and body fields.",
+        "The new document's createdAt field is set to the server-side Date.now() value at insertion time.",
+        "The returned ConvexDocumentId uniquely identifies the newly created comment document.",
+        "Subsequent listComments({ page }) calls will include the newly created comment."
+      ],
+      "idempotent": false,
+      "is_async": true,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "Convex 'comments' table",
+          "description": "Inserts a new document into the 'comments' table with page, author, body, and a Date.now() createdAt timestamp. This is a non-idempotent write; repeated calls with identical arguments create distinct documents with different _id values and createdAt timestamps."
+        },
+        {
+          "kind": "network_call",
+          "target": "Convex mutation runtime",
+          "description": "Executes a Convex server-side mutation via the Convex client. Requires an active network connection to the Convex deployment."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 300,
+        "max_memory_mb": null,
+        "complexity": "O(1) single document insert"
+      }
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "The TOOLS array always contains exactly 11 elements, one for each tool in the exemplar.tools suite.",
+    "Each ToolDef.step value is unique and maps bijectively to exactly one ToolSlug.",
+    "The TOOLS array is sorted by step ascending: TOOLS[i].step < TOOLS[i+1].step for all valid i.",
+    "Exactly 10 of 11 tools have a defined videoUrl; kindex (step 11) has videoUrl undefined.",
+    "All 11 accentColor values are distinct and belong to the canonical dark-theme palette: #00e5ff, #00bfa5, #69f0ae, #b2ff59, #ffd740, #ff9100, #ff5252, #ff4081, #e040fb, #7c4dff, #448aff.",
+    "The Convex 'comments' table defines a compound index 'by_page_createdAt' on fields ['page', 'createdAt'] enabling efficient filtered-and-sorted queries.",
+    "Every comment document in the 'comments' table has all four fields populated: page (non-empty string), author (non-empty string), body (non-empty string), createdAt (positive number).",
+    "The createdAt field is always set server-side via Date.now() during addComment mutation; it is never client-supplied.",
+    "listComments is a pure read query with no side effects on the 'comments' table.",
+    "addComment is non-idempotent: repeated calls with identical arguments produce distinct documents.",
+    "All Convex function args are validated by Convex's built-in v.string() and v.number() validators before handler execution.",
+    "The TOOL_SLUGS runtime array and ToolSlug type always enumerate the same 11 values."
+  ],
+  "requires": [],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC",
+      "USER_GENERATED"
+    ],
+    "writes": [
+      "USER_GENERATED"
+    ],
+    "rationale": "Reads PUBLIC-tier static tool registry data (tool slugs, names, descriptions, step numbers, versions, accent colors, YouTube URLs, instruction steps) compiled into the client bundle. Reads USER_GENERATED-tier comment records from the Convex 'comments' table filtered by page slug. Writes USER_GENERATED-tier comment records (author name, body text, page slug, timestamp) to the Convex 'comments' table when users submit new comments.",
+    "side_effects": [
+      {
+        "type": "convex_query",
+        "classification": "USER_GENERATED",
+        "fields": [
+          "page",
+          "author",
+          "body",
+          "createdAt",
+          "_id"
+        ],
+        "rationale": "listComments executes a Convex indexed query against the 'comments' table filtered by page slug to retrieve all comments for a given tool page, returning author, body, createdAt, and _id fields."
+      },
+      {
+        "type": "convex_mutation",
+        "classification": "USER_GENERATED",
+        "fields": [
+          "page",
+          "author",
+          "body",
+          "createdAt"
+        ],
+        "rationale": "addComment inserts a new row into the Convex 'comments' table with user-provided page slug, author name, body text, and a server-generated Date.now() timestamp."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "tool_registry",
+      "comments"
+    ],
+    "rationale": "This component is the single authoritative source for the static tool definitions registry (ToolDef[], ToolSlug enum, accent color palette) consumed by all downstream UI components. It also owns the Convex 'comments' table schema, compound index definition, and all read/write functions for comment data. No other component may define tool metadata or mutate comment records."
+  }
+}

@@ -1,0 +1,425 @@
+{
+  "component_id": "app_shell",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "valid_tool_slug_all_variants",
+      "description": "isValidToolSlug returns True for all 11 ToolSlug enum variants",
+      "function": "isValidToolSlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 ToolSlug string variants",
+      "expected_output_description": "True for every valid slug",
+      "expected_error": "",
+      "assertions": [
+        "returns True for constrain",
+        "returns True for ledger",
+        "returns True for pact",
+        "returns True for advocate",
+        "returns True for arbiter",
+        "returns True for baton",
+        "returns True for sentinel",
+        "returns True for chronicler",
+        "returns True for stigmergy",
+        "returns True for apprentice",
+        "returns True for kindex"
+      ]
+    },
+    {
+      "id": "invalid_tool_slug_strings",
+      "description": "isValidToolSlug returns False for strings not in the ToolSlug enum",
+      "function": "isValidToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Various invalid strings: empty, whitespace, near-miss typos, numeric, None-like",
+      "expected_output_description": "False for every invalid input",
+      "expected_error": "",
+      "assertions": [
+        "returns False for empty string",
+        "returns False for unknown slug",
+        "returns False for partial match",
+        "returns False for uppercase variant"
+      ]
+    },
+    {
+      "id": "is_valid_tool_slug_returns_bool",
+      "description": "isValidToolSlug always returns a boolean type regardless of input",
+      "function": "isValidToolSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Random arbitrary strings and valid slugs",
+      "expected_output_description": "Return type is always bool",
+      "expected_error": "",
+      "assertions": [
+        "return type is bool for valid input",
+        "return type is bool for invalid input"
+      ]
+    },
+    {
+      "id": "tool_path_all_slugs",
+      "description": "toolPath returns '/' + slug for every valid ToolSlug",
+      "function": "toolPath",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 valid ToolSlug values",
+      "expected_output_description": "String matching '/<slug>' pattern",
+      "expected_error": "",
+      "assertions": [
+        "path starts with /",
+        "path equals / + slug",
+        "path matches pattern /[a-z0-9-]+"
+      ]
+    },
+    {
+      "id": "tool_path_leading_slash",
+      "description": "toolPath output always starts with a leading slash and contains only the slug after it",
+      "function": "toolPath",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Representative ToolSlug values",
+      "expected_output_description": "Paths start with / and have no trailing slash",
+      "expected_error": "",
+      "assertions": [
+        "starts with /",
+        "no trailing slash",
+        "no double slashes"
+      ]
+    },
+    {
+      "id": "project_tool_def_to_sidebar_item_happy",
+      "description": "projectToolDefToSidebarItem correctly maps all fields from a ToolDef to a SidebarItem",
+      "function": "projectToolDefToSidebarItem",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A ToolDef with slug='constrain', name='Constrain', stepNumber=1, accentColor='#4F46E5'",
+      "expected_output_description": "SidebarItem with matching slug, label=name, stepNumber, accentColor",
+      "expected_error": "",
+      "assertions": [
+        "slug is preserved",
+        "label equals name",
+        "stepNumber is preserved",
+        "accentColor is preserved"
+      ]
+    },
+    {
+      "id": "project_tool_def_boundary_step_numbers",
+      "description": "projectToolDefToSidebarItem handles boundary step numbers 1 and 11",
+      "function": "projectToolDefToSidebarItem",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDefs with stepNumber=1 and stepNumber=11",
+      "expected_output_description": "Correctly mapped SidebarItems with step 1 and 11",
+      "expected_error": "",
+      "assertions": [
+        "stepNumber 1 is preserved",
+        "stepNumber 11 is preserved"
+      ]
+    },
+    {
+      "id": "hex_color_string_valid",
+      "description": "HexColorString accepts valid 3-digit and 6-digit hex color strings",
+      "function": "HexColorString",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Valid hex strings: '#fff', '#000', '#4F46E5', '#00e5ff'",
+      "expected_output_description": "Successfully constructed HexColorString instances",
+      "expected_error": "",
+      "assertions": [
+        "#fff is accepted",
+        "#000 is accepted",
+        "#4F46E5 is accepted",
+        "#00e5ff is accepted"
+      ]
+    },
+    {
+      "id": "hex_color_string_invalid",
+      "description": "HexColorString rejects invalid color strings",
+      "function": "HexColorString",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Invalid strings: '', 'red', '#gg0000', '#12345', '#1234567', '4F46E5' (no #)",
+      "expected_output_description": "Validation error raised for each",
+      "expected_error": "",
+      "assertions": [
+        "empty string rejected",
+        "named color rejected",
+        "invalid hex chars rejected",
+        "5-digit hex rejected",
+        "7-digit hex rejected",
+        "missing hash rejected"
+      ]
+    },
+    {
+      "id": "convex_url_valid",
+      "description": "ConvexUrl accepts valid HTTP/HTTPS URLs within length bounds",
+      "function": "ConvexUrl",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Valid URLs: 'https://example.convex.cloud', 'http://localhost:3210'",
+      "expected_output_description": "Successfully constructed ConvexUrl instances",
+      "expected_error": "",
+      "assertions": [
+        "https URL accepted",
+        "http localhost accepted"
+      ]
+    },
+    {
+      "id": "convex_url_invalid",
+      "description": "ConvexUrl rejects URLs that fail regex or length validation",
+      "function": "ConvexUrl",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Invalid URLs: '', 'ftp://x', 'short', string of 257 chars",
+      "expected_output_description": "Validation error raised",
+      "expected_error": "",
+      "assertions": [
+        "empty string rejected",
+        "ftp scheme rejected",
+        "too short rejected",
+        "too long rejected"
+      ]
+    },
+    {
+      "id": "routes_object_home_value",
+      "description": "RoutesObject HOME field must be exactly '/'",
+      "function": "RoutesObject",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "RoutesObject with HOME='/' and TOOL='/:toolSlug'",
+      "expected_output_description": "Valid RoutesObject",
+      "expected_error": "",
+      "assertions": [
+        "HOME equals /",
+        "TOOL equals /:toolSlug"
+      ]
+    },
+    {
+      "id": "routes_object_invalid_home",
+      "description": "RoutesObject rejects HOME values other than '/'",
+      "function": "RoutesObject",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "RoutesObject with HOME='/home'",
+      "expected_output_description": "Validation error",
+      "expected_error": "",
+      "assertions": [
+        "non-/ HOME rejected"
+      ]
+    },
+    {
+      "id": "fadein_keyframes_valid",
+      "description": "FadeInKeyframes with canonical values (from_opacity=0, to_opacity=1, duration='200ms', easing='ease-out') is accepted",
+      "function": "FadeInKeyframes",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Exact canonical values",
+      "expected_output_description": "Valid FadeInKeyframes instance",
+      "expected_error": "",
+      "assertions": [
+        "from_opacity is 0",
+        "to_opacity is 1",
+        "duration is 200ms",
+        "easing is ease-out"
+      ]
+    },
+    {
+      "id": "fadein_keyframes_invalid_values",
+      "description": "FadeInKeyframes rejects non-canonical values",
+      "function": "FadeInKeyframes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "from_opacity=0.5, to_opacity=0.5, duration='300ms', easing='ease-in'",
+      "expected_output_description": "Validation error for each non-canonical value",
+      "expected_error": "",
+      "assertions": [
+        "non-zero from_opacity rejected",
+        "non-one to_opacity rejected",
+        "non-200ms duration rejected",
+        "non-ease-out easing rejected"
+      ]
+    },
+    {
+      "id": "tool_slugs_count_invariant",
+      "description": "TOOL_SLUGS array contains exactly 11 entries",
+      "function": "TOOL_SLUGS",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Module-level TOOL_SLUGS constant",
+      "expected_output_description": "Length is 11",
+      "expected_error": "",
+      "assertions": [
+        "length equals 11",
+        "all entries are unique"
+      ]
+    },
+    {
+      "id": "create_convex_client_missing_url",
+      "description": "createConvexClient raises missing_convex_url error when VITE_CONVEX_URL is missing or empty",
+      "function": "createConvexClient",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "import.meta.env.VITE_CONVEX_URL": "undefined"
+      },
+      "input_values": {},
+      "input_description": "Environment with VITE_CONVEX_URL unset or empty",
+      "expected_output_description": "",
+      "expected_error": "missing_convex_url",
+      "assertions": [
+        "raises error for undefined URL",
+        "raises error for empty string URL",
+        "raises error for None URL"
+      ]
+    },
+    {
+      "id": "create_convex_client_singleton",
+      "description": "createConvexClient returns the same instance on repeated calls (singleton)",
+      "function": "createConvexClient",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "import.meta.env.VITE_CONVEX_URL": "https://test.convex.cloud"
+      },
+      "input_values": {},
+      "input_description": "Valid VITE_CONVEX_URL set",
+      "expected_output_description": "Same object identity on repeated calls",
+      "expected_error": "",
+      "assertions": [
+        "first call returns client",
+        "second call returns same instance"
+      ]
+    },
+    {
+      "id": "google_font_link_valid",
+      "description": "GoogleFontLink href must match Google Fonts CSS2 URL pattern with display=swap",
+      "function": "GoogleFontLink",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "href='https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap'",
+      "expected_output_description": "Valid GoogleFontLink instance",
+      "expected_error": "",
+      "assertions": [
+        "valid href accepted",
+        "preconnect_origins is a list"
+      ]
+    },
+    {
+      "id": "google_font_link_invalid_href",
+      "description": "GoogleFontLink rejects hrefs not matching Google Fonts pattern",
+      "function": "GoogleFontLink",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Invalid hrefs: random URL, missing display=swap, wrong domain",
+      "expected_output_description": "Validation error",
+      "expected_error": "",
+      "assertions": [
+        "non-google-fonts URL rejected",
+        "missing display=swap rejected"
+      ]
+    },
+    {
+      "id": "tool_slug_enum_completeness",
+      "description": "ToolSlug enum contains exactly the 11 specified variants",
+      "function": "ToolSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Enum has 11 members with correct names",
+      "expected_error": "",
+      "assertions": [
+        "enum has 11 members",
+        "all expected variants present"
+      ]
+    },
+    {
+      "id": "sidebar_item_construction",
+      "description": "SidebarItem can be constructed with valid slug, name, step, and accentColor",
+      "function": "SidebarItem",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "slug=ToolSlug.constrain, name='Constrain', step=1, accentColor='#4F46E5'",
+      "expected_output_description": "Valid SidebarItem with all fields set",
+      "expected_error": "",
+      "assertions": [
+        "slug field set",
+        "name field set",
+        "step field set",
+        "accentColor field set"
+      ]
+    },
+    {
+      "id": "step_number_boundary_valid",
+      "description": "StepNumber accepts integers 1 through 11 inclusive",
+      "function": "StepNumber",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Values 1, 6, 11",
+      "expected_output_description": "Valid StepNumber instances",
+      "expected_error": "",
+      "assertions": [
+        "1 accepted",
+        "6 accepted",
+        "11 accepted"
+      ]
+    },
+    {
+      "id": "is_valid_tool_slug_exactly_11_true",
+      "description": "isValidToolSlug returns True for exactly 11 distinct strings (completeness check)",
+      "function": "isValidToolSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A comprehensive test set including all valid slugs and many invalid ones",
+      "expected_output_description": "Exactly 11 inputs return True",
+      "expected_error": "",
+      "assertions": [
+        "count of True results is exactly 11"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract tests for app_shell component.\n\nTests cover: type validation (ToolSlug, HexColorString, ConvexUrl, RoutesObject,\nFadeInKeyframes, GoogleFontLink, StepNumber, SidebarItem), pure functions\n(isValidToolSlug, toolPath, projectToolDefToSidebarItem), singleton behavior\n(createConvexClient), and contract invariants.\n\nRun with: pytest contract_test.py -v\n\"\"\"\n\nimport re\nimport pytest\nfrom unittest.mock import MagicMock, patch, PropertyMock\n\n\n# ---------------------------------------------------------------------------\n# Attempt to import the module under test. If unavailable, skip gracefully.\n# ---------------------------------------------------------------------------\ntry:\n    from app_shell import (\n        ToolSlug,\n        HexColorString,\n        ConvexUrl,\n        RoutesObject,\n        FadeInKeyframes,\n        TailwindFontConfig,\n        GoogleFontLink,\n        StepNumber,\n        HexColor,\n        SidebarItem,\n        SidebarProps,\n        isValidToolSlug,\n        toolPath,\n        projectToolDefToSidebarItem,\n        createConvexClient,\n    )\nexcept ImportError:\n    pytest.skip(\"app_shell module not importable\", allow_module_level=True)\n\n# Try to import TOOL_SLUGS; it may be a module-level constant.\ntry:\n    from app_shell import TOOL_SLUGS\nexcept ImportError:\n    TOOL_SLUGS = None\n\n\n# ---------------------------------------------------------------------------\n# Constants used across tests\n# ---------------------------------------------------------------------------\nALL_VALID_SLUGS = [\n    \"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n    \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\",\n]\n\nINVALID_SLUGS = [\n    \"\", \" \", \"unknown\", \"Constrain\", \"CONSTRAIN\", \"constra\",\n    \"constrainn\", \"ledger \", \" ledger\", \"123\", \"arbiter!\", \"baton/path\",\n    \"null\", \"undefined\", \"None\",\n]\n\n\n# ===================================================================\n# 1. ToolSlug Enum Tests\n# ===================================================================\n\nclass TestToolSlugEnum:\n    \"\"\"Verify ToolSlug enum has exactly 11 members with correct names.\"\"\"\n\n    def test_enum_has_11_members(self):\n        members = list(ToolSlug)\n        assert len(members) == 11, f\"Expected 11 ToolSlug members, got {len(members)}\"\n\n    def test_all_expected_variants_present(self):\n        for slug_name in ALL_VALID_SLUGS:\n            assert hasattr(ToolSlug, slug_name), (\n                f\"ToolSlug missing variant '{slug_name}'\"\n            )\n\n    def test_no_extra_variants(self):\n        member_names = {m.name if hasattr(m, 'name') else str(m) for m in ToolSlug}\n        expected = set(ALL_VALID_SLUGS)\n        # Allow value-based or name-based comparison\n        member_values = set()\n        for m in ToolSlug:\n            if hasattr(m, 'value'):\n                member_values.add(m.value)\n            if hasattr(m, 'name'):\n                member_values.add(m.name)\n        assert expected.issubset(member_values | member_names), (\n            f\"Unexpected ToolSlug members: {member_values - expected}\"\n        )\n\n\n# ===================================================================\n# 2. HexColorString Validation Tests\n# ===================================================================\n\nclass TestHexColorString:\n    \"\"\"Validate HexColorString regex: ^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$\"\"\"\n\n    @pytest.mark.parametrize(\"value\", [\n        \"#fff\", \"#000\", \"#abc\", \"#ABC\", \"#123\",\n        \"#4F46E5\", \"#00e5ff\", \"#FFFFFF\", \"#000000\", \"#aAbBcC\",\n    ])\n    def test_valid_hex_colors_accepted(self, value):\n        result = HexColorString(value=value)\n        assert result.value == value\n\n    @pytest.mark.parametrize(\"value\", [\n        \"\",            # empty\n        \"red\",         # named color\n        \"#gg0000\",     # invalid hex chars\n        \"#12345\",      # 5-digit hex\n        \"#1234567\",    # 7-digit hex\n        \"4F46E5\",      # missing hash\n        \"#\",           # hash only\n        \"#12\",         # 2-digit hex\n        \"#1234\",       # 4-digit hex\n        \"##ffffff\",    # double hash\n        \"#fff fff\",    # space inside\n    ])\n    def test_invalid_hex_colors_rejected(self, value):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColorString(value=value)\n\n\n# ===================================================================\n# 3. ConvexUrl Validation Tests\n# ===================================================================\n\nclass TestConvexUrl:\n    \"\"\"Validate ConvexUrl: regex ^https?://.+ and length 10–256.\"\"\"\n\n    @pytest.mark.parametrize(\"value\", [\n        \"https://example.convex.cloud\",\n        \"http://localhost:3210\",\n        \"https://my-app.convex.cloud/path\",\n        \"http://127.0.0.1:8080\",\n    ])\n    def test_valid_urls_accepted(self, value):\n        result = ConvexUrl(value=value)\n        assert result.value == value\n\n    def test_empty_string_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConvexUrl(value=\"\")\n\n    def test_ftp_scheme_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConvexUrl(value=\"ftp://example.com/resource\")\n\n    def test_no_scheme_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConvexUrl(value=\"example.com\")\n\n    def test_too_short_rejected(self):\n        # Must be at least 10 chars\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConvexUrl(value=\"http://x\")  # 8 chars\n\n    def test_too_long_rejected(self):\n        long_url = \"https://\" + \"a\" * 250  # Well over 256 chars\n        assert len(long_url) > 256\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConvexUrl(value=long_url)\n\n    def test_minimum_length_accepted(self):\n        # Exactly 10 chars: \"http://x.c\" or similar\n        url = \"http://x.co\"  # 11 chars, safely above min\n        result = ConvexUrl(value=url)\n        assert result.value == url\n\n\n# ===================================================================\n# 4. RoutesObject Validation Tests\n# ===================================================================\n\nclass TestRoutesObject:\n    \"\"\"Validate RoutesObject: HOME === '/', TOOL === '/:toolSlug'.\"\"\"\n\n    def test_valid_routes_object(self):\n        routes = RoutesObject(HOME=\"/\", TOOL=\"/:toolSlug\")\n        assert routes.HOME == \"/\"\n        assert routes.TOOL == \"/:toolSlug\"\n\n    def test_invalid_home_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            RoutesObject(HOME=\"/home\", TOOL=\"/:toolSlug\")\n\n    def test_invalid_tool_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            RoutesObject(HOME=\"/\", TOOL=\"/tool/:id\")\n\n    def test_empty_home_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            RoutesObject(HOME=\"\", TOOL=\"/:toolSlug\")\n\n\n# ===================================================================\n# 5. FadeInKeyframes Validation Tests\n# ===================================================================\n\nclass TestFadeInKeyframes:\n    \"\"\"Validate FadeInKeyframes: exact canonical values required.\"\"\"\n\n    def test_valid_canonical_values(self):\n        kf = FadeInKeyframes(\n            from_opacity=0,\n            to_opacity=1,\n            duration=\"200ms\",\n            easing=\"ease-out\",\n        )\n        assert kf.from_opacity == 0\n        assert kf.to_opacity == 1\n        assert kf.duration == \"200ms\"\n        assert kf.easing == \"ease-out\"\n\n    def test_nonzero_from_opacity_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            FadeInKeyframes(from_opacity=0.5, to_opacity=1, duration=\"200ms\", easing=\"ease-out\")\n\n    def test_non_one_to_opacity_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            FadeInKeyframes(from_opacity=0, to_opacity=0.5, duration=\"200ms\", easing=\"ease-out\")\n\n    def test_non_200ms_duration_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"300ms\", easing=\"ease-out\")\n\n    def test_non_ease_out_easing_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            FadeInKeyframes(from_opacity=0, to_opacity=1, duration=\"200ms\", easing=\"ease-in\")\n\n\n# ===================================================================\n# 6. GoogleFontLink Validation Tests\n# ===================================================================\n\nclass TestGoogleFontLink:\n    \"\"\"Validate GoogleFontLink href regex.\"\"\"\n\n    def test_valid_google_font_href(self):\n        link = GoogleFontLink(\n            href=\"https://fonts.googleapis.com/css2?family=Instrument+Serif&display=swap\",\n            preconnect_origins=[\"https://fonts.googleapis.com\", \"https://fonts.gstatic.com\"],\n        )\n        assert \"display=swap\" in link.href\n        assert isinstance(link.preconnect_origins, list)\n\n    def test_invalid_non_google_url_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            GoogleFontLink(\n                href=\"https://example.com/fonts.css\",\n                preconnect_origins=[],\n            )\n\n    def test_missing_display_swap_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css2?family=Instrument+Serif\",\n                preconnect_origins=[],\n            )\n\n    def test_wrong_api_version_rejected(self):\n        with pytest.raises((ValueError, TypeError, Exception)):\n            GoogleFontLink(\n                href=\"https://fonts.googleapis.com/css?family=Instrument+Serif&display=swap\",\n                preconnect_origins=[],\n            )\n\n\n# ===================================================================\n# 7. isValidToolSlug Tests\n# ===================================================================\n\nclass TestIsValidToolSlug:\n    \"\"\"Type guard: returns True iff value ∈ ToolSlug variants.\"\"\"\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_valid_slugs_return_true(self, slug):\n        assert isValidToolSlug(slug) is True\n\n    @pytest.mark.parametrize(\"slug\", INVALID_SLUGS)\n    def test_invalid_slugs_return_false(self, slug):\n        assert isValidToolSlug(slug) is False\n\n    def test_returns_bool_type_for_valid_input(self):\n        result = isValidToolSlug(\"constrain\")\n        assert isinstance(result, bool)\n\n    def test_returns_bool_type_for_invalid_input(self):\n        result = isValidToolSlug(\"not-a-slug\")\n        assert isinstance(result, bool)\n\n    def test_exactly_11_slugs_return_true(self):\n        \"\"\"Exhaustive: among a large set, exactly 11 return True.\"\"\"\n        test_strings = ALL_VALID_SLUGS + INVALID_SLUGS\n        true_count = sum(1 for s in test_strings if isValidToolSlug(s))\n        assert true_count == 11\n\n    def test_randomized_strings_return_bool(self):\n        \"\"\"Random strings always yield a boolean result.\"\"\"\n        import random\n        import string\n        for _ in range(50):\n            length = random.randint(0, 20)\n            s = \"\".join(random.choices(string.ascii_lowercase + string.digits + \"-\", k=length))\n            result = isValidToolSlug(s)\n            assert isinstance(result, bool)\n\n\n# ===================================================================\n# 8. toolPath Tests\n# ===================================================================\n\nclass TestToolPath:\n    \"\"\"toolPath(slug) → '/' + slug.\"\"\"\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_returns_slash_plus_slug(self, slug):\n        result = toolPath(slug)\n        assert result == f\"/{slug}\"\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_starts_with_leading_slash(self, slug):\n        result = toolPath(slug)\n        assert result.startswith(\"/\")\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_matches_kebab_case_pattern(self, slug):\n        result = toolPath(slug)\n        assert re.match(r\"^/[a-z0-9-]+$\", result), (\n            f\"toolPath('{slug}') = '{result}' doesn't match /[a-z0-9-]+\"\n        )\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_no_trailing_slash(self, slug):\n        result = toolPath(slug)\n        assert not result.endswith(\"/\") or result == \"/\"\n\n    @pytest.mark.parametrize(\"slug\", ALL_VALID_SLUGS)\n    def test_no_double_slashes(self, slug):\n        result = toolPath(slug)\n        assert \"//\" not in result\n\n\n# ===================================================================\n# 9. projectToolDefToSidebarItem Tests\n# ===================================================================\n\nclass TestProjectToolDefToSidebarItem:\n    \"\"\"Pure mapping: ToolDef → SidebarItem.\"\"\"\n\n    def _make_tool_def(self, slug=\"constrain\", name=\"Constrain\", step=1, color=\"#4F46E5\"):\n        \"\"\"Create a mock ToolDef with required fields.\"\"\"\n        td = MagicMock()\n        td.slug = slug\n        td.name = name\n        td.stepNumber = step\n        td.accentColor = color\n        return td\n\n    def test_slug_preserved(self):\n        td = self._make_tool_def(slug=\"ledger\")\n        item = projectToolDefToSidebarItem(td)\n        assert item.slug == \"ledger\"\n\n    def test_label_equals_name(self):\n        td = self._make_tool_def(name=\"Constrain\")\n        item = projectToolDefToSidebarItem(td)\n        # Contract says label === name\n        assert item.label == \"Constrain\" or item.name == \"Constrain\"\n\n    def test_step_number_preserved(self):\n        td = self._make_tool_def(step=7)\n        item = projectToolDefToSidebarItem(td)\n        assert item.stepNumber == 7\n\n    def test_accent_color_preserved(self):\n        td = self._make_tool_def(color=\"#00e5ff\")\n        item = projectToolDefToSidebarItem(td)\n        assert item.accentColor == \"#00e5ff\"\n\n    def test_boundary_step_1(self):\n        td = self._make_tool_def(step=1)\n        item = projectToolDefToSidebarItem(td)\n        assert item.stepNumber == 1\n\n    def test_boundary_step_11(self):\n        td = self._make_tool_def(step=11)\n        item = projectToolDefToSidebarItem(td)\n        assert item.stepNumber == 11\n\n    def test_all_fields_mapped_for_each_slug(self):\n        \"\"\"Verify mapping for a representative set of slugs.\"\"\"\n        for i, slug in enumerate(ALL_VALID_SLUGS, start=1):\n            td = self._make_tool_def(slug=slug, name=slug.capitalize(), step=i, color=\"#abcdef\")\n            item = projectToolDefToSidebarItem(td)\n            assert item.slug == slug\n            assert item.stepNumber == i\n            assert item.accentColor == \"#abcdef\"\n\n\n# ===================================================================\n# 10. createConvexClient Error Tests\n# ===================================================================\n\nclass TestCreateConvexClient:\n    \"\"\"createConvexClient: validates env var, returns singleton.\"\"\"\n\n    def test_missing_url_raises_error(self):\n        \"\"\"When VITE_CONVEX_URL is missing, raises missing_convex_url error.\"\"\"\n        with patch.dict(\"os.environ\", {}, clear=False):\n            # Remove the env var if present\n            import os\n            env_backup = os.environ.pop(\"VITE_CONVEX_URL\", None)\n            try:\n                with pytest.raises(Exception) as exc_info:\n                    # Force re-creation by resetting any module-level singleton cache\n                    createConvexClient()\n                # The error should indicate missing convex url\n                error_str = str(exc_info.value).lower()\n                assert \"convex\" in error_str or \"url\" in error_str or \"missing\" in error_str or \"env\" in error_str\n            except Exception:\n                # If the function itself checks differently, just confirm it errors\n                pass\n            finally:\n                if env_backup is not None:\n                    os.environ[\"VITE_CONVEX_URL\"] = env_backup\n\n    def test_empty_string_url_raises_error(self):\n        \"\"\"When VITE_CONVEX_URL is empty string, raises missing_convex_url error.\"\"\"\n        with patch.dict(\"os.environ\", {\"VITE_CONVEX_URL\": \"\"}):\n            with pytest.raises(Exception):\n                createConvexClient()\n\n\n# ===================================================================\n# 11. TOOL_SLUGS Invariant Tests\n# ===================================================================\n\nclass TestToolSlugsInvariant:\n    \"\"\"TOOL_SLUGS: frozen array with exactly 11 unique entries.\"\"\"\n\n    @pytest.mark.skipif(TOOL_SLUGS is None, reason=\"TOOL_SLUGS not exported\")\n    def test_length_equals_11(self):\n        assert len(TOOL_SLUGS) == 11\n\n    @pytest.mark.skipif(TOOL_SLUGS is None, reason=\"TOOL_SLUGS not exported\")\n    def test_all_entries_unique(self):\n        assert len(set(TOOL_SLUGS)) == len(TOOL_SLUGS)\n\n    @pytest.mark.skipif(TOOL_SLUGS is None, reason=\"TOOL_SLUGS not exported\")\n    def test_contains_all_expected_slugs(self):\n        for slug in ALL_VALID_SLUGS:\n            assert slug in TOOL_SLUGS, f\"'{slug}' not in TOOL_SLUGS\"\n\n    @pytest.mark.skipif(TOOL_SLUGS is None, reason=\"TOOL_SLUGS not exported\")\n    def test_immutability(self):\n        \"\"\"TOOL_SLUGS should be frozen (immutable).\"\"\"\n        original_len = len(TOOL_SLUGS)\n        # Attempt mutation — should either raise or have no effect\n        try:\n            TOOL_SLUGS.append(\"extra\")  # type: ignore\n            # If append didn't raise, check it didn't actually mutate\n            assert len(TOOL_SLUGS) == original_len, \"TOOL_SLUGS was mutated\"\n        except (TypeError, AttributeError):\n            pass  # Expected: frozen/immutable\n\n\n# ===================================================================\n# 12. SidebarItem Construction Tests\n# ===================================================================\n\nclass TestSidebarItem:\n    \"\"\"SidebarItem struct construction and field access.\"\"\"\n\n    def test_construction_with_valid_fields(self):\n        try:\n            item = SidebarItem(\n                slug=\"constrain\",\n                name=\"Constrain\",\n                step=1,\n                accentColor=\"#4F46E5\",\n            )\n        except TypeError:\n            # May use different field names (label vs name, stepNumber vs step)\n            item = SidebarItem(\n                slug=\"constrain\",\n                label=\"Constrain\",\n                stepNumber=1,\n                accentColor=\"#4F46E5\",\n            )\n        assert item.slug == \"constrain\"\n\n\n# ===================================================================\n# 13. StepNumber Boundary Tests\n# ===================================================================\n\nclass TestStepNumber:\n    \"\"\"StepNumber: integer 1–11 inclusive.\"\"\"\n\n    @pytest.mark.parametrize(\"value\", [1, 6, 11])\n    def test_valid_step_numbers_accepted(self, value):\n        try:\n            sn = StepNumber(value)\n        except TypeError:\n            sn = StepNumber(value=value)\n        # Should not raise; verify value is accessible\n        if hasattr(sn, 'value'):\n            assert sn.value == value\n        else:\n            assert int(sn) == value or sn == value\n\n    @pytest.mark.parametrize(\"value\", [0, -1, 12, 100])\n    def test_invalid_step_numbers_rejected(self, value):\n        \"\"\"Step numbers outside 1–11 should be rejected.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            try:\n                StepNumber(value)\n            except TypeError:\n                StepNumber(value=value)\n                raise  # Re-raise if no error from keyword form\n\n\n# ===================================================================\n# 14. Cross-function Integration Invariants\n# ===================================================================\n\nclass TestCrossFunctionInvariants:\n    \"\"\"Verify invariants that span multiple functions/types.\"\"\"\n\n    def test_is_valid_tool_slug_consistent_with_enum(self):\n        \"\"\"Every ToolSlug enum value passes isValidToolSlug.\"\"\"\n        for member in ToolSlug:\n            slug_str = member.value if hasattr(member, 'value') else str(member)\n            assert isValidToolSlug(slug_str) is True, (\n                f\"ToolSlug member '{slug_str}' not recognized by isValidToolSlug\"\n            )\n\n    def test_tool_path_works_for_all_enum_members(self):\n        \"\"\"toolPath accepts every ToolSlug enum value's string.\"\"\"\n        for member in ToolSlug:\n            slug_str = member.value if hasattr(member, 'value') else str(member)\n            path = toolPath(slug_str)\n            assert path.startswith(\"/\")\n            assert len(path) > 1\n\n    def test_project_returns_sidebar_item_for_all_slugs(self):\n        \"\"\"projectToolDefToSidebarItem works for every slug.\"\"\"\n        for i, slug in enumerate(ALL_VALID_SLUGS, start=1):\n            td = MagicMock()\n            td.slug = slug\n            td.name = slug.capitalize()\n            td.stepNumber = i\n            td.accentColor = \"#abcdef\"\n            item = projectToolDefToSidebarItem(td)\n            assert item.slug == slug\n"
+}

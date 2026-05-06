@@ -1,0 +1,123 @@
+{
+  "task_summary": "Define the interface contract for the FastAPI Backend API component (id: backend) — a task management REST API with six endpoints, Pydantic models matching the canonical type registry, psycopg2 connection pooling, synchronous endpoints, CORS middleware, and a full pytest contract test suite. Research focuses on type system design, error handling conventions, serialization formats, and testing patterns for this exact stack (FastAPI + psycopg2 + pytest, Python 3.12+).",
+  "findings": [
+    {
+      "topic": "Pydantic v2 model design for canonical type registry alignment",
+      "finding": "FastAPI 0.100+ uses Pydantic v2. Models should use `model_config = ConfigDict(from_attributes=True)` for ORM-mode-like behavior when constructing from psycopg2 row dicts. Use `Literal['pending', 'in_progress', 'done']` or `StrEnum` for TaskStatus; StrEnum (Python 3.11+) is idiomatic for 3.12+ and integrates cleanly with Pydantic v2 validation and JSON Schema generation. Field nullability for OptionalString maps to `str | None = None` with Pydantic. For TaskUpdateRequest (PATCH semantics via PUT), use `Field(default=UNSET)` sentinel or `model_fields_set` to distinguish 'field not provided' from 'field explicitly set to null' — this is critical for partial update correctness.",
+      "source": "Pydantic v2 docs (docs.pydantic.dev), FastAPI docs (fastapi.tiangolo.com)",
+      "relevance": "Direct implementation guidance. The canonical registry defines TaskStatus as an enum and OptionalString as nullable — Pydantic v2 StrEnum + `str | None` maps exactly. The TaskUpdateRequest partial-update pattern is a known complexity point.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Partial update (PATCH semantics on PUT) — distinguishing missing vs null",
+      "finding": "The standard Pydantic v2 pattern for partial updates: declare all fields as `Optional` with `default=None`, then use `request.model_fields_set` to get the set of fields actually present in the JSON body. Only update DB columns for fields in `model_fields_set`. This correctly distinguishes 'description was omitted' (not in fields_set → don't touch) from 'description was explicitly set to null' (in fields_set → set to NULL). FastAPI's `Body(...)` passes raw JSON to Pydantic, preserving this distinction. Alternatively, `exclude_unset=True` on `model_dump()` achieves the same filtering.",
+      "source": "FastAPI advanced docs — partial updates (fastapi.tiangolo.com/tutorial/body-updates/), Pydantic v2 model_fields_set",
+      "relevance": "Directly required by TaskUpdateRequest spec: 'only provided fields are updated'. This is the single most error-prone aspect of the contract — getting it wrong silently nullifies fields.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Timestamp serialization — ISO 8601 with timezone",
+      "finding": "PostgreSQL TIMESTAMPTZ stored values are returned by psycopg2 as Python `datetime` objects with `tzinfo=UTC`. Pydantic v2 serializes `datetime` to ISO 8601 by default, but the exact format depends on the tzinfo representation. To guarantee the canonical format (e.g., '2025-01-15T12:00:00+00:00'), use a Pydantic `field_serializer` or `PlainSerializer` that calls `dt.isoformat()`. Python's `datetime.isoformat()` on a UTC-aware datetime produces the '+00:00' suffix. Avoid `.strftime()` for this — `isoformat()` is the standard. Ensure psycopg2 returns timezone-aware datetimes (it does for TIMESTAMPTZ columns by default).",
+      "source": "Python datetime docs, psycopg2 type adaptation docs, Pydantic v2 serialization docs",
+      "relevance": "AC14 mandates ISO 8601 with timezone. psycopg2 + datetime.isoformat() naturally produces this, but explicit serializer ensures contract stability regardless of Pydantic version defaults.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "FastAPI error responses and HTTPException conventions",
+      "finding": "FastAPI's `HTTPException(status_code=404, detail='...')` produces `{\"detail\": \"...\"}` matching the canonical ErrorResponse schema. For 422 validation errors, FastAPI auto-generates `{\"detail\": [{\"loc\": [...], \"msg\": \"...\", \"type\": \"...\"}]}` from Pydantic validation failures — this differs from ErrorResponse's flat `{\"detail\": string}` shape. If the contract requires flat 422 responses, a custom exception handler or `RequestValidationError` override is needed. However, standard practice is to let FastAPI handle 422s natively (array-of-errors format) and only use ErrorResponse for application-level errors (404, custom 422 for status validation).",
+      "source": "FastAPI error handling docs, OpenAPI 3.x conventions",
+      "relevance": "The contract specifies ErrorResponse for 404s and 422 on invalid status. Pydantic's built-in validation already catches invalid enum values and returns 422, but in the array format. The contract should clarify whether custom 422 responses are needed or if Pydantic's native format suffices.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "psycopg2 connection pooling with FastAPI lifespan",
+      "finding": "Use `psycopg2.pool.ThreadedConnectionPool` (not SimpleConnectionPool) since FastAPI runs sync `def` endpoints in a thread pool (anyio worker threads). Initialize the pool in a FastAPI `lifespan` async context manager; close it on shutdown. Pool min/max connections should be configurable (e.g., min=1, max=10). Each request handler should `getconn()` from the pool and `putconn()` in a `finally` block. A context-manager helper in db.py is the clean pattern. Connection should use `cursor_factory=psycopg2.extras.RealDictCursor` for dict-based row access mapping to Pydantic model construction.",
+      "source": "psycopg2 pool docs, FastAPI lifespan docs, concurrent access patterns",
+      "relevance": "A8 specifies psycopg2.pool, A9 specifies synchronous def endpoints. ThreadedConnectionPool is mandatory for thread safety. RealDictCursor simplifies the mapping to canonical Task type.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "FastAPI CORS middleware configuration",
+      "finding": "Use `fastapi.middleware.cors.CORSMiddleware` with `allow_origins` set to the frontend origin (e.g., from env var `FRONTEND_URL` or `http://localhost:5173` for Vite default). Include `allow_methods=['*']` and `allow_headers=['*']` for development; tighten for production. CORS middleware must be added before routes. Common pitfall: forgetting to allow `Content-Type` header, which breaks POST/PUT with JSON bodies. Another pitfall: not handling preflight OPTIONS requests — CORSMiddleware handles this automatically.",
+      "source": "FastAPI CORS docs, MDN CORS specification",
+      "relevance": "AC21 requires CORS for frontend origin. A5 references this. Misconfiguration is a frequent integration failure point.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "pytest contract testing patterns with live PostgreSQL",
+      "finding": "Use a `conftest.py` with session-scoped fixture for DB connection (from DATABASE_URL env var) and function-scoped fixtures for test data setup/teardown. Pattern: create a test table or use transactions with rollback for isolation. For contract tests against HTTP endpoints, use `httpx.AsyncClient` with `app=fastapi_app` (TestClient) or `fastapi.testclient.TestClient` (synchronous, wraps httpx). TestClient is simpler for sync endpoints. Each test should create its own task, assert, then delete — or use a transaction rollback fixture. Mark contract tests with `@pytest.mark.skipif(not os.getenv('DATABASE_URL'), ...)` to allow running unit tests without a DB.",
+      "source": "pytest docs, FastAPI testing docs, contract testing best practices",
+      "relevance": "AC23-AC24 require both unit and contract tests. A10 requires test data self-management. Isolation between test runs is critical for CI reliability.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Response model configuration and status codes in FastAPI",
+      "finding": "Use `response_model=Task` and `status_code=201` on the `@router.post` decorator for POST /tasks. Use `response_model=list[Task]` for GET /tasks (maps to TaskList). FastAPI's `response_model_exclude_unset` should NOT be used for Task responses since all fields are always present. For DELETE, `response_model=DeleteConfirmation` with status 200. For 404s, document with `responses={404: {'model': ErrorResponse}}` in the decorator for OpenAPI spec accuracy.",
+      "source": "FastAPI response model docs, OpenAPI best practices",
+      "relevance": "Ensures the generated OpenAPI spec matches the canonical type registry exactly. Decorator-level response_model provides runtime serialization validation.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "SQL injection prevention and parameterized queries with psycopg2",
+      "finding": "Always use parameterized queries (`cursor.execute('SELECT ... WHERE id = %s', (task_id,))`) — never f-strings or string concatenation for SQL. psycopg2 uses `%s` placeholders (not `?`). For dynamic partial updates (TaskUpdateRequest), build the SET clause programmatically from the fields_set, but still use parameterized values. Pattern: `SET col1 = %s, col2 = %s` with a corresponding tuple of values. Common pitfall: using `%` operator on SQL strings instead of passing params to `execute()`.",
+      "source": "psycopg2 docs, OWASP SQL injection prevention cheat sheet",
+      "relevance": "Security fundamental. The partial update endpoint requires dynamic SQL construction, which is the highest-risk area for injection if done incorrectly.",
+      "confidence": 0.98
+    },
+    {
+      "topic": "File structure and 300-line limit compliance",
+      "finding": "The specified 4-file structure (main.py, models.py, db.py, routes.py) is well-suited for the 300-line limit. Estimated sizes: models.py ~50-70 lines (Pydantic models + enum), db.py ~80-120 lines (pool management + CRUD query helpers), routes.py ~80-120 lines (6 endpoint handlers), main.py ~30-50 lines (app creation, CORS, lifespan, router inclusion). Tests in a separate tests/ directory: conftest.py ~40-60 lines, test_models.py ~40-60 lines (unit), test_api.py ~150-200 lines (contract). All files comfortably under 300 lines.",
+      "source": "AC25 requirement, FastAPI project structure conventions",
+      "relevance": "AC25 mandates <300 lines per file. The 4-file split is architecturally sound and naturally stays within bounds.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Edge cases: empty title, whitespace-only title, empty description vs null",
+      "finding": "The spec says 'title required' — Pydantic `str` with `min_length=1` or a validator that strips and checks. Whitespace-only titles should likely be rejected. For description: 'null if omitted/empty per A12' — this suggests a validator that converts empty string '' to None. This is a common source of bugs: the frontend may send `{\"description\": \"\"}` which should be stored as NULL. Implement a `@field_validator('description', mode='before')` that maps `''` to `None`. For status default: Pydantic `Field(default='pending')` on TaskCreateRequest.",
+      "source": "A12 requirement, defensive input validation best practices",
+      "relevance": "A12 explicitly requires empty description → null normalization. Missing this causes data inconsistency between frontend and database representations.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "TaskId type mapping — Python int vs constrained int",
+      "finding": "The canonical registry defines TaskId as 'Integer surrogate key, generated by PostgreSQL SERIAL'. In Pydantic, this maps to `int`. For path parameters, FastAPI's `task_id: int` in the function signature provides automatic type validation and 422 on non-integer input. No need for a custom type — `int` is idiomatic. However, if a dedicated `TaskId = int` type alias is desired for documentation clarity, use `typing.NewType('TaskId', int)` or a simple alias.",
+      "source": "Canonical type registry, FastAPI path parameter docs",
+      "relevance": "Ensures path parameter validation is handled by FastAPI's built-in coercion. Non-integer task IDs automatically get 422 responses.",
+      "confidence": 0.95
+    }
+  ],
+  "recommended_approach": "Define the interface contract with the following structure:\n\n1. **Models (models.py)**: Implement the canonical type registry exactly as specified. Use `StrEnum` for TaskStatus (Python 3.12+). Map OptionalString to `str | None`. Use `model_fields_set` on TaskUpdateRequest for PATCH-semantics partial updates. Add a `field_validator` on description fields to normalize empty strings to `None` (A12). Add `min_length=1` or a stripping validator on title to reject blank titles. Use `datetime` fields for timestamps with explicit `isoformat()` serialization via Pydantic `field_serializer` to guarantee AC14 compliance.\n\n2. **Database layer (db.py)**: `ThreadedConnectionPool` initialized in lifespan, exposed via context-manager helper. `RealDictCursor` for all queries. Parameterized SQL exclusively. CRUD helpers return dicts; Pydantic model construction happens in routes. Dynamic SET clause builder for partial updates using `model_fields_set`.\n\n3. **Routes (routes.py)**: APIRouter with all six endpoints. Response models and status codes declared on decorators. `HTTPException(404)` for missing resources. Let Pydantic handle 422 for invalid enum values natively. DELETE returns DeleteConfirmation with id and detail.\n\n4. **App entry (main.py)**: FastAPI app with lifespan for pool lifecycle. CORSMiddleware with configurable origin. Include router.\n\n5. **Tests**: Split into `test_models.py` (unit: validation, serialization, partial-update field detection) and `test_api.py` (contract: all six endpoints via TestClient against live PostgreSQL). `conftest.py` with fixtures for app client, DB cleanup, and conditional skip when DATABASE_URL is absent.",
+  "alternatives_considered": [
+    "Using Python Enum instead of StrEnum for TaskStatus — rejected because StrEnum (3.11+) serializes to string naturally in JSON/Pydantic without custom serializers, and Python 3.12+ is mandated.",
+    "Using async def endpoints with psycopg3 (async) instead of sync def with psycopg2 — rejected because the spec explicitly mandates psycopg2 with sync def endpoints and thread-pool executor (A8, A9).",
+    "Using SQLAlchemy as an ORM layer over psycopg2 — rejected because the spec explicitly states psycopg2 as the database driver with no ORM mentioned; raw SQL with parameterized queries is the intended approach.",
+    "Using a sentinel/UNSET pattern for TaskUpdateRequest optional fields instead of model_fields_set — considered but model_fields_set is the idiomatic Pydantic v2 approach and avoids custom sentinel complexity.",
+    "Returning 204 No Content on DELETE instead of 200 with JSON — rejected because the spec explicitly requires 200 with DeleteConfirmation JSON body (AC12-AC13).",
+    "Using SimpleConnectionPool instead of ThreadedConnectionPool — rejected because sync def endpoints run in FastAPI's thread pool, requiring thread-safe pool access."
+  ],
+  "risks": [
+    "Partial update SQL injection: Dynamic SET clause construction for TaskUpdateRequest is the highest-risk code path. Must whitelist column names and only parameterize values. Column names must come from model_fields_set intersection with a known-safe set, never from user input.",
+    "Timestamp serialization drift: If Pydantic v2 changes its default datetime serialization format between minor versions, the wire format could break the frontend contract. Explicit field_serializer pins the format.",
+    "Connection pool exhaustion: ThreadedConnectionPool with max connections too low under concurrent load will raise pool errors. Must size pool appropriately and ensure connections are always returned (try/finally or context manager).",
+    "Test isolation: Contract tests that create data but fail mid-test may leave orphan rows. Teardown must be robust (e.g., DELETE in finally blocks or use a known test-data prefix/tag for cleanup).",
+    "Empty string vs null ambiguity: Without the description normalizer (empty string → None per A12), the frontend and database could disagree on the representation of 'no description', causing UI inconsistencies.",
+    "422 response format divergence: Pydantic v2's native validation error format (array of error objects) differs from the canonical ErrorResponse (flat detail string). If consumers expect ErrorResponse for all error codes including 422, a custom exception handler would be needed. Current approach: let Pydantic handle 422 natively, use ErrorResponse only for 404."
+  ],
+  "compliance_notes": [
+    "AC3: GET /health → {\"status\": \"ok\"} — HealthResponse model maps directly.",
+    "AC4-AC6: POST /tasks — TaskCreateRequest with title required (min_length=1), description optional (normalized empty→null per A12), status optional (default 'pending'). Returns 201 + Task.",
+    "AC7: GET /tasks → TaskList (list[Task]) ordered by created_at DESC.",
+    "AC8-AC9: GET /tasks/{id} → Task or 404 ErrorResponse.",
+    "AC10-AC11: PUT /tasks/{id} — PATCH semantics via TaskUpdateRequest + model_fields_set. created_at immutable, updated_at set to NOW(). 404 if not found.",
+    "AC12-AC13: DELETE /tasks/{id} → 200 DeleteConfirmation or 404 ErrorResponse.",
+    "AC14: All timestamps serialized as ISO 8601 with timezone via explicit field_serializer.",
+    "AC21: CORS middleware configured with frontend origin.",
+    "AC22: All public functions type-annotated (Python 3.12+ syntax: `def fn(x: int) -> Task:`).",
+    "AC23-AC24: Unit tests (validation/serialization) + contract tests (all 6 endpoints against live PostgreSQL via DATABASE_URL).",
+    "AC25: All files under 300 lines. 4-file structure naturally complies.",
+    "A8: psycopg2.pool.ThreadedConnectionPool for connection pooling.",
+    "A9: Synchronous def endpoints (FastAPI thread-pool executor).",
+    "A10: Test setup/teardown manages its own data.",
+    "A12: Empty description normalized to null."
+  ]
+}

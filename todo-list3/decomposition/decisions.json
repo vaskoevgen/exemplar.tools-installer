@@ -1,0 +1,27 @@
+[
+  {
+    "ambiguity": "",
+    "decision": "",
+    "rationale": "The task explicitly specifies three decoupled tiers (database, backend, frontend) that communicate only via defined interfaces (SQL schema, REST API). Each is an independently startable subsystem with a clean boundary. This is a natural decomposition \u2014 not artificial \u2014 and matches AC26."
+  },
+  {
+    "ambiguity": "",
+    "decision": "",
+    "rationale": "All backend submodules share a single data model (Task), a single connection pool, and tightly coupled request/response flow. Splitting routes from DB helpers or models would create artificial boundaries with high coupling. The total LOC is well within a single component's scope (~250-400 lines of app code + ~200 lines of tests), with the 300-line-per-file constraint handled by splitting into 4-5 files within one component."
+  },
+  {
+    "ambiguity": "",
+    "decision": "",
+    "rationale": "A2 states 'DELETE returns 200 with a JSON confirmation or 204 No Content.' Choosing 200 with {\"detail\": \"Task deleted\"} for consistency \u2014 all endpoints return JSON, and it parallels the 404 error shape. Simplifies frontend handling."
+  },
+  {
+    "ambiguity": "",
+    "decision": "",
+    "rationale": "The app scope is six endpoints with simple JSON payloads. Native fetch with typed wrappers in api.ts is sufficient and avoids an additional dependency. Aligns with the minimal-dependency spirit of A11 (no external state lib)."
+  },
+  {
+    "ambiguity": "",
+    "decision": "",
+    "rationale": "Splitting into main.py (app setup, ~40 LOC), models.py (Pydantic schemas, ~40 LOC), db.py (pool + queries, ~80 LOC), routes.py (handlers, ~120 LOC) keeps each file well under 300 lines while maintaining logical cohesion. Tests in a separate test_api.py (~150 LOC)."
+  }
+]

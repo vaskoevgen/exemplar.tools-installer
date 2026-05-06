@@ -1,0 +1,89 @@
+- id: C001
+  boundary: Page Structure
+  condition: Exactly 12 pages must exist (home + 11 tools in order)
+  violation: Missing pages or wrong tool order breaks learning workflow
+  severity: must
+  rationale: Prescribed learning sequence is core to user experience
+  classification_tier: null
+  affected_components: [web_frontend, build_system]
+
+- id: C002
+  boundary: Development Server
+  condition: Dev server must run on port 4000 only
+  violation: Wrong port prevents local development setup
+  severity: must
+  rationale: Port standardization for development team
+  classification_tier: null
+  affected_components: [build_system]
+
+- id: C003
+  boundary: Package Manager
+  condition: Only Bun commands allowed, never npm or yarn
+  violation: Using npm/yarn breaks build reproducibility
+  severity: must
+  rationale: Bun-only constraint for consistency and performance
+  classification_tier: null
+  affected_components: [build_system]
+
+- id: C004
+  boundary: Content Source
+  condition: Content must come only from howto.md and tool README files
+  violation: Hardcoded content becomes stale and unmaintainable
+  severity: must
+  rationale: Single source of truth for content accuracy
+  classification_tier: PUBLIC
+  affected_components: [web_frontend, build_system]
+
+- id: C005
+  boundary: Styling Framework
+  condition: All styling must use Tailwind CSS classes only
+  violation: Custom CSS creates maintenance burden and inconsistency
+  severity: must
+  rationale: Styling consistency and maintainability
+  classification_tier: null
+  affected_components: [web_frontend]
+
+- id: C006
+  boundary: Navigation
+  condition: Must use React Router v6 for client-side routing
+  violation: Server-side routing or wrong router version breaks SPA behavior
+  severity: must
+  rationale: Specified routing solution for SPA architecture
+  classification_tier: null
+  affected_components: [web_frontend]
+
+- id: C007
+  boundary: Video Embedding
+  condition: YouTube videos must embed using URLs from howto.md only
+  violation: Broken or missing videos eliminate primary instructional content
+  severity: must
+  rationale: Video content is critical for learning experience
+  classification_tier: PUBLIC
+  affected_components: [web_frontend]
+
+- id: C008
+  boundary: Version Badges
+  condition: Version badges must show current versions from tool README files
+  violation: Stale version info leads to tool compatibility issues
+  severity: must
+  rationale: Accurate version info prevents user confusion and bugs
+  classification_tier: PUBLIC
+  affected_components: [web_frontend]
+
+- id: C009
+  boundary: Real-time Comments
+  condition: Comments must persist and sync in real-time on all pages
+  violation: Lost comments damage community engagement and user trust
+  severity: must
+  rationale: Real-time collaboration is core feature
+  classification_tier: PUBLIC
+  affected_components: [web_frontend, convex_backend]
+
+- id: C010
+  boundary: Comment Persistence
+  condition: Comments must survive page refreshes and browser sessions
+  violation: Temporary comments provide no lasting value to community
+  severity: must
+  rationale: Persistent community knowledge base
+  classification_tier: PUBLIC
+  affected_components: [convex_backend]

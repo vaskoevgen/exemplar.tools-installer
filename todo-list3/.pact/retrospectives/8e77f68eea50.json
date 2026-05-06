@@ -1,0 +1,19 @@
+{
+  "run_id": "8e77f68eea50",
+  "total_cost": 7.821685,
+  "total_duration_seconds": 0.0,
+  "components_count": 4,
+  "plan_revisions": 0,
+  "largest_test_suite": [
+    "",
+    0
+  ],
+  "most_error_cases": [
+    "",
+    0
+  ],
+  "cost_distribution": {},
+  "failure_patterns": [],
+  "lessons": [],
+  "completed_at": "2026-05-05T10:09:26.610683"
+}

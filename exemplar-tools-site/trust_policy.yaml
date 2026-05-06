@@ -1,0 +1,55 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_website_001
+system: exemplar.tools Documentation Website
+
+trust:
+  floor: 0.10
+  authority_override_floor: 0.40
+  decay_lambda: 0.05
+  taint_lock_tiers: []
+  conflict_trust_delta_threshold: 0.20
+
+classifications:
+  - field_pattern: "comment_*"
+    tier: PUBLIC
+    authoritative_component: "convex_backend"
+    canary_eligible: true
+    canary_pattern: "comment_text"
+    rationale: "User-generated comments are public community content"
+  
+  - field_pattern: "video_url"
+    tier: PUBLIC
+    authoritative_component: null
+    canary_eligible: true
+    canary_pattern: "youtube.com"
+    rationale: "Video URLs are public educational content"
+  
+  - field_pattern: "version_*"
+    tier: PUBLIC
+    authoritative_component: null
+    canary_eligible: true
+    canary_pattern: "v[0-9]"
+    rationale: "Tool version information is public"
+  
+  - field_pattern: "content_*"
+    tier: PUBLIC
+    authoritative_component: null
+    canary_eligible: true
+    canary_pattern: "*"
+    rationale: "All instructional content is public"
+
+soak:
+  base_durations:
+    PUBLIC: 1h
+  target_requests: 1000
+
+authority_map:
+  - component: "convex_backend"
+    domains: ["comment_*"]
+    rationale: "Convex backend owns comment storage and real-time sync"
+
+human_gates:
+  always: []
+  on_low_trust_authoritative: false
+  on_unresolvable_conflict: false
