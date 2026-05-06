@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import ToolPage from './pages/ToolPage'
+import GettingStartedPage from './pages/GettingStartedPage'
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
         <div className="flex-1 ml-56 min-h-screen">
           <Routes>
             <Route path="/" element={<HomePage />} />
+            <Route path="/getting-started" element={<GettingStartedPage />} />
             <Route path="/tool/:slug" element={<ToolPage />} />
           </Routes>
         </div>
