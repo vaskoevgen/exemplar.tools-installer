@@ -1,5 +1,9 @@
 # How to use exemplar.tools
 
+> **📖 Interactive documentation:** [https://exemplar-tools-site.vercel.app](https://exemplar-tools-site.vercel.app) — browse every tool with commands, gotchas, video walkthroughs, and community comments.
+
+> **🎬 Watch how this documentation site was built using the exemplar.tools suite:** https://youtu.be/WXssoa-7Hxk
+
 ## Quick start — minimum path to a working app
 
 Three steps take you from idea to deployed, tested code:
