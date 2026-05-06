@@ -99,11 +99,11 @@ pip install -e "exemplar.tools/ledger/.[api,mock,dev]" -q
 ### Usage (after fix)
 
 ```bash
-ledger backend add tasks-db --type postgres --owner fastapi-backend
+ledger backend add <db-name> --type <postgres|mysql|sqlite|redis|…> --owner <your-service>
 # Silent on success. Silent on duplicate (idempotent).
 ```
 
-Valid `--type` values: `postgres`, `mysql`, `sqlite`, `redis`, `s3`, `dynamodb`, `kafka`, `custom`.
+Full `--type` list: `postgres`, `mysql`, `sqlite`, `redis`, `s3`, `dynamodb`, `kafka`, `custom`.
 
 ---
 
