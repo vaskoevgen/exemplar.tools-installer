@@ -1,0 +1,104 @@
+{
+  "task_summary": "Define the interface contract for the ToolPage component and its sub-components (CommentsSection, StepBadge, VersionBadge, CodeBlock, VideoEmbed). This covers: props interfaces for all six components, Convex query/mutation hook typing, integration with the canonical type registry (ToolDef, Comment, CommentList, AddCommentArgs, ListCommentsArgs, ToolSlug, HexColor, etc.), form validation patterns, and conditional rendering contracts.",
+  "findings": [
+    {
+      "topic": "React Router v6 useParams typing",
+      "finding": "useParams() returns Record<string, string | undefined>. The canonical pattern is to extract the param and assert/guard it before use: `const { toolSlug } = useParams<{ toolSlug: string }>()`. However, the generic only narrows the key names — values are still string | undefined at runtime. A guard (`if (!toolSlug) return <NotFound />`) is required before using toolSlug as ToolSlug. Casting directly to ToolSlug without validation is a common pitfall.",
+      "source": "React Router v6 documentation, TypeScript handbook on type narrowing",
+      "relevance": "ToolPage.tsx reads toolSlug from useParams and must safely narrow it to the ToolSlug enum type before looking up ToolDef from constants or passing it to Convex queries.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Convex React hooks typing patterns",
+      "finding": "Convex's useQuery and useMutation hooks from 'convex/react' are typed via the generated API object. useQuery(api.comments.listComments, { page }) returns CommentList | undefined (undefined while loading). useMutation(api.comments.addComment) returns an async function typed to AddCommentArgs. The loading state (result === undefined) must be explicitly handled in the component contract. Convex does NOT return null for empty results — it returns an empty array for list queries.",
+      "source": "Convex documentation (docs.convex.dev), convex/react package source types",
+      "relevance": "CommentsSection must type its Convex integration correctly: useQuery returns T | undefined, useMutation returns (args: T) => Promise<void>. The interface contract must account for the loading state.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Dynamic inline styles for accent colors vs Tailwind",
+      "finding": "Tailwind CSS v3 cannot use dynamic class names constructed at runtime (e.g. `text-[${color}]` does NOT work because Tailwind's JIT compiler scans source statically). The established pattern for per-item dynamic colors is to use inline style attributes: `style={{ color: accentColor, borderColor: accentColor }}`. This is explicitly endorsed by the Tailwind docs as the correct approach for truly dynamic values. Attempting to use Tailwind's arbitrary value syntax with interpolated variables is the #1 pitfall.",
+      "source": "Tailwind CSS v3 documentation on dynamic class names, community best practices",
+      "relevance": "Each tool page uses its accentColor (HexColor) for badges and headings. All components receiving HexColor must apply it via inline styles, not Tailwind interpolation.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "YouTube iframe embed security and responsive patterns",
+      "finding": "YouTube embeds should use the embed URL format (https://www.youtube.com/embed/VIDEO_ID), set allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture', and include allowFullScreen. For responsive sizing, the standard pattern is a 16:9 aspect-ratio container using `aspect-video` (Tailwind class) or the padding-bottom trick. The sandbox attribute can further restrict the iframe. The component must conditionally render — not render a broken iframe — when videoUrl is undefined.",
+      "source": "YouTube IFrame API documentation, OWASP iframe security guidelines, Tailwind aspect-ratio plugin (built-in v3)",
+      "relevance": "VideoEmbed is conditionally rendered only when ToolDef.videoUrl is defined. The props interface must accept the URL as a required string (the parent gates rendering), plus optional width/title props.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Code block styling with monospace fonts in Tailwind",
+      "finding": "JetBrains Mono must be loaded via @font-face or Google Fonts, then referenced via Tailwind's fontFamily config or inline style. The established pattern for terminal-style code blocks is: dark background (e.g. bg-gray-900), monospace font, horizontal scroll for overflow, padding, rounded corners, and an optional copy button. The `pre > code` semantic HTML structure is preferred for accessibility. Using `white-space: pre` preserves formatting.",
+      "source": "Tailwind CSS typography patterns, JetBrains Mono documentation, WAI-ARIA code block patterns",
+      "relevance": "CodeBlock component renders bash snippets in a dark terminal card with JetBrains Mono. Props must include the bash string content and optionally a title/label.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Form validation patterns in React functional components",
+      "finding": "For simple non-empty validation, the idiomatic React pattern is: controlled inputs via useState, validation on submit (trim + check length > 0), disable submit button while inputs are invalid or while mutation is in-flight, and clear form on successful submission. Using HTML5 required attribute provides baseline UX but is insufficient alone — programmatic validation before calling the mutation is essential. The mutation promise should be awaited with try/catch for error handling.",
+      "source": "React documentation on forms, Convex mutation error handling patterns",
+      "relevance": "CommentsSection form has author and body inputs, both validated non-empty. The interface must define form state types, submission handler signature, and error/loading states.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Relative timestamp formatting",
+      "finding": "The Comment.createdAt field is a number (Unix epoch ms from Convex's Date.now()). The standard approach is a pure utility function `formatRelativeTime(createdAt: number): string` that computes the diff from Date.now() and returns human-readable strings ('just now', '2 minutes ago', '1 hour ago', etc.). Libraries like date-fns/formatDistanceToNow exist but for a lightweight implementation a custom utility avoids the dependency. The function should be extracted into a shared utility file for testability.",
+      "source": "date-fns documentation, common React timestamp patterns",
+      "relevance": "CommentsSection displays relative timestamps for each comment. The utility type signature must be part of the interface contract.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Component decomposition for 300-line file limit",
+      "finding": "The established pattern is: page components orchestrate layout and data fetching, presentational components receive typed props and render UI. Props interfaces should be colocated with their component file (exported for testing). The page component (ToolPage) should own the data lookup and pass primitives/structs down. Sub-components (StepBadge, VersionBadge, CodeBlock, VideoEmbed) should be stateless and receive only what they need — not the entire ToolDef.",
+      "source": "React component composition patterns, Dan Abramov's presentational/container pattern (adapted for hooks era)",
+      "relevance": "Directly addresses the 300-line constraint and the decomposition into StepBadge, VersionBadge, CodeBlock, VideoEmbed, and CommentsSection.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Convex query reactivity and undefined vs empty array",
+      "finding": "Convex useQuery returns undefined during initial load, then the actual value once the query resolves. For a list query returning no results, the value is [] (empty array), NOT undefined. This distinction is critical: undefined means 'loading', [] means 'no comments yet'. Components must handle both states with distinct UI (loading spinner vs empty state message).",
+      "source": "Convex React documentation, convex/react source types",
+      "relevance": "CommentsSection must distinguish loading (undefined) from empty (Comment[]) in its rendering contract.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "ToolSlug validation and lookup pattern",
+      "finding": "When converting a raw URL param string to a ToolSlug, the safest pattern is a lookup map (Record<string, ToolDef | undefined>) keyed by slug. If the lookup returns undefined, the slug is invalid and the component should render a 404/not-found state. This avoids type assertion (`as ToolSlug`) which would bypass runtime safety. The TOOL_DATA constant (ToolDefList) should be projected into a Map or Record for O(1) slug-based lookup.",
+      "source": "TypeScript discriminated union patterns, defensive programming best practices",
+      "relevance": "ToolPage must resolve toolSlug → ToolDef safely. The interface contract should define the lookup utility type.",
+      "confidence": 0.95
+    }
+  ],
+  "recommended_approach": "Define the interface contract as follows:\n\n**ToolPage.tsx** — Page component. Extracts `toolSlug` from `useParams`, validates it with a type guard (`isToolSlug`), performs O(1) lookup from a `Record<ToolSlug, ToolDef>` constant map. Renders not-found UI on invalid slug. Passes decomposed props to StepBadge, VersionBadge, CodeBlock (mapped over InstructionStepList), conditionally renders VideoEmbed, and renders CommentsSection with `page={toolSlug}`. Applies `accentColor` via inline `style` to heading elements.\n\n**CommentsSection.tsx** — Stateful component. Props: `{ page: ToolSlug; accentColor: HexColor }`. Internally uses `useQuery(api.comments.listComments, { page })` returning `CommentList | undefined` and `useMutation(api.comments.addComment)`. Manages form state (`author`, `body`) via useState. Validates non-empty on submit. Renders three states: loading, empty, and populated list. Each comment displays author, body, and relative timestamp via `formatRelativeTime` utility.\n\n**StepBadge.tsx** — Pure presentational. Props: `{ step: StepNumber; accentColor: HexColor }`. Renders styled pill with step number, background derived from accentColor via inline style.\n\n**VersionBadge.tsx** — Pure presentational. Props: `{ version: string; accentColor: HexColor }`. Renders version string in a pill badge.\n\n**CodeBlock.tsx** — Pure presentational. Props: `{ title: string; bash: string }`. Renders dark terminal card with title bar and `pre > code` block in JetBrains Mono. No color dependency — uses fixed dark theme.\n\n**VideoEmbed.tsx** — Pure presentational. Props: `{ url: string; title?: string }`. Renders responsive 16:9 YouTube iframe. Only mounted by parent when videoUrl is defined, so url is required (not optional) in its own interface.\n\n**Utility**: `formatRelativeTime(createdAt: number): string` in `src/utils/formatRelativeTime.ts`.\n\n**Utility**: `isToolSlug(value: string): value is ToolSlug` type guard in `src/utils/isToolSlug.ts`.\n\n**Lookup map**: `TOOL_MAP: Record<ToolSlug, ToolDef>` derived from ToolDefList, exported from the data constants module.\n\nAll props interfaces use exact registry types (ToolSlug, StepNumber, HexColor, etc.) — no redefinitions. Component-specific interfaces are prefixed with component name (e.g., `StepBadgeProps`, `CodeBlockProps`).",
+  "alternatives_considered": [
+    "Pass entire ToolDef to every sub-component vs. pass only needed props — Chose minimal props per component to enforce separation of concerns and avoid coupling presentational components to the full data model.",
+    "Colocate CommentsSection Convex hooks inside CommentsSection vs. lift query/mutation to ToolPage and pass as props — Chose hooks inside CommentsSection because it is the data owner for comments, keeps ToolPage focused on static tool data, and aligns with Convex's recommended colocated query pattern.",
+    "Use date-fns for relative timestamps vs. custom utility — Chose custom utility to avoid adding a dependency for a single function; the formatting logic is straightforward and the utility is easily testable.",
+    "Validate ToolSlug with a TypeScript type guard function vs. simple lookup-and-check — Chose type guard function (`isToolSlug(s: string): s is ToolSlug`) because it provides compile-time narrowing and is reusable across components.",
+    "Use Tailwind arbitrary values for accent colors vs. inline styles — Chose inline styles because Tailwind's JIT cannot resolve interpolated dynamic values at runtime; inline style is the only reliable approach for HexColor props.",
+    "Single CommentForm sub-component vs. inline form in CommentsSection — Considered extracting the form but the form is simple enough (two inputs + button) to keep inline; if CommentsSection approaches 300 lines, extract CommentForm as a further decomposition."
+  ],
+  "risks": [
+    "ToolSlug validation bypass: If useParams value is cast directly to ToolSlug without runtime validation, invalid URLs will cause undefined lookup results and runtime errors. Mitigate with isToolSlug type guard.",
+    "Convex loading state mishandled: Treating useQuery's undefined return as 'no data' instead of 'loading' leads to flash-of-empty-state. Must explicitly check `=== undefined` for loading UI.",
+    "Accent color XSS vector: HexColor is injected into inline styles. If the data source is compromised, malicious CSS could be injected. Mitigate by validating HexColor format (/^#[0-9a-fA-F]{6}$/) at the data layer.",
+    "JetBrains Mono font not loaded: If the font fails to load, code blocks fall back to system monospace. This is acceptable degradation but should be documented.",
+    "YouTube embed blocked by browser extensions or CSP: VideoEmbed iframe may be blocked. No runtime error occurs but the user sees nothing. Consider a fallback link.",
+    "Convex mutation failure not surfaced: If addComment throws (e.g., network error, validation failure), the form should display an error message. Without try/catch + error state, failures are silent.",
+    "Relative timestamp stale display: formatRelativeTime computes once on render. Long-lived comment lists won't update '2 minutes ago' to '5 minutes ago' without re-render. Convex's real-time subscription triggers re-renders on new comments but not on time passing. Consider a periodic re-render interval if precision matters."
+  ],
+  "compliance_notes": [
+    "All exported functions and components must have explicit TypeScript return type annotations per project standards.",
+    "All components must be React functional components — no class components.",
+    "Props must be typed with TypeScript interfaces (not type aliases) per project standards.",
+    "All styling via Tailwind classes except accent color (HexColor) which requires inline styles — this is the documented exception allowed by 'no custom CSS unless absolutely necessary'.",
+    "Convex hooks must be imported from 'convex/react' per project preferences.",
+    "Files must stay under 300 lines — the six-component decomposition (ToolPage, CommentsSection, StepBadge, VersionBadge, CodeBlock, VideoEmbed) is designed for this constraint.",
+    "Registry types (ToolSlug, StepNumber, HexColor, InstructionStep, ToolDef, Comment, CommentList, AddCommentArgs, ListCommentsArgs) must be used exactly as defined — no field additions, removals, or renames.",
+    "Dev server port 4000 is a vite.config.ts concern, not a component concern, but must be verified during integration.",
+    "Tests must be runnable with vitest — component contracts should be designed for testability (pure presentational components, extracted utilities)."
+  ]
+}

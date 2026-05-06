@@ -1,0 +1,61 @@
+{
+  "nodes": {
+    "bob.martinez": {
+      "canonical_id": "bob.martinez",
+      "first_seen": "2026-04-06T22:07:11.261543+00:00",
+      "last_active": "2026-04-06T22:07:11.261543+00:00",
+      "signal_count": 1,
+      "primary_channels": [
+        "acme-org/backend"
+      ]
+    },
+    "alice.chen": {
+      "canonical_id": "alice.chen",
+      "first_seen": "2026-04-06T22:07:11.261543+00:00",
+      "last_active": "2026-04-06T22:07:11.261543+00:00",
+      "signal_count": 0,
+      "primary_channels": [
+        "acme-org/backend"
+      ]
+    },
+    "carol.park": {
+      "canonical_id": "carol.park",
+      "first_seen": "2026-04-07T01:07:11.261543+00:00",
+      "last_active": "2026-04-07T07:07:11.261543+00:00",
+      "signal_count": 2,
+      "primary_channels": [
+        "acme-org/backend",
+        "acme-org/pricing"
+      ]
+    }
+  },
+  "edges": [
+    {
+      "source": "bob.martinez",
+      "target": "alice.chen",
+      "edge_type": "pr_comment",
+      "weight": 1.0,
+      "last_seen": "2026-04-06T22:07:11.261543+00:00",
+      "channel": "acme-org/backend",
+      "count": 1
+    },
+    {
+      "source": "carol.park",
+      "target": "alice.chen",
+      "edge_type": "pr_review",
+      "weight": 1.0,
+      "last_seen": "2026-04-07T01:07:11.261543+00:00",
+      "channel": "acme-org/backend",
+      "count": 1
+    },
+    {
+      "source": "carol.park",
+      "target": "bob.martinez",
+      "edge_type": "pr_merge",
+      "weight": 1.0,
+      "last_seen": "2026-04-07T07:07:11.261543+00:00",
+      "channel": "acme-org/pricing",
+      "count": 1
+    }
+  ]
+}

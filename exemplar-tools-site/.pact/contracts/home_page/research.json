@@ -1,0 +1,102 @@
+{
+  "task_summary": "Define the interface contract for the HomePage component (src/pages/HomePage.tsx) and its child ClosedLoopDiagram component (src/components/ClosedLoopDiagram.tsx). The contract must use the canonical type registry types (QuickStartRow, DiagramNode, DiagramNodeList, ToolDef, ToolDefList, etc.) exactly as specified, and establish props interfaces, projection functions, and rendering contracts for a dark-themed documentation landing page with a quick-start table and circular SVG workflow diagram.",
+  "findings": [
+    {
+      "topic": "Props interface design for data-projection components",
+      "finding": "Best practice is to separate data projection (ToolDef → QuickStartRow, ToolDef → DiagramNode) from rendering. The HomePage should own the projection logic and pass pre-projected data to child components via typed props interfaces. This keeps ClosedLoopDiagram a pure presentational component with no knowledge of ToolDef. The props interface should be a named export (e.g., `ClosedLoopDiagramProps`) so tests and storybook can import it independently.",
+      "source": "React composition patterns / Dan Abramov's presentational vs container component guidance",
+      "relevance": "Directly governs how HomePage and ClosedLoopDiagram communicate; ensures ClosedLoopDiagram is reusable and testable in isolation.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Canonical type reuse — avoiding redefinition",
+      "finding": "The registry defines QuickStartRow (step, slug, name, description) and DiagramNode (slug, name, step, accentColor). These MUST be imported from a shared types module (e.g., src/types.ts) and used verbatim in props interfaces. A common pitfall is re-declaring a subset or superset of fields inline in props — this causes silent drift. Props interfaces should compose registry types via direct field reference or array wrapper, never redefine them.",
+      "source": "TypeScript module best practices / canonical type registry constraint",
+      "relevance": "Critical constraint — the registry is the single source of truth. Violating it breaks the cross-component contract.",
+      "confidence": 0.98
+    },
+    {
+      "topic": "SVG circular layout in React — responsive patterns",
+      "finding": "For a circular arrangement of N nodes, the standard approach is: use a viewBox-based SVG (e.g., viewBox='0 0 500 500') with nodes positioned via trigonometric placement (cx = centerX + R*cos(θ), cy = centerY + R*sin(θ) where θ = 2π*i/N - π/2 to start at top). Connecting arrows use SVG <line> or <path> elements with marker-end arrowheads. Responsiveness is achieved by setting width/height to 100% and relying on viewBox scaling — no pixel breakpoints needed inside the SVG. Common pitfall: forgetting to define <defs><marker> for arrowheads, or using absolute pixel sizing which breaks responsiveness.",
+      "source": "SVG spec (viewBox), MDN SVG marker-end documentation, React SVG component patterns",
+      "relevance": "Directly governs ClosedLoopDiagram implementation. The interface must pass sufficient data (node count, accent colors, names, slugs) for layout computation.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Link integration with React Router v6 in SVG context",
+      "finding": "SVG <text> and <rect> elements are not natively clickable links. The established pattern is to wrap SVG groups in a React Router <Link> component rendered as a foreignObject, or more cleanly, to wrap each node's <g> in an <a> tag using standard SVG <a href> and handle navigation via onClick + useNavigate(). For React Router v6, the cleanest approach inside SVG is wrapping node groups in standard SVG <a> elements with href set to the route path (e.g., `/tools/${slug}`), which React Router's <BrowserRouter> will intercept if using client-side routing. Alternatively, use a wrapping <Link> with a `component` override. Pitfall: foreignObject has inconsistent browser support for interactive elements inside SVG.",
+      "source": "React Router v6 docs, SVG spec for <a> element, browser compatibility tables for foreignObject",
+      "relevance": "Both the quick-start table (HTML <Link>) and the diagram (SVG context) need navigable tool links. The interface must include slug for URL construction.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Projection function typing and error handling",
+      "finding": "Projection functions (toQuickStartRow: (t: ToolDef) => QuickStartRow, toDiagramNode: (t: ToolDef) => DiagramNode) should be pure, exported, and unit-testable. They should handle the identity mapping without introducing optional fields. Since all 11 tools are statically defined and the source ToolDef always has the required fields, no runtime validation is needed — but the return type annotation must be explicit to catch field mismatches at compile time. The list projection (ToolDefList → DiagramNodeList) should preserve sort order (by step).",
+      "source": "TypeScript mapped-type / projection patterns, functional programming data transformation idioms",
+      "relevance": "Ensures type safety at the boundary between data layer and presentation layer. Projection functions are the seam where type mismatches surface.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Quick-start table — accessible HTML table patterns",
+      "finding": "The table should use semantic HTML (<table>, <thead>, <tbody>, <th scope='col'>) for accessibility. Column headers: Step (#), Tool Name (link), Description. Tailwind styling for dark theme uses classes like `bg-gray-900 text-gray-100 border-gray-700`. Tool name cells should contain React Router <Link to={`/tools/${slug}`}> elements styled with the tool's accent color. Pitfall: using <div>-based grid layouts instead of <table> loses screen-reader table navigation semantics.",
+      "source": "WAI-ARIA table practices, HTML spec, Tailwind dark-mode patterns",
+      "relevance": "Directly governs the quick-start table rendering contract. The QuickStartRow type provides exactly the fields needed for each <tr>.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Component file size and decomposition",
+      "finding": "Operating procedures mandate <300 lines per file. The HomePage likely needs: ~30 lines imports/types, ~20 lines projection logic, ~40 lines overview text, ~60 lines table, ~10 lines diagram integration = ~160 lines — well within limit. ClosedLoopDiagram with SVG layout math, node rendering, arrow rendering, and defs may approach 200-250 lines. If it exceeds, extract DiagramArrow and DiagramNodeElement as sub-components. Keeping the SVG layout computation in a custom hook (useDiagramLayout) is an option but likely unnecessary given the static nature of 11 nodes.",
+      "source": "Project operating procedures (300-line limit), React component decomposition patterns",
+      "relevance": "Ensures compliance with project standards. Pre-planning decomposition prevents refactoring later.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Dark terminal aesthetic with cyan accents — design system tokens",
+      "finding": "The description specifies a 'dark terminal aesthetic with cyan accents'. Established convention: background bg-gray-950 or bg-black, primary text text-gray-100, secondary text text-gray-400, accent cyan-400 (#00e5ff or Tailwind's cyan-400 = #22d3ee). Per-tool accent colors from HexColor fields should be applied via inline style={{ color: accentColor }} or style={{ stroke: accentColor }} since Tailwind cannot handle dynamic hex values at build time. Pitfall: using Tailwind's arbitrary value syntax `text-[${color}]` — this fails because Tailwind purges dynamic class names.",
+      "source": "Tailwind CSS v3 docs on dynamic values, JIT limitations, inline style fallback pattern",
+      "relevance": "Critical for ClosedLoopDiagram node coloring and table link coloring. The interface must pass accentColor through to rendering layers, and implementation must use inline styles for dynamic hex colors.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "SVG arrow marker coloring per-edge",
+      "finding": "A common pitfall with SVG arrow markers: a single <marker> definition applies one fill color to all arrowheads. To color arrows per-tool-edge, you must either: (a) define N marker elements with unique IDs and fills, or (b) use a single marker with fill='currentColor' and set the color CSS property on the parent <line>/<path> element (marker inherits currentColor in modern browsers). Option (b) is cleaner but has edge cases in Safari. Option (a) is more reliable. For 11 arrows, 11 markers is acceptable.",
+      "source": "SVG spec for marker element inheritance, browser compatibility notes, CSS currentColor in SVG context",
+      "relevance": "Directly affects ClosedLoopDiagram implementation. Each arrow connects tool N to tool N+1 (and 11→1), colored by the source tool's accentColor.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "React Router Link in table cells — keyboard and focus accessibility",
+      "finding": "When placing <Link> inside <td>, ensure the link is the focusable element (not the td). Tailwind classes for focus states: `focus:outline-none focus:ring-2 focus:ring-cyan-400 rounded`. The link text should be the tool name, not the entire row, to avoid overly broad click targets that confuse assistive technology. Each link's `to` prop should follow the route pattern `/tools/:slug`.",
+      "source": "WAI-ARIA link practices, React Router v6 <Link> API",
+      "relevance": "Ensures the quick-start table is accessible and follows React Router conventions for the project's routing setup.",
+      "confidence": 0.91
+    }
+  ],
+  "recommended_approach": "Define two exported props interfaces and two exported projection functions, all in a shared location importable by implementation:\n\n1. **`HomePageProps`** — No props needed; HomePage is a route-level page component that imports ToolDefList from the data layer directly and performs projections internally.\n\n2. **`ClosedLoopDiagramProps`** — Single prop: `{ nodes: DiagramNodeList }`. This keeps the diagram purely presentational.\n\n3. **Projection functions** (exported from a utils or the HomePage module):\n   - `toQuickStartRow(tool: ToolDef): QuickStartRow` — extracts { step, slug, name, description }\n   - `toDiagramNode(tool: ToolDef): DiagramNode` — extracts { slug, name, step, accentColor }\n   - `toQuickStartRows(tools: ToolDefList): QuickStartRow[]` — maps and preserves step order\n   - `toDiagramNodes(tools: ToolDefList): DiagramNodeList` — maps and preserves step order\n\n4. **ClosedLoopDiagram internal contract**: Accepts DiagramNodeList, computes circular layout via viewBox-based SVG (500×500 viewBox, 100% width), positions nodes trigonometrically, renders connecting arrows with per-tool colored markers (one <marker> per tool in <defs>), wraps each node in an SVG `<a>` linking to `/tools/${slug}`. Uses inline `style` for dynamic HexColor application.\n\n5. **HomePage rendering contract**: Renders three sections vertically — (a) workflow overview paragraph with Tailwind prose styling, (b) semantic HTML `<table>` with QuickStartRow data where tool names are React Router `<Link>` elements styled with accent color via inline style, (c) `<ClosedLoopDiagram nodes={diagramNodes} />`.\n\nAll types referenced (QuickStartRow, DiagramNode, DiagramNodeList, ToolDef, ToolDefList, ToolSlug, StepNumber, HexColor) are imported from the canonical type registry — never redefined.",
+  "alternatives_considered": [
+    "Pass full ToolDefList to ClosedLoopDiagram and let it project internally — rejected because it couples the diagram to the full ToolDef shape, violates separation of concerns, and contradicts the registry's DiagramNode/DiagramNodeList being owned by home_page.",
+    "Use a context provider to inject tool data — rejected as over-engineering for a static dataset consumed by a single page; direct import + prop drilling is simpler and more explicit.",
+    "Render the diagram with HTML/CSS (flexbox circle layout) instead of SVG — rejected because SVG provides native viewBox responsiveness, path-based arrows, and precise circular positioning without CSS hacks.",
+    "Use foreignObject for clickable nodes in SVG — rejected due to inconsistent browser support; standard SVG <a> element is more reliable.",
+    "Define a single combined 'HomePageData' type bundling both table rows and diagram nodes — rejected because it couples two independent rendering concerns; pass them as separate derived arrays."
+  ],
+  "risks": [
+    "Dynamic HexColor values cannot be used in Tailwind class names (JIT purging) — must enforce inline style usage for all accent color applications. This is a common implementation error.",
+    "SVG marker arrowhead color inheritance varies across browsers (Safari edge cases with currentColor) — mitigate by defining per-tool <marker> elements with explicit fill attributes.",
+    "ClosedLoopDiagram could exceed 300-line limit if arrow logic is complex — monitor line count and extract sub-components (DiagramArrow, DiagramNodeCircle) if needed.",
+    "SVG <a> elements inside React may not integrate with React Router's client-side navigation — may need onClick + useNavigate() instead of href to prevent full page reload.",
+    "Circular layout with 11 nodes may cause label overlap at small viewports — consider abbreviating names or using tooltip on hover for narrow screens."
+  ],
+  "compliance_notes": [
+    "All exported functions and components must have explicit TypeScript return type annotations per operating procedures.",
+    "Only React functional components — no class components.",
+    "Props must be typed with TypeScript interfaces (not type aliases) per operating procedures.",
+    "All styling via Tailwind classes; inline style only for dynamic HexColor values (justified exception).",
+    "File size must remain under 300 lines each for HomePage.tsx and ClosedLoopDiagram.tsx.",
+    "Bun-only for package management — no npm/yarn/npx.",
+    "Registry types (QuickStartRow, DiagramNode, DiagramNodeList, ToolDef, ToolDefList, ToolSlug, StepNumber, HexColor) must be used exactly as defined — no field additions, removals, or renames.",
+    "React Router v6 <Link> for all navigation; routes follow /tools/:slug pattern.",
+    "Dev server on port 4000 (vite.config.ts).",
+    "Tests must be viable with vitest — projection functions should be pure and independently testable."
+  ]
+}

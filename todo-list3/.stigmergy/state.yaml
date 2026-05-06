@@ -1,0 +1,119 @@
+context_ids:
+  engineering: 18f2d0b1-2828-5aa9-af6f-48fd8db9b399
+  support: af7d7c3f-3699-5902-9654-06b488f40051
+  leadership: ba622a0c-03f7-5506-baaa-5a832dc23345
+context_state:
+  engineering:
+    source_counts:
+      github: 3
+    author_counts:
+      alice.chen: 1
+      bob.martinez: 1
+      github-actions: 1
+    learned_terms:
+    - adds
+    - api
+    - backoff
+    - bug
+    - cache
+    - changes
+    - close
+    - condition
+    - deploy
+    - duplicates
+    - error
+    - exponential
+    - feature/sync-v2
+    - fix
+    - integration-tests
+    - invalidation
+    - logic
+    - looks
+    - merge
+    - one
+    - pr
+    - race
+    - retry
+    - src/cache/invalidation.ts
+    - sync
+    - timed_out
+    - webhook
+  support:
+    source_counts:
+      github: 2
+    author_counts:
+      carol.park: 1
+      bob.martinez: 1
+    learned_terms:
+    - 15%
+    - 30s
+    - accuracy
+    - backoff
+    - booking
+    - cap
+    - changes_requested
+    - complaint
+    - condition
+    - customer
+    - dynamic
+    - engine
+    - grow
+    - improvement
+    - indefinitely
+    - issue
+    - merged
+    - missing
+    - model
+    - pricing
+    - race
+    - retry
+    - review
+    - support
+    - test
+    - ticket
+    - unit
+  leadership:
+    source_counts:
+      github: 2
+    author_counts:
+      dave.kim: 1
+      github-actions: 1
+    learned_terms:
+    - backpressure
+    - configurable
+    - depth
+    - expansion
+    - failure
+    - growth
+    - handling
+    - limiting
+    - main
+    - market
+    - queue
+    - rate
+    - revenue
+    - strategy
+    - test-suite
+last_run: '2026-05-05T20:26:11.657245+00:00'
+last_mode: mesh
+last_sources:
+- github
+last_summary:
+  signals_processed: 7
+  accepted: 7
+  duplicates: 0
+  workers: 3
+  avg_fullness: 0.017
+  traces: 7
+  interventions: 0
+  fingerprints: 7
+  insights: 3
+  insights_raw: 6
+  insights_display_unique: 3
+  stopped_reason: complete
+  findings_registry:
+    total: 3
+    active: 3
+    deferred: 0
+    normalized: 0
+    acknowledged: 0

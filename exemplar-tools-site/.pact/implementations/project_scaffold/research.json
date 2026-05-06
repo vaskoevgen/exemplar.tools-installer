@@ -1,0 +1,99 @@
+{
+  "task_summary": "Implement the 'Project Scaffold & Configuration' component that programmatically generates a Vite + React + TypeScript project using Bun, configures Tailwind CSS v3, React Router v6, Convex, and vitest. The component exposes `generate_scaffold`, `validate_scaffold`, `get_tailwind_theme_tokens`, `get_path_aliases`, and `get_vite_config` functions. Prior test failures indicate issues with error handling for `bun create` and `bun install` subprocess failures, and with scaffold validation logic.",
+  "findings": [
+    {
+      "topic": "Bun subprocess execution and error handling",
+      "finding": "The prior failures in `test_bun_create_failed` and `test_bun_install_failed` strongly suggest the scaffold generator is not correctly propagating or detecting subprocess exit codes. Bun's `bun create vite` and `bun install` commands return non-zero exit codes on failure. The implementation must: (1) capture both stdout and stderr, (2) check the exit code explicitly (not just whether the process spawned), (3) raise/return a structured error with the stderr content when exit code != 0. Common pitfall: using `Bun.spawn` or `child_process.exec` without awaiting completion or checking `.exitCode` / `.exited` promise.",
+      "source": "Bun documentation (bun.sh/docs/runtime/shell), Node.js child_process best practices",
+      "relevance": "Directly addresses 2 of 3 failing test categories. The tests expect specific error variants when bun subprocesses fail.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Scaffold validation completeness",
+      "finding": "The `test_valid_scaffold_returns_true` failure indicates `validate_scaffold` is either checking for files/configs that don't exist after generation, or not checking the right structure. Validation must verify: (1) existence of key files (package.json, vite.config.ts, tsconfig.json, tailwind.config.cjs/ts, postcss.config.cjs, index.html, src/main.tsx, src/index.css, .env.example), (2) structural correctness of configs (e.g., vite port=4000, tailwind content globs include src/**/*.{ts,tsx}), (3) package.json has correct dependencies. The validator must align exactly with what `generate_scaffold` produces — a mismatch between generated output and validation expectations is the most likely cause of this failure.",
+      "source": "General scaffold/codegen testing patterns; Vite project structure conventions",
+      "relevance": "Directly addresses the third failing test. Generator and validator must be kept in sync.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Vite config for this stack",
+      "finding": "vite.config.ts must include: (1) `@vitejs/plugin-react` plugin, (2) `server.port: 4000` per operating procedures, (3) `build.outDir: 'dist'` (default but should be explicit), (4) resolve aliases (typically `@` -> `./src`), (5) `test` block for vitest integration (`test: { globals: true, environment: 'jsdom' }`). The ViteUserConfig type should model all of these. When generating, use template literals or AST-based codegen — string templates are simpler and sufficient for config files.",
+      "source": "Vite documentation (vitejs.dev/config), vitest documentation (vitest.dev/config)",
+      "relevance": "Core configuration file that multiple functions depend on (get_vite_config, get_path_aliases).",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Tailwind CSS v3 configuration pattern",
+      "finding": "tailwind.config.cjs (CommonJS for compatibility) or tailwind.config.ts must specify: `content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}']`, theme extensions for custom colors/fonts. postcss.config.cjs must include `tailwindcss` and `autoprefixer` plugins. src/index.css must contain the three directives: `@tailwind base; @tailwind components; @tailwind utilities;`. The TailwindConfig struct should model content globs, theme tokens (colors, fonts), and plugins.",
+      "source": "Tailwind CSS v3 installation guide (tailwindcss.com/docs/installation/using-postcss)",
+      "relevance": "Required by operating procedures. get_tailwind_theme_tokens reads from this config.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Convex integration in scaffold",
+      "finding": "Convex requires: (1) `convex` package in dependencies, (2) a `convex/` directory at project root with `_generated/` stubs or initial schema, (3) ConvexProvider wrapping the app in main.tsx with the deployment URL from env var (VITE_CONVEX_URL), (4) .env.example should list VITE_CONVEX_URL. The `convexUrl` parameter to `generate_scaffold` should be written to .env.local and referenced in .env.example. Import pattern: `import { ConvexProvider, ConvexReactClient } from 'convex/react';`",
+      "source": "Convex docs (docs.convex.dev/quickstart/react), operating procedures",
+      "relevance": "Core integration requirement. Must be correctly typed per operating procedures.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "tsconfig.json configuration",
+      "finding": "For Vite + React + TypeScript: `compilerOptions` should include `target: 'ES2020'`, `module: 'ESNext'`, `moduleResolution: 'bundler'`, `jsx: 'react-jsx'`, `strict: true`, `paths: { '@/*': ['./src/*'] }` (matching vite aliases), `types: ['vitest/globals']` if using vitest globals. `include` should be `['src']`. A separate `tsconfig.node.json` may be needed for vite.config.ts with `module: 'ESNext'`.",
+      "source": "Vite TypeScript guide, TypeScript handbook",
+      "relevance": "TsConfigSpec type must model these. Path aliases feed into get_path_aliases.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Scaffold generation ordering and idempotency",
+      "finding": "The correct sequence is: (1) run `bun create vite <name> --template react-ts` to bootstrap, (2) overwrite/add config files (vite.config.ts, tailwind.config, postcss.config, tsconfig.json), (3) add/modify src files (main.tsx, App.tsx, index.css), (4) update package.json with additional deps (convex, react-router-dom, tailwindcss, autoprefixer, postcss), (5) run `bun install`. Each step must check for errors before proceeding. If the project directory already exists, either error out or handle gracefully — tests likely expect an error if bun create fails (e.g., directory exists).",
+      "source": "Bun create docs, general CLI tool patterns",
+      "relevance": "Ordering matters for correctness. Steps 1 and 5 are the subprocess calls that the failing tests target.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "NpmrcSpec and lockfile enforcement",
+      "finding": "An .npmrc with `engine-strict=true` or equivalent, combined with `packageManager` field in package.json pointing to bun, helps enforce bun-only usage per operating procedures. However, bun doesn't fully respect .npmrc — the primary enforcement is procedural. The NpmrcSpec type likely models a simple key-value config.",
+      "source": "Bun compatibility docs, npm documentation",
+      "relevance": "Operating procedures mandate bun-only. .npmrc is a secondary safeguard.",
+      "confidence": 0.8
+    },
+    {
+      "topic": "Common pitfalls in scaffold generators",
+      "finding": "Key pitfalls: (1) Not awaiting async subprocess completion before proceeding (race conditions), (2) Not cleaning up partial scaffolds on failure (leaving corrupt state), (3) Hardcoding absolute paths instead of using path.join/resolve, (4) Not handling Windows vs Unix path separators, (5) File write order dependencies (e.g., writing .env before bun install which might need env vars), (6) Template string interpolation errors in generated config files (unescaped backticks, missing imports), (7) Forgetting to make generated files end with newline (linter complaints).",
+      "source": "Common patterns in yeoman, create-react-app, create-vite source code",
+      "relevance": "Avoiding these pitfalls is critical for passing all tests including edge cases.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Error type design for subprocess failures",
+      "finding": "The test names `test_bun_create_failed` and `test_bun_install_failed` suggest the implementation must return/throw distinguishable error types or error codes for each subprocess stage. A recommended pattern is an enum/union error type with variants like `BunCreateFailed { exit_code, stderr }` and `BunInstallFailed { exit_code, stderr }`. The tests are likely asserting on the specific error variant, not just that an error occurred.",
+      "source": "Rust/TypeScript error handling patterns, test name analysis",
+      "relevance": "Directly explains why prior attempts failed — likely returned a generic error instead of a stage-specific one.",
+      "confidence": 0.93
+    }
+  ],
+  "recommended_approach": "1. **Error handling first**: Define explicit, distinguishable error types/variants for each subprocess stage (`BunCreateFailed`, `BunInstallFailed`). This is the most likely root cause of the repeated test failures. Ensure subprocess calls await completion, check exit codes, capture stderr, and return the correct error variant.\n\n2. **Generation sequence**: Implement `generate_scaffold` as a sequential pipeline: (a) `bun create vite` with `--template react-ts` → check exit code → return `BunCreateFailed` on failure; (b) overwrite config files (vite.config.ts, tailwind.config.cjs, postcss.config.cjs, tsconfig.json, index.html, src/index.css, src/main.tsx, src/App.tsx); (c) merge additional dependencies into package.json; (d) write .env.example and .env.local with VITE_CONVEX_URL; (e) `bun install` → check exit code → return `BunInstallFailed` on failure. Return `ScaffoldManifest` on success listing all created/modified files.\n\n3. **Validation alignment**: Implement `validate_scaffold` to check exactly the files and config properties that `generate_scaffold` produces. Use a checklist approach: file existence, key config values (port 4000, tailwind content globs, required dependencies, path aliases). Return `ScaffoldValidationResult` with per-check pass/fail and an overall boolean.\n\n4. **Config readers**: `get_vite_config` parses vite.config.ts, `get_tailwind_theme_tokens` parses tailwind.config, `get_path_aliases` reads tsconfig paths + vite resolve aliases. These should read from disk and return typed structs.\n\n5. **File templates**: Use string template literals for all generated config files. Keep templates as close to canonical Vite/Tailwind/Convex examples as possible to minimize compatibility issues. Ensure all files end with newline.",
+  "alternatives_considered": [
+    "AST-based config generation (e.g., using ts-morph to generate vite.config.ts): More robust but significantly more complex. String templates are sufficient for well-known config shapes.",
+    "Skip `bun create vite` and generate all files from scratch: Avoids dependency on bun create output format, but loses the benefit of the standard template and requires maintaining all boilerplate files manually. Could be considered if bun create variability becomes a problem.",
+    "Use a temporary directory for scaffold and copy on success: Provides atomic scaffold generation and clean rollback on failure, but adds complexity. Worth implementing if partial scaffold cleanup becomes a concern."
+  ],
+  "risks": [
+    "Subprocess error handling mismatch: If tests expect specific error type variants (e.g., enum discriminants) and the implementation returns a different structure, tests will fail even if the logic is correct. Must inspect or infer the expected error contract precisely.",
+    "Validation/generation drift: If validate_scaffold checks for a file or config property that generate_scaffold doesn't produce (or vice versa), the happy-path validation test fails. Must keep these in strict sync.",
+    "Bun create vite template output may vary across bun versions: The files generated by `bun create vite --template react-ts` differ between versions. Overwriting key files mitigates this, but unexpected files could cause validation issues.",
+    "Race condition in subprocess execution: If subprocess calls are not properly awaited, subsequent file operations may fail or operate on incomplete state.",
+    "Path handling: Hardcoded separators or relative path assumptions can break on different OS environments."
+  ],
+  "compliance_notes": [
+    "Port must be 4000 in vite.config.ts server.port — operating procedure requirement",
+    "Bun only — no npm/yarn/npx commands anywhere in generated scripts or scaffold logic",
+    "All generated TypeScript must use type annotations on exported functions/components",
+    "React functional components only in generated code",
+    "Props must be typed with interfaces, not type aliases, per operating procedures",
+    "Tailwind classes only — no custom CSS in generated components unless absolutely necessary",
+    "Convex hooks imported from 'convex/react'",
+    "Files should stay under 300 lines — split if needed",
+    "Build output must target dist/"
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "task_summary": "Define the interface contract for the 'App Shell, Routing & Layout' component (id: app_shell). This encompasses: ConvexProvider + BrowserRouter wrapping in App.tsx, route definitions (/ for HomePage, /:toolSlug for ToolPage), Layout.tsx with fixed sidebar + Outlet, sidebar navigation with SidebarItem view-models, responsive hamburger collapse, fade-in route transitions keyed on location.pathname, and background grid pattern. Must align with the canonical type registry, particularly SidebarItem, ToolSlug, StepNumber, HexColor, and ToolDef/ToolDefList.",
+  "findings": [
+    {
+      "topic": "React Router v6 Layout Routes with Outlet",
+      "finding": "React Router v6's layout route pattern uses a parent <Route element={<Layout />}> wrapping child <Route> elements. Layout.tsx renders <Outlet /> where child route content appears. The Outlet component accepts an optional `context` prop (typed via useOutletContext<T>) for passing data downward without prop drilling. For this project, the Layout route should be the top-level route element wrapping both '/' (index route) and '/:toolSlug' routes.",
+      "source": "React Router v6 documentation — Layout Routes pattern",
+      "relevance": "Directly defines how Layout.tsx, HomePage, and ToolPage compose together. The Outlet is the central integration point.",
+      "confidence": 0.98
+    },
+    {
+      "topic": "Route param validation for ToolSlug union type",
+      "finding": "React Router's useParams() returns string | undefined for each param. Since ToolSlug is a constrained union of 11 literal strings, the /:toolSlug route will match ANY string. The ToolPage component (or a route loader/guard) must validate that the param is a valid ToolSlug member. A type guard function (e.g., isValidToolSlug(s: string): s is ToolSlug) should be exported from the data layer or a shared utils module. Invalid slugs should render a 404/not-found state.",
+      "source": "React Router v6 docs on useParams; TypeScript narrowing patterns",
+      "relevance": "Critical edge case — without validation, arbitrary URLs like /garbage will reach ToolPage and cause runtime errors when looking up tool data.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "ConvexProvider initialization pattern",
+      "finding": "ConvexReactClient is instantiated with a URL string (from VITE_CONVEX_URL env var). The client instance must be created outside the component tree (module scope) to avoid re-instantiation on re-renders. ConvexProvider wraps the entire app. Per engineering decisions, VITE_CONVEX_URL is expected as an environment variable. A runtime check with a clear error message should guard against undefined.",
+      "source": "Convex documentation — React quickstart; engineering decision on env var",
+      "relevance": "Foundational setup for all Convex hooks (useQuery, useMutation) used downstream by CommentsSection.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Key-based remount for fade-in transitions",
+      "finding": "Per engineering decisions, fade-in animation uses key={location.pathname} on a wrapper around <Outlet />. When the key changes, React unmounts and remounts the subtree, triggering CSS animation. This is simpler than Framer Motion or React Transition Group but has a tradeoff: all child state (including Convex subscription hooks) is torn down and re-established on every navigation. For this documentation site (lightweight pages), this is acceptable. The animation should use Tailwind's `animate-` utility with a custom @keyframes fadeIn defined in tailwind.config.ts or via an arbitrary value class.",
+      "source": "React reconciliation docs (key prop behavior); Tailwind CSS animation docs",
+      "relevance": "Directly implements the specified fade-in route transition. The key prop approach is the chosen engineering decision.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "SidebarItem projection from ToolDefList",
+      "finding": "SidebarItem is a view-model struct with fields {slug: ToolSlug, name: string, step: StepNumber, accentColor: HexColor}. It is a strict subset of ToolDef. The projection function should be typed as (tool: ToolDef) => SidebarItem and should be a pure mapping. The sidebar must receive ToolDefList (or a pre-projected SidebarItem[]) sorted by step order. The active item is determined by matching location.pathname's toolSlug param against each SidebarItem.slug.",
+      "source": "Canonical type registry (SidebarItem owned by app_shell); React Router useLocation/useParams",
+      "relevance": "SidebarItem is the only type owned by app_shell. Its projection logic and the active-state highlighting are core interface concerns.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Dynamic accent color application in Tailwind",
+      "finding": "Tailwind CSS v3 cannot dynamically generate classes from runtime values (e.g., `bg-[${color}]` won't work because Tailwind's JIT compiler needs static strings at build time). For dynamic HexColor accent colors, use inline styles (style={{ backgroundColor: accentColor }}, style={{ color: accentColor }}, style={{ borderColor: accentColor }}) rather than Tailwind classes. This is the correct approach for per-tool theming where the color is a data-driven hex string.",
+      "source": "Tailwind CSS v3 docs — Dynamic class names; JIT mode limitations",
+      "relevance": "Directly affects how the active sidebar item is highlighted with the tool's accentColor. Inline styles are the only reliable approach for truly dynamic colors.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "Responsive sidebar with hamburger toggle",
+      "finding": "The sidebar collapses behind a hamburger toggle on screens < 768px (Tailwind's `md` breakpoint). Standard pattern: sidebar is `fixed` or `absolute` positioned, translated off-screen on mobile by default, toggled via React state (useState<boolean>). On md+ screens, sidebar is always visible (use `md:translate-x-0` or `md:block`). The hamburger button is visible only below md (`md:hidden`). Navigation clicks should auto-close the mobile sidebar. An overlay backdrop behind the open mobile sidebar prevents interaction with main content.",
+      "source": "Tailwind CSS responsive design patterns; common sidebar implementations",
+      "relevance": "Specified requirement for responsive behavior. Must handle: toggle state, auto-close on navigation, screen resize edge cases.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Background grid pattern implementation",
+      "finding": "A background grid pattern can be implemented with a CSS background-image using repeating linear gradients or an SVG data URI. Per engineering decisions, this is applied as a Tailwind utility or arbitrary CSS on the layout wrapper. Common approach: a div with `fixed inset-0 -z-10` carrying the grid background, or applied to the body. Example arbitrary Tailwind: `bg-[size:40px_40px] bg-[image:linear-gradient(to_right,rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.05)_1px,transparent_1px)]`. Alternatively, define a custom utility in tailwind.config.ts.",
+      "source": "Tailwind CSS arbitrary value syntax; CSS background pattern techniques",
+      "relevance": "Specified visual requirement — grid must be visible on all pages. Implementation should be in Layout.tsx as a background layer.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Google Fonts loading for Instrument Serif",
+      "finding": "Per engineering decision, Google Fonts are loaded via <link> tags in index.html. The font 'Instrument Serif' should be included with appropriate weights. The font-family must then be referenced in Tailwind config (extend.fontFamily) or via inline style. Risk: FOUT (flash of unstyled text) — mitigated by using `font-display: swap` (default in Google Fonts CSS) and preconnecting to fonts.googleapis.com and fonts.gstatic.com.",
+      "source": "Google Fonts documentation; web font performance best practices",
+      "relevance": "The sidebar logo 'exemplar.tools' must render in Instrument Serif. Font must be available before the shell renders meaningfully.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Type-safe route path constants",
+      "finding": "Best practice in React Router v6 TypeScript projects is to define route paths as constants (e.g., ROUTES.HOME = '/', ROUTES.TOOL = '/:toolSlug') and provide a typed helper for generating paths (e.g., toolPath(slug: ToolSlug): string => `/${slug}`). This prevents string duplication, ensures type safety when generating <Link to={...}> hrefs, and centralizes route definitions.",
+      "source": "React Router v6 TypeScript patterns; route configuration best practices",
+      "relevance": "Prevents stringly-typed route references scattered across components. The sidebar Link components and any cross-page navigation benefit from this.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Preventing Convex client re-creation on hot reload",
+      "finding": "In Vite dev mode, HMR can cause module-scope code to re-execute, creating multiple ConvexReactClient instances. Mitigation: store the client on a module-level variable guarded by an existence check, or accept the minor dev-mode artifact. In production builds this is not an issue. Some projects use a dedicated convex.ts client module that exports the singleton.",
+      "source": "Convex community patterns; Vite HMR behavior",
+      "relevance": "Minor dev-experience concern. A dedicated client module is cleaner and prevents accidental double-instantiation.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Outlet key wrapper and animation class lifecycle",
+      "finding": "When using key-based remount for animation, the CSS animation must trigger on mount. Using Tailwind's `animate-` utility (e.g., `animate-fadeIn`) with a @keyframes that goes from opacity-0 to opacity-1 works because the animation runs once on element creation. Duration should be short (150–300ms) for a documentation site. The wrapper div should carry the key and the animation class. Important: the wrapper must NOT be the <Outlet> itself (Outlet doesn't accept a key prop meaningfully); instead wrap <Outlet> in a <div key={location.pathname} className='animate-fadeIn'>.",
+      "source": "React key prop semantics; CSS animation trigger-on-mount pattern",
+      "relevance": "Implementation detail for the fade-in transition. Incorrect placement of the key prop is a common pitfall.",
+      "confidence": 0.96
+    }
+  ],
+  "recommended_approach": "Define the app_shell interface contract as follows:\n\n**1. Module: `src/lib/convexClient.ts`** — Singleton ConvexReactClient instantiated from `import.meta.env.VITE_CONVEX_URL` with a runtime guard. Exported for use in App.tsx's ConvexProvider.\n\n**2. Module: `src/lib/routes.ts`** — Type-safe route path constants and a `toolPath(slug: ToolSlug): string` helper. Exports `ROUTES` object and the path builder.\n\n**3. Module: `src/lib/toolSlugGuard.ts`** — Exports `isValidToolSlug(value: string): value is ToolSlug` type guard and a `TOOL_SLUGS` array constant (frozen, typed as readonly ToolSlug[]).\n\n**4. Component: `src/App.tsx`** — ConvexProvider wrapping BrowserRouter. Single layout route with Layout element, two child routes: index (HomePage) and `:toolSlug` (ToolPage). No props interface needed.\n\n**5. Component: `src/components/Layout.tsx`** — Props: none (uses hooks). Internal state: `sidebarOpen: boolean` for mobile toggle. Consumes ToolDefList (imported from static data module owned by data_layer) and projects to `SidebarItem[]`. Renders: fixed sidebar, hamburger toggle (md:hidden), main content area with `<div key={location.pathname} className=\"animate-fadeIn\"><Outlet /></div>`, background grid layer.\n\n**6. Component: `src/components/Sidebar.tsx`** — Props interface: `{ items: SidebarItem[]; currentSlug: ToolSlug | null; onNavigate: () => void }`. Renders logo link, ordered tool list with step badges, active highlighting via inline styles using accentColor.\n\n**7. Tailwind config extension** — Add `animate-fadeIn` keyframes (opacity 0→1, 200ms ease-out). Add `fontFamily.serif: ['Instrument Serif', 'serif']`.\n\n**8. index.html** — Google Fonts `<link>` for Instrument Serif, preconnect hints.\n\nUse the canonical SidebarItem type exactly as defined in the registry. Dynamic accent colors applied via inline `style` props, not dynamic Tailwind classes. Invalid ToolSlug params handled with a not-found fallback.",
+  "alternatives_considered": [
+    "Framer Motion or React Transition Group for route transitions — rejected per engineering decision favoring key-based remount with CSS animation, which is simpler and avoids an extra dependency.",
+    "Static route definitions for all 11 tools instead of dynamic /:toolSlug — rejected per engineering decision; a single dynamic route is cleaner and more maintainable.",
+    "Tailwind dynamic class names for accent colors (e.g., safelist all 11 colors) — rejected because safelisting is fragile and couples config to data; inline styles are more robust for truly dynamic hex colors.",
+    "React context for passing ToolDefList to Layout/Sidebar instead of direct import — unnecessary complexity since ToolDefList is static data, not server state; a direct import is simpler.",
+    "CSS Modules or styled-components for the background grid — rejected per project standards mandating Tailwind-only styling unless absolutely necessary.",
+    "useSearchParams or nested routes for tool pages instead of /:toolSlug — rejected; slug-based routes are more semantic, shareable, and SEO-friendly."
+  ],
+  "risks": [
+    "Invalid ToolSlug in URL: /:toolSlug matches any string. Without a type guard + 404 fallback, arbitrary paths will attempt to render ToolPage with undefined data. Mitigation: isValidToolSlug guard in ToolPage, with redirect or NotFound component for invalid slugs.",
+    "VITE_CONVEX_URL not set: ConvexReactClient will throw at runtime. Mitigation: explicit runtime check with a descriptive error message in convexClient.ts.",
+    "Accent color inline styles may conflict with Tailwind's utility-based approach for hover/focus states. Mitigation: use CSS custom properties (--accent-color) set via inline style, then reference in Tailwind arbitrary values like `hover:bg-[var(--accent-color)]` where needed.",
+    "Key-based remount tears down all child state on every navigation, including Convex subscriptions. For a documentation site this is acceptable (subscriptions re-establish quickly), but would be problematic for apps with heavy state.",
+    "Mobile sidebar z-index conflicts with other fixed/absolute elements. Mitigation: establish a z-index scale (sidebar: z-40, overlay: z-30, grid background: -z-10).",
+    "Instrument Serif font not loading (network failure): text falls back to generic serif. Mitigation: acceptable degradation; preconnect hints minimize latency.",
+    "Vite HMR re-executing convexClient.ts module scope, creating duplicate clients. Mitigation: module-level singleton guard or accept as dev-only artifact."
+  ],
+  "compliance_notes": [
+    "SidebarItem struct used exactly as defined in canonical type registry: { slug: ToolSlug, name: string, step: StepNumber, accentColor: HexColor }. No additional fields.",
+    "ToolSlug union type constrained to exactly 11 variants: constrain, ledger, pact, advocate, arbiter, baton, sentinel, chronicler, stigmergy, apprentice, kindex.",
+    "StepNumber is integer 1–11; HexColor is a string matching '#' + hex digits pattern.",
+    "All components are React functional components with TypeScript type annotations on exports — no class components.",
+    "Tailwind CSS v3 used for all styling; inline styles only for dynamic accent colors (per Tailwind JIT limitation).",
+    "Bun-only for package management; dev server on port 4000 via vite.config.ts.",
+    "React Router v6 layout route pattern with Outlet.",
+    "Convex hooks imported from 'convex/react' per project preferences.",
+    "Files kept under 300 lines; Sidebar extracted from Layout as a separate component.",
+    "ToolDefList is imported from data_layer-owned module — app_shell does not redefine tool data."
+  ]
+}

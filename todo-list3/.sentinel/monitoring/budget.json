@@ -1,0 +1,10 @@
+{
+  "budget": {
+    "per_incident_cap": 5.0,
+    "hourly_cap": 10.0,
+    "daily_cap": 25.0,
+    "weekly_cap": 100.0,
+    "monthly_cap": 300.0
+  },
+  "spend_log": []
+}

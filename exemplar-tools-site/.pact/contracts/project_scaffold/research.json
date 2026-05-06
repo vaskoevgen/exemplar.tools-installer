@@ -1,0 +1,110 @@
+{
+  "task_summary": "Define the interface contract for the 'Project Scaffold & Configuration' component (id: project_scaffold). This component initializes the Vite + React + TypeScript project using bun, configures build tooling (vite.config.ts with port 4000, dist/ output), installs and configures Tailwind CSS v3, React Router v6, Convex, and vitest. It also establishes the global CSS entry point with custom fonts (Instrument Serif, JetBrains Mono, Inter), dark background (#0a0a0a), grid utility, and Tailwind plugin configuration. The interface contract must be type-system-aware, referencing the canonical type registry where applicable, and must define the configuration shapes, exported utilities, and extension points that downstream components depend on.",
+  "findings": [
+    {
+      "topic": "Vite + React + TypeScript project initialization with Bun",
+      "finding": "bun create vite produces a standard Vite scaffold with tsconfig.json, vite.config.ts, and index.html. The resulting project uses ESM by default. Bun respects package.json scripts and generates bun.lockb (binary lockfile). Key pitfall: bun create vite may scaffold with npm scripts by default — these must be overwritten. The --template react-ts flag ensures TypeScript + React template is selected.",
+      "source": "Bun documentation (bun.sh/docs/cli/create), Vite documentation (vitejs.dev/guide)",
+      "relevance": "Directly governs how the project is bootstrapped. Downstream components assume tsconfig paths, module resolution, and Vite plugin pipeline are correctly configured here.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "vite.config.ts configuration shape for port, output, and vitest",
+      "finding": "Vite's defineConfig accepts server.port (number), build.outDir (string, default 'dist'). Vitest can be co-located in vite.config.ts via the vitest plugin (import from 'vitest/config' or use /// <reference types='vitest' /> triple-slash directive to merge test config into UserConfig). The test field accepts include, globals, environment ('jsdom' for React component tests). Common pitfall: forgetting to set server.strictPort: true causes silent fallback to another port.",
+      "source": "Vite docs (vitejs.dev/config/server-options), Vitest docs (vitest.dev/config)",
+      "relevance": "The operating procedures mandate port 4000 and dist/ output. Downstream test components depend on vitest being configured here. strictPort prevents silent port drift during development.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Tailwind CSS v3 configuration with custom theme extensions",
+      "finding": "tailwind.config.js (or .ts) exports a Config object with content (glob patterns for template purging), theme.extend for custom colors/fonts, and plugins array. Custom utilities (like a background grid) can be added via addUtilities in a plugin function or via @layer utilities in the CSS entry. Font families are defined in theme.extend.fontFamily as string arrays. Pinning Tailwind to v3 requires explicit version in package.json (e.g. 'tailwindcss': '3.4.x'). Pitfall: content paths must cover all .tsx/.ts files or classes get purged in production builds.",
+      "source": "Tailwind CSS v3 docs (tailwindcss.com/docs/configuration), Tailwind plugin API",
+      "relevance": "Tailwind config is a critical shared contract — all downstream components use Tailwind classes and depend on custom colors (per-tool accent theming via HexColor), fonts, and the grid utility being available.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Google Fonts integration via index.html link tags",
+      "finding": "Google Fonts are loaded via <link> tags in index.html with preconnect hints to fonts.googleapis.com and fonts.gstatic.com. Font families are then referenced in tailwind.config.js fontFamily entries and in the global CSS via font-family assignments on body/html. Pitfall: not including font-display: swap (Google Fonts supports &display=swap query param) causes FOIT. Another pitfall: Instrument Serif is a variable font — ensure the correct weight range is requested.",
+      "source": "Google Fonts API documentation, web.dev font loading best practices",
+      "relevance": "Fonts (Instrument Serif for headings, JetBrains Mono for code, Inter for body) are part of the visual contract that all page and component implementations consume.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Convex project setup and npm package configuration",
+      "finding": "Convex requires installing 'convex' npm package, running `bunx convex dev` to initialize the convex/ directory, and generating the _generated/ API types. The convex/ directory contains schema.ts (table definitions), and function files (queries, mutations). The ConvexProvider wraps the app at the root with a ConvexReactClient instance. Key type contract: convex/react exports useQuery, useMutation hooks that are generically typed against the generated API. Pitfall: convex _generated types must be regenerated when schema changes; this scaffold must ensure the convex/ directory structure exists even if schema is defined by a downstream component (data_layer).",
+      "source": "Convex docs (docs.convex.dev/quickstart/react), convex npm package",
+      "relevance": "The data_layer component owns schema definition, but project_scaffold must install the package and create the convex/ directory skeleton. The ConvexProvider setup may belong here or in app_shell — the interface contract must clarify this boundary.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "React Router v6 setup pattern",
+      "finding": "React Router v6 uses createBrowserRouter or <BrowserRouter> + <Routes> + <Route> declarative API. The scaffold should install react-router-dom (not react-router). Route definitions are typically co-located in a routes file or in the root App component. ToolSlug enum values will be used as route parameters (e.g. /tools/:slug). Pitfall: React Router v6 removed several v5 APIs — ensure imports are from react-router-dom v6.",
+      "source": "React Router v6 docs (reactrouter.com/en/main)",
+      "relevance": "Routing is consumed by app_shell and page components. The scaffold installs the package; route definitions are owned by downstream components but depend on the router being correctly installed and typed here.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "TypeScript configuration for strict typing with Vite + React",
+      "finding": "Vite scaffolds two tsconfig files: tsconfig.json (project references) and tsconfig.app.json (app source). For strict type safety aligned with the canonical type registry, compilerOptions should include strict: true, noUncheckedIndexedAccess: true, and exactOptionalPropertyDifferences: true. jsx must be 'react-jsx'. moduleResolution should be 'bundler' (Vite convention). Path aliases (e.g. @/ for src/) can be set in both tsconfig and vite.config.ts resolve.alias. Pitfall: mismatched module resolution between tsconfig and Vite causes type errors at build time.",
+      "source": "TypeScript handbook, Vite TypeScript guide",
+      "relevance": "The type registry defines structs (ToolDef, Comment, etc.) that require strict typing. tsconfig strictness directly impacts whether downstream components can violate type contracts.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Tailwind dark background and custom CSS grid utility pattern",
+      "finding": "The global CSS entry (typically src/index.css) imports Tailwind via @tailwind base; @tailwind components; @tailwind utilities;. A subtle grid pattern can be implemented as a CSS background-image using repeating-linear-gradient or SVG data URI, exposed as a Tailwind utility class (e.g. .bg-grid) via the plugin API's addUtilities(). The dark background (#0a0a0a) should be set on html/body in @layer base. Pitfall: custom utilities must be defined before @tailwind utilities or within a plugin to survive purging.",
+      "source": "Tailwind CSS plugin authoring docs, CSS background pattern techniques",
+      "relevance": "The grid background and dark theme are global visual contracts. Every page component renders atop this. The utility class name and its behavior are part of the interface contract.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Lockfile hygiene — ensuring only bun.lockb exists",
+      "finding": "Projects initialized with bun produce bun.lockb. A .npmrc with package-lock=false and a .gitignore entry for package-lock.json/yarn.lock prevent accidental lockfile creation if npm/yarn is invoked. Additionally, a preinstall script ('preinstall': 'npx only-allow bun' or a manual check) can enforce bun-only usage. Pitfall: CI environments or IDE extensions may auto-run npm install, generating a competing lockfile.",
+      "source": "Bun docs, npm configuration docs, corepack documentation",
+      "relevance": "Operating procedures mandate bun-only. A competing lockfile can cause dependency version drift and CI failures.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "package.json scripts contract for dev/build/test",
+      "finding": "Standard scripts: 'dev': 'vite' (runs dev server), 'build': 'tsc && vite build' (type-check then bundle), 'test': 'vitest' (run tests in watch mode), 'test:run': 'vitest run' (single CI run). Using 'bun run dev' invokes these. Pitfall: omitting tsc from build script skips type checking — TypeScript errors would only surface at dev time, not in CI builds.",
+      "source": "Vite project conventions, vitest CLI docs",
+      "relevance": "Downstream components (tests, CI) depend on these script names being present and correctly defined. The verification procedures require vitest to be runnable.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Interface boundary: what project_scaffold exports vs. what downstream components own",
+      "finding": "The scaffold component's interface contract should clearly delineate: (1) Files it creates and owns (vite.config.ts, tailwind.config.js, tsconfig.json, package.json, index.html, src/index.css, src/main.tsx shell). (2) Extension points it exposes (Tailwind theme values, font families, utility classes, path aliases). (3) Files it creates as stubs for downstream ownership (convex/ directory, src/App.tsx route shell). The canonical type registry types (ToolSlug, HexColor, etc.) are NOT defined here — they are owned by data_layer. The scaffold must not redefine them.",
+      "source": "Component-based architecture patterns, interface segregation principle",
+      "relevance": "Clear ownership boundaries prevent merge conflicts and ensure the type registry contract is respected. The scaffold provides infrastructure; domain types come from data_layer.",
+      "confidence": 0.94
+    }
+  ],
+  "recommended_approach": "Define the project_scaffold interface contract as a set of **owned configuration files** with precise, typed shapes, plus **exported extension points** (Tailwind theme tokens, font family keys, utility class names, path aliases) that downstream components depend on. Specifically:\n\n1. **vite.config.ts** — Export a Vite UserConfig with server.port: 4000, server.strictPort: true, build.outDir: 'dist', resolve.alias for '@/' → 'src/', and vitest test config (environment: 'jsdom', globals: true, include pattern).\n\n2. **tailwind.config.js** — Export a Tailwind Config with content globs covering src/**/*.{ts,tsx}, theme.extend.fontFamily (serif: ['Instrument Serif'], mono: ['JetBrains Mono'], sans: ['Inter']), theme.extend.colors for any shared design tokens, and a plugin registering the `.bg-grid` utility class.\n\n3. **index.html** — Google Fonts preconnect + stylesheet links for Instrument Serif, JetBrains Mono, Inter (with display=swap). Root div id='root'.\n\n4. **src/index.css** — Tailwind directives, @layer base with html/body dark background (#0a0a0a), font-family assignments, and the grid pattern utility definition (if not in plugin).\n\n5. **src/main.tsx** — Minimal React 18 createRoot entry point rendering a placeholder App component. ConvexProvider setup is deferred to app_shell or explicitly stubbed here as an extension point.\n\n6. **package.json** — scripts: dev, build (tsc && vite build), test (vitest), preview. Dependencies pinned: tailwindcss@3.x, react-router-dom@6.x, convex, vitest. Only bun.lockb as lockfile.\n\n7. **tsconfig.json / tsconfig.app.json** — strict: true, jsx: 'react-jsx', moduleResolution: 'bundler', path alias '@/*' → 'src/*'.\n\n8. **convex/ directory** — Created as an empty skeleton (or with a minimal convex.json / _generated stub) for data_layer to populate.\n\nThe contract must NOT define any canonical registry types (ToolSlug, ToolDef, Comment, etc.) — those are owned by data_layer. The scaffold's type-level exports are limited to configuration shapes and Tailwind token names.",
+  "alternatives_considered": [
+    "Co-locate vitest config in a separate vitest.config.ts rather than merging into vite.config.ts — rejected because the operating procedures mention 'Configure vitest in vite.config.ts or vitest.config.ts' and co-location in vite.config.ts is simpler and avoids config duplication for resolve aliases and plugins.",
+    "Use tailwind.config.ts (TypeScript) instead of tailwind.config.js — viable but Tailwind v3 has better tooling support for .js configs and the typing benefit is minimal for a config file. Could be revisited if the team prefers TS everywhere.",
+    "Initialize ConvexProvider in src/main.tsx rather than deferring to app_shell — rejected because ConvexProvider wrapping is an app-shell concern (it needs to coexist with BrowserRouter), and the scaffold should remain infrastructure-only.",
+    "Use CSS Modules or styled-components for the grid utility — rejected per operating procedures mandating all Tailwind classes with no custom CSS unless absolutely necessary. A Tailwind plugin is the idiomatic solution.",
+    "Define ToolSlug as a TypeScript enum in a shared types file within the scaffold — rejected because ToolSlug is owned by data_layer per the canonical type registry. The scaffold must not define domain types."
+  ],
+  "risks": [
+    "Tailwind v3 pinning: If not explicitly pinned (e.g., 'tailwindcss': '^3.4.0'), bun may resolve to v4.x (which has breaking API changes including CSS-first configuration). Must use exact or tilde range.",
+    "Port collision: Port 4000 may conflict with other services. strictPort: true is essential to surface this immediately rather than silently falling back.",
+    "Convex _generated directory: If convex dev has not been run, _generated/ types won't exist, causing TypeScript errors in downstream components that import from 'convex/_generated'. The scaffold should document this dependency or provide a bootstrap script.",
+    "Google Fonts availability: External font loading introduces a runtime dependency. Consider specifying font-display: swap and providing system font fallbacks in the Tailwind fontFamily config.",
+    "Content path coverage in tailwind.config.js: Missing globs (e.g., forgetting to include convex/ or specific file extensions) will cause Tailwind to purge classes used in those files during production builds.",
+    "bun.lockb binary format: Not human-readable, making dependency audits harder. Team should rely on bun.lock (text format available in newer Bun versions) or `bun pm ls` for auditing.",
+    "Vitest jsdom environment: Requires @testing-library/react and @testing-library/jest-dom as devDependencies for meaningful component testing — these must be included in the scaffold's dependency list."
+  ],
+  "compliance_notes": [
+    "Operating Procedure: Language must be TypeScript with React 18 — scaffold must ensure react@18.x and react-dom@18.x are pinned, not @latest (React 19 is now available).",
+    "Operating Procedure: Bun only — package.json must not contain any npm/yarn-specific fields (e.g., 'packageManager' pointing to npm). Consider adding a 'preinstall' script to enforce bun.",
+    "Operating Procedure: Dev server on port 4000 — vite.config.ts must set server.port: 4000 and server.strictPort: true.",
+    "Operating Procedure: Build output to dist/ — vite.config.ts build.outDir: 'dist' (this is already the Vite default but should be explicit).",
+    "Operating Procedure: All Tailwind classes, no custom CSS unless absolutely necessary — the grid pattern and dark background should be implemented via Tailwind plugin/utility, not raw CSS where possible.",
+    "Operating Procedure: Files under 300 lines — vite.config.ts, tailwind.config.js, and src/index.css should all be well under this limit.",
+    "Operating Procedure: Scripts in package.json: dev, build, test (vitest) — must be present exactly as specified.",
+    "Canonical Type Registry: project_scaffold must NOT define ToolSlug, ToolDef, Comment, HexColor, StepNumber, or any other registry type. These are owned by data_layer.",
+    "Canonical Type Registry: Tailwind theme colors should accommodate HexColor values dynamically (per-tool accent colors are applied at runtime, not statically in the config), so the scaffold should not hardcode all 11 accent colors into the Tailwind config — instead, downstream components will use inline style or Tailwind arbitrary values."
+  ]
+}

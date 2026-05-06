@@ -1,0 +1,109 @@
+{
+  "task_summary": "Define the interface contract for the 'Data Constants & Convex Backend' component (data_layer). This encompasses: (1) src/data/tools.ts — a typed, canonical array of 11 ToolDef objects with slugs, names, descriptions, step numbers, version strings, accent colors, optional YouTube URLs, and placeholder instruction steps; (2) convex/schema.ts — Convex schema for the 'comments' table; (3) convex/comments.ts — fully-typed Convex query (listComments) and mutation (addComment). All types must conform exactly to the Canonical Type Registry.",
+  "findings": [
+    {
+      "topic": "Convex schema definition patterns",
+      "finding": "Convex schemas are defined using `defineSchema` and `defineTable` from 'convex/server', with field validators from 'convex/values' (v.string(), v.number(), v.optional(), etc.). The schema must be the default export of convex/schema.ts. Convex auto-generates TypeScript types from the schema, so the schema is the single source of truth for document shapes. The `_id` and `_creationTime` fields are auto-added by Convex and should NOT be declared in the schema. System fields are available on returned documents automatically.",
+      "source": "Convex documentation (docs.convex.dev/database/schemas)",
+      "relevance": "Directly governs how convex/schema.ts must be structured. The Comment type's `_id` field comes from Convex's auto-generated Id<'comments'>, not from our schema definition.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Convex query and mutation typing patterns",
+      "finding": "Convex functions are defined using `query()` and `mutation()` from 'convex/_generated/server'. Args are validated using the `args` field with Convex validators (v.string(), v.number()). The return type is inferred. For queries, use `ctx.db.query('table').filter()` or `.withIndex()` and `.collect()`. Sorting with `.order('asc'|'desc')` applies to the index order. Without a defined index, `.filter()` does a full table scan — acceptable for small tables but an index on 'page' + 'createdAt' would be optimal.",
+      "source": "Convex documentation (docs.convex.dev/functions/query-functions, docs.convex.dev/functions/mutation-functions)",
+      "relevance": "Directly defines how listComments and addComment must be implemented. Args validators serve as runtime type checking and must match the AddCommentArgs and ListCommentsArgs registry types.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Convex index design for filtered + sorted queries",
+      "finding": "For a query that filters by 'page' and sorts by 'createdAt', define an index on ['page', 'createdAt'] in the schema. Then use `.withIndex('by_page', q => q.eq('page', page))` which returns results sorted by createdAt (the trailing index field). This avoids full table scans and guarantees sort order without a separate `.order()` call (though `.order('asc')` is the default and can be explicit).",
+      "source": "Convex documentation (docs.convex.dev/database/indexes)",
+      "relevance": "Critical for listComments performance and correctness. Without this index, filtering + sorting requires loading all comments and sorting client-side or relying on insertion order.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "TypeScript const assertions for static data arrays",
+      "finding": "Using `as const satisfies readonly ToolDef[]` (TypeScript 4.9+) on the tools array provides both: (a) narrow literal types for slugs, step numbers, and colors (enabling type-safe lookups), and (b) compile-time verification that each object satisfies ToolDef. However, if downstream consumers expect `ToolDef[]` (mutable), export the array typed as `ToolDef[]` or use `satisfies ToolDef[]` without `as const`. Given the registry defines ToolDefList as `ToolDef[]`, the array should be typed as `readonly ToolDef[]` or `ToolDef[]`.",
+      "source": "TypeScript handbook, community patterns for typed constant data",
+      "relevance": "Determines the export signature of the tools array. The `satisfies` operator catches structural errors at definition site while preserving the declared type for consumers.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Union literal types for slug enums in TypeScript",
+      "finding": "ToolSlug should be defined as a string union type: `type ToolSlug = 'constrain' | 'ledger' | ... | 'kindex'`. This is idiomatic TypeScript for enum-like string constraints without using actual `enum` (which has bundle and interop downsides in React/Vite projects). Export the type AND a runtime array of all slugs (`TOOL_SLUGS: ToolSlug[]`) to enable iteration and validation.",
+      "source": "TypeScript community best practices, Effective TypeScript (Dan Vanderkam)",
+      "relevance": "ToolSlug is used as route params, Convex page keys, and array lookups. A union type enables compile-time exhaustiveness checks while the runtime array enables validation of URL params.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Dark-theme harmonious accent color palette design",
+      "finding": "For 11 distinct accent colors on a dark background, distribute hues evenly across the color wheel (~33° apart) at high saturation (70-100%) and medium-high lightness (50-70% in HSL). Avoid pure white or colors below 4.5:1 contrast ratio against dark backgrounds (#1a1a2e or similar). Recommended approach: pick from established dark-theme palettes (e.g., Catppuccin, Dracula, Tokyo Night) or generate via HSL rotation. Cyan, teal, green, lime, yellow, amber, orange, red, pink, purple, blue provides natural 11-stop distribution.",
+      "source": "WCAG 2.1 contrast guidelines, dark-theme UI design conventions",
+      "relevance": "Directly informs the accentColor hex values for each ToolDef. Colors must be visually distinct, accessible on dark backgrounds, and harmonious as a set.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Convex mutation timestamp patterns",
+      "finding": "Using `Date.now()` in a Convex mutation is acceptable and returns server-side timestamp (Convex functions run server-side). This is preferred over client-side timestamps for consistency. Convex also provides `_creationTime` automatically on every document, but using an explicit `createdAt` field gives schema clarity and matches the registry's Comment type. Both approaches are valid; the explicit field is specified by the task.",
+      "source": "Convex documentation, community patterns",
+      "relevance": "Confirms the approach for addComment: call Date.now() server-side within the mutation body and store as `createdAt`.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "File organization for Convex + React projects",
+      "finding": "Convention: `convex/` directory at project root contains schema.ts and function files. `src/data/` contains client-side static data. Convex functions import from 'convex/server' and 'convex/values' for definitions, and from './_generated/server' for the typed `query`/`mutation` constructors after codegen. The `_generated/` directory is auto-created by `bunx convex dev` or `bunx convex codegen`. Client code imports hooks from 'convex/react'.",
+      "source": "Convex project structure conventions (docs.convex.dev/quickstart/react)",
+      "relevance": "Determines import paths and file placement. Note: project uses Bun, so `bunx convex` replaces `npx convex` per operating procedures.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Avoiding Convex filter() in favor of withIndex() for equality checks",
+      "finding": "Convex's `.filter()` method performs a full table scan. For equality-based lookups (like filtering comments by page), `.withIndex()` is strongly preferred. However, `.filter()` is simpler and acceptable for low-volume tables. The Convex team recommends defining indexes for any query that filters on specific fields in production. Since the task specifies 'filtered and sorted by createdAt', a compound index is the correct approach.",
+      "source": "Convex documentation (docs.convex.dev/database/indexes), Convex Discord best practices",
+      "relevance": "Directly impacts listComments implementation. A compound index ['page', 'createdAt'] is optimal.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Common pitfalls with Convex schema and TypeScript interop",
+      "finding": "Key pitfalls: (1) Forgetting that Convex validators (v.string()) are runtime validators, not TypeScript types — they generate types but are not interchangeable with TS type annotations. (2) Returning `Doc<'comments'>` from a query includes `_id` as `Id<'comments'>` (a branded type), which serializes to string on the client — matches the registry's `_id: string`. (3) Not running `convex dev` / `convex codegen` before importing from `_generated/` causes compilation errors. (4) Convex queries are reactive by default when used with `useQuery` hook.",
+      "source": "Convex documentation, common issues in Convex GitHub discussions",
+      "relevance": "Ensures the implementation avoids type mismatches between Convex Doc types and the registry's Comment type. The _id branded type serializing to string on the wire is an important detail.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "YouTube embed URL format and validation",
+      "finding": "YouTube embed URLs follow the pattern `https://www.youtube.com/embed/{VIDEO_ID}`. The VIDEO_ID is an 11-character alphanumeric string. For the OptionalVideoUrl type, `undefined` (not null) should be used for tools without videos (kindex). This matches TypeScript's optional property semantics and the registry definition. Using `videoUrl?: string` in the interface makes the field truly optional (can be omitted), which is equivalent to `string | undefined`.",
+      "source": "YouTube IFrame API documentation, TypeScript optional property semantics",
+      "relevance": "Informs the ToolDef interface design: videoUrl should be an optional property, and kindex's entry should either omit the field or set it to undefined.",
+      "confidence": 0.93
+    }
+  ],
+  "recommended_approach": "## Recommended Implementation Contract\n\n### 1. Type Definitions (`src/data/tools.ts` — top of file)\n\nDefine all registry-owned types at the top of the file:\n\n- **`ToolSlug`**: String union literal type with all 11 variants. Also export a `TOOL_SLUGS` runtime array for validation.\n- **`StepNumber`**: `type StepNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11` — literal union, not just `number`.\n- **`HexColor`**: Template literal type `` type HexColor = `#${string}` `` for basic structural validation.\n- **`InstructionStep`**: Interface with `title: string` and `bash: string`.\n- **`ToolDef`**: Interface with all registry fields; `videoUrl` as optional property (`videoUrl?: string`).\n- **`Comment`**: Interface with `_id: string`, `page: ToolSlug`, `author: string`, `body: string`, `createdAt: number`.\n- **`AddCommentArgs`** and **`ListCommentsArgs`**: Interfaces matching registry exactly.\n\n### 2. Static Data (`src/data/tools.ts` — `TOOLS` constant)\n\nExport `const TOOLS: ToolDef[]` — an array of 11 objects ordered by `step` (1–11). Each object:\n- `slug`: one of the 11 ToolSlug values\n- `name`: human-readable tool name (e.g., \"Constrain\", \"Ledger\")\n- `description`: one-line description of the tool's purpose\n- `step`: 1–11 matching workflow order\n- `version`: semver string (e.g., \"0.1.0\")\n- `accentColor`: hex color from a harmonious 11-color dark-theme palette\n- `videoUrl`: YouTube embed URL for 10 tools; omitted/undefined for kindex\n- `instructions`: array of 3–5 InstructionStep objects with realistic `bash` snippets\n\n**Accent Color Palette** (dark-theme optimized, ~33° hue rotation):\n1. Constrain: `#00e5ff` (cyan)\n2. Ledger: `#00bfa5` (teal)\n3. Pact: `#69f0ae` (green)\n4. Advocate: `#b2ff59` (lime)\n5. Arbiter: `#ffd740` (amber)\n6. Baton: `#ff9100` (orange)\n7. Sentinel: `#ff5252` (red)\n8. Chronicler: `#ff4081` (pink)\n9. Stigmergy: `#e040fb` (purple)\n10. Apprentice: `#7c4dff` (deep purple)\n11. Kindex: `#448aff` (blue)\n\n### 3. Convex Schema (`convex/schema.ts`)\n\n```\ndefineSchema({\n  comments: defineTable({\n    page: v.string(),\n    author: v.string(),\n    body: v.string(),\n    createdAt: v.number(),\n  }).index('by_page_createdAt', ['page', 'createdAt']),\n})\n```\n\nSingle compound index enables filtered-and-sorted queries without full table scan.\n\n### 4. Convex Functions (`convex/comments.ts`)\n\n- **`listComments`**: `query` with `args: { page: v.string() }`. Uses `.withIndex('by_page_createdAt', q => q.eq('page', args.page))` with `.order('asc')`. Returns `Doc<'comments'>[]`.\n- **`addComment`**: `mutation` with `args: { page: v.string(), author: v.string(), body: v.string() }`. Inserts `{ ...args, createdAt: Date.now() }`. Returns the new document's `Id<'comments'>`.\n\n### 5. Key Interface Boundaries\n\n- **Downstream consumers** (Sidebar, ToolPage, HomePage) import `TOOLS`, `ToolDef`, `ToolSlug`, and helper types from `src/data/tools.ts`.\n- **React components** call Convex functions via `useQuery(api.comments.listComments, { page })` and `useMutation(api.comments.addComment)` from `convex/react`.\n- **Type compatibility**: Convex `Doc<'comments'>` maps to the registry `Comment` type on the client side (`_id` serializes to string). No manual type conversion needed.\n\n### 6. File Size Compliance\n\n`src/data/tools.ts` with 11 tool objects (~15 lines each) plus types ≈ 200–250 lines. Well under the 300-line limit. `convex/schema.ts` ≈ 15 lines. `convex/comments.ts` ≈ 30 lines.",
+  "alternatives_considered": [
+    "Use TypeScript `enum` for ToolSlug instead of a union type — rejected because string enums have bundle overhead, don't tree-shake well in Vite, and are not idiomatic in modern React/TS projects.",
+    "Use Convex's built-in `_creationTime` instead of explicit `createdAt` field — rejected because the Canonical Type Registry explicitly specifies `createdAt: number` on Comment, and an explicit field provides clearer schema semantics.",
+    "Use `.filter()` instead of `.withIndex()` for listComments — rejected in favor of a compound index on ['page', 'createdAt'] for correctness of sort order and query efficiency.",
+    "Define ToolDef types in a separate `src/types/` directory — rejected because the registry assigns ownership to data_layer, and co-locating types with data in `src/data/tools.ts` keeps the module self-contained. Types can be re-exported from an index if needed.",
+    "Use `as const` for the tools array — considered but using `as const satisfies readonly ToolDef[]` is preferred for compile-time validation while maintaining narrow literal types. If consumers need `ToolDef[]`, a non-const typed export is simpler.",
+    "Store accent colors in a separate theme config — rejected because the registry defines accentColor as a field on ToolDef, keeping display metadata co-located with tool definitions."
+  ],
+  "risks": [
+    "The 11 accent colors must maintain ≥4.5:1 contrast ratio against the dark background. Some lighter colors (lime #b2ff59, amber #ffd740) may need darkening or the background must be sufficiently dark (#0f0f1a or similar). Verify at implementation time.",
+    "Convex codegen (`convex/_generated/`) must be run before any file importing from `_generated/server` or `_generated/api` will compile. During initial setup, this is a bootstrapping dependency — `bunx convex dev` must run first.",
+    "The ToolSlug union type in src/data/ and the Convex arg validator `v.string()` are not linked — Convex validators cannot express union string types natively. Runtime validation of slug values in Convex functions is not enforced beyond 'is a string'. If stricter validation is needed, use `v.union(v.literal('constrain'), v.literal('ledger'), ...)` but this is verbose.",
+    "YouTube embed URLs are fabricated placeholders. If real video IDs are needed later, all 10 URLs must be updated. The undefined-for-kindex pattern must be preserved.",
+    "The `as const satisfies` pattern requires TypeScript 4.9+. Vite + React template with TS should include 5.x, but verify tsconfig target.",
+    "If the TOOLS array is later used with array methods that return mutable copies (.filter, .map), the readonly constraint from `as const` could cause friction. Recommend typing as plain `ToolDef[]` for maximum consumer compatibility."
+  ],
+  "compliance_notes": [
+    "All types use exact names and fields from the Canonical Type Registry. No fields added, removed, or renamed.",
+    "TypeScript interfaces used for all exported types per project standards (Props typed with TypeScript interfaces).",
+    "React functional components only — not applicable here (data layer, no components), but Convex functions are pure functions, compliant.",
+    "All Tailwind classes, no custom CSS — not applicable (no UI in this component).",
+    "Package manager: Bun only. Convex CLI invoked via `bunx convex` rather than `npx convex`.",
+    "Files under 300 lines: tools.ts ~250 lines, schema.ts ~15 lines, comments.ts ~30 lines.",
+    "Type annotations on all exported functions: Convex query/mutation are typed via the `query()`/`mutation()` wrapper with `args` validators; return types inferred by Convex codegen. Exported TS types and constants are fully annotated.",
+    "Convex hooks imported from 'convex/react' by downstream consumers, not by this data layer component directly."
+  ]
+}

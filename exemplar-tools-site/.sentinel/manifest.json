@@ -1,0 +1,67 @@
+{
+  "components": {
+    "app_shell": {
+      "component_id": "app_shell",
+      "contract_path": "contracts/app_shell/interface.json",
+      "test_path": "tests/app_shell",
+      "source_path": "src/app_shell",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.131904",
+      "pact_project": "."
+    },
+    "data_layer": {
+      "component_id": "data_layer",
+      "contract_path": "contracts/data_layer/interface.json",
+      "test_path": "tests/data_layer",
+      "source_path": "src/data_layer",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132088",
+      "pact_project": "."
+    },
+    "home_page": {
+      "component_id": "home_page",
+      "contract_path": "contracts/home_page/interface.json",
+      "test_path": "tests/home_page",
+      "source_path": "src/home_page",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132165",
+      "pact_project": "."
+    },
+    "project_scaffold": {
+      "component_id": "project_scaffold",
+      "contract_path": "contracts/project_scaffold/interface.json",
+      "test_path": "tests/project_scaffold",
+      "source_path": "src/project_scaffold",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132235",
+      "pact_project": "."
+    },
+    "root": {
+      "component_id": "root",
+      "contract_path": "contracts/root/interface.json",
+      "test_path": "tests/root",
+      "source_path": "",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132306",
+      "pact_project": "."
+    },
+    "tests": {
+      "component_id": "tests",
+      "contract_path": "contracts/tests/interface.json",
+      "test_path": "tests/tests",
+      "source_path": "src/tests",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132372",
+      "pact_project": "."
+    },
+    "tool_page": {
+      "component_id": "tool_page",
+      "contract_path": "contracts/tool_page/interface.json",
+      "test_path": "tests/tool_page",
+      "source_path": "src/tool_page",
+      "language": "python",
+      "last_registered": "2026-05-06T14:02:58.132476",
+      "pact_project": "."
+    }
+  }
+}

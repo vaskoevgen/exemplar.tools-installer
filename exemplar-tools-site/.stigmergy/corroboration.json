@@ -1,0 +1,86 @@
+{
+  "run_id": "02f73976",
+  "timestamp": "2026-05-06T19:07:11.408143+00:00",
+  "metrics": {
+    "findings_input": 3,
+    "routes_created": 6,
+    "workers_consulted": 2,
+    "llm_calls": 0,
+    "mechanical_calls": 2,
+    "quorum_findings": 3,
+    "quorum_met": 0,
+    "quorum_size": 2,
+    "quorum_threshold": 0.6
+  },
+  "quorum_findings": [
+    {
+      "summary": "@bob.martinez and @alice.chen in same signal space (spectral similarity 100%)",
+      "type": "parallel_activity",
+      "quorum_met": false,
+      "quorum_confidence": 0.0,
+      "corroboration_count": 0,
+      "contradiction_count": 0,
+      "total_consulted": 2,
+      "verdicts": [
+        {
+          "worker_id": "18f2d0b1",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        },
+        {
+          "worker_id": "af7d7c3f",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        }
+      ]
+    },
+    {
+      "summary": "@bob.martinez and @carol.park in same signal space (spectral similarity 100%)",
+      "type": "parallel_activity",
+      "quorum_met": false,
+      "quorum_confidence": 0.0,
+      "corroboration_count": 0,
+      "contradiction_count": 0,
+      "total_consulted": 2,
+      "verdicts": [
+        {
+          "worker_id": "18f2d0b1",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        },
+        {
+          "worker_id": "af7d7c3f",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        }
+      ]
+    },
+    {
+      "summary": "@github-actions and @dave.kim in same signal space (spectral similarity 100%)",
+      "type": "parallel_activity",
+      "quorum_met": false,
+      "quorum_confidence": 0.0,
+      "corroboration_count": 0,
+      "contradiction_count": 0,
+      "total_consulted": 2,
+      "verdicts": [
+        {
+          "worker_id": "18f2d0b1",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        },
+        {
+          "worker_id": "af7d7c3f",
+          "verdict": "no_evidence",
+          "confidence": 0.2,
+          "reasoning": "mechanical: term_overlap=0.000"
+        }
+      ]
+    }
+  ]
+}

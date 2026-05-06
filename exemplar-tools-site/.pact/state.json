@@ -1,0 +1,176 @@
+{
+  "id": "17d52688cce3",
+  "project_dir": "/Users/yevhenvasko/source/exemplar.tools-installer/exemplar-tools-site",
+  "status": "budget_exceeded",
+  "phase": "implement",
+  "component_tasks": [
+    {
+      "component_id": "app_shell",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "data_layer",
+      "status": "pending",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "home_page",
+      "status": "pending",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "project_scaffold",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "tests",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "tool_page",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "root",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    }
+  ],
+  "interview_result": {
+    "risks": [
+      "R1: Convex requires a deployed backend with a project URL and authentication setup. The spec provides no Convex deployment URL, no `convex/` directory schema, no instructions for `npx convex dev` (which conflicts with the 'never npx' SOP), and no `.env` configuration. Engineers will either stub Convex out or block on provisioning.",
+      "R2: The 'kindex' tool has no YouTube video URL listed (only 10 URLs for 11 tools). This will cause a runtime error or undefined behavior if the video embed component doesn't handle the missing-URL case.",
+      "R3: BrowserRouter requires server-side catch-all routing (redirect all paths to index.html). The spec says nothing about deployment target or hosting configuration. A static deploy to e.g. GitHub Pages or S3 will 404 on direct navigation to any sub-route.",
+      "R4: 'Step-by-step instructions with bash code blocks' — the actual instructional content for each tool page is not provided anywhere in the spec. There is no reference to a `howto.md` file being available, nor any content source. Engineers will fabricate placeholder content or block.",
+      "R5: 'Version badge showing the tool version' — no version data source is specified. Where do version strings come from? Hardcoded? Fetched from an API? Read from package.json files? This is unresolvable from the spec alone.",
+      "R6: 'Step number badge matching howto.md step order' — the spec references howto.md but does not include it or specify where it lives. The tool list ordering is provided but the canonical step numbers are not explicitly assigned.",
+      "R7: The 'closed loop diagram' on the home page has no specification — no image asset, no description of what it contains, no SVG source, no indication whether it should be built as a React component or embedded as a static image.",
+      "R8: Convex comments with no authentication means any visitor can impersonate any author name. No rate limiting, no spam protection, no moderation. The comment system is trivially abusable.",
+      "R9: Tailwind CSS v3 is specified in SOPs but Vite + React template with bun may scaffold Tailwind v4 by default depending on timing. Version pinning is not addressed.",
+      "R10: The spec says 'each tool gets its own accent color' but provides no color mapping. 11 engineers will pick 11 different color palettes, producing inconsistent results."
+    ],
+    "ambiguities": [
+      "A1: Content source for tool pages — 'step-by-step instructions with bash code blocks' implies substantive documentation content. Is this to be extracted from an existing howto.md? Written from scratch? Placeholder lorem ipsum? The spec is silent.",
+      "A2: 'One-line description' per tool — where do these descriptions come from? No copy is provided.",
+      "A3: 'Quick-start table' on the home page — what columns? What data? No schema or content is specified.",
+      "A4: 11 per-tool accent colors — no color values, no color names, no palette constraints. 'Electric cyan' is the primary accent; how should per-tool colors relate to it?",
+      "A5: Comments section — is the 'author' field a free-text input (anonymous guestbook style) or does it imply user authentication? The Convex data model suggests free-text but the UX is unspecified.",
+      "A6: 'Animated fade-in on page content load' — what duration? What easing? CSS transition or a library like framer-motion? Triggered on route change or initial mount only?",
+      "A7: 'Subtle grid lines in background' — CSS background-image pattern? SVG overlay? What grid spacing? What opacity?",
+      "A8: Responsive behavior — no breakpoints or mobile design specified. Is the fixed left sidebar expected to collapse on mobile? Is mobile support in scope at all?",
+      "A9: The Convex schema definition file (convex/schema.ts) structure is implied but not specified. Should comments use a Convex table with explicit schema validation or schemaless documents?",
+      "A10: Logo at the top of sidebar — what logo? Is there an asset provided? Text-only? SVG? The exemplar.tools brand mark is not supplied.",
+      "A11: 'Import Convex hooks from convex/react' — the SOP says this, but the actual import path depends on Convex package version. Modern Convex uses generated hooks from '../convex/_generated/react' for typed queries. This is ambiguous."
+    ],
+    "questions": [
+      "Q1: Where is the actual documentation content (step-by-step instructions, one-line descriptions, version numbers) for each tool? Is there a howto.md or other source file to extract from, or should placeholder content be used?",
+      "Q2: What is the Convex project URL / deployment ID? Has a Convex project been provisioned, or should the implementer create one?",
+      "Q3: The kindex tool has no YouTube URL. Should the video embed section be omitted for kindex, or is there a URL that was accidentally left out?",
+      "Q4: What are the 11 per-tool accent colors? Can you provide hex values or at minimum a palette direction?",
+      "Q5: What is the 'closed loop diagram' on the home page? Is there an existing asset, or should one be built programmatically? What does it depict?",
+      "Q6: Is mobile/responsive layout in scope? Should the sidebar collapse to a hamburger menu on small screens?",
+      "Q7: For the comments section, is the author field just a free-text input with no authentication? Is there any moderation or spam prevention requirement?",
+      "Q8: Where will this be deployed? The BrowserRouter choice requires server-side routing support. Should we use HashRouter instead for static hosting compatibility?",
+      "Q9: What logo/brand asset should appear at the top of the sidebar?",
+      "Q10: The SOP mandates 'never use npx' but Convex's standard dev workflow uses `npx convex dev`. Should we use `bunx convex dev` instead, or install convex CLI globally?"
+    ],
+    "assumptions": [
+      "AS1: Tool page content will be placeholder text until a content source is provided. Step-by-step instructions will use realistic-looking but fabricated bash snippets.",
+      "AS2: Step numbers are sequential 1–11 following the tool list order as given in the spec: Constrain=1, Ledger=2, Pact=3, Advocate=4, Arbiter=5, Baton=6, Sentinel=7, Chronicler=8, Stigmergy=9, Apprentice=10, Kindex=11.",
+      "AS3: Kindex page will render without a video embed section (graceful omission, not an error).",
+      "AS4: Per-tool accent colors will be chosen by the implementer from a visually harmonious dark-theme palette, documented in a constants file.",
+      "AS5: The comments 'author' field is free-text input — no authentication system is required.",
+      "AS6: `bunx` will be used in place of `npx` for all CLI tool invocations including Convex.",
+      "AS7: The 'closed loop diagram' will be a simple SVG/React component showing the 11 tools in a circular flow, not a raster image.",
+      "AS8: The logo will be text-based ('exemplar.tools' in the heading font) unless an asset is provided.",
+      "AS9: Version badges will show hardcoded version strings in a constants/data file until a dynamic source is specified.",
+      "AS10: Mobile responsiveness is in scope at a basic level — sidebar collapses behind a toggle on screens below 768px.",
+      "AS11: Convex schema will be explicitly defined in convex/schema.ts with typed fields matching the data model in the spec.",
+      "AS12: Tailwind CSS v3 will be explicitly pinned in package.json to avoid v4 auto-upgrade."
+    ],
+    "acceptance_criteria": [
+      "AC1: `bun install` succeeds with zero errors. No npm or yarn lockfiles are present.",
+      "AC2: `bun run dev` starts Vite dev server on port 4000 as configured in vite.config.ts.",
+      "AC3: `bun run build` produces a production build in dist/ with zero TypeScript or build errors.",
+      "AC4: Home page renders at route '/' with: workflow overview text, a quick-start table listing all 11 tools, and a closed-loop diagram component.",
+      "AC5: All 11 tool pages are routable at /constrain, /ledger, /pact, /advocate, /arbiter, /baton, /sentinel, /chronicler, /stigmergy, /apprentice, /kindex.",
+      "AC6: Each tool page displays: tool name, one-line description, step number badge, version badge, step-by-step instructions with syntax-highlighted bash code blocks.",
+      "AC7: YouTube video iframe embeds render on all 10 tool pages that have URLs. Kindex page does not render a broken/empty iframe.",
+      "AC8: Each tool page has a comments section with author (text input), body (textarea), and submit button. Submitting calls the Convex addComment mutation.",
+      "AC9: Comments load in real-time via the Convex listComments query, filtered by current page. New comments appear without page refresh.",
+      "AC10: Fixed left sidebar is visible on all pages, lists all 11 tools with step numbers in order, highlights the active page, and has a logo/link to home at the top.",
+      "AC11: Dark theme with near-black background (#0a0a0a or similar), electric cyan accent color visible in interactive elements.",
+      "AC12: Instrument Serif (headings), JetBrains Mono (code), and Inter (body) fonts are loaded from Google Fonts and applied correctly.",
+      "AC13: Each tool page has a visually distinct accent color (not all identical).",
+      "AC14: Animated fade-in transition plays on page content when navigating between routes.",
+      "AC15: Subtle background grid pattern is visible on all pages.",
+      "AC16: All exported functions and React components have TypeScript type annotations. No `any` types on exported interfaces.",
+      "AC17: No file exceeds 300 lines.",
+      "AC18: React Router v6 BrowserRouter is used for routing with proper route definitions.",
+      "AC19: Convex schema is defined in convex/schema.ts with a 'comments' table matching the specified data model (page: string, author: string, body: string, createdAt: number).",
+      "AC20: `bunx vitest run` executes without configuration errors (tests may be minimal but the harness must work).",
+      "AC21: Only Tailwind utility classes are used for styling — no custom CSS files except where absolutely necessary.",
+      "AC22: All React components are functional components using hooks — no class components."
+    ],
+    "user_answers": {},
+    "approved": true,
+    "audited_answers": [],
+    "processing_register": "systematic-implementation"
+  },
+  "total_cost_usd": 10.021020000000002,
+  "total_tokens": 557732,
+  "last_check_in": "2026-05-06T13:49:11.619186",
+  "created_at": "2026-05-06T11:50:30.767767",
+  "completed_at": "2026-05-06T13:49:11.618517",
+  "pause_reason": "Budget cap reached",
+  "phase_cycles": 0,
+  "health_snapshot": {
+    "planning_tokens": 340752,
+    "generation_tokens": 0,
+    "planning_calls": 2,
+    "generation_calls": 0,
+    "plan_revisions": 0,
+    "implementation_attempts": 0,
+    "implementation_failures": 0,
+    "test_failures": 0,
+    "test_passes": 0,
+    "contracts_produced": 7,
+    "tests_produced": 7,
+    "implementations_produced": 0,
+    "component_failures": {},
+    "cascade_events": 0,
+    "register_drift_events": 0,
+    "register_checks": 0,
+    "phase_tokens": {
+      "interview": {
+        "input_tokens": 3548,
+        "output_tokens": 2780,
+        "calls": 1
+      },
+      "decompose": {
+        "input_tokens": 125564,
+        "output_tokens": 208860,
+        "calls": 1
+      }
+    },
+    "total_spend": 5.8493200000000005,
+    "budget_cap": 10.0,
+    "_overall_status": "healthy",
+    "_critical_findings": []
+  },
+  "processing_register": "systematic-implementation",
+  "audit_commit": "",
+  "arbiter_response": {},
+  "constrain_context": {}
+}

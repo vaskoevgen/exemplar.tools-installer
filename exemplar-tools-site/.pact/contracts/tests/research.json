@@ -1,0 +1,102 @@
+{
+  "task_summary": "Define the interface contract for the 'Test Harness & Smoke Tests' component (id: tests). This includes: vitest setup configuration (src/__tests__/setup.ts), smoke tests validating the ToolDefList (11 entries, correct slugs, required fields), a specific assertion that kindex has no videoUrl, and at least one @testing-library/react component render test. All must execute via `bunx vitest run` without configuration errors. The contract must align with the canonical type registry and the Vite+React+TypeScript+Bun+Tailwind stack.",
+  "findings": [
+    {
+      "topic": "Vitest configuration for Vite+React projects",
+      "finding": "Vitest integrates natively with Vite by referencing the existing vite.config.ts. The recommended pattern is to add a `test` block inside vite.config.ts (or a separate vitest.config.ts that merges it) specifying environment: 'jsdom' or 'happy-dom', setupFiles pointing to src/__tests__/setup.ts, and globals: true to avoid per-file vitest imports. For React 18, jsdom is the more battle-tested choice. The setup file should import '@testing-library/jest-dom' for DOM matchers (toBeInTheDocument, etc.).",
+      "source": "Vitest docs (vitest.dev/config), Testing Library React docs",
+      "relevance": "Directly defines the configuration surface the contract must specify.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Required devDependencies for test harness",
+      "finding": "The minimum dependency set is: vitest, @testing-library/react, @testing-library/jest-dom, @testing-library/user-event (optional but recommended), jsdom. With Bun as package manager, installation is `bun add -d vitest @testing-library/react @testing-library/jest-dom jsdom`. @testing-library/react v14+ is needed for React 18 compatibility.",
+      "source": "Testing Library compatibility matrix, Vitest getting-started guide",
+      "relevance": "Defines the dependency contract that must be satisfied before tests can run.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Smoke testing static data arrays with type-level assertions",
+      "finding": "Best practice for validating a canonical data array: (1) test array length with a literal assertion (`expect(tools).toHaveLength(11)`), (2) map to slugs and assert against a hard-coded expected set using `toEqual` (order-sensitive) or `toContain` per-slug, (3) use `each`/`describe.each` to iterate entries and assert required fields are defined and correctly typed. This catches both data omissions and schema drift. Using `satisfies` at the type level in the data module is complementary but not a substitute for runtime assertions.",
+      "source": "Vitest docs (describe.each), common TS testing patterns",
+      "relevance": "Directly prescribes the shape of the ToolDefList smoke tests.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Testing optional fields (OptionalVideoUrl pattern)",
+      "finding": "For the kindex-specific assertion (`videoUrl` must be undefined), the idiomatic vitest assertion is `expect(kindexTool.videoUrl).toBeUndefined()`. A complementary negative test should verify that at least one other tool *does* have a videoUrl defined, preventing a false-green scenario where all videoUrls are accidentally stripped. This is a frequently missed edge case.",
+      "source": "Jest/Vitest assertion API, defensive testing literature",
+      "relevance": "Directly addresses a named requirement and a common pitfall (vacuous truth).",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Component render smoke tests with @testing-library/react",
+      "finding": "Minimal render tests use `render(<Component />)` wrapped in necessary providers (e.g., MemoryRouter for components using React Router hooks). The test asserts no throw occurs and optionally checks for a known text node via `screen.getByText()`. For components consuming Convex hooks, the hooks must be mocked or a ConvexProvider with a mock client must be supplied — otherwise the test will throw. Best practice: pick the simplest, least-dependency component for the smoke test (e.g., a pure presentational component that doesn't use Convex).",
+      "source": "Testing Library React docs, React Router testing guide",
+      "relevance": "Defines the provider-wrapping contract and mock boundary for render tests.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Vitest setup file conventions",
+      "finding": "The setup file (setupFiles in vitest config) runs before each test file. It should: (1) import '@testing-library/jest-dom' to extend expect matchers, (2) optionally set up global mocks (e.g., mock window.matchMedia for Tailwind responsive tests, mock IntersectionObserver). It should NOT contain test cases. Cleanup is handled automatically by @testing-library/react (afterEach cleanup) when using vitest globals.",
+      "source": "Vitest setupFiles docs, @testing-library/react cleanup behavior",
+      "relevance": "Defines what belongs in setup.ts vs. test files.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Mocking Convex hooks in unit tests",
+      "finding": "Components using `useQuery` or `useMutation` from 'convex/react' will throw if rendered outside a ConvexProvider. Two approaches: (1) mock the convex/react module with `vi.mock('convex/react', ...)` returning stub implementations, (2) use convex-test library for integration tests. For smoke tests, approach (1) is simpler and sufficient. The mock should return stable values (e.g., useQuery returns undefined or a fixture array, useMutation returns a no-op function).",
+      "source": "Convex docs on testing, vitest vi.mock API",
+      "relevance": "Critical for any component render test involving Convex-connected components.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "TypeScript strict typing in test files",
+      "finding": "Per the project standards, exported functions must have type annotations. Test files typically don't export functions, so this is less critical, but helper functions (e.g., custom render wrappers) should still be typed. The interface contract should define the types for any shared test utilities (e.g., a renderWithProviders function signature). Import paths for the data layer should use the same aliases configured in vite.config.ts (if any).",
+      "source": "Project operating procedures, TS testing conventions",
+      "relevance": "Ensures test code meets the same quality bar as production code.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Bun + Vitest compatibility considerations",
+      "finding": "Vitest runs on Node by default. When invoked via `bunx vitest run`, Bun resolves and executes the vitest binary but vitest itself spawns Node worker threads for test execution (unless --pool=forks or --pool=threads is configured). This is generally transparent but can cause issues with Bun-specific APIs. For a standard React+Vite project, no special configuration is needed. The `bunx` invocation is functionally equivalent to having vitest in PATH.",
+      "source": "Bun docs on bunx, Vitest pool configuration docs",
+      "relevance": "Confirms no special Bun-specific vitest config is needed, reducing contract complexity.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "File organization for test files",
+      "finding": "Two dominant patterns: (1) co-located tests (Component.test.tsx next to Component.tsx), (2) centralized __tests__ directory. The task specifies src/__tests__/setup.ts for config, implying a centralized approach for at least the setup. A hybrid is common: setup.ts in __tests__/, individual test files co-located or in __tests__/. The vitest include glob defaults to **/*.{test,spec}.{ts,tsx} which covers both. The contract should specify the file paths explicitly.",
+      "source": "Vitest default config, community conventions",
+      "relevance": "Defines the file layout contract for the test harness.",
+      "confidence": 0.91
+    }
+  ],
+  "recommended_approach": "Define the test harness contract as follows:\n\n**1. Configuration Surface (src/__tests__/setup.ts + vite.config.ts test block)**\n- `vite.config.ts` adds a `test` key: `{ globals: true, environment: 'jsdom', setupFiles: ['src/__tests__/setup.ts'], include: ['src/**/*.{test,spec}.{ts,tsx}'] }`\n- `src/__tests__/setup.ts` imports `@testing-library/jest-dom` and sets up any global mocks (e.g., `window.matchMedia` stub).\n\n**2. Data Layer Smoke Tests (src/__tests__/tools-data.test.ts)**\n- Import the canonical `ToolDefList` array from the data layer module.\n- Assert `.length === 11`.\n- Assert slugs match the exact `ToolSlug` enum variants in order: constrain, ledger, pact, advocate, arbiter, baton, sentinel, chronicler, stigmergy, apprentice, kindex.\n- Use `describe.each` over all 11 entries to assert each has: `name` (non-empty string), `description` (non-empty string), `step` (number 1–11), `version` (non-empty string), `accentColor` (string matching /^#[0-9a-fA-F]{6}$/).\n- Assert `tools.find(t => t.slug === 'kindex')!.videoUrl` is `undefined`.\n- Assert at least one tool has a defined `videoUrl` (prevents vacuous truth).\n\n**3. Component Render Smoke Test (src/__tests__/component-render.test.tsx)**\n- Pick the simplest presentational component (likely a sidebar item or a tool card that doesn't depend on Convex hooks).\n- Wrap in `MemoryRouter` if it uses React Router.\n- Mock `convex/react` at module level if the chosen component transitively imports Convex hooks.\n- Assert render completes without throwing and a known text element is present.\n- Export a typed `renderWithProviders` utility if reusable across future tests.\n\n**4. Dependency Contract**\n- devDependencies: `vitest`, `jsdom`, `@testing-library/react` (v14+), `@testing-library/jest-dom`.\n- All installed via `bun add -d`.\n\n**5. Execution Contract**\n- `bunx vitest run` exits 0 with all tests passing.\n- Add `\"test\": \"vitest run\"` to package.json scripts so `bun run test` also works.",
+  "alternatives_considered": [
+    "happy-dom instead of jsdom: Faster but less complete DOM emulation. jsdom is more mature for React 18 + Testing Library and is the safer choice for a smoke test harness.",
+    "Separate vitest.config.ts instead of embedding test config in vite.config.ts: Adds a file but provides cleaner separation. However, the Vitest docs recommend the inline approach for simple setups, and the task description implies minimal configuration footprint.",
+    "convex-test library for integration-level Convex testing: Overkill for smoke tests. Module-level vi.mock of convex/react is sufficient and avoids pulling in the Convex test server.",
+    "Co-located test files (*.test.tsx next to components) vs. centralized __tests__/ directory: The task explicitly names src/__tests__/setup.ts, so we anchor there. Individual test files can live in __tests__/ or be co-located — the vitest include glob covers both. For the contract, specify explicit paths.",
+    "Using @testing-library/user-event for interaction tests: Not needed for smoke tests. Can be added later for functional tests."
+  ],
+  "risks": [
+    "Import path drift: If the data layer module path changes (e.g., from src/data/tools.ts to src/lib/tools.ts), all test imports break. Mitigate by defining a single canonical import path in the contract.",
+    "Convex hook mocking fragility: If a tested component's dependency tree changes to include Convex hooks, previously-passing render tests will throw. Mitigate by documenting the mock boundary and choosing the most stable/pure component for the render smoke test.",
+    "ToolSlug ordering assumption: The slug order assertion (step 1–11) assumes the data array is sorted by step number. If the data layer doesn't guarantee order, the test will produce false negatives. The contract should specify whether order is guaranteed.",
+    "HexColor regex may be too strict or too lenient: The pattern /^#[0-9a-fA-F]{6}$/ excludes shorthand (#fff) and 8-digit hex (#00e5ff80). The canonical type says 'CSS hex color string (e.g. #00e5ff)' — 6-digit is correct, but the test should document this assumption.",
+    "React 18 createRoot warning: @testing-library/react v14+ uses createRoot by default, but mismatched versions can emit console warnings that clutter test output. Pin @testing-library/react to v14+ explicitly.",
+    "Bun + vitest worker thread edge cases: Rare, but Bun's bunx may resolve a different vitest version than expected. Mitigate by pinning vitest version in devDependencies."
+  ],
+  "compliance_notes": [
+    "Package manager: All dependency installation and script execution MUST use Bun (`bun add -d`, `bun run test`, `bunx vitest run`). Never npm/yarn/npx.",
+    "Type annotations: Any exported test utility functions (e.g., renderWithProviders) must have explicit TypeScript type annotations per project standards.",
+    "Canonical types: Tests must import and reference ToolDef, ToolSlug, etc. from the data layer — must NOT redefine these types in test files.",
+    "No class components: Any test wrapper components must be functional components.",
+    "Tailwind only: If test utilities render wrapper components with styling, they must use Tailwind classes.",
+    "File size: Test files must stay under 300 lines. Split into multiple test files if approaching the limit.",
+    "Dev server port 4000: Not directly relevant to tests, but vite.config.ts modifications for the test block must not alter the existing server.port: 4000 setting.",
+    "React Router v6: Component render tests must use MemoryRouter from react-router-dom v6 for any routed components.",
+    "Build output dist/: Test artifacts should not interfere with the dist/ build output."
+  ]
+}
