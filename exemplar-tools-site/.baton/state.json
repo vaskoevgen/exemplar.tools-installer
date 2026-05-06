@@ -1,0 +1,102 @@
+{
+  "circuit_name": "root",
+  "collapse_level": "full_mock",
+  "live_nodes": [],
+  "adapters": {
+    "project-scaffold": {
+      "node_name": "project-scaffold",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "data-layer": {
+      "node_name": "data-layer",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "app-shell": {
+      "node_name": "app-shell",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "home-page": {
+      "node_name": "home-page",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "tool-page": {
+      "node_name": "tool-page",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "tests": {
+      "node_name": "tests",
+      "status": "listening",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    }
+  },
+  "mock_pid": 0,
+  "custodian_pid": 0,
+  "owner_pid": 49123,
+  "started_at": "2026-05-06T19:02:04.265142+00:00",
+  "updated_at": "2026-05-06T19:02:04.265279+00:00"
+}

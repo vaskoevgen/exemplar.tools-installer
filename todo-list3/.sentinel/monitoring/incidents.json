@@ -1,0 +1,3120 @@
+{
+  "incidents": {
+    "b1801f7e1d94": {
+      "id": "b1801f7e1d94",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return self._connect(key)\", \"timestamp\": \"2026-05-05T20:09:17.363735+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946426",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "eaa3ebc25de0cf97",
+        "first_seen": "2026-05-05T15:09:44.947277",
+        "last_seen": "2026-05-05T15:09:44.947279",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return self._connect(key)\", \"timestamp\": \"2026-05-05T20:09:17.363735+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946426",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:44.946776",
+      "updated_at": "2026-05-05T15:09:45.494335",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident b1801f7e1d94\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "4adaf9b462d3": {
+      "id": "4adaf9b462d3",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363770+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946508",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "ea2119b469600c60",
+        "first_seen": "2026-05-05T15:09:45.494940",
+        "last_seen": "2026-05-05T15:09:45.494942",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363770+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946508",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.494683",
+      "updated_at": "2026-05-05T15:09:45.500004",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 4adaf9b462d3\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "21d3064caacb": {
+      "id": "21d3064caacb",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 63, in _connect\", \"timestamp\": \"2026-05-05T20:09:17.363807+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946527",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "f7f46f2ae9900716",
+        "first_seen": "2026-05-05T15:09:45.500493",
+        "last_seen": "2026-05-05T15:09:45.500494",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 63, in _connect\", \"timestamp\": \"2026-05-05T20:09:17.363807+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946527",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.500307",
+      "updated_at": "2026-05-05T15:09:45.504713",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 21d3064caacb\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "4db0df6c8270": {
+      "id": "4db0df6c8270",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = psycopg2.connect(*self._args, **self._kwargs)\", \"timestamp\": \"2026-05-05T20:09:17.363842+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946542",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "09fbd02daf6d19b4",
+        "first_seen": "2026-05-05T15:09:45.505223",
+        "last_seen": "2026-05-05T15:09:45.505224",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = psycopg2.connect(*self._args, **self._kwargs)\", \"timestamp\": \"2026-05-05T20:09:17.363842+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946542",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.504991",
+      "updated_at": "2026-05-05T15:09:45.509583",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 4db0df6c8270\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "788c839f2314": {
+      "id": "788c839f2314",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363881+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946552",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "b64d29e0d473521d",
+        "first_seen": "2026-05-05T15:09:45.510099",
+        "last_seen": "2026-05-05T15:09:45.510101",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363881+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946552",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.509891",
+      "updated_at": "2026-05-05T15:09:45.514645",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 788c839f2314\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "a8620c1874d4": {
+      "id": "a8620c1874d4",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/__init__.py\\\", line 122, in connect\", \"timestamp\": \"2026-05-05T20:09:17.363919+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946564",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "549d86547fdecf16",
+        "first_seen": "2026-05-05T15:09:45.515161",
+        "last_seen": "2026-05-05T15:09:45.515162",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/__init__.py\\\", line 122, in connect\", \"timestamp\": \"2026-05-05T20:09:17.363919+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946564",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.514950",
+      "updated_at": "2026-05-05T15:09:45.519240",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident a8620c1874d4\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "af6b3cd0ed75": {
+      "id": "af6b3cd0ed75",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)\", \"timestamp\": \"2026-05-05T20:09:17.363954+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946575",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "c94ad7505c9a9e51",
+        "first_seen": "2026-05-05T15:09:45.519822",
+        "last_seen": "2026-05-05T15:09:45.519823",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = _connect(dsn, connection_factory=connection_factory, **kwasync)\", \"timestamp\": \"2026-05-05T20:09:17.363954+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946575",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.519580",
+      "updated_at": "2026-05-05T15:09:45.524318",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident af6b3cd0ed75\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "64fb283103f9": {
+      "id": "64fb283103f9",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363990+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946585",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "c93a76e38fa5c937",
+        "first_seen": "2026-05-05T15:09:45.525088",
+        "last_seen": "2026-05-05T15:09:45.525090",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:09:17.363990+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946585",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.524624",
+      "updated_at": "2026-05-05T15:09:45.529397",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 64fb283103f9\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "799d58e52bee": {
+      "id": "799d58e52bee",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"psycopg2.OperationalError: connection to server at \\\"127.0.0.1\\\", port 5432 failed: Connection refused\", \"timestamp\": \"2026-05-05T20:09:17.364026+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946594",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "275288006b22622c",
+        "first_seen": "2026-05-05T15:09:45.530202",
+        "last_seen": "2026-05-05T15:09:45.530204",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"psycopg2.OperationalError: connection to server at \\\"127.0.0.1\\\", port 5432 failed: Connection refused\", \"timestamp\": \"2026-05-05T20:09:17.364026+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946594",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.529784",
+      "updated_at": "2026-05-05T15:09:45.534919",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 799d58e52bee\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "5470bf862670": {
+      "id": "5470bf862670",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"\\tIs the server running on that host and accepting TCP/IP connections?\", \"timestamp\": \"2026-05-05T20:09:17.364072+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946604",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "e08c86436cf2eb7e",
+        "first_seen": "2026-05-05T15:09:45.535596",
+        "last_seen": "2026-05-05T15:09:45.535597",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"\\tIs the server running on that host and accepting TCP/IP connections?\", \"timestamp\": \"2026-05-05T20:09:17.364072+00:00\"}",
+          "timestamp": "2026-05-05T15:09:44.946604",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:09:45.535314",
+      "updated_at": "2026-05-05T15:09:45.539601",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 5470bf862670\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "f2fd8798adc3": {
+      "id": "f2fd8798adc3",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stdout\", \"severity\": \"error\", \"message\": \"INFO:     127.0.0.1:57920 - \\\"GET /tasks HTTP/1.1\\\" 500 Internal Server Error\", \"timestamp\": \"2026-05-05T20:10:15.823415+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062201",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "be4f17499f9f9edc",
+        "first_seen": "2026-05-05T15:10:16.064419",
+        "last_seen": "2026-05-05T15:10:16.064420",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stdout\", \"severity\": \"error\", \"message\": \"INFO:     127.0.0.1:57920 - \\\"GET /tasks HTTP/1.1\\\" 500 Internal Server Error\", \"timestamp\": \"2026-05-05T20:10:15.823415+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062201",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.063823",
+      "updated_at": "2026-05-05T15:10:16.071997",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident f2fd8798adc3\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "0a700a5e0d6f": {
+      "id": "0a700a5e0d6f",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"ERROR:    Exception in ASGI application\", \"timestamp\": \"2026-05-05T20:10:15.824261+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062276",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "92962500160525f0",
+        "first_seen": "2026-05-05T15:10:16.072875",
+        "last_seen": "2026-05-05T15:10:16.072877",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"ERROR:    Exception in ASGI application\", \"timestamp\": \"2026-05-05T20:10:15.824261+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062276",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.072566",
+      "updated_at": "2026-05-05T15:10:16.078180",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 0a700a5e0d6f\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "4e126694bd63": {
+      "id": "4e126694bd63",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"Traceback (most recent call last):\", \"timestamp\": \"2026-05-05T20:10:15.824363+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062290",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "6c3acdd3e6180ad8",
+        "first_seen": "2026-05-05T15:10:16.078951",
+        "last_seen": "2026-05-05T15:10:16.078952",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"Traceback (most recent call last):\", \"timestamp\": \"2026-05-05T20:10:15.824363+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062290",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.078625",
+      "updated_at": "2026-05-05T15:10:16.083638",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 4e126694bd63\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "00b02be7fdef": {
+      "id": "00b02be7fdef",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\\\", line 415, in run_asgi\", \"timestamp\": \"2026-05-05T20:10:15.824461+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062301",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "de307201e08ccada",
+        "first_seen": "2026-05-05T15:10:16.084616",
+        "last_seen": "2026-05-05T15:10:16.084617",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py\\\", line 415, in run_asgi\", \"timestamp\": \"2026-05-05T20:10:15.824461+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062301",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.084099",
+      "updated_at": "2026-05-05T15:10:16.089986",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 00b02be7fdef\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "42190c293fab": {
+      "id": "42190c293fab",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = await app(  # type: ignore[func-returns-value]\", \"timestamp\": \"2026-05-05T20:10:15.824512+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062316",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "e9f0328d371f5e15",
+        "first_seen": "2026-05-05T15:10:16.090772",
+        "last_seen": "2026-05-05T15:10:16.090773",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = await app(  # type: ignore[func-returns-value]\", \"timestamp\": \"2026-05-05T20:10:15.824512+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062316",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.090435",
+      "updated_at": "2026-05-05T15:10:16.095231",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 42190c293fab\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "f467420f0bb3": {
+      "id": "f467420f0bb3",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.824556+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062326",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "c1dfc4e3a9e076f7",
+        "first_seen": "2026-05-05T15:10:16.096401",
+        "last_seen": "2026-05-05T15:10:16.096402",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.824556+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062326",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.095674",
+      "updated_at": "2026-05-05T15:10:16.101743",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident f467420f0bb3\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "05d404379bbf": {
+      "id": "05d404379bbf",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\\\", line 56, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824602+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062335",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "120bd8ec3e3c4c40",
+        "first_seen": "2026-05-05T15:10:16.103178",
+        "last_seen": "2026-05-05T15:10:16.103182",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py\\\", line 56, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824602+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062335",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.102453",
+      "updated_at": "2026-05-05T15:10:16.107738",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 05d404379bbf\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "35ab715bacee": {
+      "id": "35ab715bacee",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await self.app(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824644+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062347",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "83b6075681cf5c25",
+        "first_seen": "2026-05-05T15:10:16.108561",
+        "last_seen": "2026-05-05T15:10:16.108562",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await self.app(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824644+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062347",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.108196",
+      "updated_at": "2026-05-05T15:10:16.113754",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 35ab715bacee\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "96a1469d2cd0": {
+      "id": "96a1469d2cd0",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.824691+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062355",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "f47f28b389c2de9c",
+        "first_seen": "2026-05-05T15:10:16.114698",
+        "last_seen": "2026-05-05T15:10:16.114699",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.824691+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062355",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.114231",
+      "updated_at": "2026-05-05T15:10:16.119809",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 96a1469d2cd0\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "6daaef26ce77": {
+      "id": "6daaef26ce77",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/applications.py\\\", line 1159, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824733+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062363",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "9cd9d21c31e5e22c",
+        "first_seen": "2026-05-05T15:10:16.120936",
+        "last_seen": "2026-05-05T15:10:16.120937",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/applications.py\\\", line 1159, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824733+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062363",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.120319",
+      "updated_at": "2026-05-05T15:10:16.126203",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 6daaef26ce77\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "8af991e25892": {
+      "id": "8af991e25892",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await super().__call__(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824771+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062374",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "7a244c9b7f164a26",
+        "first_seen": "2026-05-05T15:10:16.127644",
+        "last_seen": "2026-05-05T15:10:16.127646",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await super().__call__(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824771+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062374",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.126881",
+      "updated_at": "2026-05-05T15:10:16.132343",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 8af991e25892\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "3e76f3f8f269": {
+      "id": "3e76f3f8f269",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/applications.py\\\", line 90, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824813+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062382",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "5202c3336ce9db7f",
+        "first_seen": "2026-05-05T15:10:16.133381",
+        "last_seen": "2026-05-05T15:10:16.133382",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/applications.py\\\", line 90, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824813+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062382",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.132861",
+      "updated_at": "2026-05-05T15:10:16.138756",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 3e76f3f8f269\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "e6d5b0b8d9f0": {
+      "id": "e6d5b0b8d9f0",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.middleware_stack(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824850+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062394",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "f6fa11bcc740b6da",
+        "first_seen": "2026-05-05T15:10:16.139752",
+        "last_seen": "2026-05-05T15:10:16.139753",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.middleware_stack(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.824850+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062394",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.139298",
+      "updated_at": "2026-05-05T15:10:16.144347",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident e6d5b0b8d9f0\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "0d804897c11b": {
+      "id": "0d804897c11b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py\\\", line 186, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824890+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062402",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "4b624d9880ba65cf",
+        "first_seen": "2026-05-05T15:10:16.145363",
+        "last_seen": "2026-05-05T15:10:16.145364",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py\\\", line 186, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824890+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062402",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.144896",
+      "updated_at": "2026-05-05T15:10:16.150295",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 0d804897c11b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "8cd2bc64b519": {
+      "id": "8cd2bc64b519",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    raise exc\", \"timestamp\": \"2026-05-05T20:10:15.824925+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062412",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "5a3485db4ba4ed92",
+        "first_seen": "2026-05-05T15:10:16.151671",
+        "last_seen": "2026-05-05T15:10:16.151672",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    raise exc\", \"timestamp\": \"2026-05-05T20:10:15.824925+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062412",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.150896",
+      "updated_at": "2026-05-05T15:10:16.156202",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 8cd2bc64b519\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "f5f3b01eded6": {
+      "id": "f5f3b01eded6",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py\\\", line 164, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824966+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062420",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "614ff47855783584",
+        "first_seen": "2026-05-05T15:10:16.157357",
+        "last_seen": "2026-05-05T15:10:16.157358",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/errors.py\\\", line 164, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.824966+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062420",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.156876",
+      "updated_at": "2026-05-05T15:10:16.162785",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident f5f3b01eded6\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "5f51fe87155a": {
+      "id": "5f51fe87155a",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.app(scope, receive, _send)\", \"timestamp\": \"2026-05-05T20:10:15.825005+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062430",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "4f98b66d73fd6ecf",
+        "first_seen": "2026-05-05T15:10:16.164306",
+        "last_seen": "2026-05-05T15:10:16.164307",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.app(scope, receive, _send)\", \"timestamp\": \"2026-05-05T20:10:15.825005+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062430",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.163636",
+      "updated_at": "2026-05-05T15:10:16.169381",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 5f51fe87155a\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "2634cbb461bc": {
+      "id": "2634cbb461bc",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py\\\", line 88, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825046+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062439",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "85962fb854872756",
+        "first_seen": "2026-05-05T15:10:16.170472",
+        "last_seen": "2026-05-05T15:10:16.170473",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/cors.py\\\", line 88, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825046+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062439",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.169964",
+      "updated_at": "2026-05-05T15:10:16.175416",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 2634cbb461bc\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "dec435f2e4bb": {
+      "id": "dec435f2e4bb",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.app(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825083+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062450",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "ad5ae6783d65fb80",
+        "first_seen": "2026-05-05T15:10:16.176864",
+        "last_seen": "2026-05-05T15:10:16.176866",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await self.app(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825083+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062450",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.176291",
+      "updated_at": "2026-05-05T15:10:16.182013",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident dec435f2e4bb\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "1ed7cd65b2e5": {
+      "id": "1ed7cd65b2e5",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py\\\", line 63, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825123+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062459",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "bf00ef9ddd3a7fdd",
+        "first_seen": "2026-05-05T15:10:16.183900",
+        "last_seen": "2026-05-05T15:10:16.183902",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/middleware/exceptions.py\\\", line 63, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825123+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062459",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.183035",
+      "updated_at": "2026-05-05T15:10:16.189612",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 1ed7cd65b2e5\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "d08678a4dc2e": {
+      "id": "d08678a4dc2e",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825159+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062469",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "ffdb785064933fd6",
+        "first_seen": "2026-05-05T15:10:16.190950",
+        "last_seen": "2026-05-05T15:10:16.190951",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825159+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062469",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.190409",
+      "updated_at": "2026-05-05T15:10:16.195531",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident d08678a4dc2e\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "634d884faffa": {
+      "id": "634d884faffa",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 53, in wrapped_app\", \"timestamp\": \"2026-05-05T20:10:15.825226+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062477",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "c0adcb86d9d90db3",
+        "first_seen": "2026-05-05T15:10:16.197446",
+        "last_seen": "2026-05-05T15:10:16.197447",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 53, in wrapped_app\", \"timestamp\": \"2026-05-05T20:10:15.825226+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062477",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.196546",
+      "updated_at": "2026-05-05T15:10:16.203198",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 634d884faffa\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "06375a48a011": {
+      "id": "06375a48a011",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 42, in wrapped_app\", \"timestamp\": \"2026-05-05T20:10:15.825313+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062527",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d55ce719709c7d00",
+        "first_seen": "2026-05-05T15:10:16.204555",
+        "last_seen": "2026-05-05T15:10:16.204557",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/_exception_handler.py\\\", line 42, in wrapped_app\", \"timestamp\": \"2026-05-05T20:10:15.825313+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062527",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.203883",
+      "updated_at": "2026-05-05T15:10:16.209363",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 06375a48a011\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "60e9d48b355b": {
+      "id": "60e9d48b355b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await app(scope, receive, sender)\", \"timestamp\": \"2026-05-05T20:10:15.825351+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062539",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d0be350344171829",
+        "first_seen": "2026-05-05T15:10:16.211050",
+        "last_seen": "2026-05-05T15:10:16.211051",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await app(scope, receive, sender)\", \"timestamp\": \"2026-05-05T20:10:15.825351+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062539",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.210111",
+      "updated_at": "2026-05-05T15:10:16.217492",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 60e9d48b355b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "6ab34017d5aa": {
+      "id": "6ab34017d5aa",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py\\\", line 18, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825392+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062548",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "41f170a7926b3301",
+        "first_seen": "2026-05-05T15:10:16.218830",
+        "last_seen": "2026-05-05T15:10:16.218831",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/middleware/asyncexitstack.py\\\", line 18, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825392+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062548",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.218216",
+      "updated_at": "2026-05-05T15:10:16.224097",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 6ab34017d5aa\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "4e5197a7c9d4": {
+      "id": "4e5197a7c9d4",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 660, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825471+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062568",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "0b6bc8335223da85",
+        "first_seen": "2026-05-05T15:10:16.225419",
+        "last_seen": "2026-05-05T15:10:16.225421",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 660, in __call__\", \"timestamp\": \"2026-05-05T20:10:15.825471+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062568",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.224805",
+      "updated_at": "2026-05-05T15:10:16.230677",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 4e5197a7c9d4\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "20c5e0dfaab2": {
+      "id": "20c5e0dfaab2",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 680, in app\", \"timestamp\": \"2026-05-05T20:10:15.825565+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062588",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "50e6506136c701a7",
+        "first_seen": "2026-05-05T15:10:16.232153",
+        "last_seen": "2026-05-05T15:10:16.232155",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 680, in app\", \"timestamp\": \"2026-05-05T20:10:15.825565+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062588",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.231403",
+      "updated_at": "2026-05-05T15:10:16.237553",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 20c5e0dfaab2\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "27f94f1a5fce": {
+      "id": "27f94f1a5fce",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await route.handle(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825608+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062598",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "219a90846cfa3f35",
+        "first_seen": "2026-05-05T15:10:16.239135",
+        "last_seen": "2026-05-05T15:10:16.239137",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await route.handle(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825608+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062598",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.238407",
+      "updated_at": "2026-05-05T15:10:16.245586",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 27f94f1a5fce\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "9d10fef00fe4": {
+      "id": "9d10fef00fe4",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 276, in handle\", \"timestamp\": \"2026-05-05T20:10:15.825649+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062606",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "43e20590f9b1020a",
+        "first_seen": "2026-05-05T15:10:16.247119",
+        "last_seen": "2026-05-05T15:10:16.247121",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/routing.py\\\", line 276, in handle\", \"timestamp\": \"2026-05-05T20:10:15.825649+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062606",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.246403",
+      "updated_at": "2026-05-05T15:10:16.252508",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 9d10fef00fe4\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "df1e7ebf0b76": {
+      "id": "df1e7ebf0b76",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 134, in app\", \"timestamp\": \"2026-05-05T20:10:15.825728+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062623",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "4c1f828b56a04991",
+        "first_seen": "2026-05-05T15:10:16.254571",
+        "last_seen": "2026-05-05T15:10:16.254573",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 134, in app\", \"timestamp\": \"2026-05-05T20:10:15.825728+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062623",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.253761",
+      "updated_at": "2026-05-05T15:10:16.260403",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident df1e7ebf0b76\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "1d4ea8f129d8": {
+      "id": "1d4ea8f129d8",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825766+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062633",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "4d486c15874e5616",
+        "first_seen": "2026-05-05T15:10:16.262208",
+        "last_seen": "2026-05-05T15:10:16.262209",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    await wrap_app_handling_exceptions(app, request)(scope, receive, send)\", \"timestamp\": \"2026-05-05T20:10:15.825766+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062633",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.261461",
+      "updated_at": "2026-05-05T15:10:16.267324",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 1d4ea8f129d8\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "61572921a9ed": {
+      "id": "61572921a9ed",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 120, in app\", \"timestamp\": \"2026-05-05T20:10:15.825978+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062675",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "896630ed6a3e1d6d",
+        "first_seen": "2026-05-05T15:10:16.268986",
+        "last_seen": "2026-05-05T15:10:16.268988",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 120, in app\", \"timestamp\": \"2026-05-05T20:10:15.825978+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062675",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.268242",
+      "updated_at": "2026-05-05T15:10:16.274926",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 61572921a9ed\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "6f4532e4e966": {
+      "id": "6f4532e4e966",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    response = await f(request)\", \"timestamp\": \"2026-05-05T20:10:15.826010+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062685",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d270e246e689a41c",
+        "first_seen": "2026-05-05T15:10:16.276944",
+        "last_seen": "2026-05-05T15:10:16.276945",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    response = await f(request)\", \"timestamp\": \"2026-05-05T20:10:15.826010+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062685",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.276174",
+      "updated_at": "2026-05-05T15:10:16.282033",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 6f4532e4e966\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "d8de49d4184c": {
+      "id": "d8de49d4184c",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"               ^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826041+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062694",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "34dc0081699ba0d7",
+        "first_seen": "2026-05-05T15:10:16.284017",
+        "last_seen": "2026-05-05T15:10:16.284018",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"               ^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826041+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062694",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.283249",
+      "updated_at": "2026-05-05T15:10:16.289851",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident d8de49d4184c\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "63cd5694fcd3": {
+      "id": "63cd5694fcd3",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 457, in app\", \"timestamp\": \"2026-05-05T20:10:15.826077+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062702",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d6f4f38b74e34149",
+        "first_seen": "2026-05-05T15:10:16.292012",
+        "last_seen": "2026-05-05T15:10:16.292013",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/routing.py\\\", line 457, in app\", \"timestamp\": \"2026-05-05T20:10:15.826077+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062702",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.291264",
+      "updated_at": "2026-05-05T15:10:16.297622",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 63cd5694fcd3\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "aadd437ffb6e": {
+      "id": "aadd437ffb6e",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    solved_result = await solve_dependencies(\", \"timestamp\": \"2026-05-05T20:10:15.826108+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062712",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "2d256057e6a17275",
+        "first_seen": "2026-05-05T15:10:16.299830",
+        "last_seen": "2026-05-05T15:10:16.299831",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    solved_result = await solve_dependencies(\", \"timestamp\": \"2026-05-05T20:10:15.826108+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062712",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.298748",
+      "updated_at": "2026-05-05T15:10:16.306059",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident aadd437ffb6e\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "be670892d4cd": {
+      "id": "be670892d4cd",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"                    ^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826139+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062719",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "8c656bde25f86586",
+        "first_seen": "2026-05-05T15:10:16.307734",
+        "last_seen": "2026-05-05T15:10:16.307735",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"                    ^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826139+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062719",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.306947",
+      "updated_at": "2026-05-05T15:10:16.313844",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident be670892d4cd\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "00b82efff80b": {
+      "id": "00b82efff80b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py\\\", line 672, in solve_dependencies\", \"timestamp\": \"2026-05-05T20:10:15.826175+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062728",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "cb7062e981293923",
+        "first_seen": "2026-05-05T15:10:16.315615",
+        "last_seen": "2026-05-05T15:10:16.315616",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py\\\", line 672, in solve_dependencies\", \"timestamp\": \"2026-05-05T20:10:15.826175+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062728",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.314803",
+      "updated_at": "2026-05-05T15:10:16.321344",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 00b82efff80b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "28d6961db88a": {
+      "id": "28d6961db88a",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    solved = await _solve_generator(\", \"timestamp\": \"2026-05-05T20:10:15.826205+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062739",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "2fc619e61a7df195",
+        "first_seen": "2026-05-05T15:10:16.323830",
+        "last_seen": "2026-05-05T15:10:16.323832",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    solved = await _solve_generator(\", \"timestamp\": \"2026-05-05T20:10:15.826205+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062739",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.322625",
+      "updated_at": "2026-05-05T15:10:16.330127",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 28d6961db88a\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "dc66eaf7528c": {
+      "id": "dc66eaf7528c",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826236+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062747",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "fe333585e29bb065",
+        "first_seen": "2026-05-05T15:10:16.332171",
+        "last_seen": "2026-05-05T15:10:16.332172",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826236+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062747",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.331341",
+      "updated_at": "2026-05-05T15:10:16.338337",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident dc66eaf7528c\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "743de46e2c51": {
+      "id": "743de46e2c51",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py\\\", line 586, in _solve_generator\", \"timestamp\": \"2026-05-05T20:10:15.826271+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062755",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "46d7eb590cef41a4",
+        "first_seen": "2026-05-05T15:10:16.340508",
+        "last_seen": "2026-05-05T15:10:16.340510",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/dependencies/utils.py\\\", line 586, in _solve_generator\", \"timestamp\": \"2026-05-05T20:10:15.826271+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062755",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.339384",
+      "updated_at": "2026-05-05T15:10:16.346628",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 743de46e2c51\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "ff9e99d81f8b": {
+      "id": "ff9e99d81f8b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await stack.enter_async_context(cm)\", \"timestamp\": \"2026-05-05T20:10:15.826302+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062765",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d8773eaa722fb611",
+        "first_seen": "2026-05-05T15:10:16.348535",
+        "last_seen": "2026-05-05T15:10:16.348536",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await stack.enter_async_context(cm)\", \"timestamp\": \"2026-05-05T20:10:15.826302+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062765",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.347562",
+      "updated_at": "2026-05-05T15:10:16.354373",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident ff9e99d81f8b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "8e8fc3345ff2": {
+      "id": "8e8fc3345ff2",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826332+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062773",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "97b2dc6de238dc8c",
+        "first_seen": "2026-05-05T15:10:16.356220",
+        "last_seen": "2026-05-05T15:10:16.356221",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826332+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062773",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.355357",
+      "updated_at": "2026-05-05T15:10:16.361903",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 8e8fc3345ff2\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "1e08c032ddc9": {
+      "id": "1e08c032ddc9",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 659, in enter_async_context\", \"timestamp\": \"2026-05-05T20:10:15.826366+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062780",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "bb0bb0a972d28cd0",
+        "first_seen": "2026-05-05T15:10:16.364099",
+        "last_seen": "2026-05-05T15:10:16.364100",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 659, in enter_async_context\", \"timestamp\": \"2026-05-05T20:10:15.826366+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062780",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.362888",
+      "updated_at": "2026-05-05T15:10:16.370221",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 1e08c032ddc9\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "bba762197b08": {
+      "id": "bba762197b08",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = await _enter(cm)\", \"timestamp\": \"2026-05-05T20:10:15.826398+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062794",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "83f710c6088e8e72",
+        "first_seen": "2026-05-05T15:10:16.372404",
+        "last_seen": "2026-05-05T15:10:16.372405",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = await _enter(cm)\", \"timestamp\": \"2026-05-05T20:10:15.826398+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062794",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.371501",
+      "updated_at": "2026-05-05T15:10:16.378157",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident bba762197b08\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "7ca19eba19fd": {
+      "id": "7ca19eba19fd",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 210, in __aenter__\", \"timestamp\": \"2026-05-05T20:10:15.826461+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062810",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d067a2716c0e2487",
+        "first_seen": "2026-05-05T15:10:16.380317",
+        "last_seen": "2026-05-05T15:10:16.380318",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 210, in __aenter__\", \"timestamp\": \"2026-05-05T20:10:15.826461+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062810",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.379165",
+      "updated_at": "2026-05-05T15:10:16.386581",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 7ca19eba19fd\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "a36c7f540e1c": {
+      "id": "a36c7f540e1c",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await anext(self.gen)\", \"timestamp\": \"2026-05-05T20:10:15.826490+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062820",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "0b9c911f6a16c6cb",
+        "first_seen": "2026-05-05T15:10:16.389060",
+        "last_seen": "2026-05-05T15:10:16.389061",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await anext(self.gen)\", \"timestamp\": \"2026-05-05T20:10:15.826490+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062820",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.387958",
+      "updated_at": "2026-05-05T15:10:16.394879",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident a36c7f540e1c\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "5e3f78bff9f3": {
+      "id": "5e3f78bff9f3",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826519+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062827",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "7ff8b4982cfcea55",
+        "first_seen": "2026-05-05T15:10:16.397420",
+        "last_seen": "2026-05-05T15:10:16.397423",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826519+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062827",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.396213",
+      "updated_at": "2026-05-05T15:10:16.403542",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 5e3f78bff9f3\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "bde833ed5abe": {
+      "id": "bde833ed5abe",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/concurrency.py\\\", line 37, in contextmanager_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826554+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062835",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "8b5cda317250cc18",
+        "first_seen": "2026-05-05T15:10:16.406123",
+        "last_seen": "2026-05-05T15:10:16.406124",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/concurrency.py\\\", line 37, in contextmanager_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826554+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062835",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.404884",
+      "updated_at": "2026-05-05T15:10:16.412351",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident bde833ed5abe\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "863105d8e13d": {
+      "id": "863105d8e13d",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    raise e\", \"timestamp\": \"2026-05-05T20:10:15.826755+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062845",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "aacbe6dd35f55641",
+        "first_seen": "2026-05-05T15:10:16.414397",
+        "last_seen": "2026-05-05T15:10:16.414398",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    raise e\", \"timestamp\": \"2026-05-05T20:10:15.826755+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062845",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.413440",
+      "updated_at": "2026-05-05T15:10:16.420057",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 863105d8e13d\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "815843a6fbcb": {
+      "id": "815843a6fbcb",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/concurrency.py\\\", line 29, in contextmanager_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826851+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062852",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "78069032e8849d4c",
+        "first_seen": "2026-05-05T15:10:16.423995",
+        "last_seen": "2026-05-05T15:10:16.423997",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/fastapi/concurrency.py\\\", line 29, in contextmanager_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826851+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062852",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.422570",
+      "updated_at": "2026-05-05T15:10:16.429620",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 815843a6fbcb\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "9cceeffd7592": {
+      "id": "9cceeffd7592",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    yield await run_in_threadpool(cm.__enter__)\", \"timestamp\": \"2026-05-05T20:10:15.826903+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062862",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "b816ae9f870cf04d",
+        "first_seen": "2026-05-05T15:10:16.432063",
+        "last_seen": "2026-05-05T15:10:16.432064",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    yield await run_in_threadpool(cm.__enter__)\", \"timestamp\": \"2026-05-05T20:10:15.826903+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062862",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.431079",
+      "updated_at": "2026-05-05T15:10:16.438644",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 9cceeffd7592\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "05a5ac601b0c": {
+      "id": "05a5ac601b0c",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826945+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062869",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "332cd4b8d3fcf1df",
+        "first_seen": "2026-05-05T15:10:16.440802",
+        "last_seen": "2026-05-05T15:10:16.440803",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.826945+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062869",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.439786",
+      "updated_at": "2026-05-05T15:10:16.447006",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 05a5ac601b0c\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "db375fa0a839": {
+      "id": "db375fa0a839",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/concurrency.py\\\", line 32, in run_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826987+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062878",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "63b0912a7f2661b1",
+        "first_seen": "2026-05-05T15:10:16.450100",
+        "last_seen": "2026-05-05T15:10:16.450101",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/starlette/concurrency.py\\\", line 32, in run_in_threadpool\", \"timestamp\": \"2026-05-05T20:10:15.826987+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.062878",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.448243",
+      "updated_at": "2026-05-05T15:10:16.456077",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident db375fa0a839\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "e9398a6b174e": {
+      "id": "e9398a6b174e",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await anyio.to_thread.run_sync(func)\", \"timestamp\": \"2026-05-05T20:10:15.827025+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063491",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "f617a82afdb3ea65",
+        "first_seen": "2026-05-05T15:10:16.458399",
+        "last_seen": "2026-05-05T15:10:16.458400",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await anyio.to_thread.run_sync(func)\", \"timestamp\": \"2026-05-05T20:10:15.827025+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063491",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.457366",
+      "updated_at": "2026-05-05T15:10:16.464647",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident e9398a6b174e\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "43ba1540e366": {
+      "id": "43ba1540e366",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/to_thread.py\\\", line 63, in run_sync\", \"timestamp\": \"2026-05-05T20:10:15.827098+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063511",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "5c6eb1db0876926f",
+        "first_seen": "2026-05-05T15:10:16.467715",
+        "last_seen": "2026-05-05T15:10:16.467717",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/to_thread.py\\\", line 63, in run_sync\", \"timestamp\": \"2026-05-05T20:10:15.827098+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063511",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.466159",
+      "updated_at": "2026-05-05T15:10:16.473904",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 43ba1540e366\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "97530180d6fb": {
+      "id": "97530180d6fb",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await get_async_backend().run_sync_in_worker_thread(\", \"timestamp\": \"2026-05-05T20:10:15.827134+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063522",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "80418ee2c67036b2",
+        "first_seen": "2026-05-05T15:10:16.476688",
+        "last_seen": "2026-05-05T15:10:16.476690",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await get_async_backend().run_sync_in_worker_thread(\", \"timestamp\": \"2026-05-05T20:10:15.827134+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063522",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.475087",
+      "updated_at": "2026-05-05T15:10:16.482985",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 97530180d6fb\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "688e4bd32a2d": {
+      "id": "688e4bd32a2d",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827168+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063530",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "b7d4bdc3c2884cfb",
+        "first_seen": "2026-05-05T15:10:16.485538",
+        "last_seen": "2026-05-05T15:10:16.485541",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827168+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063530",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.484202",
+      "updated_at": "2026-05-05T15:10:16.491651",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 688e4bd32a2d\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "e09abdb37d94": {
+      "id": "e09abdb37d94",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py\\\", line 2518, in run_sync_in_worker_thread\", \"timestamp\": \"2026-05-05T20:10:15.827207+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063538",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "2a739b5f2214f82a",
+        "first_seen": "2026-05-05T15:10:16.493926",
+        "last_seen": "2026-05-05T15:10:16.493928",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py\\\", line 2518, in run_sync_in_worker_thread\", \"timestamp\": \"2026-05-05T20:10:15.827207+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063538",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.492833",
+      "updated_at": "2026-05-05T15:10:16.499714",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident e09abdb37d94\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "56fd4cea773f": {
+      "id": "56fd4cea773f",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await future\", \"timestamp\": \"2026-05-05T20:10:15.827239+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063550",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "e2b4838a5f2ca62b",
+        "first_seen": "2026-05-05T15:10:16.502563",
+        "last_seen": "2026-05-05T15:10:16.502564",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return await future\", \"timestamp\": \"2026-05-05T20:10:15.827239+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063550",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.501025",
+      "updated_at": "2026-05-05T15:10:16.508874",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 56fd4cea773f\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "bcb954e5f033": {
+      "id": "bcb954e5f033",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827272+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063557",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d07ea97a5433e0a5",
+        "first_seen": "2026-05-05T15:10:16.511366",
+        "last_seen": "2026-05-05T15:10:16.511367",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827272+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063557",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.510234",
+      "updated_at": "2026-05-05T15:10:16.517530",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident bcb954e5f033\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "27c420043e6f": {
+      "id": "27c420043e6f",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py\\\", line 1002, in run\", \"timestamp\": \"2026-05-05T20:10:15.827310+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063564",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "7b04d737d80268fd",
+        "first_seen": "2026-05-05T15:10:16.519905",
+        "last_seen": "2026-05-05T15:10:16.519906",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/anyio/_backends/_asyncio.py\\\", line 1002, in run\", \"timestamp\": \"2026-05-05T20:10:15.827310+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063564",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.518784",
+      "updated_at": "2026-05-05T15:10:16.526295",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 27c420043e6f\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "419e4bda0a31": {
+      "id": "419e4bda0a31",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = context.run(func, *args)\", \"timestamp\": \"2026-05-05T20:10:15.827344+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063574",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "5a6d6fc736ac858a",
+        "first_seen": "2026-05-05T15:10:16.529353",
+        "last_seen": "2026-05-05T15:10:16.529354",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    result = context.run(func, *args)\", \"timestamp\": \"2026-05-05T20:10:15.827344+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063574",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.527646",
+      "updated_at": "2026-05-05T15:10:16.535516",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 419e4bda0a31\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "e609070770de": {
+      "id": "e609070770de",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827376+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063582",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "d0b938d0997cd79c",
+        "first_seen": "2026-05-05T15:10:16.537893",
+        "last_seen": "2026-05-05T15:10:16.537894",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"             ^^^^^^^^^^^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827376+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063582",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.536752",
+      "updated_at": "2026-05-05T15:10:16.544415",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident e609070770de\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "1b178cde225b": {
+      "id": "1b178cde225b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 137, in __enter__\", \"timestamp\": \"2026-05-05T20:10:15.827413+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063589",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "c51f88d21dd2f43b",
+        "first_seen": "2026-05-05T15:10:16.547140",
+        "last_seen": "2026-05-05T15:10:16.547141",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/nix/store/94q1yqi50m4jcqlnlb5hx6iwf0g17jll-python3-3.12.13-env/lib/python3.12/contextlib.py\\\", line 137, in __enter__\", \"timestamp\": \"2026-05-05T20:10:15.827413+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063589",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.545695",
+      "updated_at": "2026-05-05T15:10:16.553603",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 1b178cde225b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "893b9c63f4fe": {
+      "id": "893b9c63f4fe",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return next(self.gen)\", \"timestamp\": \"2026-05-05T20:10:15.827445+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063599",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "05f1a06200af799b",
+        "first_seen": "2026-05-05T15:10:16.556952",
+        "last_seen": "2026-05-05T15:10:16.556953",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return next(self.gen)\", \"timestamp\": \"2026-05-05T20:10:15.827445+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063599",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.555438",
+      "updated_at": "2026-05-05T15:10:16.563073",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 893b9c63f4fe\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "ccf1a0bb83fa": {
+      "id": "ccf1a0bb83fa",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827476+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063606",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "ba0b021dd0056af1",
+        "first_seen": "2026-05-05T15:10:16.565707",
+        "last_seen": "2026-05-05T15:10:16.565708",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"           ^^^^^^^^^^^^^^\", \"timestamp\": \"2026-05-05T20:10:15.827476+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063606",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.564513",
+      "updated_at": "2026-05-05T15:10:16.572408",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident ccf1a0bb83fa\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "a8e242ffc6ef": {
+      "id": "a8e242ffc6ef",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/src/root/app/main.py\\\", line 113, in get_db\", \"timestamp\": \"2026-05-05T20:10:15.827512+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063613",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "cfa20bfc482e3842",
+        "first_seen": "2026-05-05T15:10:16.574951",
+        "last_seen": "2026-05-05T15:10:16.574952",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/src/root/app/main.py\\\", line 113, in get_db\", \"timestamp\": \"2026-05-05T20:10:15.827512+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063613",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.573732",
+      "updated_at": "2026-05-05T15:10:16.581690",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident a8e242ffc6ef\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "37491a85a0e7": {
+      "id": "37491a85a0e7",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = pool.getconn()\", \"timestamp\": \"2026-05-05T20:10:15.827561+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063622",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "078109ba92e05225",
+        "first_seen": "2026-05-05T15:10:16.584580",
+        "last_seen": "2026-05-05T15:10:16.584582",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    conn = pool.getconn()\", \"timestamp\": \"2026-05-05T20:10:15.827561+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063622",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.583341",
+      "updated_at": "2026-05-05T15:10:16.591061",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 37491a85a0e7\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "981d40af537b": {
+      "id": "981d40af537b",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 169, in getconn\", \"timestamp\": \"2026-05-05T20:10:15.827638+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063642",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "692dde8a227338a9",
+        "first_seen": "2026-05-05T15:10:16.594281",
+        "last_seen": "2026-05-05T15:10:16.594282",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 169, in getconn\", \"timestamp\": \"2026-05-05T20:10:15.827638+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063642",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.593036",
+      "updated_at": "2026-05-05T15:10:16.600999",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 981d40af537b\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "d5ff37fb73c9": {
+      "id": "d5ff37fb73c9",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return self._getconn(key)\", \"timestamp\": \"2026-05-05T20:10:15.827678+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063652",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "bad2cf78b15878ca",
+        "first_seen": "2026-05-05T15:10:16.603845",
+        "last_seen": "2026-05-05T15:10:16.603846",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"    return self._getconn(key)\", \"timestamp\": \"2026-05-05T20:10:15.827678+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063652",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.602319",
+      "updated_at": "2026-05-05T15:10:16.610251",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident d5ff37fb73c9\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    },
+    "4a18783759f1": {
+      "id": "4a18783759f1",
+      "status": "escalated",
+      "project_dir": "",
+      "component_id": "",
+      "pact_key": "",
+      "severity": "medium",
+      "signals": [
+        {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 93, in _getconn\", \"timestamp\": \"2026-05-05T20:10:15.827751+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063668",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      ],
+      "fingerprint": {
+        "hash": "bb40ecfc42ff2997",
+        "first_seen": "2026-05-05T15:10:16.613200",
+        "last_seen": "2026-05-05T15:10:16.613202",
+        "count": 1,
+        "representative": {
+          "source": "log_file",
+          "raw_text": "{\"node_name\": \"backend\", \"stream\": \"stderr\", \"severity\": \"error\", \"message\": \"  File \\\"/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/lib/python3.12/site-packages/psycopg2/pool.py\\\", line 93, in _getconn\", \"timestamp\": \"2026-05-05T20:10:15.827751+00:00\"}",
+          "timestamp": "2026-05-05T15:10:16.063668",
+          "file_path": ".baton/service_logs.jsonl",
+          "process_name": "",
+          "log_key": ""
+        }
+      },
+      "created_at": "2026-05-05T15:10:16.611886",
+      "updated_at": "2026-05-05T15:10:16.620092",
+      "spend_usd": 0.0,
+      "resolution": "escalated",
+      "diagnostic_report": "# Escalation: Incident 4a18783759f1\nComponent: unknown\nSeverity: medium\nSpend: $0.00\nResolution: needs human review\n",
+      "remediation_attempts": 0
+    }
+  }
+}

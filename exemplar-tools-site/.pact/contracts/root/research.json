@@ -1,0 +1,103 @@
+{
+  "task_summary": "Define the interface contract for the Root component (id: root) of a multi-page documentation website for exemplar.tools. The Root component sits at the top of the component hierarchy and must integrate six child subsystems: app_shell, data_layer, home_page, project_scaffold, tests, and tool_page. The contract must specify the type-level API surface that Root exposes and consumes, adhering to a canonical type registry, TypeScript/React 18/Convex stack, and strict operating procedures.",
+  "findings": [
+    {
+      "topic": "Root component pattern in React + Convex applications",
+      "finding": "The Root component in a Convex-backed React app has a well-established pattern: (1) instantiate the ConvexReactClient, (2) wrap the entire tree in <ConvexProvider>, (3) mount the React Router <BrowserRouter> or equivalent, (4) delegate layout to an app shell. Root itself should export no domain logic — it is purely a composition root. The only state it owns is the Convex client instance (created once via `new ConvexReactClient(url)`). This aligns with the app_shell contract's `createConvexClient` and `renderApp` functions.",
+      "source": "Convex documentation (docs.convex.dev), React Router v6 docs, common SPA architecture patterns",
+      "relevance": "Directly defines what Root's interface contract should contain: minimal exports, primarily a single `Root` component and possibly a `createApp` factory, with all routing/layout delegated to app_shell.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Type contract design for composition roots",
+      "finding": "A composition root's type contract should be intentionally thin. It re-exports nothing from children; instead it imports and wires. The Root contract should define: (1) the component's props interface (likely empty or containing only environment config), (2) the module's export signature, and (3) any environment-level types it introduces (e.g., ConvexUrl). Since app_shell already owns ConvexUrl and the createConvexClient function, Root consumes these but does not redefine them.",
+      "source": "TypeScript module design best practices, Dependency Inversion Principle, Clean Architecture composition root pattern",
+      "relevance": "Root must not re-export or shadow canonical types. Its contract is about wiring, not type ownership.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "React 18 createRoot entry point typing",
+      "finding": "React 18 uses `createRoot(container).render(<App />)` instead of `ReactDOM.render()`. The entry point file (main.tsx) must import `createRoot` from 'react-dom/client'. The Root component itself should be a zero-props functional component (`React.FC` or explicit `(): ReactElement`). The actual DOM mounting is in main.tsx, not in the Root component. This distinction matters for the contract: Root is the component tree root, main.tsx is the imperative entry point.",
+      "source": "React 18 migration guide, react-dom/client API documentation",
+      "relevance": "Clarifies that Root's interface has zero props. The contract should define both the Root component export and the main.tsx entry point bootstrap function.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Environment variable typing for Convex URL",
+      "finding": "Convex requires a deployment URL (VITE_CONVEX_URL) injected at build time. Vite exposes this via `import.meta.env.VITE_CONVEX_URL`. The type should be branded/validated at the boundary — the app_shell contract already defines `ConvexUrl` as a type and `createConvexClient` as the factory. Root's responsibility is to read the env var and pass it to createConvexClient. A common pitfall is not handling the undefined case when the env var is missing.",
+      "source": "Vite env variable docs, Convex React quickstart",
+      "relevance": "Root must validate the environment variable at startup. The contract should specify an error type or assertion for missing VITE_CONVEX_URL.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "React Router v6 route configuration typing",
+      "finding": "React Router v6 supports both JSX route definitions and object-based `createBrowserRouter` / `useRoutes`. The app_shell contract exposes a `RoutesObject` type and `renderApp`/`renderLayout` functions, suggesting the route tree is declaratively composed. Root's contract should not define route types — it delegates to app_shell's RoutesObject. The Root component calls renderApp or composes BrowserRouter + renderLayout.",
+      "source": "React Router v6 documentation, app_shell dependency contract",
+      "relevance": "Confirms Root imports route configuration from app_shell, does not own route types.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Pitfall: circular type dependencies in composition roots",
+      "finding": "A common pitfall in monorepo or multi-module React apps is the composition root inadvertently creating circular dependencies by re-exporting child types. Root should import from children but never re-export their types. If other modules need shared types, those should live in the canonical type registry (data_layer). The Root contract must explicitly declare it owns zero canonical types.",
+      "source": "TypeScript project references documentation, module dependency graph best practices",
+      "relevance": "Critical constraint: Root owns no types in the canonical registry. Its contract is purely about composition.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Error boundary placement at Root level",
+      "finding": "React 18 best practice places a top-level ErrorBoundary immediately inside the Root component to catch rendering errors in the entire tree. While React error boundaries require class components, libraries like `react-error-boundary` provide functional wrappers. However, the operating procedures mandate 'React functional components only, no class components', so using `react-error-boundary` (which exports a functional `ErrorBoundary` wrapper) is the compliant approach. The Root contract should specify an ErrorFallback props interface if a custom fallback is used.",
+      "source": "React error boundary documentation, react-error-boundary library, operating procedures constraint",
+      "relevance": "Root should define an ErrorFallbackProps type if it renders a custom error fallback, otherwise it can use a simple inline fallback.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Strict mode and React 18 concurrent features",
+      "finding": "React.StrictMode should wrap the application in development to surface side-effect issues. Root is the natural place to include <StrictMode>. This has no type contract implications but should be noted as a behavioral requirement in the contract's rendering semantics.",
+      "source": "React 18 StrictMode documentation",
+      "relevance": "Behavioral contract detail — Root must render StrictMode in development.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Convex provider and React Router provider ordering",
+      "finding": "Provider nesting order matters. The established pattern is: StrictMode > ConvexProvider > BrowserRouter > Layout > Routes. ConvexProvider must be outside the router so that route-level components can call Convex hooks. If ConvexProvider were inside a route, navigation would unmount/remount the provider, losing real-time subscriptions.",
+      "source": "Convex React integration guide, React context provider ordering best practices",
+      "relevance": "Defines the compositional structure Root must implement. The contract should specify provider nesting order as a behavioral invariant.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Naming convention for entry-point exports",
+      "finding": "Convention in Vite+React projects: main.tsx is the entry point (imperative, no component export), App.tsx exports the root component (often named `App`). Given the task names this component 'Root', the file should be Root.tsx or App.tsx exporting a `Root` component. The contract should use the name `Root` as the primary export to match the component ID.",
+      "source": "Vite React template conventions, project operating procedures",
+      "relevance": "Naming alignment: the exported component is `Root`, the entry file is `main.tsx` which calls createRoot and renders <Root />.",
+      "confidence": 0.88
+    }
+  ],
+  "recommended_approach": "The Root component contract should be defined as follows:\n\n**Type Ownership:** Root owns zero canonical types. It introduces at most two component-local types:\n1. `RootProps` — an empty interface (or omitted entirely, using zero-props signature).\n2. `ErrorFallbackProps` — optional, if a custom error fallback component is co-located.\n\n**Exports:**\n- `Root: React.FC` — the sole default or named export. Zero props. Returns ReactElement.\n- Optionally: `ErrorFallback: React.FC<ErrorFallbackProps>` if custom error UI is defined here.\n\n**Imports (consumed contracts):**\n- From `app_shell`: `createConvexClient`, `renderApp` or `renderLayout`, `ConvexUrl`\n- From `data_layer`: ToolDef data (indirectly, via app_shell wiring)\n- From `home_page`: `HomePage` component (wired into routes by app_shell)\n- From `tool_page`: `ToolPage` component (wired into routes by app_shell)\n\n**Behavioral Contract (provider nesting order):**\n`<StrictMode> → <ConvexProvider client={...}> → <BrowserRouter> → <Layout (app_shell)> → <Routes>`\n\n**Environment Boundary:**\nRoot reads `import.meta.env.VITE_CONVEX_URL`, validates it is defined (throws or renders error if missing), and passes it to `createConvexClient`.\n\n**File Structure:**\n- `src/Root.tsx` — the Root component (~30-50 lines)\n- `src/main.tsx` — imperative entry: `createRoot(document.getElementById('root')!).render(<Root />)`\n\nThis keeps Root maximally thin, with all routing, layout, and data logic delegated to child subsystem contracts.",
+  "alternatives_considered": [
+    "Root as a thin re-export barrel module — rejected because it would create unnecessary coupling and risk circular imports. Root should be a composition-only component.",
+    "Root owning the RoutesObject definition — rejected because app_shell already owns route configuration types. Root consumes, does not define.",
+    "Root defining its own ConvexUrl or client types — rejected because app_shell owns ConvexUrl and createConvexClient. Root reads the env var and delegates.",
+    "Placing ErrorBoundary inside app_shell layout instead of Root — viable but less robust; a crash in the router or Convex provider would be uncaught. Root-level error boundary is the safer pattern.",
+    "Using createBrowserRouter (data router) vs BrowserRouter — both valid in RRv6; since app_shell exposes renderApp/renderLayout, the choice is delegated to app_shell. Root simply calls the appropriate composition function.",
+    "Root as a class component for error boundary — explicitly forbidden by operating procedures. Must use react-error-boundary or equivalent functional wrapper."
+  ],
+  "risks": [
+    "Missing VITE_CONVEX_URL at runtime causes a cryptic Convex SDK error. Root must validate and surface a clear error message before calling createConvexClient.",
+    "Provider misordering (e.g., BrowserRouter outside ConvexProvider) would cause Convex hooks to lose subscriptions on navigation. The nesting order is a critical invariant.",
+    "If Root re-exports types from child modules, it risks creating circular dependency chains that break tree-shaking and cause TypeScript resolution issues.",
+    "react-error-boundary is an additional dependency; if the team prefers zero extra deps, the fallback is a simple try/catch in main.tsx or accepting that Root-level render errors crash the app.",
+    "The contract must not accidentally define types that collide with canonical registry names (ToolSlug, HexColor, etc.). Root has no reason to reference these directly.",
+    "Vite's dev server port (4000) is a build config concern owned by project_scaffold, not Root. Root's contract should not bleed into build config territory."
+  ],
+  "compliance_notes": [
+    "TypeScript type annotations required on all exported functions and components per operating procedures.",
+    "React functional components only — no class components. Error boundary must use react-error-boundary or equivalent functional API.",
+    "All Tailwind classes, no custom CSS — Root likely has no styling, but if an error fallback is rendered, it must use Tailwind.",
+    "Convex hooks imported from 'convex/react' per preferences.",
+    "File must stay under 300 lines — Root should be ~30-50 lines, well within limit.",
+    "Props typed with TypeScript interfaces — RootProps interface even if empty, or zero-props function signature with explicit return type.",
+    "Bun-only package management — react-error-boundary (if used) installed via `bun add react-error-boundary`.",
+    "Canonical type registry: Root owns no types from the registry. Any ToolSlug, HexColor, etc. references must use exact definitions from their owning modules.",
+    "Dev server on port 4000 — not Root's concern but must not conflict."
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "components": {
+    "backend": {
+      "component_id": "backend",
+      "contract_path": "contracts/backend/interface.json",
+      "test_path": "tests/backend",
+      "source_path": "src/backend",
+      "language": "python",
+      "last_registered": "2026-05-05T15:01:41.348754",
+      "pact_project": "."
+    },
+    "database": {
+      "component_id": "database",
+      "contract_path": "contracts/database/interface.json",
+      "test_path": "tests/database",
+      "source_path": "src/database",
+      "language": "python",
+      "last_registered": "2026-05-05T15:01:41.348967",
+      "pact_project": "."
+    },
+    "frontend": {
+      "component_id": "frontend",
+      "contract_path": "contracts/frontend/interface.json",
+      "test_path": "tests/frontend",
+      "source_path": "src/frontend",
+      "language": "python",
+      "last_registered": "2026-05-05T15:01:41.349062",
+      "pact_project": "."
+    },
+    "root": {
+      "component_id": "root",
+      "contract_path": "contracts/root/interface.json",
+      "test_path": "tests/root",
+      "source_path": "src/root",
+      "language": "python",
+      "last_registered": "2026-05-05T15:01:41.349138",
+      "pact_project": "."
+    }
+  }
+}

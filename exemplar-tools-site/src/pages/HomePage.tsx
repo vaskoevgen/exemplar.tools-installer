@@ -30,7 +30,14 @@ export default function HomePage() {
   return (
     <main className="max-w-4xl mx-auto px-8 py-14">
       <div className="mb-12 animate-fade-in">
-        <p className="font-mono text-xs tracking-widest text-cyan-500 uppercase mb-3">exemplar.tools</p>
+        <a
+          href="https://exemplar.tools/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-mono text-xs tracking-widest text-cyan-500 uppercase mb-3 hover:text-cyan-400 transition-colors inline-block"
+        >
+          exemplar.tools ↗
+        </a>
         <h1 className="font-display text-5xl text-white leading-tight mb-4">
           The closed-loop AI engineering platform
         </h1>

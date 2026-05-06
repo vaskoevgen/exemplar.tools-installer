@@ -1,0 +1,59 @@
+{
+  "circuit_name": "root",
+  "collapse_level": "partial",
+  "live_nodes": [
+    "backend"
+  ],
+  "adapters": {
+    "database": {
+      "node_name": "database",
+      "status": "active",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "backend": {
+      "node_name": "backend",
+      "status": "active",
+      "adapter_pid": 0,
+      "service": {
+        "command": "bash -c 'DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/todolist3_test PYTHONPATH=/Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/src/root /Users/yevhenvasko/source/exemplar.tools-installer/todo-list3/.venv/bin/uvicorn app.main:app --port $BATON_SERVICE_PORT'",
+        "is_mock": false,
+        "pid": 93559,
+        "started_at": "2026-05-05T19:55:48.074000+00:00"
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    },
+    "frontend": {
+      "node_name": "frontend",
+      "status": "active",
+      "adapter_pid": 0,
+      "service": {
+        "command": "",
+        "is_mock": true,
+        "pid": 0,
+        "started_at": ""
+      },
+      "last_health_check": "",
+      "last_health_verdict": "unknown",
+      "consecutive_failures": 0,
+      "routing_config": null
+    }
+  },
+  "mock_pid": 0,
+  "custodian_pid": 0,
+  "owner_pid": 93553,
+  "started_at": "2026-05-05T19:55:47.566882+00:00",
+  "updated_at": "2026-05-05T19:55:48.074158+00:00"
+}

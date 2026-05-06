@@ -1,0 +1,94 @@
+{
+  "task_summary": "Implement a Vitest-based test harness and smoke tests for a React 18 + Vite + Convex application. The component must: configure Vitest setup, validate a tool definition list (length, slug ordering, required fields per tool, conditional video URL presence), provide a `renderWithProviders` utility for rendering components with necessary context providers, execute smoke-test renders asserting expected text content, and expose an `executeTestSuite` runner. All within the project's TypeScript/Bun/Tailwind/Convex stack.",
+  "findings": [
+    {
+      "topic": "Vitest configuration for React 18 + Vite",
+      "finding": "Vitest should be configured in `vitest.config.ts` (or within `vite.config.ts` via the `test` block) with `environment: 'jsdom'` or `'happy-dom'` for DOM rendering. The `@vitejs/plugin-react` plugin must be included so JSX transforms work. A setup file (e.g., `src/test/setup.ts`) should import `@testing-library/jest-dom/vitest` for extended matchers. The `globals: true` option avoids explicit `import { describe, it, expect }` in every file.",
+      "source": "Vitest official docs (vitest.dev/config), Testing Library integration guides",
+      "relevance": "Directly maps to `configureVitestSetup()`. The VitestConfigBlock type likely models the `test` key of Vite config.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Testing Library renderWithProviders pattern",
+      "finding": "The established pattern wraps `@testing-library/react`'s `render()` in a custom `renderWithProviders` that composes all necessary context providers (React Router's `MemoryRouter`, Convex's `ConvexProvider` with a mock client). The wrapper function accepts an `options` object for initial route entries, mock Convex state, etc., and returns the standard `RenderResult` plus any extras. This avoids duplicating provider setup across tests.",
+      "source": "Redux Toolkit testing docs (pattern origin), React Testing Library custom render recipe",
+      "relevance": "Directly implements `renderWithProviders(component, options) -> RenderResult`. The `RenderWithProvidersOptions` struct likely carries `initialRouteEntries`, mock Convex client config, and optional wrapper overrides.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Mocking Convex in tests",
+      "finding": "Convex provides `convex-test` (from `convex/testing`) for unit-testing Convex functions server-side. For client-side React component tests, the recommended approach is to use `ConvexProviderWithAuth` or `ConvexReactClient` with a mock transport, or to mock `convex/react` hooks (`useQuery`, `useMutation`) at the module level via `vi.mock('convex/react', ...)`. Module-level mocking is simpler for smoke tests where you only need to assert render, not data flow.",
+      "source": "Convex docs (docs.convex.dev/testing), community patterns on GitHub",
+      "relevance": "Critical for `renderWithProviders` and `smokeTestComponentRender` — components using Convex hooks will throw without either a real or mocked provider.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Data-driven test assertions on list structures",
+      "finding": "Functions like `assertToolDefListLength`, `assertSlugOrder`, `assertRequiredFieldsPerTool` map to a table-driven / data-driven test pattern. Vitest supports `it.each()` and `describe.each()` for parameterized tests. For ordered slug assertions, compare with `toEqual` on mapped slug arrays rather than index-by-index to get clearer diff output on failure. For required-field checks, use `toHaveProperty` or a schema validator (Zod `safeParse`) to produce structured error messages.",
+      "source": "Vitest docs (it.each), Jest best practices (same API surface)",
+      "relevance": "Directly informs implementation of the five `assert*` functions. Using Zod for `assertRequiredFieldsPerTool` would integrate well since Convex projects commonly use Zod for schema validation.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Conditional assertion pattern (assertKindexNoVideoUrl / assertAtLeastOneVideoUrl)",
+      "finding": "These represent invariant checks on the tool definition data: one tool (Kindex) must NOT have a video URL, while at least one tool in the list MUST have one. Best practice is to make the filter-then-assert pattern explicit: filter the list to the relevant subset, then assert on the subset. This avoids false positives when the list is empty. Guard with a pre-assertion that the filtered set is non-empty (or that the target slug exists).",
+      "source": "General testing best practices, property-based testing principles",
+      "relevance": "Directly implements two of the named functions. Edge case: if Kindex is missing from the list entirely, the test should fail explicitly rather than vacuously pass.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Smoke test pattern for component rendering",
+      "finding": "A smoke test renders a component and asserts it does not throw and contains expected text. Use `screen.getByText()` or `screen.findByText()` (async) with the expected string. The test should NOT assert layout or styling — only that the component mounts and produces recognizable output. Keep smoke tests synchronous where possible; use `waitFor` only if the component has async effects on mount.",
+      "source": "React Testing Library guiding principles, Kent C. Dodds testing articles",
+      "relevance": "Directly maps to `smokeTestComponentRender(componentUnderTest, expectedTextContent) -> TestResult`.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Test suite orchestration and result aggregation",
+      "finding": "`executeTestSuite()` likely orchestrates all test functions and returns a `TestSuiteResult` (pass/fail count, individual results). In Vitest, the standard approach is to let Vitest's runner handle orchestration via `bun run vitest`. A programmatic `executeTestSuite` could use Vitest's Node API (`startVitest('test', ...)`) or simply be a wrapper that calls each assert function, collects `TestResult` objects, and aggregates. For CI, the Vitest CLI approach is preferred; the programmatic wrapper is useful for in-app test dashboards.",
+      "source": "Vitest Node API docs, CI/CD pipeline conventions",
+      "relevance": "Core function. Should aggregate results from all assert functions and smoke tests into a single TestSuiteResult with total/passed/failed counts and individual results.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Bun + Vitest compatibility",
+      "finding": "Vitest runs on Bun but with caveats: Bun's test runner is separate from Vitest. Use `bunx vitest` or add a `\"test\": \"vitest\"` script to package.json and run with `bun run test`. Some Node-specific APIs used by jsdom may have edge cases under Bun; happy-dom is generally more compatible. Ensure `@testing-library/react` and `@testing-library/jest-dom` are installed as devDependencies via `bun add -d`.",
+      "source": "Bun docs (bun.sh/docs/cli/bunx), Vitest GitHub issues on Bun compatibility",
+      "relevance": "Project mandates Bun only. Must not use npx. Scripts in package.json should be run via `bun run`.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "TypeScript strict typing for test utilities",
+      "finding": "Per project standards, all exported functions need type annotations. Test utility types should be defined in a shared types file or co-located. `TestResult` likely has `{ passed: boolean; message: string; name: string }`. `TestSuiteResult` aggregates these. `ToolRequiredFields` should mirror the required properties of a tool definition from the `data` dependency. Use branded/opaque types for `NonEmptyString`, `HexColorString`, `StepNumber`, `ToolSlug` to enforce domain constraints at the type level.",
+      "source": "TypeScript handbook (branded types pattern), project operating procedures",
+      "relevance": "All exported functions and types must be fully annotated. Branded types prevent passing arbitrary strings where domain-specific values are expected.",
+      "confidence": 0.94
+    }
+  ],
+  "recommended_approach": "1. **Configure Vitest**: Create/update `vitest.config.ts` with `environment: 'happy-dom'` (better Bun compatibility than jsdom), `globals: true`, `setupFiles: ['./src/test/setup.ts']`, and `@vitejs/plugin-react`. The setup file imports `@testing-library/jest-dom/vitest`. Add `\"test\": \"vitest\"` to package.json scripts. This implements `configureVitestSetup()`.\n\n2. **Define types**: Create a `src/test/types.ts` exporting `TestResult`, `TestSuiteResult`, `RenderWithProvidersOptions`, `RenderResult`, and re-export domain types (`ToolSlug`, `NonEmptyString`, etc.) from the `data` dependency. Use branded types where the spec demands them.\n\n3. **Implement `renderWithProviders`**: Create `src/test/render-utils.ts`. Wrap `@testing-library/react`'s `render` with a composed provider tree: `MemoryRouter` (with configurable `initialEntries`) and a mocked Convex context (via `vi.mock('convex/react')` or a lightweight `ConvexProvider` with a mock client). Return the extended `RenderResult`.\n\n4. **Implement data assertion functions**: Create `src/test/tool-def-assertions.ts`. Each function takes the tool def list (imported from `data` dependency) and returns a `TestResult`:\n   - `assertToolDefListLength`: assert array length > 0 (or specific expected count).\n   - `assertSlugOrder`: map to slugs, `expect(...).toEqual(expectedSlugs)`.\n   - `assertRequiredFieldsPerTool`: iterate tools, check each has all fields in `ToolRequiredFields` (use `Object.keys` + `every`).\n   - `assertKindexNoVideoUrl`: find tool with slug `kindex`, assert `videoUrl` is falsy. Fail if kindex not found.\n   - `assertAtLeastOneVideoUrl`: assert `some(tool => tool.videoUrl)`.\n\n5. **Implement `smokeTestComponentRender`**: Use `renderWithProviders` to mount the component, then `screen.getByText(expectedTextContent)` to verify render. Wrap in try/catch to return `TestResult` rather than throwing.\n\n6. **Implement `executeTestSuite`**: Orchestrator that invokes all assertion functions and smoke tests, collects `TestResult[]`, and returns `TestSuiteResult` with counts and details.\n\n7. **Write actual `.test.ts` files**: Create `src/test/tool-defs.test.ts` and `src/test/smoke.test.ts` that use the above utilities inside `describe`/`it` blocks so Vitest discovers and runs them via `bun run test`.",
+  "alternatives_considered": [
+    "Using jsdom instead of happy-dom: jsdom is more battle-tested but has known issues under Bun's runtime. happy-dom is lighter and more compatible with Bun.",
+    "Using Bun's built-in test runner (bun:test) instead of Vitest: Would align with the Bun-only mandate but lacks the Vite plugin ecosystem integration, JSX transform support, and Testing Library compatibility that Vitest provides. Project spec explicitly requires Vitest.",
+    "Mocking Convex at the module level (vi.mock) vs. providing a mock ConvexReactClient: Module-level mocking is simpler for smoke tests but brittle if hook signatures change. A mock client is more robust but adds complexity. Recommend module-level mocking for smoke tests, with a note to upgrade to mock client if integration tests are added later.",
+    "Using Zod for assertRequiredFieldsPerTool: Would give excellent error messages and type safety, but adds a dependency. Since the project already uses Convex (which has its own validator), and these are lightweight checks, manual property assertions are sufficient.",
+    "Programmatic Vitest API (startVitest) for executeTestSuite vs. CLI runner: Programmatic API enables in-app test dashboards but is heavier. Recommend a dual approach: executeTestSuite for programmatic use, standard Vitest CLI for CI."
+  ],
+  "risks": [
+    "Bun + happy-dom + Vitest version incompatibility: Pin dependency versions and verify the triad works together before writing tests.",
+    "Convex hooks throwing outside provider: Any component using useQuery/useMutation will crash in tests without proper mocking. The renderWithProviders utility MUST handle this or tests will fail with opaque errors.",
+    "Vacuous truth in conditional assertions: If the tool list is empty or the target slug is absent, filter-based assertions pass vacuously. Every assertion must include a guard checking the precondition (list non-empty, target slug exists).",
+    "Test file discovery: Vitest defaults to matching `**/*.{test,spec}.{ts,tsx}`. If test files are named differently or placed outside the include glob, they won't run. Verify the include pattern in vitest config.",
+    "Port conflict: Dev server on port 4000 (vite.config.ts) could conflict with test server if Vitest spins up a dev server. Vitest in jsdom/happy-dom mode does NOT start a server, so this should be fine, but worth noting.",
+    "Circular dependency: The test harness depends on `data` module. If `data` has side effects on import (e.g., Convex client initialization), tests may fail. Ensure data exports are pure."
+  ],
+  "compliance_notes": [
+    "All test scripts must be executed via `bun run test` — never npm/yarn/npx per project operating procedures.",
+    "All exported test utility functions must have explicit TypeScript type annotations per project standards.",
+    "No class components: all test wrapper components (e.g., provider wrapper) must be functional components.",
+    "Files must stay under 300 lines — split assertion functions and smoke tests into separate modules.",
+    "Tailwind classes only in any rendered test components; no custom CSS.",
+    "Dev server port 4000 must remain set in vite.config.ts; vitest config should not override it.",
+    "Convex hooks must be imported from 'convex/react' per project preferences.",
+    "Build output directory remains dist/ — test output should not interfere."
+  ]
+}

@@ -1,0 +1,119 @@
+{"timestamp": "2026-05-06T11:50:30.777359", "action": "daemon_dispatch", "detail": "Phase: interview"}
+{"timestamp": "2026-05-06T11:51:33.740006", "action": "interview", "detail": "10 questions, register=systematic-implementation"}
+{"timestamp": "2026-05-06T11:51:46.205658", "action": "daemon_resume", "detail": "Signal: approved"}
+{"timestamp": "2026-05-06T11:51:46.205839", "action": "daemon_dispatch", "detail": "Phase: interview"}
+{"timestamp": "2026-05-06T11:51:46.206412", "action": "daemon_dispatch", "detail": "Phase: shape"}
+{"timestamp": "2026-05-06T11:51:46.206741", "action": "daemon_dispatch", "detail": "Phase: decompose"}
+{"timestamp": "2026-05-06T11:52:27.531314", "action": "decomposition", "detail": "7 components"}
+{"timestamp": "2026-05-06T11:53:03.963412", "action": "type_registry", "detail": "16 shared types defined"}
+{"timestamp": "2026-05-06T11:57:01.324080", "action": "type_auto_stub", "detail": "app_shell: 1 types auto-stubbed"}
+{"timestamp": "2026-05-06T11:57:01.325820", "action": "contract", "detail": "app_shell: 7 functions"}
+{"timestamp": "2026-05-06T12:00:58.372773", "action": "tests", "detail": "app_shell: 24 cases"}
+{"timestamp": "2026-05-06T12:03:11.780511", "action": "goodhart_tests", "detail": "app_shell: 27 hidden cases"}
+{"timestamp": "2026-05-06T12:03:11.781508", "action": "emission_tests", "detail": "app_shell: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:07:08.408494", "action": "daemon_dispatch", "detail": "Phase: decompose"}
+{"timestamp": "2026-05-06T12:07:36.417212", "action": "type_auto_stub", "detail": "data_layer: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:07:36.419455", "action": "contract", "detail": "data_layer: 3 functions"}
+{"timestamp": "2026-05-06T12:08:20.872795", "action": "daemon_dispatch", "detail": "Phase: decompose"}
+{"timestamp": "2026-05-06T12:09:56.877357", "action": "daemon_dispatch", "detail": "Phase: decompose"}
+{"timestamp": "2026-05-06T12:11:04.442918", "action": "type_auto_stub", "detail": "data_layer: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:11:04.446420", "action": "contract", "detail": "data_layer: 4 functions"}
+{"timestamp": "2026-05-06T12:11:38.681406", "action": "tests", "detail": "data_layer: 34 cases"}
+{"timestamp": "2026-05-06T12:12:15.055506", "action": "tests", "detail": "data_layer: 34 cases"}
+{"timestamp": "2026-05-06T12:13:32.368448", "action": "tests", "detail": "data_layer: 35 cases"}
+{"timestamp": "2026-05-06T12:13:59.879908", "action": "goodhart_tests", "detail": "data_layer: 34 hidden cases"}
+{"timestamp": "2026-05-06T12:13:59.880769", "action": "emission_tests", "detail": "data_layer: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:14:12.919709", "action": "goodhart_tests", "detail": "data_layer: 29 hidden cases"}
+{"timestamp": "2026-05-06T12:14:12.921376", "action": "emission_tests", "detail": "data_layer: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:14:18.633887", "action": "tests", "detail": "data_layer: 33 cases"}
+{"timestamp": "2026-05-06T12:14:18.636100", "action": "emission_tests", "detail": "data_layer: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:16:14.920037", "action": "goodhart_tests", "detail": "data_layer: 40 hidden cases"}
+{"timestamp": "2026-05-06T12:16:14.921349", "action": "emission_tests", "detail": "data_layer: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:17:18.322769", "action": "type_auto_stub", "detail": "home_page: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:17:18.324872", "action": "contract", "detail": "home_page: 5 functions"}
+{"timestamp": "2026-05-06T12:18:48.269831", "action": "daemon_dispatch", "detail": "Phase: decompose"}
+{"timestamp": "2026-05-06T12:19:50.395306", "action": "type_auto_stub", "detail": "home_page: 1 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:19:50.398106", "action": "contract", "detail": "home_page: 4 functions"}
+{"timestamp": "2026-05-06T12:19:52.594289", "action": "type_auto_stub", "detail": "home_page: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:19:52.598395", "action": "contract", "detail": "home_page: 7 functions"}
+{"timestamp": "2026-05-06T12:21:19.103513", "action": "tests", "detail": "home_page: 32 cases"}
+{"timestamp": "2026-05-06T12:23:02.886885", "action": "tests", "detail": "home_page: 32 cases"}
+{"timestamp": "2026-05-06T12:23:29.518593", "action": "tests", "detail": "home_page: 39 cases"}
+{"timestamp": "2026-05-06T12:23:29.908572", "action": "goodhart_tests", "detail": "home_page: 36 hidden cases"}
+{"timestamp": "2026-05-06T12:23:29.909560", "action": "emission_tests", "detail": "home_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:25:01.179306", "action": "tests", "detail": "home_page: 42 cases"}
+{"timestamp": "2026-05-06T12:25:01.180402", "action": "emission_tests", "detail": "home_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:25:11.674064", "action": "goodhart_tests", "detail": "home_page: 31 hidden cases"}
+{"timestamp": "2026-05-06T12:25:11.675155", "action": "emission_tests", "detail": "home_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:25:16.513575", "action": "goodhart_tests", "detail": "home_page: 38 hidden cases"}
+{"timestamp": "2026-05-06T12:25:16.515062", "action": "emission_tests", "detail": "home_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:29:12.535439", "action": "contract", "detail": "project_scaffold: 12 functions"}
+{"timestamp": "2026-05-06T12:30:07.246675", "action": "contract", "detail": "project_scaffold: 6 functions"}
+{"timestamp": "2026-05-06T12:30:25.729880", "action": "contract", "detail": "project_scaffold: 10 functions"}
+{"timestamp": "2026-05-06T12:31:55.897310", "action": "contract", "detail": "project_scaffold: 5 functions"}
+{"timestamp": "2026-05-06T12:35:33.263851", "action": "tests", "detail": "project_scaffold: 63 cases"}
+{"timestamp": "2026-05-06T12:35:45.081305", "action": "tests", "detail": "project_scaffold: 66 cases"}
+{"timestamp": "2026-05-06T12:37:57.290879", "action": "tests", "detail": "project_scaffold: 102 cases"}
+{"timestamp": "2026-05-06T12:38:23.119175", "action": "goodhart_tests", "detail": "project_scaffold: 54 hidden cases"}
+{"timestamp": "2026-05-06T12:38:23.120121", "action": "emission_tests", "detail": "project_scaffold: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:39:28.211989", "action": "goodhart_tests", "detail": "project_scaffold: 76 hidden cases"}
+{"timestamp": "2026-05-06T12:39:28.212819", "action": "emission_tests", "detail": "project_scaffold: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:40:34.074603", "action": "tests", "detail": "project_scaffold: 78 cases"}
+{"timestamp": "2026-05-06T12:40:34.075746", "action": "emission_tests", "detail": "project_scaffold: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:41:38.361350", "action": "goodhart_tests", "detail": "project_scaffold: 59 hidden cases"}
+{"timestamp": "2026-05-06T12:41:38.362240", "action": "emission_tests", "detail": "project_scaffold: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:42:18.873252", "action": "contract", "detail": "tests: 9 functions"}
+{"timestamp": "2026-05-06T12:43:31.765718", "action": "contract", "detail": "tests: 7 functions"}
+{"timestamp": "2026-05-06T12:44:00.114825", "action": "contract", "detail": "tests: 9 functions"}
+{"timestamp": "2026-05-06T12:45:38.093045", "action": "contract", "detail": "tests: 9 functions"}
+{"timestamp": "2026-05-06T12:47:14.960435", "action": "tests", "detail": "tests: 59 cases"}
+{"timestamp": "2026-05-06T12:49:01.969879", "action": "tests", "detail": "tests: 63 cases"}
+{"timestamp": "2026-05-06T12:50:08.497339", "action": "goodhart_tests", "detail": "tests: 49 hidden cases"}
+{"timestamp": "2026-05-06T12:50:08.498396", "action": "emission_tests", "detail": "tests: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:50:16.587373", "action": "tests", "detail": "tests: 55 cases"}
+{"timestamp": "2026-05-06T12:50:16.588907", "action": "emission_tests", "detail": "tests: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:51:02.383254", "action": "tests", "detail": "tests: 69 cases"}
+{"timestamp": "2026-05-06T12:51:02.385202", "action": "emission_tests", "detail": "tests: emission compliance test generated"}
+{"timestamp": "2026-05-06T12:54:22.393406", "action": "contract", "detail": "tool_page: 8 functions"}
+{"timestamp": "2026-05-06T12:54:35.060419", "action": "type_auto_stub", "detail": "tool_page: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:54:35.063353", "action": "contract", "detail": "tool_page: 9 functions"}
+{"timestamp": "2026-05-06T12:55:36.214282", "action": "type_auto_stub", "detail": "tool_page: 2 types auto-stubbed"}
+{"timestamp": "2026-05-06T12:55:36.217473", "action": "contract", "detail": "tool_page: 9 functions"}
+{"timestamp": "2026-05-06T12:58:48.804521", "action": "tests", "detail": "tool_page: 45 cases"}
+{"timestamp": "2026-05-06T12:59:06.895079", "action": "tests", "detail": "tool_page: 29 cases"}
+{"timestamp": "2026-05-06T13:01:11.649307", "action": "goodhart_tests", "detail": "tool_page: 29 hidden cases"}
+{"timestamp": "2026-05-06T13:01:11.650307", "action": "emission_tests", "detail": "tool_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T13:01:35.614635", "action": "goodhart_tests", "detail": "tool_page: 52 hidden cases"}
+{"timestamp": "2026-05-06T13:01:35.615754", "action": "emission_tests", "detail": "tool_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T13:01:50.558700", "action": "tests", "detail": "tool_page: 49 cases"}
+{"timestamp": "2026-05-06T13:01:50.561512", "action": "emission_tests", "detail": "tool_page: emission compliance test generated"}
+{"timestamp": "2026-05-06T13:04:24.298438", "action": "contract", "detail": "root: 3 functions"}
+{"timestamp": "2026-05-06T13:04:46.254331", "action": "contract", "detail": "root: 2 functions"}
+{"timestamp": "2026-05-06T13:06:55.379225", "action": "contract", "detail": "root: 3 functions"}
+{"timestamp": "2026-05-06T13:08:17.369289", "action": "tests", "detail": "root: 31 cases"}
+{"timestamp": "2026-05-06T13:08:56.848763", "action": "tests", "detail": "root: 28 cases"}
+{"timestamp": "2026-05-06T13:11:58.214021", "action": "goodhart_tests", "detail": "root: 20 hidden cases"}
+{"timestamp": "2026-05-06T13:11:58.215013", "action": "emission_tests", "detail": "root: emission compliance test generated"}
+{"timestamp": "2026-05-06T13:11:58.219200", "action": "type_reconciliation", "detail": "1 contracts reconciled"}
+{"timestamp": "2026-05-06T13:11:58.243116", "action": "validation", "detail": "PASSED: All contracts validated successfully"}
+{"timestamp": "2026-05-06T13:11:58.259065", "action": "tasks_generated", "detail": "54 tasks"}
+{"timestamp": "2026-05-06T13:11:58.263107", "action": "daemon_dispatch", "detail": "Phase: preflight"}
+{"timestamp": "2026-05-06T13:11:58.264166", "action": "daemon_dispatch", "detail": "Phase: implement"}
+{"timestamp": "2026-05-06T13:17:02.797316", "action": "implementation", "detail": "project_scaffold attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:17:03.191326", "action": "test_run", "detail": "project_scaffold: 126/129 passed"}
+{"timestamp": "2026-05-06T13:21:54.227120", "action": "implementation", "detail": "project_scaffold attempt 2: 1 files"}
+{"timestamp": "2026-05-06T13:21:54.516825", "action": "test_run", "detail": "project_scaffold: 126/129 passed"}
+{"timestamp": "2026-05-06T13:26:41.839081", "action": "implementation", "detail": "project_scaffold attempt 3: 1 files"}
+{"timestamp": "2026-05-06T13:26:42.127615", "action": "test_run", "detail": "project_scaffold: 126/129 passed"}
+{"timestamp": "2026-05-06T13:29:50.422439", "action": "implementation", "detail": "data_layer attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:29:50.615004", "action": "test_run", "detail": "data_layer: 38/38 passed"}
+{"timestamp": "2026-05-06T13:33:04.647491", "action": "implementation", "detail": "app_shell attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:33:04.892773", "action": "test_run", "detail": "app_shell: 156/156 passed"}
+{"timestamp": "2026-05-06T13:35:57.255046", "action": "implementation", "detail": "home_page attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:35:57.450664", "action": "test_run", "detail": "home_page: 53/53 passed"}
+{"timestamp": "2026-05-06T13:39:06.950815", "action": "implementation", "detail": "tool_page attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:39:07.178672", "action": "test_run", "detail": "tool_page: 150/151 passed"}
+{"timestamp": "2026-05-06T13:41:44.278524", "action": "implementation", "detail": "tool_page attempt 2: 1 files"}
+{"timestamp": "2026-05-06T13:41:44.479873", "action": "test_run", "detail": "tool_page: 151/151 passed"}
+{"timestamp": "2026-05-06T13:45:44.915033", "action": "implementation", "detail": "tests attempt 1: 1 files"}
+{"timestamp": "2026-05-06T13:45:45.166400", "action": "test_run", "detail": "tests: 114/121 passed"}

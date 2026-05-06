@@ -1,0 +1,214 @@
+goal: Monitor engineering signals for the platform team
+workspace:
+  root: ''
+  config_dir: ''
+  repos_dir: ''
+sources:
+  github:
+    enabled: true
+    mode: mock
+    repos:
+    - acme-org/backend
+    - acme-org/pricing
+    - acme-org/property
+    - acme-org/payment
+    - acme-org/sync-service
+    - acme-org/events
+    - acme-org/availability
+    - acme-org/frontend
+    - acme-org/admin-portal
+    - acme-org/mobile
+    - acme-org/marketing-site
+    - acme-org/orchestrator
+    - acme-org/data-pipelines
+    - acme-org/event-schemas
+    - acme-org/media-services
+    - acme-org/infrastructure
+    poll_interval: 300
+  linear:
+    enabled: false
+    mode: mock
+    api_key: ''
+    organization_id: 00000000-0000-0000-0000-000000000000
+    teams: []
+    poll_interval: 300
+  slack:
+    enabled: false
+    mode: mock
+    bot_token: ''
+    channels: []
+    poll_interval: 300
+  grafana:
+    enabled: false
+    mode: mock
+    base_url: ''
+    api_key: ''
+    dashboards: []
+    tempo_services: []
+    poll_interval: 300
+    anomaly_stddev_threshold: 2.5
+identity:
+  github_org: ''
+  persist_learned_aliases: true
+  sensitivity_level: internal
+contexts:
+  engineering:
+    description: 'Technical work: code changes, bug fixes, deployments, API work'
+    terms:
+    - bug
+    - error
+    - fix
+    - pr
+    - merge
+    - deploy
+    - sync
+    - api
+    - webhook
+    - cache
+    business_weight: 3.0
+    relevance_threshold: 0.15
+  support:
+    description: 'Customer-facing: issues, complaints, bookings, support tickets'
+    terms:
+    - customer
+    - issue
+    - booking
+    - complaint
+    - ticket
+    - support
+    business_weight: 2.0
+    relevance_threshold: 0.15
+  leadership:
+    description: 'Business strategy: revenue, market positioning, growth decisions'
+    terms:
+    - revenue
+    - market
+    - strategy
+    - growth
+    - expansion
+    business_weight: 5.0
+    relevance_threshold: 0.2
+agents:
+  eng_watcher:
+    description: 'Engineering-focused: watches for technical patterns, code conflicts,
+      deployment risks'
+    contexts:
+      engineering: 0.95
+    confidence: 0.85
+    weights:
+      technical: 0.9
+      business: 0.2
+      operations: 0.7
+    competencies:
+      similarity_detection: 0.8
+      temporal_analysis: 0.6
+      cross_context_propagation: 0.3
+  cross_cutter:
+    description: 'Cross-cutting: bridges engineering, leadership, and support to surface
+      business-relevant technical patterns'
+    contexts:
+      engineering: 0.7
+      leadership: 0.9
+      support: 0.5
+    confidence: 0.85
+    weights:
+      technical: 0.8
+      business: 0.9
+      operations: 0.6
+    competencies:
+      cross_context_propagation: 0.9
+      similarity_detection: 0.5
+      temporal_analysis: 0.4
+llm:
+  provider: stub
+  model: claude-haiku-4-5-20251001
+budget:
+  daily_cap_usd: 5.0
+  hourly_cap_usd: 1.0
+  max_agents: 10
+  max_contexts: 20
+  warn_at_percent: 80
+  input_cost_per_million: 0.0
+  output_cost_per_million: 0.0
+pipeline:
+  consensus_threshold: 0.4
+  uncertainty_threshold: 0.15
+  dedup_enabled: true
+  familiarity_weights:
+    embedding_similarity: 0.0
+    keyword_overlap: 0.5
+    source_affinity: 0.2
+    temporal_proximity: 0.2
+    author_affinity: 0.1
+mesh:
+  enabled: true
+  max_hops: 10
+  max_workers: 50
+  worker:
+    capacity: 200
+    base_threshold: 0.15
+    max_threshold: 0.8
+    threshold_curve: 2.0
+    high_relevance_offset: 0.2
+  temporal:
+    min_step_seconds: 60
+    max_step_seconds: 86400
+    step_growth_factor: 1.5
+    max_depth_seconds: 604800
+    fresh_window_seconds: 300
+attention:
+  enabled: false
+  target_persons: []
+  decay_half_life_days: 14.0
+  channel_size_reference: 5
+  volume_discount_half: 50
+  importance_weight: 1.0
+  annoyance_weight: 0.3
+  calibration_lr_up: 0.05
+  calibration_lr_down: 0.2
+normalized_deviance:
+  enabled: true
+  linguistic_enabled: true
+  action_correlation_enabled: true
+  solo_ownership_enabled: false
+  channel_migration_enabled: false
+  phase_lock_enabled: false
+  decoupling_threshold: 0.1
+  migration_threshold: 0.3
+  compression_warning: 0.3
+  compression_critical: 0.5
+meta_modeler:
+  enabled: false
+  fire_interval: 1
+  max_output_tokens: 400
+  perturbation_enabled: false
+  competency_reinforcement: true
+unity:
+  enabled: false
+  w_coherence: 1.0
+  w_entropy: 1.0
+  w_resonance: 1.0
+  w_temperature: 1.0
+  w_substrate: 1.0
+  pid_kp: 0.3
+  pid_ki: 0.05
+  pid_kd: 0.1
+  pid_setpoint: 0.7
+  breathing_period: 200
+  breathing_amplitude: 0.1
+  accumulate_ratio: 0.6
+  min_diversity_index: 0.3
+  max_specialization: 0.9
+  babbling_threshold: 0.3
+  calibration_window: 50
+  bridge_enabled: false
+  bridge_vigilance_gain: 0.1
+  bridge_learning_gain: 0.05
+  bridge_quorum_gain: 0.05
+  eigenvalue_healthy_min: 0.8
+  eigenvalue_healthy_max: 1.2
+  jacobian_window: 5
+  log_field_state: true
+output:
+  surface_only: false
+  show_traces: false

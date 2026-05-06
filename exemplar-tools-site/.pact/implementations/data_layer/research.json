@@ -1,0 +1,100 @@
+{
+  "task_summary": "Implement the data constants and Convex backend layer for a React 18 + TypeScript + Convex application. This includes defining shared types (ToolSlug, ToolDef, Comment, etc.), Convex schema, query functions (getTools, getToolBySlugs, listComments), and a mutation (addComment). The layer must provide correctly-typed Convex functions and static/seeded tool data with a real-time comment system.",
+  "findings": [
+    {
+      "topic": "Convex schema definition and type safety",
+      "finding": "Convex uses a `schema.ts` file in the `convex/` directory to define tables with `defineSchema` and `defineTable` from 'convex/server'. Field types come from the `v` validator object from 'convex/values'. The schema generates TypeScript types automatically via `npx convex dev` (here `bunx convex dev`). All query/mutation argument validators must use `v.*` validators — these are runtime validators, not just TS types. The generated `_generated/dataModel.d.ts` provides `Doc<tableName>` and `Id<tableName>` types for type-safe document access.",
+      "source": "Convex documentation — https://docs.convex.dev/database/schemas",
+      "relevance": "Core to defining the Comment table and ensuring type safety across the entire data layer. ToolDef data can be stored in a table or kept as constants — schema is required for comments.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Convex queries vs. constants for static data",
+      "finding": "For static tool definitions that rarely change, two patterns exist: (1) Store in a Convex table and query — benefits from Convex reactivity but adds unnecessary DB reads for immutable data. (2) Define as TypeScript constants in a shared file and import directly — zero latency, no DB cost, fully typed. The hybrid approach is to define constants in a shared `convex/` subdirectory (e.g., `convex/constants.ts`) so they're importable from both server functions and client code. Convex query functions can still wrap these constants if you want them accessible via `useQuery`.",
+      "source": "Convex patterns — https://docs.convex.dev/production/best-practices",
+      "relevance": "Directly impacts architecture of getTools() and getToolBySlugs(). Since tool data is static, constants are more efficient, but wrapping them in Convex queries provides a uniform API surface and enables future migration to DB-backed data.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Convex query and mutation function signatures",
+      "finding": "Convex functions are defined using `query()` and `mutation()` from 'convex/server' (or the generated helpers from '_generated/server'). Each takes an object with `args` (validator object) and `handler` (async function receiving `ctx` and typed `args`). The `query` helper from `_generated/server` provides full type inference. Argument validators serve double duty: runtime validation AND TypeScript type generation. Always use the generated `query`/`mutation` from `_generated/server` rather than the generic ones from `convex/server` for better type safety.",
+      "source": "Convex documentation — https://docs.convex.dev/functions/query-functions",
+      "relevance": "Directly governs how getTools, getToolBySlugs, listComments, and addComment are implemented.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Convex string literal validators for enums",
+      "finding": "Convex does not have a native enum validator. The idiomatic pattern is `v.union(v.literal('value1'), v.literal('value2'), ...)` for enum-like constraints. For the TypeScript side, define a union type or `as const` array and derive types. A common pattern: `export const TOOL_SLUGS = ['slug-a', 'slug-b'] as const; export type ToolSlug = typeof TOOL_SLUGS[number];` then build the validator dynamically with `v.union(...TOOL_SLUGS.map(s => v.literal(s)))`.",
+      "source": "Convex Discord community patterns and docs on validators",
+      "relevance": "Directly relevant to implementing ToolSlug enum type and its use in argument validation for getToolBySlugs.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Convex listComments — indexing and ordering",
+      "finding": "Convex queries on tables should use indexes for efficient filtering and ordering. Define indexes in the schema: `.index('by_page', ['page'])`. Query with `ctx.db.query('comments').withIndex('by_page', q => q.eq('page', args.page)).order('desc').collect()`. Without an index, `.filter()` performs a full table scan. The `.order()` call defaults to 'asc' on `_creationTime`. Always add indexes for fields used in filters.",
+      "source": "Convex documentation — https://docs.convex.dev/database/indexes",
+      "relevance": "Critical for listComments performance. Comments filtered by page slug must use an index to avoid full scans as comment volume grows.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Convex mutation input validation and sanitization",
+      "finding": "Convex argument validators provide type checking and basic constraint enforcement, but they do NOT sanitize strings. For addComment, you must manually validate: (1) non-empty body and author after trimming, (2) maximum length bounds to prevent abuse (e.g., author ≤ 100 chars, body ≤ 5000 chars), (3) the `page` argument should be validated against known page slugs. Throw `ConvexError` from 'convex/values' for user-facing errors. Never trust client input — always re-validate server-side even if client validates.",
+      "source": "Convex security best practices, OWASP input validation",
+      "relevance": "addComment is a write operation exposed to clients. Without length/content validation, the system is vulnerable to spam and storage abuse.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Convex return types and Id serialization",
+      "finding": "Convex mutations that insert documents via `ctx.db.insert()` return `Id<tableName>`, which serializes as a string over the wire. The return type `ConvexDocumentId` maps to this. On the client side, the `useMutation` hook from 'convex/react' returns a promise resolving to the mutation's return value. Convex Ids are opaque strings — do not parse or construct them manually.",
+      "source": "Convex documentation — https://docs.convex.dev/database/writing-data",
+      "relevance": "Defines the return contract of addComment. The caller receives the inserted comment's Id.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "Shared type definitions between Convex and React client",
+      "finding": "Types and constants placed in the `convex/` directory are importable from both server functions and client code. The convention is to create files like `convex/types.ts` or `convex/constants.ts` for shared definitions. Client code imports as `import { ToolDef } from '../convex/types'`. Convex functions import as `import { TOOLS } from './constants'`. This avoids duplication and keeps types in sync. Do NOT import from `_generated/` in client code — use the public Convex API types.",
+      "source": "Convex project structure patterns",
+      "relevance": "Directly relevant — the component spec requires shared types (ToolDef, Comment, ToolSlug, etc.) used by both the backend functions and the React frontend.",
+      "confidence": 0.94
+    },
+    {
+      "topic": "Convex optional fields and OptionalVideoUrl",
+      "finding": "Convex validators support optional fields via `v.optional(v.string())`. In the schema definition, optional fields are nullable — they may be `undefined` in the returned document. TypeScript types should reflect this with `fieldName?: string`. For OptionalVideoUrl specifically, use `v.optional(v.string())` in both the schema and constant type definition.",
+      "source": "Convex documentation on validators",
+      "relevance": "Directly relevant to ToolDef.videoUrl or similar optional field modeling.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Common pitfalls with Convex in Vite projects",
+      "finding": "Key pitfalls: (1) Forgetting to run `bunx convex dev` to generate types before building — causes TS errors on `_generated/` imports. (2) Importing server-only modules in client code (e.g., importing `ctx.db` usage in React). (3) Using `npm`/`npx` instead of `bun`/`bunx` per project constraints. (4) Not wrapping the app in `ConvexProvider` with a `ConvexReactClient` instance. (5) Circular imports between convex functions and shared constants. (6) Using `.collect()` without limits on potentially large result sets — use `.take(n)` for pagination.",
+      "source": "Convex + Vite integration guides, community reports",
+      "relevance": "Preventive guidance for the implementation phase to avoid common integration failures.",
+      "confidence": 0.91
+    }
+  ],
+  "recommended_approach": "**Architecture:**\n\n1. **`convex/schema.ts`** — Define a `comments` table with fields `page` (string), `author` (string), `body` (string), indexed by `page` via `.index('by_page', ['page'])`. Tool data remains as constants (no table needed for static data).\n\n2. **`convex/types.ts`** — All shared TypeScript types: `ToolSlug` (union of string literals derived from `as const` array), `StepNumber` (number branded or aliased), `HexColor` (string alias with documentation), `InstructionStep` (interface with step number, text, optional detail), `ToolDef` (interface with slug, name, color, steps, optional videoUrl), `Comment` (interface matching the DB document shape), `ListCommentsArgs`, `AddCommentArgs`, and list/array type aliases.\n\n3. **`convex/constants.ts`** — Static `TOOLS: ToolDef[]` array containing all tool definitions with their instruction steps, hex colors, and slugs. Export a lookup map `TOOLS_BY_SLUG: Record<ToolSlug, ToolDef>` for O(1) access.\n\n4. **`convex/tools.ts`** — Two Convex query functions:\n   - `getTools`: no args, returns the full `TOOLS` array from constants.\n   - `getToolBySlugs`: args `{ slug: v.string() }`, returns single `ToolDef` or `null` from `TOOLS_BY_SLUG`. Validate slug against known values.\n\n5. **`convex/comments.ts`** — One query and one mutation:\n   - `listComments`: args `{ page: v.string() }`, queries `comments` table with `by_page` index, orders by `_creationTime` desc, `.take(100)` for safety.\n   - `addComment`: args `{ page: v.string(), author: v.string(), body: v.string() }`, validates non-empty trimmed inputs with length limits, inserts into `comments`, returns `Id<'comments'>`.\n\n**Key decisions:**\n- Wrap static constants in Convex queries so the frontend has a uniform `useQuery` API surface, enabling future migration to DB-backed tools without client changes.\n- Keep all types in a single `convex/types.ts` file (well under 300 lines) for single-source-of-truth.\n- Use `bunx convex dev` for codegen; never `npx`.",
+  "alternatives_considered": [
+    "Store tool definitions in a Convex table with seed data — rejected because tools are static, adding DB reads and seed complexity for no benefit. Constants are simpler, faster, and fully typed.",
+    "Define types in a separate `src/types/` directory outside convex/ — rejected because it would require duplicate type definitions or complex import paths. Convex directory types are importable from both server and client.",
+    "Use a single file for all Convex functions — rejected because separating tools.ts and comments.ts respects the 300-line limit and separation of concerns.",
+    "Skip Convex query wrappers for constants and import directly in components — considered viable but rejected for API consistency; useQuery provides loading/error states uniformly.",
+    "Use zod for additional validation on top of Convex validators — rejected as over-engineering; Convex validators plus manual length checks suffice."
+  ],
+  "risks": [
+    "ToolSlug enum drift: If new tools are added to constants but the ToolSlug type isn't updated, type safety breaks. Mitigate by deriving ToolSlug from the constants array via `as const`.",
+    "Comment spam: addComment has no rate limiting or authentication. Convex does not provide built-in rate limiting. Consider adding a simple timestamp-based throttle in the mutation or deferring to a future auth layer.",
+    "Large comment sets: listComments without pagination could return unbounded results. Mitigate with `.take(100)` or `.take(50)` and add cursor-based pagination if needed later.",
+    "Convex codegen dependency: The `_generated/` directory must be regenerated whenever schema changes. CI/CD must include `bunx convex codegen` step.",
+    "HexColor and StepNumber are stringly/numberly typed — TypeScript structural typing won't prevent passing arbitrary strings/numbers. Branded types add complexity; document constraints instead as a pragmatic choice."
+  ],
+  "compliance_notes": [
+    "All exported functions and types must have explicit TypeScript type annotations per project standards.",
+    "Use `bun` / `bunx` exclusively — no npm/npx/yarn invocations.",
+    "All Convex hooks imported from 'convex/react' on the client side.",
+    "Files must stay under 300 lines — split constants if tool definitions are verbose.",
+    "No custom CSS — not directly relevant to this data layer but noted for any UI-adjacent code.",
+    "React functional components only — not directly relevant to backend but noted for any wrapper components.",
+    "Dev server port 4000 — no impact on data layer but must not be overridden.",
+    "vitest must be used for any unit tests on constants, type guards, or utility functions in this layer."
+  ]
+}

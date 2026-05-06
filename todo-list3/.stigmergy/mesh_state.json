@@ -1,0 +1,49 @@
+{
+  "workers": {
+    "18f2d0b1-2828-5aa9-af6f-48fd8db9b399": {
+      "signals_received": 3,
+      "signals_accepted": 3,
+      "signals_forwarded": 0,
+      "rolling_avg_familiarity": 0.266621,
+      "source_name": null
+    },
+    "af7d7c3f-3699-5902-9654-06b488f40051": {
+      "signals_received": 2,
+      "signals_accepted": 2,
+      "signals_forwarded": 0,
+      "rolling_avg_familiarity": 0.287879,
+      "source_name": null
+    },
+    "ba622a0c-03f7-5506-baaa-5a832dc23345": {
+      "signals_received": 2,
+      "signals_accepted": 2,
+      "signals_forwarded": 0,
+      "rolling_avg_familiarity": 0.287316,
+      "source_name": null
+    }
+  },
+  "agents": {
+    "c922c762-a726-55c2-a1ae-aed165390c78": {
+      "competencies": {
+        "similarity_detection": 0.8,
+        "temporal_analysis": 0.6,
+        "cross_context_propagation": 0.3
+      },
+      "confidence": 0.85
+    },
+    "1742b60b-b092-5a30-ad71-76c4f0900484": {
+      "competencies": {
+        "cross_context_propagation": 0.9,
+        "similarity_detection": 0.5,
+        "temporal_analysis": 0.4
+      },
+      "confidence": 0.85
+    }
+  },
+  "last_run_stats": {
+    "signals": 7,
+    "duration_seconds": 0.062327499967068434,
+    "workers": 3,
+    "timestamp_iso": "2026-05-05T20:26:11.655418+00:00"
+  }
+}
