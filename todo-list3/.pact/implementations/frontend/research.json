@@ -1,114 +1,113 @@
 {
-  "task_summary": "Implement a React + TypeScript + Vite frontend SPA for a task management application. The SPA communicates with a FastAPI backend, exposing CRUD operations on tasks plus a health check endpoint. The component must define 11+ types, an API client layer, error handling utilities, and React components (App, TaskList, TaskItem, TaskForm, StatusBadge). Files must stay under 300 lines; composition over inheritance is mandated.",
+  "task_summary": "Implement a React + TypeScript + Vite frontend SPA that serves as a task management UI. The component provides CRUD operations against a FastAPI backend, with typed API client functions, error handling, and presentational components (TaskList, TaskItem, TaskForm, StatusBadge). Must adhere to composition-over-inheritance, strict TypeScript typing, and a 300-line file limit.",
   "findings": [
     {
-      "topic": "API Client Layer Pattern",
-      "finding": "The standard pattern for React SPAs is to isolate all fetch/axios calls into a dedicated api.ts module that returns typed responses. This decouples UI components from transport concerns. Use a single base‐URL resolver (reading from import.meta.env.VITE_API_BASE_URL with a sensible fallback like '' for same-origin or 'http://localhost:8000') and a shared error-parsing function. Prefer native fetch over axios to minimize bundle size unless interceptors or cancellation are heavily needed.",
-      "source": "React community conventions; Vite documentation on env variables (import.meta.env.VITE_* prefix required)",
-      "relevance": "Directly maps to resolveBaseUrl(), parseErrorResponse(), and the five API functions in the spec.",
+      "topic": "API Client Architecture",
+      "finding": "The standard pattern for React SPAs communicating with REST backends is a dedicated api/ module exporting typed async functions wrapping fetch(). Each function should accept typed parameters, return typed responses, and throw structured ApiError objects. Using native fetch() over axios reduces bundle size and avoids dependency churn; fetch is fully supported in all modern browsers and Vite's dev server. The base URL should be resolved once via an environment variable (VITE_API_BASE_URL per Vite convention) with a sensible fallback (e.g., '/api' or 'http://localhost:8000').",
+      "source": "Vite documentation (env variables must be prefixed VITE_), React community patterns",
+      "relevance": "Directly governs resolveBaseUrl(), all fetch/create/update/delete functions, and parseErrorResponse()",
       "confidence": 0.95
     },
     {
-      "topic": "TypeScript Type Modeling",
-      "finding": "Define types in a dedicated types.ts file. Use 'type' for data shapes (Task, TaskCreateRequest, etc.) and 'enum' (or const object + type union) for TaskStatus. Branded types (type TaskId = number & { __brand: 'TaskId' }) are overkill here; a simple 'type TaskId = number' (or string if UUID) suffices. Use discriminated unions for API error responses when multiple error shapes exist.",
-      "source": "TypeScript Handbook; React+TS Cheatsheet (github.com/typescript-cheatsheets/react)",
-      "relevance": "Covers all 16+ types in the spec. Keeping types in one file keeps them under 300 lines given the count.",
-      "confidence": 0.93
+      "topic": "Vite Environment Variable Access",
+      "finding": "Vite exposes env vars via import.meta.env, not process.env. Only variables prefixed with VITE_ are exposed to client code. The ImportMetaEnv interface should be augmented in a vite-env.d.ts or env.d.ts file to get type safety. This is a frequently missed step that causes TypeScript errors or silent undefined values.",
+      "source": "Vite docs: https://vitejs.dev/guide/env-and-mode",
+      "relevance": "Directly relevant to ImportMetaEnv type and resolveBaseUrl()",
+      "confidence": 0.98
     },
     {
-      "topic": "React State Management for CRUD",
-      "finding": "For a single-resource CRUD app, useState + useEffect in the App component is sufficient; no external state library needed. Pattern: tasks state array, loading boolean, error state. Optimistic updates improve UX but add complexity—for an initial implementation, refetch-after-mutate (call fetchTasks after create/update/delete) is simpler and correct. Use useCallback for handlers passed to child components to prevent unnecessary re-renders.",
-      "source": "React documentation (react.dev); Kent C. Dodds patterns",
-      "relevance": "Directly governs App.handleCreate, App.handleUpdate, App.handleDelete, App.useEffectFetchOnMount.",
-      "confidence": 0.92
-    },
-    {
-      "topic": "Component Decomposition & File Structure",
-      "finding": "Recommended structure: src/types.ts, src/api.ts, src/App.tsx, src/components/TaskList.tsx, src/components/TaskItem.tsx, src/components/TaskForm.tsx, src/components/StatusBadge.tsx. Props interfaces (TaskListProps, TaskItemProps, TaskFormProps) should be co-located with their components or in types.ts. This keeps every file well under 300 lines.",
-      "source": "Vite React template conventions; Bulletproof React architecture guide",
-      "relevance": "Directly satisfies the 300-line file limit and composition-over-inheritance standard.",
+      "topic": "State Management Pattern",
+      "finding": "For a single-resource CRUD SPA, useState + useEffect in the App component (or a custom useTasks hook) is sufficient and preferred over Redux or Zustand. The pattern is: (1) useState<Task[]> for the task list, (2) useEffect with empty deps for fetch-on-mount, (3) handler functions that call the API client then update local state optimistically or after confirmation. Extracting a useTasks() custom hook keeps App under 300 lines and follows composition-over-inheritance.",
+      "source": "React docs on hooks, community best practices for small CRUD apps",
+      "relevance": "Governs App.useEffectFetchOnMount, handleCreate, handleUpdate, handleDelete",
       "confidence": 0.95
     },
     {
-      "topic": "Error Handling Best Practices",
-      "finding": "parseErrorResponse should handle: (1) non-OK responses with JSON body conforming to ErrorResponse, (2) non-OK responses with non-JSON body (network proxy errors, 502s), (3) network failures (TypeError from fetch). Return a normalized ApiError struct in all cases. Display errors in UI via an error state rendered as a dismissible banner.",
-      "source": "MDN Fetch API documentation; OWASP frontend error handling guidelines",
-      "relevance": "Maps to parseErrorResponse() and the ErrorResponse / ApiError types. This is the most commonly under-implemented area in task-management SPAs.",
-      "confidence": 0.91
+      "topic": "Error Handling in Fetch Calls",
+      "finding": "fetch() does not reject on HTTP 4xx/5xx — only on network failures. Every API function must check response.ok and, on failure, parse the response body into a structured ApiError. Common pitfall: assuming response.json() always succeeds on error responses — the server may return non-JSON (e.g., 502 from a proxy). parseErrorResponse should try/catch the JSON parse and fall back to a generic message with the status code.",
+      "source": "MDN fetch API, numerous post-mortems on silent error swallowing",
+      "relevance": "Directly governs parseErrorResponse() and the resilience of all API functions",
+      "confidence": 0.97
     },
     {
-      "topic": "Security: XSS and Input Sanitization",
-      "finding": "React's JSX auto-escapes string interpolation, mitigating most XSS. Avoid dangerouslySetInnerHTML entirely. Validate/constrain task input on the form (maxLength, required fields) to provide defense-in-depth alongside backend validation. Use HTTPS in production; configure CORS on the backend side (not frontend concern, but resolveBaseUrl must not hardcode http:// in prod).",
-      "source": "OWASP XSS Prevention Cheat Sheet; React security documentation",
-      "relevance": "TaskForm handles user input that flows to the API; proper constraints prevent malformed data and reduce attack surface.",
-      "confidence": 0.9
-    },
-    {
-      "topic": "Vite Environment Variable Handling",
-      "finding": "Vite exposes env vars prefixed with VITE_ on import.meta.env. Define an ImportMetaEnv interface extending ImportMeta to get type safety. The resolveBaseUrl function should read import.meta.env.VITE_API_BASE_URL ?? '' and strip trailing slashes. At build time these are statically replaced, so they cannot be changed post-build without rebuild or a runtime config endpoint.",
-      "source": "Vite documentation: https://vitejs.dev/guide/env-and-mode",
-      "relevance": "Directly implements resolveBaseUrl() and ImportMetaEnv type from the spec.",
-      "confidence": 0.96
-    },
-    {
-      "topic": "Common Pitfalls: useEffect Cleanup and Race Conditions",
-      "finding": "The fetchOnMount useEffect must handle component unmount during in-flight requests. Use an AbortController signal passed to fetch, and abort in the cleanup function. Alternatively, use a boolean 'ignore' flag. Without this, setting state on an unmounted component causes warnings and potential bugs in StrictMode (which double-invokes effects in dev).",
-      "source": "React documentation on synchronizing with effects; Dan Abramov's 'A Complete Guide to useEffect'",
-      "relevance": "Directly affects App.useEffectFetchOnMount implementation correctness.",
+      "topic": "Component Composition and Props Typing",
+      "finding": "Prefer small, typed functional components: TaskList (receives tasks array + callbacks), TaskItem (receives single task + onUpdate/onDelete), TaskForm (receives onSubmit callback). Props interfaces (TaskListProps, TaskItemProps, TaskFormProps) should be defined adjacent to or co-located with the component. Use React.FC<Props> or plain function signatures — the community trend favors plain function signatures with explicit return types. This aligns with composition-over-inheritance mandate.",
+      "source": "React TypeScript Cheatsheet (github.com/typescript-cheatsheets/react)",
+      "relevance": "Governs all presentational component design and the typed prop interfaces",
       "confidence": 0.94
     },
     {
-      "topic": "Testing Strategy for Frontend",
-      "finding": "The operating procedures mandate backend tests but do not explicitly mandate frontend unit tests. However, the API client functions (api.ts) are pure async functions and are trivially testable with vitest + msw (Mock Service Worker) or simple fetch mocking. Component tests with @testing-library/react are recommended for TaskForm (submit behavior) and TaskList (rendering). Vitest is the natural choice with Vite.",
-      "source": "Vitest documentation; Testing Library best practices",
-      "relevance": "While not strictly required by the operating procedures (which specify pytest for backend), having frontend tests improves reliability. At minimum, the api.ts functions warrant tests.",
-      "confidence": 0.85
+      "topic": "Optimistic vs Confirmed State Updates",
+      "finding": "For a task manager, confirmed (pessimistic) updates are simpler and less error-prone: call the API, await success, then update state with the server-returned object. Optimistic updates add complexity (rollback logic) that is unjustified for a low-traffic CRUD app. handleCreate should append the server-returned Task; handleUpdate should replace in-place; handleDelete should filter after confirmation.",
+      "source": "React patterns literature, TanStack Query documentation rationale",
+      "relevance": "Governs handleCreate, handleUpdate, handleDelete implementation strategy",
+      "confidence": 0.92
     },
     {
-      "topic": "Performance: Avoiding Unnecessary Re-renders",
-      "finding": "For a small task list (<1000 items), performance is not a concern. However, best practice dictates: use React.memo on TaskItem if the list grows, use stable keys (task.id, not array index) in list rendering, and memoize handlers with useCallback. Avoid creating new object/function references in JSX props inside map loops—instead, pass id and let child call parent handler.",
-      "source": "React performance documentation; React DevTools Profiler guidance",
-      "relevance": "Affects TaskList/TaskItem rendering pattern. Using task.id as key is critical for correct reconciliation during updates and deletes.",
-      "confidence": 0.9
+      "topic": "TypeScript Enum Representation for TaskStatus",
+      "finding": "TypeScript enums have known pitfalls (tree-shaking, reverse mapping). The preferred modern approach is a const object + type union: `const TaskStatus = { TODO: 'todo', IN_PROGRESS: 'in_progress', DONE: 'done' } as const; type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus];`. This produces smaller bundles and is more predictable. StatusBadgeColorMap can then be a Record<TaskStatus, string>.",
+      "source": "TypeScript community best practices, Matt Pocock's guidance on enums",
+      "relevance": "Governs TaskStatus type and StatusBadgeColorMap type",
+      "confidence": 0.93
     },
     {
-      "topic": "Form State Management",
-      "finding": "For TaskForm, prefer controlled components (useState per field) for simple forms. Libraries like react-hook-form are warranted for complex validation but overkill for 2-3 fields (title, description, status). The form should support both create mode (empty initial state) and edit mode (pre-populated from existing Task). Distinguish modes via presence of an initial task prop.",
-      "source": "React documentation on forms; react-hook-form docs for comparison",
-      "relevance": "TaskFormProps likely includes an optional onSubmit callback and optional initial Task. Keeps implementation simple and under 300 lines.",
-      "confidence": 0.89
+      "topic": "File Organization Under 300-Line Constraint",
+      "finding": "Recommended structure: (1) src/types.ts — all shared types (Task, TaskId, enums, request/response types), (2) src/api.ts — resolveBaseUrl, parseErrorResponse, and all API functions, (3) src/components/TaskList.tsx, TaskItem.tsx, TaskForm.tsx, StatusBadge.tsx — one component per file, (4) src/hooks/useTasks.ts — custom hook if App grows too large, (5) src/App.tsx — composition root. Each file stays well under 300 lines.",
+      "source": "React community conventions, Vite project scaffolding patterns",
+      "relevance": "Directly addresses the 300-line file limit operating procedure",
+      "confidence": 0.96
     },
     {
-      "topic": "Delete Confirmation UX Pattern",
-      "finding": "DeleteConfirmation type suggests the API returns a confirmation object. The UI should show a confirmation dialog (window.confirm or a modal component) before calling deleteTask. After successful deletion, remove the task from local state. Handle 404 gracefully (task already deleted by another client).",
-      "source": "UX best practices for destructive actions; Nielsen Norman Group guidelines",
-      "relevance": "Directly affects App.handleDelete implementation and the user-facing delete flow.",
-      "confidence": 0.88
+      "topic": "XSS and Security Considerations",
+      "finding": "React auto-escapes JSX interpolations, so XSS via task titles/descriptions is mitigated by default — provided dangerouslySetInnerHTML is never used. API calls should include Content-Type: application/json header. If the backend uses CORS, the Vite dev server proxy (vite.config.ts server.proxy) avoids CORS issues in development without weakening production security. Never interpolate user input into URLs without encoding (use encodeURIComponent for path params).",
+      "source": "OWASP SPA security guidelines, React security documentation",
+      "relevance": "Security baseline for all API interactions and rendered content",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Key Prop and List Rendering",
+      "finding": "When rendering Task lists, React requires a stable unique key prop. TaskId (presumably a UUID or integer from the backend) should be used as the key. Common pitfall: using array index as key, which causes incorrect component reuse on reorder/delete and subtle bugs in controlled inputs within list items.",
+      "source": "React docs on reconciliation, common React anti-patterns literature",
+      "relevance": "Governs TaskList rendering of TaskItem components",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Form Handling Pattern",
+      "finding": "For TaskForm (create and edit), controlled components with useState for each field is the simplest approach. For more complex validation, react-hook-form is the lightweight standard (7kb gzipped). Given the small form surface (title, description, status), plain controlled inputs are sufficient and avoid an extra dependency. On submit, prevent default, validate non-empty title, call the onSubmit prop, and reset form state.",
+      "source": "React forms documentation, react-hook-form docs",
+      "relevance": "Governs TaskForm implementation and TaskFormProps design",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Loading and Error UI States",
+      "finding": "Frequently missed edge case: not handling loading, error, and empty states. The App should track isLoading (boolean) and error (string | null) alongside the tasks array. On mount fetch, show a loading indicator; on failure, show the error; on success with empty array, show an empty-state message. This prevents a blank screen that users interpret as broken.",
+      "source": "UX best practices for data-driven SPAs",
+      "relevance": "Governs App.useEffectFetchOnMount and overall UX resilience",
+      "confidence": 0.94
     }
   ],
-  "recommended_approach": "**File Structure:**\n```\nsrc/\n  types.ts          — All type definitions (TaskId, TaskStatus, Task, request/response types, prop types, ImportMetaEnv)\n  api.ts            — resolveBaseUrl(), parseErrorResponse(), fetchTasks(), createTask(), updateTask(), deleteTask(), healthCheck()\n  App.tsx           — Root component with state, handlers, useEffect fetch-on-mount\n  components/\n    TaskList.tsx    — Renders list of TaskItem components\n    TaskItem.tsx    — Single task display with edit/delete actions\n    TaskForm.tsx    — Controlled form for create/edit\n    StatusBadge.tsx — Status enum → colored badge mapping using StatusBadgeColorMap\n  env.d.ts          — ImportMetaEnv interface augmentation for Vite\n```\n\n**Implementation Order:**\n1. `types.ts` — Define all types first; everything depends on them.\n2. `env.d.ts` — Augment ImportMeta for VITE_API_BASE_URL type safety.\n3. `api.ts` — Implement resolveBaseUrl (read VITE_API_BASE_URL, strip trailing slash, default to empty string), parseErrorResponse (handle JSON/non-JSON/network errors → ApiError), and the five API functions using native fetch with typed returns.\n4. `StatusBadge.tsx` — Stateless, no dependencies beyond types.\n5. `TaskForm.tsx` — Controlled form, accepts TaskFormProps (onSubmit callback, optional initial Task).\n6. `TaskItem.tsx` — Renders a Task, contains StatusBadge, exposes edit/delete via props callbacks.\n7. `TaskList.tsx` — Maps tasks array to TaskItem components, keyed by task.id.\n8. `App.tsx` — Wires everything: state (tasks, loading, error), useEffect with AbortController, handleCreate/handleUpdate/handleDelete (each calls API then refetches), renders TaskForm + TaskList + error banner.\n\n**Key Decisions:**\n- Native fetch over axios (zero dependencies, sufficient for this scope).\n- Refetch-after-mutate over optimistic updates (simpler, correct, adequate for task management).\n- Controlled form components over react-hook-form (2-3 fields don't justify the dependency).\n- AbortController in useEffect cleanup for correctness under StrictMode.\n- All API functions throw ApiError on failure; callers catch and set error state.",
+  "recommended_approach": "Structure the frontend into 5–7 files under src/:\n\n1. **src/types.ts** — All shared types: TaskId (string), TaskStatus (const object + union type), Task, TaskCreateRequest, TaskUpdateRequest, DeleteConfirmation, HealthResponse, ErrorResponse, ApiError, and all Props interfaces. Augment ImportMetaEnv in src/vite-env.d.ts.\n\n2. **src/api.ts** — `resolveBaseUrl()` reading `import.meta.env.VITE_API_BASE_URL` with fallback. `parseErrorResponse()` with try/catch around response.json(). Typed async functions: `fetchTasks()`, `createTask()`, `updateTask()`, `deleteTask()`, `healthCheck()` — all using native fetch with Content-Type headers, checking response.ok, and throwing ApiError on failure.\n\n3. **src/hooks/useTasks.ts** — Custom hook encapsulating tasks state, loading, error, and all CRUD handlers (handleCreate, handleUpdate, handleDelete, useEffect fetch-on-mount). Uses pessimistic (confirmed) updates.\n\n4. **src/components/TaskForm.tsx** — Controlled form component accepting TaskFormProps (onSubmit callback, optional initial Task for edit mode). Plain useState for fields, basic validation.\n\n5. **src/components/TaskList.tsx** — Receives TaskListProps, maps over tasks rendering TaskItem with task.id as key.\n\n6. **src/components/TaskItem.tsx** — Receives TaskItemProps, renders task details with StatusBadge, inline edit toggle, delete button. StatusBadgeColorMap as a local const Record<TaskStatus, string>.\n\n7. **src/App.tsx** — Composition root. Imports useTasks hook and components. Renders loading/error/empty states and the TaskList + TaskForm.\n\nUse native fetch (no axios). Use const-object enum pattern for TaskStatus. Vite proxy in dev to avoid CORS. All files under 300 lines.",
   "alternatives_considered": [
-    "axios instead of native fetch — rejected: adds a dependency for no material benefit given the simple request patterns (no interceptors, no upload progress needed). Native fetch is well-supported in all target browsers.",
-    "React Query / TanStack Query for server state — rejected for initial implementation: adds significant complexity and a dependency. The manual useState + refetch-after-mutate pattern is adequate for a single-resource CRUD app. Can be introduced later if caching, background refetch, or pagination are needed.",
-    "react-hook-form for TaskForm — rejected: the form has only 2-3 fields. Controlled components with useState are simpler and keep the dependency count low.",
-    "Zustand or Redux for global state — rejected: a single App component managing tasks state is sufficient. No cross-cutting state concerns exist.",
-    "Optimistic updates — deferred: adds rollback logic and error-state complexity. Refetch-after-mutate is correct and perceptually fast for small datasets. Can be layered in later.",
-    "String literal union type ('pending' | 'in_progress' | 'done') vs enum for TaskStatus — either works; recommend string literal union as it avoids TypeScript enum pitfalls (no reverse mapping needed, better tree-shaking)."
+    "axios instead of native fetch — rejected because it adds a dependency for no meaningful benefit given the simple request patterns; fetch is sufficient and reduces bundle size",
+    "Redux or Zustand for state management — rejected as overkill for single-resource CRUD; a custom hook with useState provides equivalent capability with zero dependencies",
+    "react-hook-form for TaskForm — viable but unnecessary given the small form surface (2–3 fields); plain controlled inputs keep dependencies minimal",
+    "TanStack Query (React Query) for data fetching — excellent library but introduces caching/retry complexity not justified for this scope; manual fetch-in-useEffect is transparent and sufficient",
+    "TypeScript enum keyword for TaskStatus — rejected in favor of const object + union type for better tree-shaking, no reverse-mapping surprises, and community alignment",
+    "Single-file architecture — rejected because it would exceed the 300-line limit and reduce maintainability"
   ],
   "risks": [
-    "CORS misconfiguration: If the backend doesn't set Access-Control-Allow-Origin for the frontend's origin, all API calls will fail. Ensure the FastAPI backend has CORSMiddleware configured. The frontend cannot fix this.",
-    "Stale base URL after build: Vite statically replaces import.meta.env at build time. If the API URL changes post-deployment, a rebuild is required. Mitigation: support a runtime config endpoint or inject via window.__CONFIG__ at serve time.",
-    "Race condition on rapid mutations: If a user creates/deletes tasks rapidly, refetch-after-mutate calls may resolve out of order, showing stale state. Mitigation: use an incrementing request ID or AbortController to cancel superseded fetches.",
-    "Missing error feedback: If parseErrorResponse doesn't handle all edge cases (e.g., 502 with HTML body from a reverse proxy), the user sees a cryptic or missing error message. Mitigation: always provide a fallback message string in parseErrorResponse.",
-    "File size creep: App.tsx with all handlers, state, and JSX could approach 300 lines. Mitigation: extract hooks into a custom useTaskApi() hook if needed.",
-    "No offline/retry handling: Network failures surface as errors with no automatic retry. Acceptable for MVP but should be noted as a future improvement."
+    "CORS misconfiguration: if the Vite dev proxy is not configured and the FastAPI backend does not include appropriate CORS headers, all API calls will fail silently in the browser. Mitigation: configure vite.config.ts server.proxy for dev and ensure FastAPI CORSMiddleware is set for production.",
+    "Environment variable typo or missing VITE_ prefix: import.meta.env.API_BASE_URL will be undefined because Vite only exposes VITE_-prefixed vars. Mitigation: augment ImportMetaEnv interface and use resolveBaseUrl() with a fallback.",
+    "Silent fetch failures: fetch() does not throw on 4xx/5xx. If parseErrorResponse is not called consistently, errors will be swallowed. Mitigation: centralize error checking in each API function with a shared helper.",
+    "Race conditions on rapid create/delete: if handleDelete is called while a handleCreate is in-flight, state could become inconsistent. Mitigation: use functional setState (prev => ...) rather than closure-captured state, and consider an AbortController for the mount-fetch to prevent state updates on unmounted components.",
+    "Empty or malformed backend responses: deleteTask may return 204 No Content, which will cause response.json() to throw. Mitigation: check response status before attempting JSON parse.",
+    "Stale closure in useEffect cleanup: if the component unmounts during an API call, setState on the unmounted component logs a warning (React 17) or is silently ignored (React 18). Mitigation: use AbortController signal passed to fetch, abort on cleanup."
   ],
   "compliance_notes": [
-    "All files must remain under 300 lines per operating procedures. The proposed 7-file structure ensures this; App.tsx is the most at risk and should be monitored.",
-    "Composition over inheritance is satisfied: all components are functional components composed via props. No class components or inheritance hierarchies.",
-    "Type annotations: TypeScript enforces this naturally. All props interfaces, API function signatures, and return types will be explicitly typed.",
-    "The operating procedures mandate backend tests with pytest. Frontend tests are not explicitly required but are recommended. Vitest tests for api.ts functions would provide high-value coverage.",
-    "The frontend does not directly connect to PostgreSQL or use DATABASE_URL; it communicates exclusively through the FastAPI HTTP API.",
-    "TaskStatus enum values must exactly match the backend's Python enum to avoid serialization mismatches. Coordinate with backend TaskStatus definition."
+    "All TypeScript types must be explicitly defined — no 'any' except in parseErrorResponse's input parameter where the response shape is genuinely unknown (and even there, constrain with a type guard internally).",
+    "Composition over inheritance: all components are functional components composed via props; no class components or inheritance hierarchies.",
+    "300-line file limit: the recommended file split (types, api, hook, 3–4 component files, App) keeps each file well under 200 lines.",
+    "The operating procedures specify backend testing with pytest; frontend testing is not explicitly mandated but contract tests must pass. The API client functions should be structured to be easily testable (pure functions taking fetch as an optional parameter, or mockable module imports).",
+    "DATABASE_URL is a backend concern; the frontend must never reference or expose database credentials. Only VITE_API_BASE_URL should be used."
   ]
 }

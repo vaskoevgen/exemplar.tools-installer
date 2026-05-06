@@ -1,0 +1,100 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_website_001
+
+components:
+  - name: "web_frontend"
+    description: "React SPA with 12 pages, Tailwind styling, and real-time comments"
+    type: service
+    port: 4000
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Renders all public content and submits comments"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: ["convex_backend", "build_system"]
+    constraints: ["C001", "C004", "C005", "C006", "C007", "C008", "C009"]
+
+  - name: "build_system"
+    description: "Vite + Bun build pipeline for React TypeScript compilation"
+    type: service
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Processes source files and content into deployable assets"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: ["C001", "C002", "C003", "C004", "C005"]
+
+  - name: "convex_backend"
+    description: "Real-time database and sync service for comments"
+    type: service
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Stores and synchronizes comment data in real-time"
+    authority:
+      domains: ["comment_*"]
+      rationale: "Authoritative source for all comment operations"
+    dependencies: []
+    constraints: ["C009", "C010"]
+
+  - name: "youtube_embed"
+    description: "External YouTube video embedding service"
+    type: egress
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Provides video content for embedding"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: ["C007"]
+
+  - name: "tool_repositories"
+    description: "External tool repos providing version badge data"
+    type: egress
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Source of truth for tool version information"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: ["C008"]
+
+edges:
+  - from: "web_frontend"
+    to: "convex_backend"
+    protocol: http
+    description: "Real-time comment sync and storage"
+  
+  - from: "web_frontend"
+    to: "build_system"
+    protocol: http
+    description: "Development server and hot reload"
+  
+  - from: "web_frontend"
+    to: "youtube_embed"
+    protocol: http
+    description: "Video embed requests"
+  
+  - from: "web_frontend"
+    to: "tool_repositories"
+    protocol: http
+    description: "Version badge data fetching"

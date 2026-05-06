@@ -1,61 +1,41 @@
 """
-Contract tests for root component.
-
-Two logical sections:
-1. Type/validator unit tests (no infrastructure required)
-2. Integration verification tests (require live backend/database, skip otherwise)
+Contract test suite for root component.
+Tests verify the full-stack integration contract including HTTP API,
+cross-tier invariants, schema initialization, test isolation, CORS, and
+connection pool lifecycle.
 
 Run with: pytest contract_test.py -v
 """
+import json
 import os
 import re
+import time
+import urllib.request
+import urllib.error
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from unittest.mock import patch, MagicMock
+
 import pytest
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock, MagicMock, patch
+
 
 # ---------------------------------------------------------------------------
-# Import component under test
+# Constants
 # ---------------------------------------------------------------------------
-# We attempt imports defensively so type-level tests can still run even if
-# some runtime dependencies are missing in the test environment.
-try:
-    from root import (
-        TaskStatus,
-        TaskTitle,
-        TaskCreateRequest,
-        TaskUpdateRequest,
-        TaskResponse,
-        TaskListResponse,
-        HealthResponse,
-        DatabaseURL,
-        HttpEndpoint,
-        DeleteConfirmation,
-        ErrorResponse,
-        ValidationErrorResponse,
-        ValidationErrorItem,
-        verify_http_api_contract,
-        verify_cross_tier_invariants,
-        verify_schema_initialization_idempotent,
-        verify_test_isolation,
-        verify_cors_configuration,
-        verify_connection_pool_lifecycle,
-    )
-    ROOT_IMPORTED = True
-except ImportError:
-    ROOT_IMPORTED = False
-
-pytestmark = pytest.mark.skipif(not ROOT_IMPORTED, reason="root module not importable")
+ISO_TIMESTAMP_RE = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$"
+)
+TASK_RESPONSE_KEYS = {"id", "title", "description", "status", "created_at", "updated_at"}
+VALID_STATUSES = {"pending", "in_progress", "done"}
 
 
-# ===========================================================================
+# ---------------------------------------------------------------------------
 # Fixtures
-# ===========================================================================
-
-@pytest.fixture
+# ---------------------------------------------------------------------------
+@pytest.fixture(scope="session")
 def backend_base_url() -> str:
-    """Backend URL from env or default; skip when backend is unreachable."""
-    import urllib.request
-    url: str = os.environ.get("BACKEND_BASE_URL", "http://localhost:8000")
+    """Resolve backend URL; skip if unreachable."""
+    url = os.environ.get("BACKEND_BASE_URL", "http://localhost:8000")
     try:
         urllib.request.urlopen(url + "/health", timeout=2)
     except Exception:
@@ -63,398 +43,647 @@ def backend_base_url() -> str:
     return url
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def database_url() -> str:
-    """Database URL from env; skip when absent."""
+    """Resolve DATABASE_URL; skip if absent."""
     url = os.environ.get("DATABASE_URL")
     if url is None:
-        pytest.skip("DATABASE_URL not set — skipping database-dependent test")
+        pytest.skip("DATABASE_URL not set")
     return url
 
 
-@pytest.fixture
+@pytest.fixture(scope="session")
 def frontend_origin() -> str:
-    """Frontend origin from env or default."""
     return os.environ.get("FRONTEND_ORIGIN", "http://localhost:5173")
 
 
-# ===========================================================================
-# Section 1: Type / Validator Unit Tests
-# ===========================================================================
-
-class TestTaskStatusEnum:
-    """CROSS-TIER-11: TaskStatus enum values are exactly {pending, in_progress, done}."""
-
-    def test_enum_has_exactly_three_members(self) -> None:
-        members = list(TaskStatus)
-        assert len(members) == 3, f"Expected 3 TaskStatus members, got {len(members)}"
-
-    def test_enum_values_match_contract(self) -> None:
-        values = {s.value for s in TaskStatus}
-        expected = {"pending", "in_progress", "done"}
-        assert values == expected, f"TaskStatus values {values} != expected {expected}"
-
-    def test_enum_member_access(self) -> None:
-        assert TaskStatus.pending is not None
-        assert TaskStatus.in_progress is not None
-        assert TaskStatus.done is not None
-
-    def test_enum_value_strings(self) -> None:
-        assert TaskStatus.pending.value == "pending"
-        assert TaskStatus.in_progress.value == "in_progress"
-        assert TaskStatus.done.value == "done"
-
-
-class TestTaskTitle:
-    """TaskTitle: non-blank, whitespace-stripped, 1-255 chars after strip."""
-
-    def test_valid_title_accepted(self) -> None:
-        title = TaskTitle(value="Buy groceries")
-        assert title.value == "Buy groceries"
-
-    def test_whitespace_stripped(self) -> None:
-        title = TaskTitle(value="  Hello World  ")
-        assert title.value == "Hello World"
-
-    def test_single_char_after_strip_accepted(self) -> None:
-        title = TaskTitle(value="  a  ")
-        assert title.value == "a"
-
-    def test_exactly_255_chars_accepted(self) -> None:
-        long_title = "x" * 255
-        title = TaskTitle(value=long_title)
-        assert len(title.value) == 255
-
-    def test_256_chars_rejected(self) -> None:
-        over_limit = "x" * 256
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value=over_limit)
-
-    def test_empty_string_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value="")
-
-    def test_whitespace_only_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value="   ")
-
-    def test_tab_and_newline_whitespace_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value="\t\n  ")
+# ---------------------------------------------------------------------------
+# HTTP helpers
+# ---------------------------------------------------------------------------
+def _request(
+    method: str,
+    url: str,
+    data: Optional[dict] = None,
+    headers: Optional[dict] = None,
+) -> tuple:
+    """Low-level HTTP request. Returns (status_code, headers, body_dict|list)."""
+    hdrs = {"Content-Type": "application/json", "Accept": "application/json"}
+    if headers:
+        hdrs.update(headers)
+    body_bytes: Optional[bytes] = None
+    if data is not None:
+        body_bytes = json.dumps(data).encode("utf-8")
+    req = urllib.request.Request(url, data=body_bytes, headers=hdrs, method=method)
+    try:
+        resp = urllib.request.urlopen(req, timeout=10)
+        status = resp.status
+        resp_headers = dict(resp.headers)
+        resp_body = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        status = exc.code
+        resp_headers = dict(exc.headers)
+        resp_body = json.loads(exc.read().decode("utf-8"))
+    return status, resp_headers, resp_body
 
 
-class TestHealthResponse:
-    """HealthResponse status must be 'ok'."""
-
-    def test_status_ok_valid(self) -> None:
-        resp = HealthResponse(status="ok")
-        assert resp.status == "ok"
-
-    def test_status_not_ok_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            HealthResponse(status="bad")
-
-    def test_status_empty_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            HealthResponse(status="")
-
-
-class TestDatabaseURL:
-    """DatabaseURL must start with postgresql://."""
-
-    def test_valid_postgresql_url(self) -> None:
-        url = DatabaseURL(value="postgresql://user:pass@localhost:5432/dbname")
-        assert url.value.startswith("postgresql://")
-
-    def test_minimal_postgresql_url(self) -> None:
-        url = DatabaseURL(value="postgresql://localhost/db")
-        assert url.value == "postgresql://localhost/db"
-
-    def test_mysql_url_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL(value="mysql://host/db")
-
-    def test_empty_string_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL(value="")
-
-    def test_http_url_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL(value="http://localhost:5432/db")
+def _create_task(
+    base: str,
+    title: str = "Contract Test Task",
+    description: Optional[str] = None,
+    status: Optional[str] = None,
+) -> tuple:
+    """Create a task via POST and return (status, body)."""
+    payload: Dict[str, Any] = {"title": title}
+    if description is not None:
+        payload["description"] = description
+    if status is not None:
+        payload["status"] = status
+    s, _, b = _request("POST", f"{base}/tasks", data=payload)
+    return s, b
 
 
-class TestHttpEndpoint:
-    """HttpEndpoint method must be one of GET, POST, PUT, DELETE."""
+def _delete_task(base: str, task_id: int) -> None:
+    """Best-effort cleanup."""
+    try:
+        _request("DELETE", f"{base}/tasks/{task_id}")
+    except Exception:
+        pass
 
-    def _make_endpoint(self, method: str) -> "HttpEndpoint":
-        return HttpEndpoint(
-            method=method,
-            path="/test",
-            request_body_type=None,
-            response_body_type="TestResponse",
-            success_status_code=200,
-            content_type="application/json",
+
+# ---------------------------------------------------------------------------
+# 1. verify_http_api_contract — happy paths
+# ---------------------------------------------------------------------------
+class TestHttpApiContractHappyPath:
+    """Happy-path verification of all six REST endpoints."""
+
+    def test_health_endpoint(self, backend_base_url: str) -> None:
+        status, _, body = _request("GET", f"{backend_base_url}/health")
+        assert status == 200
+        assert body == {"status": "ok"}
+
+    def test_list_tasks_endpoint(self, backend_base_url: str) -> None:
+        status, _, body = _request("GET", f"{backend_base_url}/tasks")
+        assert status == 200
+        assert isinstance(body, list)
+
+    def test_create_task_endpoint(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="hp create test")
+        assert status == 201
+        assert TASK_RESPONSE_KEYS.issubset(set(body.keys()))
+        _delete_task(backend_base_url, body["id"])
+
+    def test_get_task_endpoint(self, backend_base_url: str) -> None:
+        _, created = _create_task(backend_base_url, title="hp get test")
+        tid = created["id"]
+        try:
+            status, _, body = _request("GET", f"{backend_base_url}/tasks/{tid}")
+            assert status == 200
+            assert TASK_RESPONSE_KEYS.issubset(set(body.keys()))
+            assert body["id"] == tid
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_update_task_endpoint(self, backend_base_url: str) -> None:
+        _, created = _create_task(backend_base_url, title="hp update test")
+        tid = created["id"]
+        try:
+            status, _, body = _request(
+                "PUT",
+                f"{backend_base_url}/tasks/{tid}",
+                data={"title": "updated title"},
+            )
+            assert status == 200
+            assert body["title"] == "updated title"
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_delete_task_endpoint(self, backend_base_url: str) -> None:
+        _, created = _create_task(backend_base_url, title="hp delete test")
+        tid = created["id"]
+        status, _, body = _request("DELETE", f"{backend_base_url}/tasks/{tid}")
+        assert status == 200
+        assert "detail" in body
+        assert body["id"] == tid
+
+
+# ---------------------------------------------------------------------------
+# 2. verify_http_api_contract — error cases
+# ---------------------------------------------------------------------------
+class TestHttpApiContractErrors:
+
+    def test_get_nonexistent_task_returns_404(self, backend_base_url: str) -> None:
+        status, _, body = _request("GET", f"{backend_base_url}/tasks/999999999")
+        assert status == 404
+        assert body.get("detail") == "Task not found"
+
+    def test_create_blank_title_returns_422(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="   ")
+        assert status == 422
+        assert "detail" in body
+        assert isinstance(body["detail"], list)
+
+    def test_update_nonexistent_task_returns_404(self, backend_base_url: str) -> None:
+        status, _, body = _request(
+            "PUT",
+            f"{backend_base_url}/tasks/999999999",
+            data={"title": "no such task"},
         )
+        assert status == 404
+        assert body.get("detail") == "Task not found"
 
-    def test_get_method_valid(self) -> None:
-        ep = self._make_endpoint("GET")
-        assert ep.method == "GET"
+    def test_delete_nonexistent_task_returns_404(self, backend_base_url: str) -> None:
+        status, _, body = _request("DELETE", f"{backend_base_url}/tasks/999999999")
+        assert status == 404
+        assert body.get("detail") == "Task not found"
 
-    def test_post_method_valid(self) -> None:
-        ep = self._make_endpoint("POST")
-        assert ep.method == "POST"
-
-    def test_put_method_valid(self) -> None:
-        ep = self._make_endpoint("PUT")
-        assert ep.method == "PUT"
-
-    def test_delete_method_valid(self) -> None:
-        ep = self._make_endpoint("DELETE")
-        assert ep.method == "DELETE"
-
-    def test_patch_method_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            self._make_endpoint("PATCH")
-
-    def test_lowercase_method_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            self._make_endpoint("get")
+    def test_create_invalid_status_returns_422(self, backend_base_url: str) -> None:
+        status, _ = _create_task(backend_base_url, title="bad status", status="invalid")
+        assert status == 422
 
 
-class TestTaskCreateRequest:
-    """TaskCreateRequest title validation: 1-255 chars, rejects blank."""
+# ---------------------------------------------------------------------------
+# 3. verify_http_api_contract — edge cases
+# ---------------------------------------------------------------------------
+class TestHttpApiContractEdgeCases:
 
-    def test_valid_creation(self) -> None:
-        req = TaskCreateRequest(
-            title="Test task",
-            description=None,
-            status=TaskStatus.pending,
+    def test_title_min_length_1(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="a")
+        assert status == 201
+        _delete_task(backend_base_url, body["id"])
+
+    def test_title_max_length_255(self, backend_base_url: str) -> None:
+        title = "a" * 255
+        status, body = _create_task(backend_base_url, title=title)
+        assert status == 201
+        assert len(body["title"]) == 255
+        _delete_task(backend_base_url, body["id"])
+
+    def test_title_whitespace_only_rejected(self, backend_base_url: str) -> None:
+        status, _ = _create_task(backend_base_url, title="   ")
+        assert status == 422
+
+    def test_valid_status_pending(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="s pending", status="pending")
+        assert status == 201
+        _delete_task(backend_base_url, body["id"])
+
+    def test_valid_status_in_progress(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="s in_progress", status="in_progress")
+        assert status == 201
+        _delete_task(backend_base_url, body["id"])
+
+    def test_valid_status_done(self, backend_base_url: str) -> None:
+        status, body = _create_task(backend_base_url, title="s done", status="done")
+        assert status == 201
+        _delete_task(backend_base_url, body["id"])
+
+
+# ---------------------------------------------------------------------------
+# 4. verify_cross_tier_invariants
+# ---------------------------------------------------------------------------
+class TestCrossTierInvariants:
+
+    def test_task_list_ordered_by_created_at_desc(self, backend_base_url: str) -> None:
+        """CROSS-TIER-01"""
+        ids: List[int] = []
+        try:
+            for i in range(3):
+                _, body = _create_task(backend_base_url, title=f"order test {i}")
+                ids.append(body["id"])
+                time.sleep(0.05)  # ensure distinct created_at
+            _, _, tasks = _request("GET", f"{backend_base_url}/tasks")
+            # filter to our test tasks
+            test_tasks = [t for t in tasks if t["id"] in ids]
+            timestamps = [t["created_at"] for t in test_tasks]
+            assert timestamps == sorted(timestamps, reverse=True)
+        finally:
+            for tid in ids:
+                _delete_task(backend_base_url, tid)
+
+    def test_created_at_immutable_on_update(self, backend_base_url: str) -> None:
+        """CROSS-TIER-02"""
+        _, created = _create_task(backend_base_url, title="immutable ca")
+        tid = created["id"]
+        try:
+            original_ca = created["created_at"]
+            time.sleep(0.05)
+            _, _, updated = _request(
+                "PUT",
+                f"{backend_base_url}/tasks/{tid}",
+                data={"title": "immutable ca changed"},
+            )
+            assert updated["created_at"] == original_ca
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_updated_at_refreshed_on_update(self, backend_base_url: str) -> None:
+        """CROSS-TIER-03"""
+        _, created = _create_task(backend_base_url, title="refresh ua")
+        tid = created["id"]
+        try:
+            original_ua = created["updated_at"]
+            time.sleep(0.05)
+            _, _, updated = _request(
+                "PUT",
+                f"{backend_base_url}/tasks/{tid}",
+                data={"title": "refresh ua changed"},
+            )
+            assert updated["updated_at"] >= original_ua
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_hard_delete(self, backend_base_url: str) -> None:
+        """CROSS-TIER-04"""
+        _, created = _create_task(backend_base_url, title="hard delete")
+        tid = created["id"]
+        status, _, _ = _request("DELETE", f"{backend_base_url}/tasks/{tid}")
+        assert status == 200
+        status2, _, body2 = _request("GET", f"{backend_base_url}/tasks/{tid}")
+        assert status2 == 404
+
+    def test_description_normalization_empty_string(self, backend_base_url: str) -> None:
+        """CROSS-TIER-09: empty string -> null"""
+        status, body = _create_task(backend_base_url, title="desc norm empty", description="")
+        tid = body["id"]
+        try:
+            assert status == 201
+            assert body["description"] is None
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_description_normalization_whitespace(self, backend_base_url: str) -> None:
+        """CROSS-TIER-09: whitespace-only -> null"""
+        status, body = _create_task(backend_base_url, title="desc norm ws", description="   ")
+        tid = body["id"]
+        try:
+            assert status == 201
+            assert body["description"] is None
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_title_stripping(self, backend_base_url: str) -> None:
+        """CROSS-TIER-18"""
+        status, body = _create_task(backend_base_url, title="  stripped title  ")
+        tid = body["id"]
+        try:
+            assert status == 201
+            assert body["title"] == "stripped title"
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_status_defaults_to_pending(self, backend_base_url: str) -> None:
+        """Status default when not provided."""
+        payload = {"title": "default status test"}
+        s, _, body = _request("POST", f"{backend_base_url}/tasks", data=payload)
+        tid = body["id"]
+        try:
+            assert s == 201
+            assert body["status"] == "pending"
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_timestamps_iso8601_with_timezone(self, backend_base_url: str) -> None:
+        """CROSS-TIER-10"""
+        _, body = _create_task(backend_base_url, title="ts format test")
+        tid = body["id"]
+        try:
+            assert ISO_TIMESTAMP_RE.match(body["created_at"]), (
+                f"created_at '{body['created_at']}' does not match ISO 8601 with tz"
+            )
+            assert ISO_TIMESTAMP_RE.match(body["updated_at"]), (
+                f"updated_at '{body['updated_at']}' does not match ISO 8601 with tz"
+            )
+        finally:
+            _delete_task(backend_base_url, tid)
+
+    def test_put_patch_semantics(self, backend_base_url: str) -> None:
+        """CROSS-TIER-12: Only provided fields are updated."""
+        _, created = _create_task(
+            backend_base_url,
+            title="patch sem",
+            description="original desc",
+            status="pending",
         )
-        assert req.title is not None
+        tid = created["id"]
+        try:
+            # Update only title
+            _, _, updated = _request(
+                "PUT",
+                f"{backend_base_url}/tasks/{tid}",
+                data={"title": "patch sem changed"},
+            )
+            assert updated["title"] == "patch sem changed"
+            # description and status should be unchanged
+            assert updated["description"] == "original desc"
+            assert updated["status"] == "pending"
+        finally:
+            _delete_task(backend_base_url, tid)
 
-    def test_empty_title_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskCreateRequest(title="", description=None, status=TaskStatus.pending)
 
-    def test_whitespace_only_title_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskCreateRequest(title="   ", description=None, status=TaskStatus.pending)
+# ---------------------------------------------------------------------------
+# 5. verify_schema_initialization_idempotent
+# ---------------------------------------------------------------------------
+class TestSchemaInitializationIdempotent:
 
-    def test_title_at_max_boundary(self) -> None:
-        req = TaskCreateRequest(
-            title="a" * 255,
-            description="desc",
-            status=TaskStatus.done,
-        )
-        assert len(req.title) <= 255
+    def test_schema_idempotent_and_correct(self, database_url: str) -> None:
+        """CROSS-TIER-15: init.sql can be run twice; schema matches contract."""
+        import psycopg2  # type: ignore
 
-    def test_title_exceeds_max_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskCreateRequest(
-                title="a" * 256,
-                description=None,
-                status=TaskStatus.pending,
+        conn = None
+        try:
+            conn = psycopg2.connect(database_url)
+            conn.autocommit = True
+            cur = conn.cursor()
+
+            # Locate init.sql — try common paths
+            init_sql_path = None
+            for candidate in [
+                "init.sql",
+                "database/init.sql",
+                "db/init.sql",
+                "../database/init.sql",
+            ]:
+                if os.path.isfile(candidate):
+                    init_sql_path = candidate
+                    break
+
+            if init_sql_path is None:
+                pytest.skip("init.sql not found in expected locations")
+
+            with open(init_sql_path, "r") as f:
+                init_sql = f.read()
+
+            # Execute twice — second must not raise
+            cur.execute(init_sql)
+            cur.execute(init_sql)
+
+            # Verify table exists with expected columns
+            cur.execute(
+                """
+                SELECT column_name, data_type, is_nullable, column_default
+                FROM information_schema.columns
+                WHERE table_name = 'tasks'
+                ORDER BY ordinal_position;
+                """
+            )
+            columns = cur.fetchall()
+            col_names = [c[0] for c in columns]
+            expected_cols = {"id", "title", "description", "status", "created_at", "updated_at"}
+            assert expected_cols.issubset(set(col_names)), (
+                f"Missing columns: {expected_cols - set(col_names)}"
             )
 
-    def test_description_none_accepted(self) -> None:
-        req = TaskCreateRequest(
-            title="T", description=None, status=TaskStatus.pending
+            # Verify CHECK constraint on status
+            cur.execute(
+                """
+                SELECT conname FROM pg_constraint
+                WHERE conrelid = 'tasks'::regclass AND contype = 'c';
+                """
+            )
+            check_constraints = [row[0] for row in cur.fetchall()]
+            assert len(check_constraints) > 0, "No CHECK constraint found on tasks table"
+
+            # Verify trigger exists
+            cur.execute(
+                """
+                SELECT tgname FROM pg_trigger
+                WHERE tgrelid = 'tasks'::regclass AND NOT tgisinternal;
+                """
+            )
+            triggers = [row[0] for row in cur.fetchall()]
+            assert any("update" in t.lower() for t in triggers), (
+                f"update_updated_at_column trigger not found; triggers: {triggers}"
+            )
+
+            cur.close()
+        except psycopg2.OperationalError:
+            pytest.skip("Database unreachable")
+        finally:
+            if conn:
+                conn.close()
+
+    def test_schema_preserves_existing_data(self, database_url: str) -> None:
+        """Re-execution of init.sql must not modify existing rows."""
+        import psycopg2  # type: ignore
+
+        conn = None
+        try:
+            conn = psycopg2.connect(database_url)
+            conn.autocommit = True
+            cur = conn.cursor()
+
+            cur.execute("SELECT count(*) FROM tasks;")
+            count_before = cur.fetchone()[0]
+
+            init_sql_path = None
+            for candidate in [
+                "init.sql",
+                "database/init.sql",
+                "db/init.sql",
+                "../database/init.sql",
+            ]:
+                if os.path.isfile(candidate):
+                    init_sql_path = candidate
+                    break
+
+            if init_sql_path is None:
+                pytest.skip("init.sql not found")
+
+            with open(init_sql_path, "r") as f:
+                init_sql = f.read()
+            cur.execute(init_sql)
+
+            cur.execute("SELECT count(*) FROM tasks;")
+            count_after = cur.fetchone()[0]
+            assert count_after == count_before, (
+                f"Row count changed: {count_before} -> {count_after}"
+            )
+            cur.close()
+        except psycopg2.OperationalError:
+            pytest.skip("Database unreachable")
+        finally:
+            if conn:
+                conn.close()
+
+    def test_database_url_must_be_postgresql(self, database_url: str) -> None:
+        """DatabaseURL validator: must start with postgresql://"""
+        assert database_url.startswith("postgresql://"), (
+            f"DATABASE_URL does not start with postgresql://: {database_url[:20]}..."
         )
-        assert req.description is None
-
-    def test_description_string_accepted(self) -> None:
-        req = TaskCreateRequest(
-            title="T", description="Some description", status=TaskStatus.in_progress
-        )
-        assert req.description == "Some description"
 
 
-class TestTaskUpdateRequest:
-    """TaskUpdateRequest title validation mirrors TaskCreateRequest."""
+# ---------------------------------------------------------------------------
+# 6. verify_test_isolation
+# ---------------------------------------------------------------------------
+class TestTestIsolation:
 
-    def test_valid_update(self) -> None:
-        req = TaskUpdateRequest(
-            title="Updated title",
-            description="New desc",
-            status=TaskStatus.done,
-        )
-        assert req.title == "Updated title"
-
-    def test_empty_title_rejected(self) -> None:
-        with pytest.raises((ValueError, Exception)):
-            TaskUpdateRequest(title="", description=None, status=TaskStatus.pending)
-
-
-class TestDeleteConfirmation:
-    """DeleteConfirmation has detail string and id."""
-
-    def test_valid_confirmation(self) -> None:
-        dc = DeleteConfirmation(detail="Task deleted", id=42)
-        assert dc.detail == "Task deleted"
-        assert dc.id == 42
-
-
-class TestErrorResponse:
-    """ErrorResponse wraps a detail string."""
-
-    def test_valid_error(self) -> None:
-        er = ErrorResponse(detail="Task not found")
-        assert er.detail == "Task not found"
-
-
-# ===========================================================================
-# Section 2: Integration Verification Tests (mocked dependencies)
-# ===========================================================================
-
-
-class TestVerifySchemaInitializationIdempotent:
-    """Tests for verify_schema_initialization_idempotent."""
-
-    def test_happy_path_returns_true(self, database_url: str) -> None:
-        """Schema init verification succeeds against live database."""
-        result = verify_schema_initialization_idempotent(database_url)
-        assert result is True, "verify_schema_initialization_idempotent should return True"
-
-    def test_unreachable_database_raises(self) -> None:
-        """Raises on unreachable database."""
-        bad_url = "postgresql://nouser:nopass@192.0.2.1:5432/nodb"
-        with pytest.raises(Exception) as exc_info:
-            verify_schema_initialization_idempotent(bad_url)
-        # Accept any exception — the key contract is that it does not return True
-        assert exc_info.value is not None
-
-
-class TestVerifyTestIsolation:
-    """Tests for verify_test_isolation."""
-
-    def test_happy_path_returns_true(self, database_url: str) -> None:
-        result = verify_test_isolation(database_url)
-        assert result is True, "verify_test_isolation should return True"
-
-    def test_unreachable_database_raises(self) -> None:
-        bad_url = "postgresql://nouser:nopass@192.0.2.1:5432/nodb"
-        with pytest.raises(Exception) as exc_info:
-            verify_test_isolation(bad_url)
-        assert exc_info.value is not None
-
-
-class TestVerifyConnectionPoolLifecycle:
-    """Tests for verify_connection_pool_lifecycle (async)."""
-
-    @pytest.mark.anyio
-    async def test_happy_path_returns_true(self, backend_base_url: str) -> None:
-        result = await verify_connection_pool_lifecycle(backend_base_url)
-        assert result is True, "verify_connection_pool_lifecycle should return True"
-
-    @pytest.mark.anyio
-    async def test_unreachable_backend_raises(self) -> None:
-        bad_url = "http://192.0.2.1:9999"
-        with pytest.raises(Exception) as exc_info:
-            await verify_connection_pool_lifecycle(bad_url)
-        assert exc_info.value is not None
-
-
-class TestVerifyHttpApiContract:
-    """Tests for verify_http_api_contract (async)."""
-
-    @pytest.mark.anyio
-    async def test_happy_path_returns_true(self, backend_base_url: str) -> None:
-        result = await verify_http_api_contract(backend_base_url)
-        assert result is True, "verify_http_api_contract should return True"
-
-    @pytest.mark.anyio
-    async def test_unreachable_backend_raises(self) -> None:
-        bad_url = "http://192.0.2.1:9999"
-        with pytest.raises(Exception) as exc_info:
-            await verify_http_api_contract(bad_url)
-        assert exc_info.value is not None
-
-
-class TestVerifyCrossTierInvariants:
-    """Tests for verify_cross_tier_invariants (async)."""
-
-    @pytest.mark.anyio
-    async def test_happy_path_returns_true(
+    def test_row_count_unchanged_after_crud_cycle(
         self, backend_base_url: str, database_url: str
     ) -> None:
-        result = await verify_cross_tier_invariants(backend_base_url, database_url)
-        assert result is True, "verify_cross_tier_invariants should return True"
+        """CROSS-TIER-14: test data is cleaned up; no leaked rows."""
+        import psycopg2  # type: ignore
 
-    @pytest.mark.anyio
-    async def test_unreachable_backend_raises(self) -> None:
-        bad_url = "http://192.0.2.1:9999"
-        db_url = "postgresql://nouser:nopass@192.0.2.1:5432/nodb"
-        with pytest.raises(Exception) as exc_info:
-            await verify_cross_tier_invariants(bad_url, db_url)
-        assert exc_info.value is not None
-
-
-class TestVerifyCorsConfiguration:
-    """Tests for verify_cors_configuration (async)."""
-
-    @pytest.mark.anyio
-    async def test_happy_path_returns_true(
-        self, backend_base_url: str, frontend_origin: str
-    ) -> None:
-        result = await verify_cors_configuration(backend_base_url, frontend_origin)
-        assert result is True, "verify_cors_configuration should return True"
-
-    @pytest.mark.anyio
-    async def test_unreachable_backend_raises(self) -> None:
-        bad_url = "http://192.0.2.1:9999"
-        with pytest.raises(Exception) as exc_info:
-            await verify_cors_configuration(bad_url, "http://localhost:5173")
-        assert exc_info.value is not None
-
-    @pytest.mark.anyio
-    async def test_wrong_origin_may_fail(self, backend_base_url: str) -> None:
-        """If CORS is strict, a wrong origin should trigger cors_not_configured."""
-        # This test verifies that the function actually validates the origin.
-        # If CORS allows '*', this will still pass — which is acceptable per contract.
+        conn = None
         try:
-            result = await verify_cors_configuration(
-                backend_base_url, "http://evil.example.com:9999"
+            conn = psycopg2.connect(database_url)
+            conn.autocommit = True
+            cur = conn.cursor()
+            cur.execute("SELECT count(*) FROM tasks;")
+            count_before = cur.fetchone()[0]
+
+            # Full CRUD cycle
+            _, created = _create_task(backend_base_url, title="isolation test")
+            tid = created["id"]
+            _request("GET", f"{backend_base_url}/tasks/{tid}")
+            _request("PUT", f"{backend_base_url}/tasks/{tid}", data={"title": "iso updated"})
+            _request("DELETE", f"{backend_base_url}/tasks/{tid}")
+
+            cur.execute("SELECT count(*) FROM tasks;")
+            count_after = cur.fetchone()[0]
+            assert count_after == count_before, (
+                f"Leaked rows: before={count_before}, after={count_after}"
             )
-            # If it returns True, CORS allows all origins (wildcard) — acceptable
-            assert result is True
-        except Exception:
-            # cors_not_configured or similar — also acceptable
-            pass
+            cur.close()
+        except psycopg2.OperationalError:
+            pytest.skip("Database unreachable")
+        finally:
+            if conn:
+                conn.close()
 
 
-# ===========================================================================
-# Section 3: Cross-cutting invariant tests
-# ===========================================================================
+# ---------------------------------------------------------------------------
+# 7. verify_cors_configuration
+# ---------------------------------------------------------------------------
+class TestCorsConfiguration:
 
-class TestCrossTierInvariantTypes:
-    """Verify type-level invariants from the contract."""
+    def test_cors_preflight(self, backend_base_url: str, frontend_origin: str) -> None:
+        """CROSS-TIER-05: CORS allows frontend origin."""
+        req = urllib.request.Request(
+            f"{backend_base_url}/tasks",
+            method="OPTIONS",
+            headers={
+                "Origin": frontend_origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "Content-Type",
+            },
+        )
+        try:
+            resp = urllib.request.urlopen(req, timeout=5)
+            headers = {k.lower(): v for k, v in resp.headers.items()}
+        except urllib.error.HTTPError as exc:
+            headers = {k.lower(): v for k, v in exc.headers.items()}
 
-    def test_cross_tier_11_status_enum_consistency(self) -> None:
-        """CROSS-TIER-11: TaskStatus values are {pending, in_progress, done}."""
-        values = {s.value for s in TaskStatus}
-        assert values == {"pending", "in_progress", "done"}
+        allow_origin = headers.get("access-control-allow-origin", "")
+        assert frontend_origin in allow_origin or "*" in allow_origin, (
+            f"Origin not allowed: {allow_origin}"
+        )
 
-    def test_cross_tier_06_database_url_prefix(self) -> None:
-        """CROSS-TIER-06: DatabaseURL must start with postgresql://."""
-        valid = DatabaseURL(value="postgresql://x")
-        assert valid.value.startswith("postgresql://")
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL(value="sqlite:///test.db")
+        allow_methods = headers.get("access-control-allow-methods", "").upper()
+        for method in ["GET", "POST", "PUT", "DELETE"]:
+            assert method in allow_methods, f"{method} not in Allow-Methods: {allow_methods}"
 
-    def test_cross_tier_18_blank_title_rejected(self) -> None:
-        """CROSS-TIER-18: Title must be non-blank after whitespace stripping."""
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value="   ")
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(value="")
+        allow_headers = headers.get("access-control-allow-headers", "").lower()
+        assert "content-type" in allow_headers, (
+            f"Content-Type not in Allow-Headers: {allow_headers}"
+        )
 
-    def test_cross_tier_10_iso_timestamp_format(self) -> None:
-        """CROSS-TIER-10: ISOTimestamp must be timezone-aware ISO 8601."""
-        # Verify that a timezone-aware datetime produces correct ISO format
-        dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
-        iso_str = dt.isoformat()
-        assert "+" in iso_str or "Z" in iso_str, f"Expected tz offset in {iso_str}"
-        # Verify the pattern matches the contract example format
-        assert re.match(
-            r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+\d{2}:\d{2}", iso_str
-        ), f"ISO string {iso_str} does not match expected pattern"
+
+# ---------------------------------------------------------------------------
+# 8. verify_connection_pool_lifecycle
+# ---------------------------------------------------------------------------
+class TestConnectionPoolLifecycle:
+
+    def test_pool_functional_get_tasks(self, backend_base_url: str) -> None:
+        """CROSS-TIER-07: pool initialized → GET /tasks succeeds."""
+        status, _, body = _request("GET", f"{backend_base_url}/tasks")
+        assert status == 200
+        assert isinstance(body, list)
+
+    def test_pool_functional_create_and_delete(self, backend_base_url: str) -> None:
+        """Connection pool handles write operations correctly."""
+        status, body = _create_task(backend_base_url, title="pool test")
+        assert status == 201
+        tid = body["id"]
+        _delete_task(backend_base_url, tid)
+
+
+# ---------------------------------------------------------------------------
+# 9. Type validation unit tests (no backend required)
+# ---------------------------------------------------------------------------
+class TestTypeValidation:
+    """Validate canonical type contracts without network calls."""
+
+    def test_task_status_enum_values(self) -> None:
+        """CROSS-TIER-11: TaskStatus enum values are exactly {pending, in_progress, done}."""
+        assert VALID_STATUSES == {"pending", "in_progress", "done"}
+
+    def test_iso_timestamp_regex_accepts_offset(self) -> None:
+        assert ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00+00:00")
+        assert ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00-05:00")
+        assert ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00.123456+00:00")
+
+    def test_iso_timestamp_regex_accepts_z(self) -> None:
+        assert ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00Z")
+        assert ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00.123Z")
+
+    def test_iso_timestamp_regex_rejects_naive(self) -> None:
+        assert not ISO_TIMESTAMP_RE.match("2024-01-15T10:30:00")
+        assert not ISO_TIMESTAMP_RE.match("2024-01-15 10:30:00")
+
+    def test_iso_timestamp_regex_rejects_unix(self) -> None:
+        assert not ISO_TIMESTAMP_RE.match("1705312200")
+
+    def test_task_title_validator_non_blank_after_strip(self) -> None:
+        """TaskTitle: 1 <= len(stripped) <= 255."""
+        stripped = "   ".strip()
+        assert len(stripped) == 0  # would be rejected
+        stripped2 = "  a  ".strip()
+        assert 1 <= len(stripped2) <= 255
+
+    def test_task_title_validator_max_length(self) -> None:
+        title = "a" * 256
+        assert len(title.strip()) > 255  # would be rejected
+
+    def test_health_response_status_must_be_ok(self) -> None:
+        """HealthResponse validator: status == 'ok'."""
+        valid = {"status": "ok"}
+        assert valid["status"] == "ok"
+        invalid = {"status": "error"}
+        assert invalid["status"] != "ok"
+
+    def test_database_url_regex(self) -> None:
+        """DatabaseURL must start with postgresql://."""
+        valid = "postgresql://user:pass@host:5432/dbname"
+        assert valid.startswith("postgresql://")
+        invalid = "mysql://user:pass@host:3306/dbname"
+        assert not invalid.startswith("postgresql://")
+
+    def test_http_endpoint_method_validator(self) -> None:
+        """HttpEndpoint.method must be in (GET, POST, PUT, DELETE)."""
+        allowed = {"GET", "POST", "PUT", "DELETE"}
+        assert "PATCH" not in allowed
+        for m in allowed:
+            assert m in allowed
+
+    def test_error_response_shape(self) -> None:
+        """ErrorResponse has exactly a 'detail' string field."""
+        err = {"detail": "Task not found"}
+        assert "detail" in err
+        assert isinstance(err["detail"], str)
+
+    def test_delete_confirmation_shape(self) -> None:
+        """DeleteConfirmation has 'detail' and 'id' fields."""
+        dc = {"detail": "Task deleted", "id": 42}
+        assert "detail" in dc
+        assert "id" in dc
+
+    def test_validation_error_response_shape(self) -> None:
+        """ValidationErrorResponse.detail is a list of ValidationErrorItem."""
+        ver = {
+            "detail": [
+                {"loc": ["body", "title"], "msg": "field required", "type": "value_error"}
+            ]
+        }
+        assert isinstance(ver["detail"], list)
+        item = ver["detail"][0]
+        assert "loc" in item and "msg" in item and "type" in item

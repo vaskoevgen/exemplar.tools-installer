@@ -1,0 +1,34 @@
+sources:
+  - type: otlp
+    bind_address: "0.0.0.0"
+    port: 4317
+
+  - type: sentinel
+    bind_address: "0.0.0.0"
+    port: 8081
+
+sinks:
+  - type: disk
+    output_dir: .chronicler/stories
+
+rules:
+  - name: request_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [trace_id]
+    window_seconds: 30
+
+  - name: service_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [entity_id, component_id]
+    window_seconds: 300
+
+  - name: journey_story
+    match_conditions:
+      - field: event_kind
+        pattern: "span"
+    group_by: [session_id]
+    window_seconds: 1800

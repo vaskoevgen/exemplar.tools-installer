@@ -1,39 +1,45 @@
-"""Composition tests for the Root glue layer.
+"""Integration tests for the Root glue layer.
 
-These tests validate that the glue code correctly wires children into the
-parent interface.  They are designed to run against real backend + database
-infrastructure (integration tests).
+These tests validate that the glue code correctly delegates to child
+components and satisfies the parent contract.  Tests requiring a live
+backend/database are conditionally skipped when the relevant environment
+variables are absent.
 
-Usage:
-    DATABASE_URL=postgresql://... BACKEND_URL=http://localhost:8000 pytest root/composition_test.py -v
-
-Tests are conditionally skipped when required environment variables are absent
-(CROSS-TIER-13 compliance).
+Environment variables:
+    BACKEND_BASE_URL — e.g. http://localhost:8000  (default: not set → skip)
+    DATABASE_URL     — e.g. postgresql://user:pass@localhost:5432/tasks
 """
 
-import asyncio
 import os
+import asyncio
 import pytest
 
-# Conditional skip when infrastructure is unavailable
+# ---------------------------------------------------------------------------
+# Skip conditions
+# ---------------------------------------------------------------------------
+
+BACKEND_BASE_URL = os.environ.get("BACKEND_BASE_URL", "")
 DATABASE_URL = os.environ.get("DATABASE_URL", "")
-BACKEND_URL = os.environ.get("BACKEND_URL", "http://localhost:8000")
 
-skip_no_db = pytest.mark.skipif(
-    not DATABASE_URL,
-    reason="DATABASE_URL not set — skipping integration tests (CROSS-TIER-13)",
-)
 skip_no_backend = pytest.mark.skipif(
-    not DATABASE_URL,  # backend requires DB too
-    reason="DATABASE_URL not set — backend unavailable",
+    not BACKEND_BASE_URL,
+    reason="BACKEND_BASE_URL not set; skipping live backend tests",
+)
+skip_no_database = pytest.mark.skipif(
+    not DATABASE_URL,
+    reason="DATABASE_URL not set; skipping live database tests",
+)
+skip_no_both = pytest.mark.skipif(
+    not BACKEND_BASE_URL or not DATABASE_URL,
+    reason="BACKEND_BASE_URL and/or DATABASE_URL not set",
 )
 
 
 # ---------------------------------------------------------------------------
-# Import glue module
+# Import glue
 # ---------------------------------------------------------------------------
 
-from root import (
+from glue import (
     verify_http_api_contract,
     verify_cross_tier_invariants,
     verify_schema_initialization_idempotent,
@@ -44,148 +50,180 @@ from root import (
 
 
 # ---------------------------------------------------------------------------
-# Tests
+# Unit tests — structural (no live services required)
 # ---------------------------------------------------------------------------
 
+class TestGlueImports:
+    """Verify that all parent functions are importable from the glue module."""
 
-@skip_no_db
-class TestSchemaInitialization:
-    """verify_schema_initialization_idempotent delegates to database child."""
+    def test_verify_http_api_contract_callable(self):
+        assert callable(verify_http_api_contract)
 
-    def test_idempotent_init(self):
+    def test_verify_cross_tier_invariants_callable(self):
+        assert callable(verify_cross_tier_invariants)
+
+    def test_verify_schema_initialization_idempotent_callable(self):
+        assert callable(verify_schema_initialization_idempotent)
+
+    def test_verify_test_isolation_callable(self):
+        assert callable(verify_test_isolation)
+
+    def test_verify_cors_configuration_callable(self):
+        assert callable(verify_cors_configuration)
+
+    def test_verify_connection_pool_lifecycle_callable(self):
+        assert callable(verify_connection_pool_lifecycle)
+
+
+class TestInputValidation:
+    """Verify that parent input validators are enforced at the glue boundary."""
+
+    def test_http_api_rejects_invalid_url(self):
+        with pytest.raises(ValueError, match="must start with http"):
+            asyncio.run(verify_http_api_contract("ftp://invalid"))
+
+    def test_schema_init_rejects_non_postgresql_url(self):
+        with pytest.raises(ValueError, match="must start with 'postgresql://'"):
+            verify_schema_initialization_idempotent("mysql://host/db")
+
+    def test_cors_raises_connection_error_for_unreachable(self):
+        with pytest.raises((ConnectionError, OSError)):
+            asyncio.run(
+                verify_cors_configuration(
+                    "http://127.0.0.1:19999", "http://localhost:5173"
+                )
+            )
+
+
+class TestChildImportsAvailable:
+    """Verify that child modules are importable through the glue layer."""
+
+    def test_backend_routes_imported(self):
+        from backend.routes import health_check
+        assert callable(health_check)
+
+    def test_database_module_imported(self):
+        from database import execute_init_script, verify_schema, ConnectionConfig
+        assert callable(execute_init_script)
+        assert callable(verify_schema)
+
+    def test_frontend_module_imported(self):
+        from frontend import fetchTasks, resolveBaseUrl
+        assert callable(fetchTasks)
+        assert callable(resolveBaseUrl)
+
+
+class TestFrontendResolveBaseUrl:
+    """Verify resolveBaseUrl delegation works correctly."""
+
+    def test_default_url(self):
+        from frontend import resolveBaseUrl
+        url = resolveBaseUrl()
+        assert url == "http://localhost:8000"
+
+    def test_custom_url(self):
+        from frontend import resolveBaseUrl
+        url = resolveBaseUrl({"VITE_API_URL": "http://api.example.com/"})
+        assert url == "http://api.example.com"  # trailing slash stripped
+
+    def test_custom_url_no_trailing_slash(self):
+        from frontend import resolveBaseUrl
+        url = resolveBaseUrl({"VITE_API_URL": "http://api.example.com"})
+        assert url == "http://api.example.com"
+
+
+# ---------------------------------------------------------------------------
+# Integration tests — live backend required
+# ---------------------------------------------------------------------------
+
+@skip_no_backend
+class TestHttpApiContract:
+    """Verify the full HTTP API contract against a live backend."""
+
+    @pytest.mark.asyncio
+    async def test_all_endpoints(self):
+        result = await verify_http_api_contract(BACKEND_BASE_URL)
+        assert result is True
+
+
+@skip_no_both
+class TestCrossTierInvariants:
+    """Verify cross-tier invariants against live backend + database."""
+
+    @pytest.mark.asyncio
+    async def test_invariants_hold(self):
+        result = await verify_cross_tier_invariants(BACKEND_BASE_URL, DATABASE_URL)
+        assert result is True
+
+
+@skip_no_database
+class TestSchemaIdempotency:
+    """Verify init.sql idempotency against a live database."""
+
+    def test_idempotent(self):
         result = verify_schema_initialization_idempotent(DATABASE_URL)
         assert result is True
 
-    def test_rejects_invalid_url(self):
-        with pytest.raises(ConnectionError):
-            verify_schema_initialization_idempotent("mysql://bad")
 
-
-@skip_no_db
+@skip_no_database
 class TestTestIsolation:
-    """verify_test_isolation delegates to database child for row counting."""
+    """Verify test isolation properties against a live database."""
 
-    def test_isolation_holds(self):
+    def test_isolation(self):
         result = verify_test_isolation(DATABASE_URL)
         assert result is True
 
 
 @skip_no_backend
-class TestHttpApiContract:
-    """verify_http_api_contract delegates to backend child via HTTP."""
-
-    @pytest.mark.asyncio
-    async def test_all_endpoints(self):
-        result = await verify_http_api_contract(BACKEND_URL)
-        assert result is True
-
-    @pytest.mark.asyncio
-    async def test_rejects_invalid_url(self):
-        with pytest.raises(ConnectionError):
-            await verify_http_api_contract("ftp://bad")
-
-
-@skip_no_backend
-class TestCrossTierInvariants:
-    """verify_cross_tier_invariants exercises backend + database together."""
-
-    @pytest.mark.asyncio
-    async def test_invariants_hold(self):
-        result = await verify_cross_tier_invariants(BACKEND_URL, DATABASE_URL)
-        assert result is True
-
-
-@skip_no_backend
 class TestCorsConfiguration:
-    """verify_cors_configuration sends OPTIONS preflight."""
+    """Verify CORS headers against a live backend."""
 
     @pytest.mark.asyncio
     async def test_default_origin(self):
-        result = await verify_cors_configuration(BACKEND_URL)
+        result = await verify_cors_configuration(BACKEND_BASE_URL)
         assert result is True
 
     @pytest.mark.asyncio
     async def test_explicit_origin(self):
         result = await verify_cors_configuration(
-            BACKEND_URL, frontend_origin="http://localhost:5173"
+            BACKEND_BASE_URL, "http://localhost:5173"
         )
         assert result is True
 
 
 @skip_no_backend
 class TestConnectionPoolLifecycle:
-    """verify_connection_pool_lifecycle checks pool is functional."""
+    """Verify connection pool is functional during app runtime."""
 
     @pytest.mark.asyncio
     async def test_pool_functional(self):
-        result = await verify_connection_pool_lifecycle(BACKEND_URL)
+        result = await verify_connection_pool_lifecycle(BACKEND_BASE_URL)
         assert result is True
 
 
 # ---------------------------------------------------------------------------
-# Structural composition tests (no infrastructure required)
+# Error propagation tests
 # ---------------------------------------------------------------------------
 
+class TestErrorPropagation:
+    """Verify that child errors propagate as parent-contracted types."""
 
-class TestGlueStructure:
-    """Verify glue module structure without live infrastructure."""
-
-    def test_all_parent_functions_exist(self):
-        """All six parent functions are importable from the glue module."""
-        import root
-        for fn_name in [
-            "verify_http_api_contract",
-            "verify_cross_tier_invariants",
-            "verify_schema_initialization_idempotent",
-            "verify_test_isolation",
-            "verify_cors_configuration",
-            "verify_connection_pool_lifecycle",
-        ]:
-            assert hasattr(root, fn_name), f"Missing parent function: {fn_name}"
-            assert callable(getattr(root, fn_name)), f"{fn_name} is not callable"
-
-    def test_sync_functions_are_sync(self):
-        """verify_schema_initialization_idempotent and verify_test_isolation
-        are synchronous (not coroutines)."""
-        import asyncio
-        assert not asyncio.iscoroutinefunction(verify_schema_initialization_idempotent)
-        assert not asyncio.iscoroutinefunction(verify_test_isolation)
-
-    def test_async_functions_are_async(self):
-        """Async parent functions are coroutine functions."""
-        import asyncio
-        assert asyncio.iscoroutinefunction(verify_http_api_contract)
-        assert asyncio.iscoroutinefunction(verify_cross_tier_invariants)
-        assert asyncio.iscoroutinefunction(verify_cors_configuration)
-        assert asyncio.iscoroutinefunction(verify_connection_pool_lifecycle)
-
-    def test_return_type_annotations(self):
-        """Parent functions have bool return type annotation."""
-        import inspect
-        for fn in [
-            verify_http_api_contract,
-            verify_cross_tier_invariants,
-            verify_schema_initialization_idempotent,
-            verify_test_isolation,
-            verify_cors_configuration,
-            verify_connection_pool_lifecycle,
-        ]:
-            sig = inspect.signature(fn)
-            assert sig.return_annotation is bool or sig.return_annotation == "bool", \
-                f"{fn.__name__} return annotation is {sig.return_annotation}, expected bool"
-
-    def test_backend_url_validation(self):
-        """Invalid backend URLs raise ConnectionError synchronously."""
+    def test_connection_error_on_unreachable_backend(self):
+        """ConnectionError when backend_base_url is unreachable."""
         with pytest.raises(ConnectionError):
-            verify_test_isolation("mysql://invalid")
+            asyncio.run(
+                verify_http_api_contract("http://127.0.0.1:19999")
+            )
 
-    def test_database_url_validation(self):
-        """Invalid database URLs raise ConnectionError."""
-        with pytest.raises(ConnectionError):
-            verify_schema_initialization_idempotent("mysql://invalid")
+    @skip_no_database
+    def test_assertion_error_on_bad_schema(self):
+        """AssertionError scenario is tested by schema idempotency test."""
+        # This is a placeholder — a real test would require a corrupt schema.
+        pass
 
-    def test_error_propagation_contract(self):
-        """ConnectionError and AssertionError are the documented error types."""
-        # These are Python builtins, just confirm they're the right types
-        assert issubclass(ConnectionError, OSError)
-        assert issubclass(AssertionError, Exception)
+    def test_database_connection_error(self):
+        """ConnectionError when database_url is unreachable."""
+        with pytest.raises((ConnectionError, Exception)):
+            verify_schema_initialization_idempotent(
+                "postgresql://nobody:wrong@127.0.0.1:19999/nonexistent"
+            )

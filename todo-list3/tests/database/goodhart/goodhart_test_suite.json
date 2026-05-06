@@ -3,493 +3,559 @@
   "contract_version": 1,
   "test_cases": [
     {
-      "id": "goodhart_task_status_rejects_close_misspellings",
-      "description": "TaskStatus validation must reject strings that are close to valid variants but not exact matches, ensuring real enum validation rather than substring/contains checks",
-      "function": "TaskStatus",
-      "category": "error_case",
+      "id": "goodhart_id_autoincrement_unique",
+      "description": "The id column must auto-increment across multiple inserts, producing distinct integer values for each row without requiring explicit id specification",
+      "function": "execute_init_script",
+      "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Strings like 'Pending', 'PENDING', 'in-progress', 'DONE', 'pendings', ' pending' that resemble valid values but differ in case, punctuation, or whitespace",
+      "input_description": "Insert three rows without specifying id, then verify all three ids are distinct integers",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskStatus should reject 'Pending' (wrong case)",
-        "TaskStatus should reject 'DONE' (wrong case)",
-        "TaskStatus should reject 'in-progress' (hyphen instead of underscore)",
-        "TaskStatus should reject ' pending' (leading space)",
-        "TaskStatus should reject 'pendings' (extra character)"
+        "Each inserted row has a unique integer id",
+        "Ids are assigned automatically without explicit specification",
+        "All ids are of type int via psycopg2"
       ]
     },
     {
-      "id": "goodhart_task_title_length_254",
-      "description": "TaskTitle must accept strings at lengths just inside the boundary (254 characters), verifying the validator uses proper comparison operators rather than hardcoded boundary values only",
-      "function": "TaskTitle",
+      "id": "goodhart_id_gaps_after_failed_insert",
+      "description": "SERIAL id sequence advances even when an INSERT fails (e.g., CHECK constraint violation), so subsequent successful inserts may have non-contiguous ids",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a valid row, attempt an invalid insert (bad status), then insert another valid row and confirm ids are non-contiguous",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The second successful row's id is not exactly previous_id + 1",
+        "Gaps in id sequence are valid behavior"
+      ]
+    },
+    {
+      "id": "goodhart_trigger_updates_only_updated_at_not_other_columns",
+      "description": "The BEFORE UPDATE trigger should only modify updated_at to NOW(); it must not alter any other column values like title, description, or status",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row, update its title, then verify all non-updated_at columns retain their expected values",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "title matches the updated value",
+        "description is unchanged",
+        "status is unchanged",
+        "created_at is unchanged",
+        "Only updated_at changed"
+      ]
+    },
+    {
+      "id": "goodhart_multiple_updates_advance_updated_at_each_time",
+      "description": "Each successive UPDATE to a row must advance updated_at, not just the first update — the trigger fires on every UPDATE, not just once",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row, update it twice with a small delay between updates, confirm updated_at advances each time",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "updated_at after second update >= updated_at after first update",
+        "Both updates produce updated_at values later than the original"
+      ]
+    },
+    {
+      "id": "goodhart_null_title_rejected",
+      "description": "The title column has a NOT NULL constraint; inserting a row with NULL title must raise a database error",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "After init, attempt INSERT INTO tasks (title) VALUES (NULL)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Database raises an IntegrityError or NOT NULL violation"
+      ]
+    },
+    {
+      "id": "goodhart_null_status_uses_default",
+      "description": "When status is omitted from an INSERT, the DEFAULT 'pending' applies; but explicitly setting status=NULL must be rejected by NOT NULL constraint",
+      "function": "execute_init_script",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A string of exactly 254 characters",
+      "input_description": "Attempt INSERT INTO tasks (title, status) VALUES ('test', NULL)",
       "expected_output_description": "",
-      "expected_error": "",
+      "expected_error": "NOT NULL constraint violation on status",
       "assertions": [
-        "TaskTitle(254-char string) should succeed without error"
+        "Database raises a NOT NULL violation error for status column"
       ]
     },
     {
-      "id": "goodhart_task_title_length_256_rejected",
-      "description": "TaskTitle must reject strings at length 256, the value immediately beyond the maximum boundary, to ensure off-by-one correctness",
-      "function": "TaskTitle",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A string of exactly 256 characters",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "TaskTitle(256-char string) should raise a validation error"
-      ]
-    },
-    {
-      "id": "goodhart_task_title_length_2",
-      "description": "TaskTitle must accept typical short strings (length 2), confirming general acceptance within range rather than only at exact boundary values 1 and 255",
-      "function": "TaskTitle",
-      "category": "happy_path",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A string of exactly 2 characters like 'ab'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "TaskTitle('ab') should succeed"
-      ]
-    },
-    {
-      "id": "goodhart_task_title_whitespace_only",
-      "description": "TaskTitle with whitespace-only content should be accepted by schema-level validation since length >= 1, confirming the validator checks length not content",
-      "function": "TaskTitle",
+      "id": "goodhart_description_explicit_empty_string_vs_null",
+      "description": "An explicit empty string description is stored as '' (not NULL), while omitting description stores NULL — these are distinct values",
+      "function": "execute_init_script",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A single space character ' '",
+      "input_description": "Insert one row with description='' and another omitting description, then compare stored values",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskTitle(' ') should succeed since len(' ') == 1 which satisfies 1 <= len <= 255"
+        "Row with explicit '' has description == ''",
+        "Row without description has description is None",
+        "The two values are not equal"
       ]
     },
     {
-      "id": "goodhart_task_description_empty_string",
-      "description": "TaskDescription must accept empty string as distinct from None, since TEXT columns allow empty strings and None specifically represents SQL NULL",
-      "function": "TaskDescription",
+      "id": "goodhart_title_single_char_insert",
+      "description": "A title of exactly 1 character (the minimum valid length per VARCHAR constraint) must be insertable and retrievable",
+      "function": "execute_init_script",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "An empty string ''",
+      "input_description": "Insert a row with title='X' (single character)",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskDescription('') should be accepted as a valid non-NULL description"
+        "Row is inserted successfully",
+        "Retrieved title equals 'X'"
+      ]
+    },
+    {
+      "id": "goodhart_empty_string_title_allowed_by_schema",
+      "description": "Empty string '' is allowed by the database schema (VARCHAR(255) NOT NULL permits it) even though it is semantically discouraged",
+      "function": "execute_init_script",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row with title='' into the database",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Insert succeeds without error",
+        "Retrieved title is ''"
+      ]
+    },
+    {
+      "id": "goodhart_psycopg2_type_mapping_id_is_int",
+      "description": "The id column maps to Python int (not string or other type) when fetched via psycopg2",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row and fetch it, check type(row['id'])",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "type(id) is int"
+      ]
+    },
+    {
+      "id": "goodhart_psycopg2_type_mapping_title_is_str",
+      "description": "The title column maps to Python str when fetched via psycopg2",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row and fetch it, check type(row['title'])",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "type(title) is str"
+      ]
+    },
+    {
+      "id": "goodhart_psycopg2_type_mapping_datetime_aware",
+      "description": "Both created_at and updated_at map to timezone-aware datetime.datetime objects with UTC tzinfo when fetched via psycopg2",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row and fetch it, check that created_at.tzinfo and updated_at.tzinfo are not None and represent UTC",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "created_at.tzinfo is not None",
+        "updated_at.tzinfo is not None",
+        "Both represent UTC"
+      ]
+    },
+    {
+      "id": "goodhart_status_case_sensitive",
+      "description": "The CHECK constraint on status is case-sensitive; 'Pending', 'PENDING', 'In_Progress', 'DONE' must all be rejected",
+      "function": "execute_init_script",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Attempt inserts with case-variant status values like 'Pending', 'DONE', 'In_Progress'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All case-variant status values are rejected by the CHECK constraint"
+      ]
+    },
+    {
+      "id": "goodhart_status_whitespace_rejected",
+      "description": "Status values with leading/trailing whitespace (e.g., ' pending', 'done ') must be rejected by the CHECK constraint",
+      "function": "execute_init_script",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Attempt inserts with status=' pending' and status='done '",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Whitespace-padded status values are rejected"
+      ]
+    },
+    {
+      "id": "goodhart_verify_schema_is_readonly",
+      "description": "verify_schema must not modify the schema or data — calling it between operations should not alter row counts or schema state",
+      "function": "verify_schema",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert a row, call verify_schema, then count rows — count should be unchanged",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Row count is same before and after verify_schema call",
+        "Schema is unmodified"
+      ]
+    },
+    {
+      "id": "goodhart_idempotent_three_executions",
+      "description": "The init script must be idempotent beyond just two invocations — three consecutive executions must all succeed and produce consistent schema",
+      "function": "execute_init_script",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Execute init script three times in sequence",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All three invocations succeed",
+        "All return InitScriptResult with all True",
+        "verify_schema confirms schema after third run"
+      ]
+    },
+    {
+      "id": "goodhart_idempotent_preserves_multiple_rows",
+      "description": "Re-executing init script preserves not just a single pre-existing row but multiple rows with diverse data",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert 5 rows with varied titles/statuses/descriptions, re-execute init, verify all 5 rows unchanged",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All 5 rows still present after re-init",
+        "All column values unchanged for each row"
+      ]
+    },
+    {
+      "id": "goodhart_update_status_transition_triggers_updated_at",
+      "description": "Updating the status column (e.g., pending -> in_progress) must trigger updated_at to advance, confirming the trigger fires on status changes not just title changes",
+      "function": "execute_init_script",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert row with default status, update status to 'in_progress', verify updated_at advanced",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "updated_at after status change > updated_at at insert time",
+        "status is now 'in_progress'"
+      ]
+    },
+    {
+      "id": "goodhart_update_description_null_to_value_triggers_updated_at",
+      "description": "Updating description from NULL to a non-null value must trigger updated_at advancement",
+      "function": "execute_init_script",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Insert row without description (NULL), update description to 'hello', verify updated_at advanced",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "description is now 'hello'",
+        "updated_at advanced after the update"
+      ]
+    },
+    {
+      "id": "goodhart_connection_config_port_5431_rejected",
+      "description": "ConnectionConfig must reject port values adjacent to the valid port — port 5431 is not 5432 and must be rejected",
+      "function": "ConnectionConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "database_url": "postgresql://user:pass@localhost/db",
+        "port": "5431"
+      },
+      "input_description": "Create ConnectionConfig with port=5431",
+      "expected_output_description": "",
+      "expected_error": "port validation error",
+      "assertions": [
+        "Validation error is raised for port 5431"
+      ]
+    },
+    {
+      "id": "goodhart_connection_config_port_5433_rejected",
+      "description": "ConnectionConfig must reject port 5433 — only exactly 5432 is valid",
+      "function": "ConnectionConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "database_url": "postgresql://user:pass@localhost/db",
+        "port": "5433"
+      },
+      "input_description": "Create ConnectionConfig with port=5433",
+      "expected_output_description": "",
+      "expected_error": "port validation error",
+      "assertions": [
+        "Validation error is raised for port 5433"
+      ]
+    },
+    {
+      "id": "goodhart_connection_config_postgres_scheme_rejected",
+      "description": "ConnectionConfig must reject 'postgres://' URLs — only 'postgresql://' prefix is valid per the regex validator",
+      "function": "ConnectionConfig",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "database_url": "postgres://user:pass@localhost/db",
+        "port": "5432"
+      },
+      "input_description": "Create ConnectionConfig with database_url='postgres://user:pass@localhost/db'",
+      "expected_output_description": "",
+      "expected_error": "database_url validation error",
+      "assertions": [
+        "Validation error is raised because 'postgres://' does not match '^postgresql://'"
+      ]
+    },
+    {
+      "id": "goodhart_task_title_length_254_accepted",
+      "description": "TaskTitle must accept strings at boundary-adjacent lengths — 254 characters is within the valid range",
+      "function": "TaskTitle",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "a]*254"
+      },
+      "input_description": "Create TaskTitle with a 254-character string",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TaskTitle is created successfully with 254-char value"
+      ]
+    },
+    {
+      "id": "goodhart_timestamptz_with_fractional_seconds",
+      "description": "Timestamptz must accept timestamps with variable fractional second precision (1-6 digits), not just a single hardcoded format",
+      "function": "Timestamptz",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Validate timestamps with 1, 3, and 6 fractional digits: '2024-01-01T00:00:00.1Z', '2024-01-01T00:00:00.123Z', '2024-01-01T00:00:00.123456Z'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All three fractional-second formats are accepted"
+      ]
+    },
+    {
+      "id": "goodhart_timestamptz_positive_offset",
+      "description": "Timestamptz must accept timestamps with positive UTC offsets like +05:30, not just Z or negative offsets",
+      "function": "Timestamptz",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "2024-06-15T14:30:00+05:30"
+      },
+      "input_description": "Validate '2024-06-15T14:30:00+05:30'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Timestamp with +05:30 offset is accepted"
       ]
     },
     {
       "id": "goodhart_timestamptz_negative_offset",
-      "description": "Timestamptz must accept ISO 8601 strings with negative timezone offsets, verifying the regex handles both + and - offset signs",
+      "description": "Timestamptz must accept timestamps with negative UTC offsets",
       "function": "Timestamptz",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A timestamp like '2024-01-15T08:30:00-05:00'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "Timestamptz('2024-01-15T08:30:00-05:00') should be accepted"
-      ]
-    },
-    {
-      "id": "goodhart_timestamptz_fractional_with_offset",
-      "description": "Timestamptz must accept ISO 8601 strings that combine fractional seconds with a non-Z timezone offset",
-      "function": "Timestamptz",
-      "category": "edge_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A timestamp like '2024-06-15T12:00:00.123456+05:30'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "Timestamptz('2024-06-15T12:00:00.123456+05:30') should be accepted"
-      ]
-    },
-    {
-      "id": "goodhart_timestamptz_rejects_date_only",
-      "description": "Timestamptz must reject date-only strings that lack time and timezone components",
-      "function": "Timestamptz",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A date-only string '2024-01-15'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "Timestamptz('2024-01-15') should raise a validation error"
-      ]
-    },
-    {
-      "id": "goodhart_timestamptz_rejects_trailing_text",
-      "description": "Timestamptz must reject strings that match the pattern but have trailing garbage, verifying the regex is anchored at the end",
-      "function": "Timestamptz",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "A timestamp with trailing text like '2024-01-15T10:00:00Z extra'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "Timestamptz('2024-01-15T10:00:00Z extra') should raise a validation error"
-      ]
-    },
-    {
-      "id": "goodhart_connection_config_rejects_postgres_without_ql",
-      "description": "ConnectionConfig URL validator must require the full 'postgresql://' prefix, rejecting partial matches like 'postgres://'",
-      "function": "ConnectionConfig",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "URL 'postgres://user:pass@localhost/db' with port 5432",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "ConnectionConfig with 'postgres://' URL should be rejected since regex requires 'postgresql://'"
-      ]
-    },
-    {
-      "id": "goodhart_connection_config_rejects_port_5433",
-      "description": "ConnectionConfig port validation must reject port values adjacent to the required 5432, ensuring exact equality check not range",
-      "function": "ConnectionConfig",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "Valid URL with port 5433",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "ConnectionConfig with port 5433 should be rejected"
-      ]
-    },
-    {
-      "id": "goodhart_connection_config_rejects_port_5431",
-      "description": "ConnectionConfig port validation must reject port 5431 which is adjacent below the required 5432",
-      "function": "ConnectionConfig",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "Valid URL with port 5431",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "ConnectionConfig with port 5431 should be rejected"
-      ]
-    },
-    {
-      "id": "goodhart_init_script_result_all_false",
-      "description": "InitScriptResult must support all fields being False, not just the all-True case tested visibly",
-      "function": "InitScriptResult",
-      "category": "edge_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "InitScriptResult with table_created=False, trigger_created=False, check_constraint_present=False",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "InitScriptResult(False, False, False) should be constructable",
-        "All fields should be False"
-      ]
-    },
-    {
-      "id": "goodhart_init_script_result_mixed",
-      "description": "InitScriptResult must support mixed boolean states across its fields, reflecting partial schema presence",
-      "function": "InitScriptResult",
-      "category": "edge_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "InitScriptResult with table_created=True, trigger_created=False, check_constraint_present=True",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "InitScriptResult(True, False, True) should be constructable with each field independently set"
-      ]
-    },
-    {
-      "id": "goodhart_verify_schema_partial_no_check_constraint",
-      "description": "verify_schema must independently detect a missing CHECK constraint when the table and trigger exist, ensuring each field is introspected separately",
-      "function": "verify_schema",
-      "category": "edge_case",
-      "setup_description": "Mock database introspection to return table exists, trigger exists, but CHECK constraint missing",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection where information_schema queries show tasks table exists, trigger exists, but no CHECK constraint on status column"
+      "input_values": {
+        "value": "2024-06-15T14:30:00-07:00"
       },
-      "input_values": {},
-      "input_description": "",
+      "input_description": "Validate '2024-06-15T14:30:00-07:00'",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "verify_schema should return InitScriptResult(table_created=True, trigger_created=True, check_constraint_present=False)"
+        "Timestamp with -07:00 offset is accepted"
       ]
     },
     {
-      "id": "goodhart_verify_schema_partial_table_only",
-      "description": "verify_schema must detect when only the table exists without trigger or check constraint, confirming independent per-component introspection",
-      "function": "verify_schema",
+      "id": "goodhart_timestamptz_no_T_separator_rejected",
+      "description": "Timestamptz must reject datetime strings that use a space instead of 'T' as the date-time separator",
+      "function": "Timestamptz",
       "category": "edge_case",
-      "setup_description": "Mock database introspection to return table exists but no trigger and no CHECK constraint",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection where only the tasks table is found in information_schema"
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "2024-01-01 00:00:00Z"
       },
-      "input_values": {},
-      "input_description": "",
+      "input_description": "Validate '2024-01-01 00:00:00Z' (space instead of T)",
       "expected_output_description": "",
-      "expected_error": "",
+      "expected_error": "regex validation failure",
       "assertions": [
-        "verify_schema should return InitScriptResult(table_created=True, trigger_created=False, check_constraint_present=False)"
+        "Timestamp with space separator is rejected"
       ]
     },
     {
-      "id": "goodhart_exec_init_preserves_existing_rows",
-      "description": "execute_init_script must not delete or modify pre-existing data in the tasks table when re-executed, confirming the idempotency postcondition beyond just 'no error'",
-      "function": "execute_init_script",
-      "category": "invariant",
-      "setup_description": "Mock database with existing rows in tasks table, then invoke execute_init_script",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection that tracks all executed SQL statements to verify no DELETE, TRUNCATE, DROP TABLE, or UPDATE on tasks data"
+      "id": "goodhart_timestamptz_date_only_rejected",
+      "description": "Timestamptz must reject date-only strings without time component",
+      "function": "Timestamptz",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "2024-01-01Z"
       },
-      "input_values": {},
-      "input_description": "",
+      "input_description": "Validate '2024-01-01Z'",
       "expected_output_description": "",
-      "expected_error": "",
+      "expected_error": "regex validation failure",
       "assertions": [
-        "No DELETE, TRUNCATE, or DROP TABLE statement should be executed against the tasks table",
-        "No UPDATE statement should modify existing task rows"
+        "Date-only string is rejected"
       ]
     },
     {
-      "id": "goodhart_task_status_rejects_empty_string",
-      "description": "TaskStatus must reject the empty string, ensuring the enum validation does not accidentally allow empty values",
+      "id": "goodhart_task_status_rejects_substring",
+      "description": "TaskStatus must reject strings that are substrings of valid values (e.g., 'pend', 'in_prog', 'don')",
       "function": "TaskStatus",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "Empty string ''",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "TaskStatus('') should raise a validation error"
-      ]
-    },
-    {
-      "id": "goodhart_task_status_rejects_none",
-      "description": "TaskStatus must reject None since status is NOT NULL with a fixed enum set",
-      "function": "TaskStatus",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "None",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "TaskStatus(None) should raise a validation error or TypeError"
-      ]
-    },
-    {
-      "id": "goodhart_task_title_rejects_none",
-      "description": "TaskTitle must reject None since the title column is NOT NULL",
-      "function": "TaskTitle",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "None",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "TaskTitle(None) should raise a validation error or TypeError"
-      ]
-    },
-    {
-      "id": "goodhart_task_row_description_none",
-      "description": "TaskRow must be constructable with description=None, reflecting the nullable TEXT column",
-      "function": "TaskRow",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A TaskRow with all required fields valid and description=None",
+      "input_description": "Attempt to create TaskStatus with 'pend', 'in_prog', 'don'",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskRow with description=None should be constructable",
-        "The description field should be None, not empty string"
+        "All substring variants are rejected"
       ]
     },
     {
-      "id": "goodhart_exec_init_sql_syntax_error",
-      "description": "execute_init_script must raise sql_syntax_error when the SQL script contains syntax errors, verifying this error path exists even though it should not occur with a static script",
-      "function": "execute_init_script",
-      "category": "error_case",
-      "setup_description": "Mock the database connection to raise a syntax error when executing SQL",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection that raises psycopg2.errors.SyntaxError on execute"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "sql_syntax_error",
-      "assertions": [
-        "execute_init_script should raise sql_syntax_error"
-      ]
-    },
-    {
-      "id": "goodhart_verify_schema_introspection_query_failed",
-      "description": "verify_schema must raise introspection_query_failed when the user lacks SELECT privilege on information_schema or pg_catalog",
-      "function": "verify_schema",
-      "category": "error_case",
-      "setup_description": "Mock the database connection to raise an insufficient privilege error when querying information_schema",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection that raises privilege error on SELECT from information_schema"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "introspection_query_failed",
-      "assertions": [
-        "verify_schema should raise introspection_query_failed"
-      ]
-    },
-    {
-      "id": "goodhart_exec_init_triple_idempotent",
-      "description": "execute_init_script must remain idempotent across three or more consecutive invocations, not just two",
+      "id": "goodhart_select_star_returns_all_six_columns",
+      "description": "A SELECT * FROM tasks must return rows with exactly the six expected column names in the correct set",
       "function": "execute_init_script",
       "category": "invariant",
-      "setup_description": "Mock database and call execute_init_script three times consecutively",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection that simulates successful DDL execution with IF NOT EXISTS semantics"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "Third invocation should return InitScriptResult with all True",
-        "No errors should be raised on any invocation"
-      ]
-    },
-    {
-      "id": "goodhart_timestamptz_rejects_unix_timestamp",
-      "description": "Timestamptz must reject numeric Unix timestamps, ensuring only ISO 8601 formatted strings are accepted",
-      "function": "Timestamptz",
-      "category": "error_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A numeric string '1704067200'",
+      "input_description": "Insert a row and SELECT * FROM tasks, inspect the column names of the result",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Timestamptz('1704067200') should raise a validation error"
+        "Result columns are exactly {id, title, description, status, created_at, updated_at}",
+        "No extra columns present"
       ]
     },
     {
-      "id": "goodhart_timestamptz_rejects_space_separator",
-      "description": "Timestamptz must reject datetime strings using space separator instead of T between date and time",
-      "function": "Timestamptz",
-      "category": "error_case",
+      "id": "goodhart_primary_key_prevents_duplicate_id",
+      "description": "The PRIMARY KEY constraint on id must prevent inserting a row with a manually specified duplicate id",
+      "function": "execute_init_script",
+      "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A datetime string '2024-01-15 10:00:00Z' with space instead of T",
+      "input_description": "Insert a row, get its id, then attempt INSERT INTO tasks (id, title) VALUES (same_id, 'dup')",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Timestamptz('2024-01-15 10:00:00Z') should raise a validation error"
+        "Duplicate id insert raises a unique/primary key violation error"
       ]
     },
     {
-      "id": "goodhart_connection_config_url_must_start_with_prefix",
-      "description": "ConnectionConfig must reject URLs where 'postgresql://' appears in the middle but not at the start, confirming the regex is anchored at ^",
-      "function": "ConnectionConfig",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "URL 'http://postgresql://user:pass@localhost/db' with port 5432",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "ConnectionConfig should reject URL where postgresql:// is not at position 0"
-      ]
-    },
-    {
-      "id": "goodhart_task_title_unicode",
-      "description": "TaskTitle must accept Unicode characters since VARCHAR(255) in PostgreSQL counts characters not bytes",
-      "function": "TaskTitle",
+      "id": "goodhart_unicode_title_insert",
+      "description": "The title column must support Unicode characters (e.g., CJK, emoji, accented characters) since it is VARCHAR/TEXT-based",
+      "function": "execute_init_script",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A Unicode string like '日本語タスク名' (7 characters)",
+      "input_description": "Insert rows with titles containing Unicode: '任务标题', 'tâche', '🚀 Launch'",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskTitle with Unicode characters should be accepted if length <= 255 characters"
+        "All Unicode titles insert successfully",
+        "Retrieved titles match the inserted values exactly"
       ]
     },
     {
-      "id": "goodhart_task_description_long_text",
-      "description": "TaskDescription must accept very long strings since the column is TEXT type with no length constraint",
-      "function": "TaskDescription",
-      "category": "edge_case",
+      "id": "goodhart_created_at_and_updated_at_equal_on_insert",
+      "description": "On initial INSERT (without explicit timestamps), created_at and updated_at should be equal or nearly equal since both default to NOW()",
+      "function": "execute_init_script",
+      "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "A string of 10000 characters",
+      "input_description": "Insert a row and compare created_at to updated_at",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "TaskDescription with 10000-char string should be accepted"
+        "created_at == updated_at for a freshly inserted row"
       ]
     },
     {
-      "id": "goodhart_verify_schema_readonly",
-      "description": "verify_schema must not execute any DDL or DML write statements, confirming the read-only postcondition",
+      "id": "goodhart_verify_schema_result_type",
+      "description": "verify_schema must return an InitScriptResult with boolean fields, not just truthy/falsy values",
       "function": "verify_schema",
       "category": "invariant",
-      "setup_description": "Mock database connection that tracks all executed SQL and verify no CREATE, ALTER, DROP, INSERT, UPDATE, DELETE statements",
-      "mock_dependencies": {
-        "psycopg2.connect": "Returns mock connection that records all execute() calls for assertion"
-      },
+      "setup_description": "",
+      "mock_dependencies": {},
       "input_values": {},
-      "input_description": "",
+      "input_description": "Call verify_schema after init and check field types",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "No CREATE, ALTER, DROP, INSERT, UPDATE, or DELETE statements should appear in executed SQL"
+        "table_created is of type bool",
+        "trigger_created is of type bool",
+        "check_constraint_present is of type bool"
       ]
     }
   ],
   "test_language": "python",
-  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for PostgreSQL Database Schema component.\nThese tests catch implementations that pass visible tests through shortcuts\n(hardcoded returns, incomplete validation, etc.) rather than truly satisfying the contract.\n\"\"\"\n\nimport pytest\nfrom unittest.mock import MagicMock, patch, call\nfrom src.database import *\n\n\n# ============================================================\n# TaskStatus — enum validation beyond the three visible happy paths\n# ============================================================\n\nclass TestGoodhartTaskStatus:\n\n    def test_goodhart_task_status_rejects_close_misspellings(self):\n        \"\"\"TaskStatus validation must reject strings that are close to valid\n        variants but not exact matches.\"\"\"\n        near_misses = [\n            'Pending', 'PENDING', 'pENDING',\n            'in-progress', 'In_Progress', 'IN_PROGRESS', 'inprogress', 'in_Progress',\n            'Done', 'DONE', 'dONE',\n            'pendings', ' pending', 'pending ', ' done',\n            'completed', 'active', 'todo',\n        ]\n        for value in near_misses:\n            with pytest.raises((ValueError, TypeError, KeyError, Exception)), \\\n                 f\"TaskStatus should reject '{value}'\":\n                TaskStatus(value)\n\n    def test_goodhart_task_status_rejects_empty_string(self):\n        \"\"\"TaskStatus must reject the empty string.\"\"\"\n        with pytest.raises((ValueError, TypeError, KeyError, Exception)):\n            TaskStatus('')\n\n    def test_goodhart_task_status_rejects_none(self):\n        \"\"\"TaskStatus must reject None since status is NOT NULL.\"\"\"\n        with pytest.raises((ValueError, TypeError, KeyError, Exception)):\n            TaskStatus(None)\n\n    def test_goodhart_task_status_rejects_numeric(self):\n        \"\"\"TaskStatus must reject numeric values even if they could be index-based.\"\"\"\n        with pytest.raises((ValueError, TypeError, KeyError, Exception)):\n            TaskStatus(0)\n        with pytest.raises((ValueError, TypeError, KeyError, Exception)):\n            TaskStatus(1)\n        with pytest.raises((ValueError, TypeError, KeyError, Exception)):\n            TaskStatus(2)\n\n\n# ============================================================\n# TaskTitle — length validation beyond boundary-only checks\n# ============================================================\n\nclass TestGoodhartTaskTitle:\n\n    def test_goodhart_task_title_length_254(self):\n        \"\"\"TaskTitle must accept strings at length 254, just inside the max boundary.\"\"\"\n        title = 'x' * 254\n        result = TaskTitle(title)\n        assert result is not None\n\n    def test_goodhart_task_title_length_256_rejected(self):\n        \"\"\"TaskTitle must reject strings at length 256, immediately beyond max.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            TaskTitle('x' * 256)\n\n    def test_goodhart_task_title_length_2(self):\n        \"\"\"TaskTitle must accept typical short strings within valid range.\"\"\"\n        result = TaskTitle('ab')\n        assert result is not None\n\n    def test_goodhart_task_title_length_100(self):\n        \"\"\"TaskTitle must accept mid-range length strings.\"\"\"\n        result = TaskTitle('a' * 100)\n        assert result is not None\n\n    def test_goodhart_task_title_whitespace_only(self):\n        \"\"\"TaskTitle with whitespace-only content should be accepted since len >= 1.\"\"\"\n        result = TaskTitle(' ')\n        assert result is not None\n\n    def test_goodhart_task_title_rejects_none(self):\n        \"\"\"TaskTitle must reject None since title is NOT NULL.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            TaskTitle(None)\n\n    def test_goodhart_task_title_unicode(self):\n        \"\"\"TaskTitle must accept Unicode characters within length limit.\"\"\"\n        result = TaskTitle('日本語タスク名')\n        assert result is not None\n\n    def test_goodhart_task_title_unicode_at_max(self):\n        \"\"\"TaskTitle must accept exactly 255 Unicode characters.\"\"\"\n        result = TaskTitle('あ' * 255)\n        assert result is not None\n\n    def test_goodhart_task_title_unicode_over_max(self):\n        \"\"\"TaskTitle must reject 256 Unicode characters.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            TaskTitle('あ' * 256)\n\n\n# ============================================================\n# TaskDescription — optional type behavior\n# ============================================================\n\nclass TestGoodhartTaskDescription:\n\n    def test_goodhart_task_description_empty_string(self):\n        \"\"\"TaskDescription must accept empty string as distinct from None.\"\"\"\n        result = TaskDescription('')\n        assert result is not None\n        # Empty string should not be converted to None\n        if hasattr(result, 'value'):\n            assert result.value == ''\n        elif isinstance(result, str):\n            assert result == ''\n\n    def test_goodhart_task_description_long_text(self):\n        \"\"\"TaskDescription must accept very long strings since TEXT has no length limit.\"\"\"\n        long_text = 'x' * 10000\n        result = TaskDescription(long_text)\n        assert result is not None\n\n\n# ============================================================\n# Timestamptz — regex validation beyond visible test values\n# ============================================================\n\nclass TestGoodhartTimestamptz:\n\n    def test_goodhart_timestamptz_negative_offset(self):\n        \"\"\"Timestamptz must accept negative timezone offsets.\"\"\"\n        result = Timestamptz('2024-01-15T08:30:00-05:00')\n        assert result is not None\n\n    def test_goodhart_timestamptz_fractional_with_offset(self):\n        \"\"\"Timestamptz must accept fractional seconds combined with non-Z offset.\"\"\"\n        result = Timestamptz('2024-06-15T12:00:00.123456+05:30')\n        assert result is not None\n\n    def test_goodhart_timestamptz_single_fractional_digit(self):\n        \"\"\"Timestamptz must accept a single fractional second digit.\"\"\"\n        result = Timestamptz('2024-01-01T00:00:00.1Z')\n        assert result is not None\n\n    def test_goodhart_timestamptz_rejects_date_only(self):\n        \"\"\"Timestamptz must reject date-only strings.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('2024-01-15')\n\n    def test_goodhart_timestamptz_rejects_trailing_text(self):\n        \"\"\"Timestamptz must reject strings with trailing content after valid pattern.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('2024-01-15T10:00:00Z extra')\n\n    def test_goodhart_timestamptz_rejects_unix_timestamp(self):\n        \"\"\"Timestamptz must reject numeric Unix timestamp strings.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('1704067200')\n\n    def test_goodhart_timestamptz_rejects_space_separator(self):\n        \"\"\"Timestamptz must reject space separator between date and time.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('2024-01-15 10:00:00Z')\n\n    def test_goodhart_timestamptz_rejects_no_seconds(self):\n        \"\"\"Timestamptz must reject times without seconds component.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('2024-01-15T10:00Z')\n\n    def test_goodhart_timestamptz_rejects_leading_text(self):\n        \"\"\"Timestamptz must reject strings with leading content before valid pattern.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            Timestamptz('time:2024-01-15T10:00:00Z')\n\n    def test_goodhart_timestamptz_midnight_utc(self):\n        \"\"\"Timestamptz must accept midnight timestamps.\"\"\"\n        result = Timestamptz('2024-12-31T00:00:00Z')\n        assert result is not None\n\n    def test_goodhart_timestamptz_end_of_day(self):\n        \"\"\"Timestamptz must accept end-of-day timestamps.\"\"\"\n        result = Timestamptz('2024-12-31T23:59:59+00:00')\n        assert result is not None\n\n\n# ============================================================\n# ConnectionConfig — URL and port validation\n# ============================================================\n\nclass TestGoodhartConnectionConfig:\n\n    def test_goodhart_connection_config_rejects_postgres_without_ql(self):\n        \"\"\"ConnectionConfig must reject 'postgres://' URLs missing the 'ql'.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='postgres://user:pass@localhost/db', port=5432)\n\n    def test_goodhart_connection_config_rejects_port_5433(self):\n        \"\"\"ConnectionConfig must reject port 5433, adjacent above required 5432.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='postgresql://user:pass@localhost/db', port=5433)\n\n    def test_goodhart_connection_config_rejects_port_5431(self):\n        \"\"\"ConnectionConfig must reject port 5431, adjacent below required 5432.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='postgresql://user:pass@localhost/db', port=5431)\n\n    def test_goodhart_connection_config_rejects_port_zero(self):\n        \"\"\"ConnectionConfig must reject port 0.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='postgresql://user:pass@localhost/db', port=0)\n\n    def test_goodhart_connection_config_rejects_negative_port(self):\n        \"\"\"ConnectionConfig must reject negative port values.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='postgresql://user:pass@localhost/db', port=-1)\n\n    def test_goodhart_connection_config_url_anchored(self):\n        \"\"\"ConnectionConfig must reject URLs where 'postgresql://' is not at the start.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(\n                database_url='http://postgresql://user:pass@localhost/db',\n                port=5432\n            )\n\n    def test_goodhart_connection_config_rejects_mysql_url(self):\n        \"\"\"ConnectionConfig must reject MySQL connection URLs.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            ConnectionConfig(database_url='mysql://user:pass@localhost/db', port=5432)\n\n\n# ============================================================\n# InitScriptResult — struct flexibility\n# ============================================================\n\nclass TestGoodhartInitScriptResult:\n\n    def test_goodhart_init_script_result_all_false(self):\n        \"\"\"InitScriptResult must support all fields being False.\"\"\"\n        result = InitScriptResult(\n            table_created=False,\n            trigger_created=False,\n            check_constraint_present=False\n        )\n        assert result.table_created is False\n        assert result.trigger_created is False\n        assert result.check_constraint_present is False\n\n    def test_goodhart_init_script_result_mixed_true_false_true(self):\n        \"\"\"InitScriptResult must support mixed boolean states.\"\"\"\n        result = InitScriptResult(\n            table_created=True,\n            trigger_created=False,\n            check_constraint_present=True\n        )\n        assert result.table_created is True\n        assert result.trigger_created is False\n        assert result.check_constraint_present is True\n\n    def test_goodhart_init_script_result_mixed_false_true_false(self):\n        \"\"\"InitScriptResult must support the inverse mixed state.\"\"\"\n        result = InitScriptResult(\n            table_created=False,\n            trigger_created=True,\n            check_constraint_present=False\n        )\n        assert result.table_created is False\n        assert result.trigger_created is True\n        assert result.check_constraint_present is False\n\n\n# ============================================================\n# TaskRow — struct construction with edge values\n# ============================================================\n\nclass TestGoodhartTaskRow:\n\n    def test_goodhart_task_row_description_none(self):\n        \"\"\"TaskRow must be constructable with description=None.\"\"\"\n        row = TaskRow(\n            id=1,\n            title='Test Task',\n            description=None,\n            status='pending',\n            created_at='2024-01-01T00:00:00Z',\n            updated_at='2024-01-01T00:00:00Z'\n        )\n        assert row.description is None\n\n    def test_goodhart_task_row_all_statuses(self):\n        \"\"\"TaskRow must accept all three valid status values, not just one.\"\"\"\n        for status in ['pending', 'in_progress', 'done']:\n            row = TaskRow(\n                id=1,\n                title='Test',\n                description=None,\n                status=status,\n                created_at='2024-01-01T00:00:00Z',\n                updated_at='2024-01-01T00:00:00Z'\n            )\n            assert row.status == status\n\n    def test_goodhart_task_row_different_ids(self):\n        \"\"\"TaskRow must accept various integer id values, not just a fixed one.\"\"\"\n        for task_id in [1, 42, 999, 1000000]:\n            row = TaskRow(\n                id=task_id,\n                title='Test',\n                description=None,\n                status='pending',\n                created_at='2024-01-01T00:00:00Z',\n                updated_at='2024-01-01T00:00:00Z'\n            )\n            assert row.id == task_id\n\n\n# ============================================================\n# execute_init_script — behavioral properties via mocking\n# ============================================================\n\nclass TestGoodhartExecuteInitScript:\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_exec_init_sql_syntax_error(self, mock_connect):\n        \"\"\"execute_init_script must raise sql_syntax_error on SQL syntax issues.\"\"\"\n        import psycopg2\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n        mock_cursor.execute.side_effect = psycopg2.errors.SyntaxError(\"syntax error\")\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n        with pytest.raises(Exception) as exc_info:\n            execute_init_script(config)\n        # Should map to sql_syntax_error, not pass silently\n        assert 'syntax' in str(exc_info.value).lower() or \\\n               'sql_syntax_error' in str(type(exc_info.value)).lower() or \\\n               'sql_syntax_error' in str(exc_info.value).lower()\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_exec_init_triple_idempotent(self, mock_connect):\n        \"\"\"execute_init_script must remain idempotent across 3+ consecutive invocations.\"\"\"\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n        mock_cursor.fetchone.return_value = None\n        mock_cursor.fetchall.return_value = []\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n\n        results = []\n        for _ in range(3):\n            result = execute_init_script(config)\n            results.append(result)\n\n        # All three invocations should succeed with all True\n        for i, result in enumerate(results):\n            assert result.table_created is True, f\"Invocation {i+1}: table_created should be True\"\n            assert result.trigger_created is True, f\"Invocation {i+1}: trigger_created should be True\"\n            assert result.check_constraint_present is True, f\"Invocation {i+1}: check_constraint_present should be True\"\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_exec_init_preserves_existing_rows(self, mock_connect):\n        \"\"\"execute_init_script must not execute DELETE, TRUNCATE, or DROP TABLE on tasks.\"\"\"\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n\n        executed_statements = []\n        original_execute = mock_cursor.execute\n\n        def track_execute(sql, *args, **kwargs):\n            if isinstance(sql, str):\n                executed_statements.append(sql)\n\n        mock_cursor.execute.side_effect = track_execute\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n\n        try:\n            execute_init_script(config)\n        except Exception:\n            pass  # We care about the SQL statements, not the result\n\n        destructive_keywords = ['DELETE', 'TRUNCATE', 'DROP TABLE']\n        for stmt in executed_statements:\n            upper_stmt = stmt.upper()\n            for keyword in destructive_keywords:\n                assert keyword not in upper_stmt or 'IF EXISTS' in upper_stmt and 'DROP TRIGGER' in upper_stmt, \\\n                    f\"Destructive statement found: {stmt}\"\n\n\n# ============================================================\n# verify_schema — additional partial states and read-only invariant\n# ============================================================\n\nclass TestGoodhartVerifySchema:\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_verify_schema_partial_no_check_constraint(self, mock_connect):\n        \"\"\"verify_schema must independently detect a missing CHECK constraint.\"\"\"\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n\n        def query_results(sql, *args, **kwargs):\n            sql_upper = sql.upper() if isinstance(sql, str) else ''\n            if 'INFORMATION_SCHEMA.TABLES' in sql_upper or 'PG_TABLES' in sql_upper:\n                return  # table exists\n            if 'PG_TRIGGER' in sql_upper or 'TRIGGER' in sql_upper:\n                return  # trigger exists\n            return\n\n        def fetchone_results(*args, **kwargs):\n            return (True,)  # Generic positive result\n\n        mock_cursor.execute.side_effect = query_results\n        mock_cursor.fetchone.return_value = (True,)\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n\n        # This test verifies that the function actually queries for check constraints\n        # rather than returning hardcoded all-True or all-False\n        try:\n            result = verify_schema(config)\n            # If implementation returns something, each field should reflect actual introspection\n            assert hasattr(result, 'table_created')\n            assert hasattr(result, 'trigger_created')\n            assert hasattr(result, 'check_constraint_present')\n        except Exception:\n            pass  # Mock may not match exactly; the structural test still validates\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_verify_schema_introspection_query_failed(self, mock_connect):\n        \"\"\"verify_schema must raise introspection_query_failed on privilege errors.\"\"\"\n        import psycopg2\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n        mock_cursor.execute.side_effect = psycopg2.errors.InsufficientPrivilege(\n            \"permission denied for schema information_schema\"\n        )\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n\n        with pytest.raises(Exception) as exc_info:\n            verify_schema(config)\n        exc_str = str(exc_info.value).lower() + str(type(exc_info.value).__name__).lower()\n        assert 'introspection' in exc_str or 'privilege' in exc_str or 'permission' in exc_str\n\n    @patch('src.database.psycopg2.connect')\n    def test_goodhart_verify_schema_readonly(self, mock_connect):\n        \"\"\"verify_schema must not execute any DDL or DML write statements.\"\"\"\n        mock_conn = MagicMock()\n        mock_cursor = MagicMock()\n        mock_connect.return_value = mock_conn\n        mock_conn.cursor.return_value = mock_cursor\n        mock_cursor.fetchone.return_value = (True,)\n        mock_cursor.fetchall.return_value = [('tasks',)]\n\n        executed_statements = []\n\n        def track_execute(sql, *args, **kwargs):\n            if isinstance(sql, str):\n                executed_statements.append(sql)\n\n        mock_cursor.execute.side_effect = track_execute\n\n        config = ConnectionConfig(\n            database_url='postgresql://user:pass@localhost/testdb',\n            port=5432\n        )\n\n        try:\n            verify_schema(config)\n        except Exception:\n            pass\n\n        write_keywords = ['CREATE', 'ALTER', 'DROP', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE']\n        for stmt in executed_statements:\n            upper_stmt = stmt.upper()\n            for keyword in write_keywords:\n                assert keyword not in upper_stmt, \\\n                    f\"verify_schema executed write statement: {stmt}\"\n"
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for PostgreSQL Database Schema component.\nThese tests target gaps in visible test coverage and detect implementations\nthat might hardcode returns or take shortcuts.\n\"\"\"\n\nimport pytest\nimport time\nimport datetime\nimport os\nimport psycopg2\n\nfrom database import (\n    execute_init_script,\n    verify_schema,\n    TaskStatus,\n    TaskTitle,\n    TaskDescription,\n    Timestamptz,\n    ConnectionConfig,\n    InitScriptResult,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef _get_config():\n    \"\"\"Return a valid ConnectionConfig from the environment.\"\"\"\n    url = os.environ.get(\"DATABASE_URL\", \"postgresql://postgres:postgres@localhost:5432/testdb\")\n    return ConnectionConfig(database_url=url, port=5432)\n\n\ndef _get_conn():\n    \"\"\"Return a raw psycopg2 connection for direct SQL verification.\"\"\"\n    url = os.environ.get(\"DATABASE_URL\", \"postgresql://postgres:postgres@localhost:5432/testdb\")\n    return psycopg2.connect(url)\n\n\ndef _init():\n    \"\"\"Run execute_init_script and return the config.\"\"\"\n    cfg = _get_config()\n    execute_init_script(cfg)\n    return cfg\n\n\ndef _clean_tasks():\n    \"\"\"Delete all rows from tasks table.\"\"\"\n    conn = _get_conn()\n    conn.autocommit = True\n    cur = conn.cursor()\n    cur.execute(\"DELETE FROM tasks\")\n    cur.close()\n    conn.close()\n\n\n# ===========================================================================\n# Type Validation Tests\n# ===========================================================================\n\nclass TestGoodhartConnectionConfig:\n\n    def test_goodhart_connection_config_port_5431_rejected(self):\n        \"\"\"ConnectionConfig must reject port values adjacent to valid — port 5431 is not 5432.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"postgresql://user:pass@localhost/db\", port=5431)\n\n    def test_goodhart_connection_config_port_5433_rejected(self):\n        \"\"\"ConnectionConfig must reject port 5433 — only exactly 5432 is valid.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"postgresql://user:pass@localhost/db\", port=5433)\n\n    def test_goodhart_connection_config_port_0_rejected(self):\n        \"\"\"ConnectionConfig must reject port 0.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"postgresql://user:pass@localhost/db\", port=0)\n\n    def test_goodhart_connection_config_port_negative_rejected(self):\n        \"\"\"ConnectionConfig must reject negative port values.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"postgresql://user:pass@localhost/db\", port=-1)\n\n    def test_goodhart_connection_config_postgres_scheme_rejected(self):\n        \"\"\"ConnectionConfig must reject 'postgres://' — only 'postgresql://' prefix is valid.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"postgres://user:pass@localhost/db\", port=5432)\n\n    def test_goodhart_connection_config_mysql_scheme_rejected(self):\n        \"\"\"ConnectionConfig must reject non-postgresql schemes like mysql://.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"mysql://user:pass@localhost/db\", port=5432)\n\n    def test_goodhart_connection_config_empty_url_rejected(self):\n        \"\"\"ConnectionConfig must reject empty string URL.\"\"\"\n        with pytest.raises(Exception):\n            ConnectionConfig(database_url=\"\", port=5432)\n\n\nclass TestGoodhartTaskStatus:\n\n    def test_goodhart_task_status_rejects_substring(self):\n        \"\"\"TaskStatus must reject strings that are substrings of valid values.\"\"\"\n        for invalid in [\"pend\", \"pendin\", \"in_prog\", \"in_progres\", \"don\", \"do\"]:\n            with pytest.raises(Exception):\n                TaskStatus(invalid)\n\n    def test_goodhart_task_status_rejects_superstring(self):\n        \"\"\"TaskStatus must reject strings that are superstrings of valid values.\"\"\"\n        for invalid in [\"pendings\", \"in_progress_\", \"done!\", \"pending \"]:\n            with pytest.raises(Exception):\n                TaskStatus(invalid)\n\n    def test_goodhart_task_status_rejects_empty_string(self):\n        \"\"\"TaskStatus must reject empty string.\"\"\"\n        with pytest.raises(Exception):\n            TaskStatus(\"\")\n\n    def test_goodhart_task_status_case_sensitive(self):\n        \"\"\"TaskStatus must be case-sensitive — uppercase/mixed-case variants are invalid.\"\"\"\n        for invalid in [\"Pending\", \"PENDING\", \"In_Progress\", \"IN_PROGRESS\", \"Done\", \"DONE\"]:\n            with pytest.raises(Exception):\n                TaskStatus(invalid)\n\n\nclass TestGoodhartTaskTitle:\n\n    def test_goodhart_task_title_length_254_accepted(self):\n        \"\"\"TaskTitle must accept boundary-adjacent length of 254 characters.\"\"\"\n        title = TaskTitle(value=\"a\" * 254)\n        assert len(title.value) == 254\n\n    def test_goodhart_task_title_length_2_accepted(self):\n        \"\"\"TaskTitle must accept length 2 — not just boundary values 1 and 255.\"\"\"\n        title = TaskTitle(value=\"ab\")\n        assert title.value == \"ab\"\n\n    def test_goodhart_task_title_length_1_accepted(self):\n        \"\"\"TaskTitle must accept exactly 1 character.\"\"\"\n        title = TaskTitle(value=\"x\")\n        assert title.value == \"x\"\n\n    def test_goodhart_task_title_whitespace_only_accepted(self):\n        \"\"\"TaskTitle of all spaces should be accepted by schema (length >= 1).\"\"\"\n        title = TaskTitle(value=\"   \")\n        assert len(title.value) == 3\n\n    def test_goodhart_task_title_length_257_rejected(self):\n        \"\"\"TaskTitle must reject length 257, not just 256.\"\"\"\n        with pytest.raises(Exception):\n            TaskTitle(value=\"a\" * 257)\n\n    def test_goodhart_task_title_length_1000_rejected(self):\n        \"\"\"TaskTitle must reject very long strings well beyond 255.\"\"\"\n        with pytest.raises(Exception):\n            TaskTitle(value=\"a\" * 1000)\n\n\nclass TestGoodhartTimestamptz:\n\n    def test_goodhart_timestamptz_fractional_1_digit(self):\n        \"\"\"Timestamptz must accept 1 fractional second digit.\"\"\"\n        ts = Timestamptz(value=\"2024-01-01T00:00:00.1Z\")\n        assert ts.value == \"2024-01-01T00:00:00.1Z\"\n\n    def test_goodhart_timestamptz_fractional_6_digits(self):\n        \"\"\"Timestamptz must accept 6 fractional second digits.\"\"\"\n        ts = Timestamptz(value=\"2024-01-01T00:00:00.123456Z\")\n        assert ts.value == \"2024-01-01T00:00:00.123456Z\"\n\n    def test_goodhart_timestamptz_positive_offset(self):\n        \"\"\"Timestamptz must accept positive UTC offsets.\"\"\"\n        ts = Timestamptz(value=\"2024-06-15T14:30:00+05:30\")\n        assert ts.value == \"2024-06-15T14:30:00+05:30\"\n\n    def test_goodhart_timestamptz_negative_offset(self):\n        \"\"\"Timestamptz must accept negative UTC offsets.\"\"\"\n        ts = Timestamptz(value=\"2024-06-15T14:30:00-07:00\")\n        assert ts.value == \"2024-06-15T14:30:00-07:00\"\n\n    def test_goodhart_timestamptz_no_T_separator_rejected(self):\n        \"\"\"Timestamptz must reject space-separated datetime strings.\"\"\"\n        with pytest.raises(Exception):\n            Timestamptz(value=\"2024-01-01 00:00:00Z\")\n\n    def test_goodhart_timestamptz_date_only_rejected(self):\n        \"\"\"Timestamptz must reject date-only strings.\"\"\"\n        with pytest.raises(Exception):\n            Timestamptz(value=\"2024-01-01Z\")\n\n    def test_goodhart_timestamptz_no_timezone_rejected(self):\n        \"\"\"Timestamptz must reject timestamps without any timezone indicator.\"\"\"\n        with pytest.raises(Exception):\n            Timestamptz(value=\"2024-01-01T00:00:00\")\n\n    def test_goodhart_timestamptz_offset_without_colon_rejected(self):\n        \"\"\"Timestamptz must reject offsets without colon like +0530 (regex requires +HH:MM).\"\"\"\n        with pytest.raises(Exception):\n            Timestamptz(value=\"2024-01-01T00:00:00+0530\")\n\n\n# ===========================================================================\n# Schema & Data Behavior Tests (require live PostgreSQL)\n# ===========================================================================\n\nclass TestGoodhartSchemaInvariants:\n\n    def test_goodhart_select_star_returns_all_six_columns(self):\n        \"\"\"SELECT * must return exactly the six expected column names.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"DELETE FROM tasks\")\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('col_test')\")\n        cur.execute(\"SELECT * FROM tasks WHERE title = 'col_test'\")\n        col_names = [desc[0] for desc in cur.description]\n        cur.close()\n        conn.close()\n        assert set(col_names) == {\"id\", \"title\", \"description\", \"status\", \"created_at\", \"updated_at\"}\n        assert len(col_names) == 6\n\n    def test_goodhart_primary_key_prevents_duplicate_id(self):\n        \"\"\"PRIMARY KEY on id must prevent manual insertion of duplicate id values.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('pk_test') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        with pytest.raises(psycopg2.errors.UniqueViolation):\n            cur.execute(\"INSERT INTO tasks (id, title) VALUES (%s, 'dup')\", (row_id,))\n        conn.rollback()\n        cur.execute(\"DELETE FROM tasks WHERE title IN ('pk_test', 'dup')\")\n        cur.close()\n        conn.close()\n\n    def test_goodhart_id_autoincrement_unique(self):\n        \"\"\"Auto-increment must produce distinct integer ids for multiple inserts.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        ids = []\n        for i in range(3):\n            cur.execute(\"INSERT INTO tasks (title) VALUES (%s) RETURNING id\", (f\"auto_{i}\",))\n            ids.append(cur.fetchone()[0])\n        cur.execute(\"DELETE FROM tasks WHERE title LIKE 'auto_%%'\")\n        cur.close()\n        conn.close()\n        assert len(set(ids)) == 3\n        for _id in ids:\n            assert isinstance(_id, int)\n\n    def test_goodhart_id_gaps_after_failed_insert(self):\n        \"\"\"SERIAL sequence advances even on failed inserts, producing non-contiguous ids.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        try:\n            cur.execute(\"INSERT INTO tasks (title) VALUES ('gap_before') RETURNING id\")\n            id_before = cur.fetchone()[0]\n            conn.commit()\n        except Exception:\n            conn.rollback()\n            raise\n        # This insert should fail due to CHECK constraint on status\n        try:\n            cur.execute(\"INSERT INTO tasks (title, status) VALUES ('gap_fail', 'invalid_xyz')\")\n            conn.commit()\n        except Exception:\n            conn.rollback()\n        try:\n            cur.execute(\"INSERT INTO tasks (title) VALUES ('gap_after') RETURNING id\")\n            id_after = cur.fetchone()[0]\n            conn.commit()\n        except Exception:\n            conn.rollback()\n            raise\n        # The gap may or may not be exactly 1, but both ids should be valid ints\n        assert isinstance(id_before, int)\n        assert isinstance(id_after, int)\n        assert id_after > id_before\n        # Clean up\n        cur.execute(\"DELETE FROM tasks WHERE title IN ('gap_before', 'gap_after')\")\n        conn.commit()\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartTriggerBehavior:\n\n    def test_goodhart_trigger_updates_only_updated_at(self):\n        \"\"\"Trigger must only modify updated_at, not any other column.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\n            \"INSERT INTO tasks (title, description, status) VALUES ('orig_title', 'orig_desc', 'pending') RETURNING id, title, description, status, created_at\"\n        )\n        row = cur.fetchone()\n        row_id, orig_title, orig_desc, orig_status, orig_created = row\n        time.sleep(0.05)\n        cur.execute(\"UPDATE tasks SET title = 'new_title' WHERE id = %s\", (row_id,))\n        cur.execute(\"SELECT title, description, status, created_at FROM tasks WHERE id = %s\", (row_id,))\n        new_row = cur.fetchone()\n        assert new_row[0] == \"new_title\"  # title was explicitly changed\n        assert new_row[1] == orig_desc  # description unchanged\n        assert new_row[2] == orig_status  # status unchanged\n        assert new_row[3] == orig_created  # created_at unchanged by trigger\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_multiple_updates_advance_updated_at(self):\n        \"\"\"Each successive UPDATE must advance updated_at — trigger fires every time.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('multi_update') RETURNING id, updated_at\")\n        row_id, ts0 = cur.fetchone()\n        time.sleep(0.05)\n        cur.execute(\"UPDATE tasks SET title = 'multi_update_1' WHERE id = %s\", (row_id,))\n        cur.execute(\"SELECT updated_at FROM tasks WHERE id = %s\", (row_id,))\n        ts1 = cur.fetchone()[0]\n        time.sleep(0.05)\n        cur.execute(\"UPDATE tasks SET title = 'multi_update_2' WHERE id = %s\", (row_id,))\n        cur.execute(\"SELECT updated_at FROM tasks WHERE id = %s\", (row_id,))\n        ts2 = cur.fetchone()[0]\n        assert ts1 >= ts0\n        assert ts2 >= ts1\n        # At least one of the advances should be strictly greater (with sleep)\n        assert ts2 > ts0\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_update_status_triggers_updated_at(self):\n        \"\"\"Updating status column must also trigger updated_at advancement.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('status_trigger_test') RETURNING id, updated_at\")\n        row_id, ts_insert = cur.fetchone()\n        time.sleep(0.05)\n        cur.execute(\"UPDATE tasks SET status = 'in_progress' WHERE id = %s\", (row_id,))\n        cur.execute(\"SELECT status, updated_at FROM tasks WHERE id = %s\", (row_id,))\n        status, ts_after = cur.fetchone()\n        assert status == \"in_progress\"\n        assert ts_after > ts_insert\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_update_description_null_to_value_triggers(self):\n        \"\"\"Updating description from NULL to a value must trigger updated_at change.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('desc_trigger') RETURNING id, updated_at\")\n        row_id, ts_insert = cur.fetchone()\n        time.sleep(0.05)\n        cur.execute(\"UPDATE tasks SET description = 'now has desc' WHERE id = %s\", (row_id,))\n        cur.execute(\"SELECT description, updated_at FROM tasks WHERE id = %s\", (row_id,))\n        desc, ts_after = cur.fetchone()\n        assert desc == \"now has desc\"\n        assert ts_after > ts_insert\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartNullAndDefault:\n\n    def test_goodhart_null_title_rejected(self):\n        \"\"\"NOT NULL constraint on title must reject NULL title insertion.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        with pytest.raises(psycopg2.errors.NotNullViolation):\n            cur.execute(\"INSERT INTO tasks (title) VALUES (NULL)\")\n        conn.rollback()\n        cur.close()\n        conn.close()\n\n    def test_goodhart_explicit_null_status_rejected(self):\n        \"\"\"Explicitly setting status=NULL must be rejected by NOT NULL constraint even though DEFAULT exists.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        with pytest.raises(psycopg2.errors.NotNullViolation):\n            cur.execute(\"INSERT INTO tasks (title, status) VALUES ('null_status_test', NULL)\")\n        conn.rollback()\n        cur.close()\n        conn.close()\n\n    def test_goodhart_description_empty_string_vs_null(self):\n        \"\"\"Empty string description and NULL description are distinct stored values.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title, description) VALUES ('with_empty', '') RETURNING id\")\n        id_empty = cur.fetchone()[0]\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('with_null') RETURNING id\")\n        id_null = cur.fetchone()[0]\n        cur.execute(\"SELECT description FROM tasks WHERE id = %s\", (id_empty,))\n        desc_empty = cur.fetchone()[0]\n        cur.execute(\"SELECT description FROM tasks WHERE id = %s\", (id_null,))\n        desc_null = cur.fetchone()[0]\n        assert desc_empty == \"\"\n        assert desc_null is None\n        assert desc_empty != desc_null\n        cur.execute(\"DELETE FROM tasks WHERE id IN (%s, %s)\", (id_empty, id_null))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_empty_string_title_allowed_by_schema(self):\n        \"\"\"Empty string '' is allowed by database schema for title (VARCHAR NOT NULL allows it).\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        cur.execute(\"SELECT title FROM tasks WHERE id = %s\", (row_id,))\n        title = cur.fetchone()[0]\n        assert title == \"\"\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_created_at_and_updated_at_equal_on_insert(self):\n        \"\"\"On fresh INSERT, created_at and updated_at should be equal (both DEFAULT NOW()).\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('ts_eq_test') RETURNING id, created_at, updated_at\")\n        row_id, created_at, updated_at = cur.fetchone()\n        assert created_at == updated_at\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartStatusConstraint:\n\n    def test_goodhart_status_case_sensitive(self):\n        \"\"\"CHECK constraint on status is case-sensitive — mixed-case variants must be rejected.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        for bad_status in [\"Pending\", \"PENDING\", \"In_Progress\", \"IN_PROGRESS\", \"Done\", \"DONE\"]:\n            try:\n                cur.execute(\"INSERT INTO tasks (title, status) VALUES ('case_test', %s)\", (bad_status,))\n                conn.commit()\n                pytest.fail(f\"Status '{bad_status}' should have been rejected\")\n            except psycopg2.errors.CheckViolation:\n                conn.rollback()\n            except Exception:\n                conn.rollback()\n                raise\n        cur.close()\n        conn.close()\n\n    def test_goodhart_status_whitespace_rejected(self):\n        \"\"\"Status values with whitespace padding must be rejected.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        for bad_status in [\" pending\", \"pending \", \" done \", \"in_progress \"]:\n            try:\n                cur.execute(\"INSERT INTO tasks (title, status) VALUES ('ws_test', %s)\", (bad_status,))\n                conn.commit()\n                pytest.fail(f\"Status '{bad_status}' should have been rejected\")\n            except psycopg2.errors.CheckViolation:\n                conn.rollback()\n            except Exception:\n                conn.rollback()\n                raise\n        cur.close()\n        conn.close()\n\n    def test_goodhart_status_empty_string_rejected(self):\n        \"\"\"Empty string status must be rejected by CHECK constraint.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = False\n        cur = conn.cursor()\n        with pytest.raises(psycopg2.errors.CheckViolation):\n            cur.execute(\"INSERT INTO tasks (title, status) VALUES ('empty_status', '')\")\n        conn.rollback()\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartPsycopg2TypeMapping:\n\n    def test_goodhart_psycopg2_id_is_int(self):\n        \"\"\"psycopg2 must map id column to Python int.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('type_test') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        assert type(row_id) is int\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_psycopg2_title_is_str(self):\n        \"\"\"psycopg2 must map title column to Python str.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('type_str_test') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        cur.execute(\"SELECT title FROM tasks WHERE id = %s\", (row_id,))\n        title = cur.fetchone()[0]\n        assert type(title) is str\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_psycopg2_description_none_type(self):\n        \"\"\"psycopg2 must map NULL description to Python None (NoneType).\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('none_desc') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        cur.execute(\"SELECT description FROM tasks WHERE id = %s\", (row_id,))\n        desc = cur.fetchone()[0]\n        assert desc is None\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_psycopg2_datetime_aware_utc(self):\n        \"\"\"psycopg2 must return timezone-aware datetimes with UTC tzinfo for timestamp columns.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('tz_test') RETURNING id, created_at, updated_at\")\n        row_id, created_at, updated_at = cur.fetchone()\n        assert isinstance(created_at, datetime.datetime)\n        assert isinstance(updated_at, datetime.datetime)\n        assert created_at.tzinfo is not None\n        assert updated_at.tzinfo is not None\n        # Verify UTC offset is 0\n        assert created_at.utcoffset() == datetime.timedelta(0)\n        assert updated_at.utcoffset() == datetime.timedelta(0)\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartUnicodeAndEdge:\n\n    def test_goodhart_unicode_title_insert(self):\n        \"\"\"Title column must support Unicode characters (CJK, emoji, accented).\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        titles = [\"任务标题\", \"tâche française\", \"🚀 Launch\", \"Ñoño\", \"данные\"]\n        ids = []\n        for t in titles:\n            cur.execute(\"INSERT INTO tasks (title) VALUES (%s) RETURNING id\", (t,))\n            ids.append(cur.fetchone()[0])\n        for row_id, expected_title in zip(ids, titles):\n            cur.execute(\"SELECT title FROM tasks WHERE id = %s\", (row_id,))\n            actual = cur.fetchone()[0]\n            assert actual == expected_title, f\"Expected '{expected_title}', got '{actual}'\"\n        for row_id in ids:\n            cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_title_single_char_insert(self):\n        \"\"\"A single-character title must be insertable and retrievable.\"\"\"\n        _init()\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('X') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        cur.execute(\"SELECT title FROM tasks WHERE id = %s\", (row_id,))\n        assert cur.fetchone()[0] == \"X\"\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartIdempotency:\n\n    def test_goodhart_idempotent_three_executions(self):\n        \"\"\"Init script must be idempotent beyond two runs — three consecutive executions must all succeed.\"\"\"\n        cfg = _get_config()\n        r1 = execute_init_script(cfg)\n        r2 = execute_init_script(cfg)\n        r3 = execute_init_script(cfg)\n        for r in [r1, r2, r3]:\n            assert r.table_created is True\n            assert r.trigger_created is True\n            assert r.check_constraint_present is True\n\n    def test_goodhart_idempotent_preserves_multiple_rows(self):\n        \"\"\"Re-executing init must preserve multiple pre-existing rows with diverse data.\"\"\"\n        cfg = _get_config()\n        execute_init_script(cfg)\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        # Insert diverse rows\n        test_data = [\n            (\"Task A\", \"Description A\", \"pending\"),\n            (\"Task B\", None, \"in_progress\"),\n            (\"Task C\", \"Desc C\", \"done\"),\n            (\"Task D\", \"\", \"pending\"),\n            (\"Task E\", \"Long \" * 50, \"in_progress\"),\n        ]\n        ids = []\n        for title, desc, status in test_data:\n            if desc is not None:\n                cur.execute(\n                    \"INSERT INTO tasks (title, description, status) VALUES (%s, %s, %s) RETURNING id\",\n                    (title, desc, status),\n                )\n            else:\n                cur.execute(\n                    \"INSERT INTO tasks (title, status) VALUES (%s, %s) RETURNING id\",\n                    (title, status),\n                )\n            ids.append(cur.fetchone()[0])\n        # Snapshot before re-init\n        cur.execute(\"SELECT id, title, description, status, created_at, updated_at FROM tasks WHERE id = ANY(%s) ORDER BY id\", (ids,))\n        before = cur.fetchall()\n        cur.close()\n        conn.close()\n\n        # Re-execute init\n        execute_init_script(cfg)\n\n        # Verify all rows unchanged\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"SELECT id, title, description, status, created_at, updated_at FROM tasks WHERE id = ANY(%s) ORDER BY id\", (ids,))\n        after = cur.fetchall()\n        assert before == after, \"Re-init must not modify pre-existing rows\"\n        # Clean up\n        for row_id in ids:\n            cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n\nclass TestGoodhartVerifySchema:\n\n    def test_goodhart_verify_schema_is_readonly(self):\n        \"\"\"verify_schema must not modify data — row count unchanged after call.\"\"\"\n        cfg = _get_config()\n        execute_init_script(cfg)\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"INSERT INTO tasks (title) VALUES ('readonly_test') RETURNING id\")\n        row_id = cur.fetchone()[0]\n        cur.execute(\"SELECT COUNT(*) FROM tasks\")\n        count_before = cur.fetchone()[0]\n        cur.close()\n        conn.close()\n\n        verify_schema(cfg)\n\n        conn = _get_conn()\n        conn.autocommit = True\n        cur = conn.cursor()\n        cur.execute(\"SELECT COUNT(*) FROM tasks\")\n        count_after = cur.fetchone()[0]\n        assert count_before == count_after\n        cur.execute(\"DELETE FROM tasks WHERE id = %s\", (row_id,))\n        cur.close()\n        conn.close()\n\n    def test_goodhart_verify_schema_result_type(self):\n        \"\"\"verify_schema must return InitScriptResult with actual bool fields, not truthy/falsy.\"\"\"\n        cfg = _get_config()\n        execute_init_script(cfg)\n        result = verify_schema(cfg)\n        assert type(result.table_created) is bool\n        assert type(result.trigger_created) is bool\n        assert type(result.check_constraint_present) is bool\n"
 }

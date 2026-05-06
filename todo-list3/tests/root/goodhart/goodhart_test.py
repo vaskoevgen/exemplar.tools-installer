@@ -1,457 +1,523 @@
 """
-Adversarial hidden acceptance tests for the Root contract.
-These tests target gaps in visible test coverage and detect implementations
-that hardcode returns or take shortcuts based on visible test inputs.
+Hidden adversarial acceptance tests for the Root component.
+
+These tests are designed to catch implementations that pass visible tests
+through shortcuts (hardcoded returns, incomplete validation, etc.) rather
+than truly satisfying the contract.
 """
 
 import pytest
 import asyncio
-from unittest.mock import AsyncMock, MagicMock, patch, PropertyMock
-from datetime import datetime, timezone, timedelta
+import re
+import json
+import time
+import httpx
+import os
 
-from glue import *
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
+BASE_URL = os.environ.get("BACKEND_BASE_URL", "http://localhost:8000")
+DATABASE_URL = os.environ.get("DATABASE_URL", "")
 
-# ============================================================
-# TaskTitle validation — boundary and input-space exploration
-# ============================================================
-
-class TestGoodhartTaskTitle:
-    def test_goodhart_task_title_interior_whitespace_preserved(self):
-        """TaskTitle should preserve interior whitespace while only stripping leading/trailing whitespace."""
-        title = TaskTitle("  hello   world  ")
-        # After stripping, interior spaces remain
-        assert title.value == "hello   world" or str(title) == "hello   world" or getattr(title, 'value', title) == "hello   world"
-
-    def test_goodhart_task_title_tabs_and_newlines_stripped(self):
-        """TaskTitle strip behavior should handle all whitespace characters (tabs, newlines, etc.)."""
-        title = TaskTitle("\t\nhello\n\t")
-        stripped = getattr(title, 'value', str(title))
-        assert stripped == "hello"
-
-        # Only-tab titles should be rejected
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle("\t\t\t")
-
-        # Only-newline titles should be rejected
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle("\n\n\n")
-
-    def test_goodhart_task_title_254_chars_accepted(self):
-        """TaskTitle should accept titles at boundary-adjacent lengths (254 characters)."""
-        title_str = "a" * 254
-        title = TaskTitle(title_str)
-        stripped = getattr(title, 'value', str(title))
-        assert len(stripped) == 254
-
-    def test_goodhart_task_title_whitespace_padding_plus_max_content(self):
-        """TaskTitle length validation applies after stripping — 255 chars of content with surrounding spaces should pass."""
-        content = "x" * 255
-        padded = "   " + content + "   "
-        title = TaskTitle(padded)
-        stripped = getattr(title, 'value', str(title))
-        assert len(stripped) == 255
-        assert stripped == content
-
-    def test_goodhart_task_title_whitespace_padding_over_max(self):
-        """TaskTitle should reject title whose stripped content exceeds 255 characters."""
-        content = "x" * 256
-        padded = "  " + content + "  "
-        with pytest.raises((ValueError, Exception)):
-            TaskTitle(padded)
-
-    def test_goodhart_task_title_only_spaces_various_lengths(self):
-        """TaskTitle should reject strings of only space characters of various lengths."""
-        for length in [1, 5, 50, 256]:
-            with pytest.raises((ValueError, Exception)):
-                TaskTitle(" " * length)
-
-    def test_goodhart_task_title_unicode_accepted(self):
-        """TaskTitle should accept valid Unicode characters — emoji, CJK, accented chars."""
-        for title_str in ["任务", "🎉", "café", "naïve"]:
-            title = TaskTitle(title_str)
-            stripped = getattr(title, 'value', str(title))
-            assert len(stripped) > 0
+ISO_TZ_REGEX = re.compile(
+    r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$"
+)
 
 
-# ============================================================
-# TaskStatus validation — rejection of invalid values
-# ============================================================
-
-class TestGoodhartTaskStatus:
-    def test_goodhart_task_status_rejects_unknown_values(self):
-        """TaskStatus enum should reject values outside the closed set including case variations."""
-        invalid_values = ['cancelled', 'archived', 'PENDING', 'In_Progress', 'DONE', '', 'active', 'completed']
-        for val in invalid_values:
-            with pytest.raises((ValueError, KeyError, Exception)):
-                TaskStatus(val)
+def _sync(coro):
+    """Run an async coroutine in a new event loop (pytest-friendly)."""
+    loop = asyncio.new_event_loop()
+    try:
+        return loop.run_until_complete(coro)
+    finally:
+        loop.close()
 
 
-# ============================================================
-# HealthResponse validation — beyond 'ok'
-# ============================================================
-
-class TestGoodhartHealthResponse:
-    def test_goodhart_health_response_rejects_non_ok(self):
-        """HealthResponse should reject any status value not exactly 'ok'."""
-        invalid_statuses = ['OK', 'Ok', 'okay', 'healthy', '', 'ok ']
-        for status in invalid_statuses:
-            with pytest.raises((ValueError, Exception)):
-                HealthResponse(status=status)
+@pytest.fixture(scope="module")
+def client():
+    with httpx.Client(base_url=BASE_URL, timeout=10.0) as c:
+        yield c
 
 
-# ============================================================
-# DatabaseURL validation — scheme enforcement
-# ============================================================
+@pytest.fixture()
+def create_and_cleanup(client):
+    """Creates a task, yields its data, then deletes it for cleanup."""
+    created_ids = []
 
-class TestGoodhartDatabaseURL:
-    def test_goodhart_database_url_rejects_other_schemes(self):
-        """DatabaseURL should reject connection strings with non-PostgreSQL schemes."""
-        invalid_urls = [
-            'mysql://host/db',
-            'sqlite:///db',
-            'postgres://host/db',  # missing 'ql'
-            'http://host/db',
-            '',
-        ]
-        for url in invalid_urls:
-            with pytest.raises((ValueError, Exception)):
-                DatabaseURL(url)
+    def _create(payload=None):
+        if payload is None:
+            payload = {"title": f"goodhart-fixture-{time.time()}"}
+        resp = client.post("/tasks", json=payload)
+        assert resp.status_code == 201, f"Setup failed: {resp.status_code} {resp.text}"
+        data = resp.json()
+        created_ids.append(data["id"])
+        return data
 
-    def test_goodhart_database_url_rejects_whitespace(self):
-        """DatabaseURL should reject whitespace-only values."""
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL("   ")
+    yield _create
 
-        with pytest.raises((ValueError, Exception)):
-            DatabaseURL("postgresql")  # missing ://
+    for tid in created_ids:
+        client.delete(f"/tasks/{tid}")
 
 
-# ============================================================
-# TaskCreateRequest validation — status and title
-# ============================================================
+# ---------------------------------------------------------------------------
+# Tests
+# ---------------------------------------------------------------------------
 
-class TestGoodhartTaskCreateRequest:
-    def test_goodhart_task_create_request_whitespace_only_titles(self):
-        """TaskCreateRequest should reject various whitespace-only titles."""
-        for ws_title in ["\t\t", "\n\n", "\t \n \r", "\r\n"]:
-            with pytest.raises((ValueError, Exception)):
-                TaskCreateRequest(title=ws_title, description=None, status=TaskStatus("pending"))
-
-    def test_goodhart_task_create_request_accepts_all_statuses(self):
-        """TaskCreateRequest should accept all three valid TaskStatus values."""
-        for status_val in ["in_progress", "done"]:
-            req = TaskCreateRequest(title="Test", description=None, status=TaskStatus(status_val))
-            assert req is not None
-
-    def test_goodhart_task_create_request_rejects_invalid_status(self):
-        """TaskCreateRequest should reject invalid status values."""
-        for invalid_status in ["cancelled", "active", "PENDING"]:
-            with pytest.raises((ValueError, KeyError, Exception)):
-                TaskCreateRequest(title="Test", description=None, status=TaskStatus(invalid_status))
-
-
-# ============================================================
-# TaskUpdateRequest validation
-# ============================================================
-
-class TestGoodhartTaskUpdateRequest:
-    def test_goodhart_task_update_request_validates_title(self):
-        """TaskUpdateRequest should apply the same title validation as TaskCreateRequest."""
-        with pytest.raises((ValueError, Exception)):
-            TaskUpdateRequest(title="", description=None, status=TaskStatus("pending"))
-
-        with pytest.raises((ValueError, Exception)):
-            TaskUpdateRequest(title="   ", description=None, status=TaskStatus("pending"))
-
-
-# ============================================================
-# HttpEndpoint method validation — beyond visible tests
-# ============================================================
-
-class TestGoodhartHttpEndpoint:
-    def test_goodhart_http_endpoint_rejects_patch_and_lowercase(self):
-        """HttpEndpoint method validator should reject PATCH, OPTIONS, HEAD, and lowercase methods."""
-        invalid_methods = ['PATCH', 'OPTIONS', 'HEAD', 'get', 'post', 'put', 'delete']
-        for method in invalid_methods:
-            with pytest.raises((ValueError, Exception)):
-                HttpEndpoint(
-                    method=method,
-                    path="/test",
-                    request_body_type=None,
-                    response_body_type="TestResponse",
-                    success_status_code=200,
-                    content_type="application/json"
-                )
-
-    def test_goodhart_http_endpoint_all_valid_methods_accepted(self):
-        """HttpEndpoint should accept all four valid methods individually."""
-        for method in ['GET', 'POST', 'PUT', 'DELETE']:
-            endpoint = HttpEndpoint(
-                method=method,
-                path="/test",
-                request_body_type=None,
-                response_body_type="TestResponse",
-                success_status_code=200,
-                content_type="application/json"
-            )
-            assert endpoint is not None
-
-
-# ============================================================
-# OptionalString — empty string vs None
-# ============================================================
-
-class TestGoodhartOptionalString:
-    def test_goodhart_optional_string_accepts_empty_string(self):
-        """OptionalString should accept empty string as distinct from None."""
-        # Empty string is a valid non-null value for OptionalString
-        val_empty = ""
-        val_none = None
-        assert val_empty is not None
-        assert val_empty != val_none
-        # Both should be acceptable as OptionalString values
-        # (normalization to null happens at the application layer, not the type level)
-
-
-# ============================================================
-# ISOTimestamp — timezone offset requirement
-# ============================================================
-
-class TestGoodhartISOTimestamp:
-    def test_goodhart_iso_timestamp_has_timezone_offset(self):
-        """ISOTimestamp values must always include a timezone offset — naive datetimes must not be produced."""
-        # A valid ISOTimestamp must have tzinfo
-        valid_dt = datetime(2024, 1, 15, 10, 30, 0, tzinfo=timezone.utc)
-        assert valid_dt.tzinfo is not None
-        assert "+00:00" in valid_dt.isoformat() or "Z" in valid_dt.isoformat()
-
-        # Non-UTC offset should also be valid
-        offset = timezone(timedelta(hours=5, minutes=30))
-        valid_dt_offset = datetime(2024, 1, 15, 10, 30, 0, tzinfo=offset)
-        assert valid_dt_offset.tzinfo is not None
-        assert "+" in valid_dt_offset.isoformat()
-
-        # Naive datetime should not be a valid ISOTimestamp
-        naive_dt = datetime(2024, 1, 15, 10, 30, 0)
-        assert naive_dt.tzinfo is None
-        # ISOTimestamp type/validator should reject naive datetimes
-        with pytest.raises((ValueError, TypeError, Exception)):
-            ISOTimestamp(naive_dt)
-
-
-# ============================================================
-# ValidationErrorResponse structure
-# ============================================================
-
-class TestGoodhartValidationErrorResponse:
-    def test_goodhart_validation_error_response_structure(self):
-        """ValidationErrorResponse must contain a 'detail' field that is a list of ValidationErrorItem objects."""
-        item = ValidationErrorItem(loc=["body", "title"], msg="field required", type="value_error.missing")
-        response = ValidationErrorResponse(detail=[item])
-        assert isinstance(response.detail, list)
-        assert len(response.detail) == 1
-        first = response.detail[0]
-        assert hasattr(first, 'loc') and isinstance(first.loc, list)
-        assert hasattr(first, 'msg') and isinstance(first.msg, str)
-        assert hasattr(first, 'type') and isinstance(first.type, str)
-
-
-# ============================================================
-# DeleteConfirmation — structural completeness
-# ============================================================
-
-class TestGoodhartDeleteConfirmation:
-    def test_goodhart_delete_confirmation_has_both_fields(self):
-        """DeleteConfirmation must include both 'detail' string and 'id' TaskId fields."""
-        confirmation = DeleteConfirmation(detail="Task deleted", id=42)
-        assert hasattr(confirmation, 'detail')
-        assert hasattr(confirmation, 'id')
-        assert confirmation.detail == "Task deleted"
-        assert confirmation.id == 42
-
-
-# ============================================================
-# verify_http_api_contract — POST must return 201
-# ============================================================
 
 class TestGoodhartHttpApiContract:
-    @pytest.mark.anyio
-    async def test_goodhart_http_api_post_returns_201(self):
-        """verify_http_api_contract must detect when POST /tasks returns 200 instead of 201."""
-        mock_responses = {}
+    """Tests targeting verify_http_api_contract gaps."""
 
-        async def mock_request(method, url, **kwargs):
-            response = MagicMock()
-            if method == "GET" and "/health" in url:
-                response.status_code = 200
-                response.json.return_value = {"status": "ok"}
-            elif method == "GET" and "/tasks" in url and "{" not in url:
-                response.status_code = 200
-                response.json.return_value = []
-            elif method == "POST" and "/tasks" in url:
-                # Wrong status code — should be 201
-                response.status_code = 200
-                response.json.return_value = {
-                    "id": 1, "title": "Test", "description": None,
-                    "status": "pending",
-                    "created_at": "2024-01-15T10:30:00+00:00",
-                    "updated_at": "2024-01-15T10:30:00+00:00"
-                }
-            elif method == "GET" and "/tasks/" in url:
-                response.status_code = 200
-                response.json.return_value = {
-                    "id": 1, "title": "Test", "description": None,
-                    "status": "pending",
-                    "created_at": "2024-01-15T10:30:00+00:00",
-                    "updated_at": "2024-01-15T10:30:00+00:00"
-                }
-            elif method == "PUT":
-                response.status_code = 200
-                response.json.return_value = {
-                    "id": 1, "title": "Updated", "description": None,
-                    "status": "done",
-                    "created_at": "2024-01-15T10:30:00+00:00",
-                    "updated_at": "2024-01-15T10:31:00+00:00"
-                }
-            elif method == "DELETE":
-                response.status_code = 200
-                response.json.return_value = {"detail": "Task deleted", "id": 1}
-            return response
+    def test_goodhart_create_returns_matching_title(self, client, create_and_cleanup):
+        """POST /tasks must return a TaskResponse whose title field matches
+        the title sent in the request body, not a hardcoded value."""
+        unique_title = f"Unique-{time.time_ns()}"
+        data = create_and_cleanup({"title": unique_title})
+        assert data["title"] == unique_title
 
-        # The function should detect 200 != 201 for POST and raise endpoint_mismatch
-        with pytest.raises(Exception) as exc_info:
-            with patch("src.root.httpx.AsyncClient") if hasattr(__import__('src.root', fromlist=['']), 'httpx') else patch("src.root.requests") as mock_client:
-                await verify_http_api_contract("http://localhost:8000")
-        # Accept any exception that indicates the mismatch was detected
+    def test_goodhart_create_returns_unique_ids(self, client, create_and_cleanup):
+        """Each POST /tasks call must return a distinct auto-generated id."""
+        t1 = create_and_cleanup({"title": "id-test-1"})
+        t2 = create_and_cleanup({"title": "id-test-2"})
+        assert t1["id"] != t2["id"]
 
+    def test_goodhart_404_detail_message_exact(self, client):
+        """GET /tasks/{id} for a non-existent task must return detail exactly
+        'Task not found'."""
+        resp = client.get("/tasks/999999999")
+        assert resp.status_code == 404
+        body = resp.json()
+        assert "detail" in body
+        assert body["detail"] == "Task not found"
 
-# ============================================================
-# verify_cross_tier_invariants — specific invariant checks
-# ============================================================
+    def test_goodhart_delete_confirmation_includes_correct_id(
+        self, client, create_and_cleanup
+    ):
+        """DELETE response 'id' field must match the deleted task's id."""
+        task = create_and_cleanup({"title": "del-id-check"})
+        tid = task["id"]
+        resp = client.delete(f"/tasks/{tid}")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["id"] == tid
+
+    def test_goodhart_title_length_256_rejected(self, client):
+        """A title of exactly 256 characters must be rejected with 422."""
+        resp = client.post("/tasks", json={"title": "a" * 256})
+        assert resp.status_code == 422
+
+    def test_goodhart_create_with_explicit_status_in_progress(
+        self, client, create_and_cleanup
+    ):
+        """POST with status 'in_progress' must honor that value."""
+        data = create_and_cleanup(
+            {"title": "status-test", "status": "in_progress"}
+        )
+        assert data["status"] == "in_progress"
+
+    def test_goodhart_create_with_explicit_status_done(
+        self, client, create_and_cleanup
+    ):
+        """POST with status 'done' must store it, not force 'pending'."""
+        data = create_and_cleanup({"title": "done-test", "status": "done"})
+        assert data["status"] == "done"
+
+    def test_goodhart_get_task_returns_correct_task_by_id(
+        self, client, create_and_cleanup
+    ):
+        """GET /tasks/{id} must return the specific task matching the id."""
+        t1 = create_and_cleanup({"title": "first-task"})
+        t2 = create_and_cleanup({"title": "second-task"})
+
+        resp1 = client.get(f"/tasks/{t1['id']}")
+        assert resp1.status_code == 200
+        assert resp1.json()["title"] == "first-task"
+
+        resp2 = client.get(f"/tasks/{t2['id']}")
+        assert resp2.status_code == 200
+        assert resp2.json()["title"] == "second-task"
+
+    def test_goodhart_update_blank_title_rejected(self, client, create_and_cleanup):
+        """PUT with blank-after-strip title must be rejected with 422."""
+        task = create_and_cleanup({"title": "valid-title"})
+        resp = client.put(f"/tasks/{task['id']}", json={"title": "   "})
+        assert resp.status_code == 422
+
+    def test_goodhart_update_invalid_status_rejected(self, client, create_and_cleanup):
+        """PUT with an invalid status must be rejected with 422."""
+        task = create_and_cleanup({"title": "status-val"})
+        resp = client.put(f"/tasks/{task['id']}", json={"status": "archived"})
+        assert resp.status_code == 422
+
+    def test_goodhart_status_invalid_value_rejected(self, client):
+        """POST with a non-enum status value must be rejected with 422."""
+        resp = client.post(
+            "/tasks", json={"title": "test", "status": "cancelled"}
+        )
+        assert resp.status_code == 422
+
+    def test_goodhart_created_at_and_updated_at_present_on_create(
+        self, client, create_and_cleanup
+    ):
+        """POST response must include both timestamp fields as valid ISO 8601."""
+        data = create_and_cleanup({"title": "ts-check"})
+        assert "created_at" in data
+        assert "updated_at" in data
+        assert ISO_TZ_REGEX.match(data["created_at"]), f"Bad created_at: {data['created_at']}"
+        assert ISO_TZ_REGEX.match(data["updated_at"]), f"Bad updated_at: {data['updated_at']}"
+
+    def test_goodhart_task_list_empty_when_no_tasks(self, client):
+        """GET /tasks must return [] when no tasks exist, not null or error."""
+        # First, collect and delete all existing tasks
+        resp = client.get("/tasks")
+        assert resp.status_code == 200
+        existing = resp.json()
+        assert isinstance(existing, list)
+        for t in existing:
+            client.delete(f"/tasks/{t['id']}")
+
+        resp = client.get("/tasks")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body == []
+
+    def test_goodhart_create_response_has_all_six_fields(
+        self, client, create_and_cleanup
+    ):
+        """POST response must contain all six TaskResponse fields."""
+        data = create_and_cleanup({"title": "field-check"})
+        for key in ("id", "title", "description", "status", "created_at", "updated_at"):
+            assert key in data, f"Missing key '{key}' in response"
+
+    def test_goodhart_get_task_response_has_all_six_fields(
+        self, client, create_and_cleanup
+    ):
+        """GET /tasks/{id} response must contain all six TaskResponse fields."""
+        task = create_and_cleanup({"title": "get-fields"})
+        resp = client.get(f"/tasks/{task['id']}")
+        data = resp.json()
+        for key in ("id", "title", "description", "status", "created_at", "updated_at"):
+            assert key in data, f"Missing key '{key}' in GET response"
+
+    def test_goodhart_delete_confirmation_has_detail_and_id(
+        self, client, create_and_cleanup
+    ):
+        """DELETE response must contain both 'detail' and 'id' fields."""
+        task = create_and_cleanup({"title": "del-shape"})
+        resp = client.delete(f"/tasks/{task['id']}")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert "detail" in body
+        assert "id" in body
+
+    def test_goodhart_create_post_status_code_is_201_not_200(self, client, create_and_cleanup):
+        """POST /tasks must return 201, not 200."""
+        resp_raw = client.post("/tasks", json={"title": "status-code-test"})
+        # Cleanup
+        if resp_raw.status_code in (200, 201):
+            tid = resp_raw.json().get("id")
+            if tid:
+                client.delete(f"/tasks/{tid}")
+        assert resp_raw.status_code == 201
+
+    def test_goodhart_list_tasks_returns_array_not_object(self, client):
+        """GET /tasks must return a JSON array at the top level."""
+        resp = client.get("/tasks")
+        assert resp.status_code == 200
+        body = resp.json()
+        assert isinstance(body, list), f"Expected list, got {type(body)}"
+
+    def test_goodhart_task_id_is_integer(self, client, create_and_cleanup):
+        """Task id must be an integer, not a string or UUID."""
+        data = create_and_cleanup({"title": "int-id-check"})
+        assert isinstance(data["id"], int), f"Expected int id, got {type(data['id'])}"
+
+    def test_goodhart_404_for_id_zero(self, client):
+        """GET /tasks/0 should return 404 since SERIAL ids start at 1."""
+        resp = client.get("/tasks/0")
+        assert resp.status_code == 404
+
+    def test_goodhart_404_for_negative_id(self, client):
+        """GET /tasks/-1 should return 404 or 422."""
+        resp = client.get("/tasks/-1")
+        assert resp.status_code in (404, 422)
+
+    def test_goodhart_update_with_all_three_fields(self, client, create_and_cleanup):
+        """PUT with all three fields must update all of them."""
+        task = create_and_cleanup(
+            {"title": "orig", "description": "orig-desc", "status": "pending"}
+        )
+        resp = client.put(
+            f"/tasks/{task['id']}",
+            json={
+                "title": "new-title",
+                "description": "new-desc",
+                "status": "done",
+            },
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["title"] == "new-title"
+        assert body["description"] == "new-desc"
+        assert body["status"] == "done"
+
+    def test_goodhart_missing_title_field_rejected(self, client):
+        """POST with no title field at all must return 422."""
+        resp = client.post("/tasks", json={"description": "no title here"})
+        assert resp.status_code == 422
+
+    def test_goodhart_create_task_with_special_chars_in_title(
+        self, client, create_and_cleanup
+    ):
+        """Unicode/special characters in title must be preserved."""
+        special = "Tâche à faire — «test» 🎯"
+        data = create_and_cleanup({"title": special})
+        assert data["title"] == special
+
+    def test_goodhart_health_response_content_type_json(self, client):
+        """GET /health must return Content-Type: application/json."""
+        resp = client.get("/health")
+        assert resp.status_code == 200
+        ct = resp.headers.get("content-type", "")
+        assert "application/json" in ct
+
 
 class TestGoodhartCrossTierInvariants:
-    @pytest.mark.anyio
-    async def test_goodhart_cross_tier_description_normalization(self):
-        """verify_cross_tier_invariants must detect when whitespace-only descriptions are not normalized to null."""
-        # This test verifies the function checks invariant (e) properly
-        # If implementation just returns True without checking, this catches it
-        pass  # Structural test — covered by mock-based integration below
+    """Tests targeting verify_cross_tier_invariants gaps."""
 
-    @pytest.mark.anyio
-    async def test_goodhart_cross_tier_title_stripping(self):
-        """verify_cross_tier_invariants must detect when title whitespace is not stripped."""
-        pass  # Structural test — covered by mock-based integration below
+    def test_goodhart_title_with_interior_whitespace_preserved(
+        self, client, create_and_cleanup
+    ):
+        """Stripping only removes leading/trailing; interior whitespace kept."""
+        data = create_and_cleanup({"title": "  hello   world  "})
+        assert data["title"] == "hello   world"
 
-
-# ============================================================
-# verify_cors_configuration — method and header completeness
-# ============================================================
-
-class TestGoodhartCorsConfiguration:
-    @pytest.mark.anyio
-    async def test_goodhart_cors_checks_all_required_methods(self):
-        """verify_cors_configuration must verify all five required HTTP methods are allowed."""
-        # Mock a response that only allows GET and POST
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.headers = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST",  # Missing PUT, DELETE, OPTIONS
-            "Access-Control-Allow-Headers": "Content-Type",
-        }
-
-        with pytest.raises(Exception):
-            # Should detect incomplete method list
-            await verify_cors_configuration("http://localhost:8000", "http://localhost:5173")
-
-    @pytest.mark.anyio
-    async def test_goodhart_cors_checks_content_type_header(self):
-        """verify_cors_configuration must verify Content-Type is in allowed headers."""
-        mock_response = MagicMock()
-        mock_response.status_code = 200
-        mock_response.headers = {
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-            "Access-Control-Allow-Headers": "Authorization",  # Missing Content-Type
-        }
-
-        with pytest.raises(Exception):
-            await verify_cors_configuration("http://localhost:8000", "http://localhost:5173")
-
-
-# ============================================================
-# verify_schema_initialization_idempotent — component checks
-# ============================================================
-
-class TestGoodhartSchemaInit:
-    def test_goodhart_schema_verifies_trigger_exists(self):
-        """verify_schema_initialization_idempotent must verify the update_updated_at_column trigger."""
-        # Mock a database connection that reports no trigger
-        mock_conn = MagicMock()
-        mock_cursor = MagicMock()
-        mock_conn.cursor.return_value.__enter__ = MagicMock(return_value=mock_cursor)
-        mock_conn.cursor.return_value.__exit__ = MagicMock(return_value=False)
-
-        # The schema has correct columns but no trigger
-        # If implementation doesn't check for trigger, it would incorrectly pass
-        # This test ensures trigger verification is part of the check
-
-    def test_goodhart_schema_verifies_check_constraint(self):
-        """verify_schema_initialization_idempotent must verify CHECK constraint on status column."""
-        # Similar to above — ensures the CHECK constraint is verified
-
-
-# ============================================================
-# Return type verification — must be bool True
-# ============================================================
-
-class TestGoodhartReturnTypes:
-    @pytest.mark.anyio
-    async def test_goodhart_verify_functions_return_bool(self):
-        """All verify_* functions must return exactly boolean True on success."""
-        # This is tested implicitly through other tests, but we explicitly
-        # verify the return type contract here
-        pass  # Covered by assertions in other tests checking `result is True`
-
-
-# ============================================================
-# TaskResponse requires all fields
-# ============================================================
-
-class TestGoodhartTaskResponse:
-    def test_goodhart_task_response_requires_all_fields(self):
-        """TaskResponse must contain all six required fields."""
-        # Missing 'id' should fail
-        with pytest.raises((ValueError, TypeError, Exception)):
-            TaskResponse(
-                title="Test", description=None, status="pending",
-                created_at=datetime.now(timezone.utc),
-                updated_at=datetime.now(timezone.utc)
-            )
-
-        # Missing 'created_at' should fail
-        with pytest.raises((ValueError, TypeError, Exception)):
-            TaskResponse(
-                id=1, title="Test", description=None, status="pending",
-                updated_at=datetime.now(timezone.utc)
-            )
-
-        # Missing 'updated_at' should fail
-        with pytest.raises((ValueError, TypeError, Exception)):
-            TaskResponse(
-                id=1, title="Test", description=None, status="pending",
-                created_at=datetime.now(timezone.utc)
-            )
-
-        # All fields present should succeed
-        resp = TaskResponse(
-            id=1, title="Test", description=None, status="pending",
-            created_at=datetime.now(timezone.utc),
-            updated_at=datetime.now(timezone.utc)
+    def test_goodhart_description_whitespace_tabs_normalized(
+        self, client, create_and_cleanup
+    ):
+        """Description of tabs/newlines/spaces only must normalize to null."""
+        data = create_and_cleanup(
+            {"title": "ws-desc", "description": "  \t\n  "}
         )
-        assert resp is not None
-        assert resp.id == 1
-        assert resp.title == "Test"
-        assert resp.description is None
-        assert resp.status == "pending"
+        assert data["description"] is None
+
+    def test_goodhart_description_nonempty_preserved(
+        self, client, create_and_cleanup
+    ):
+        """Non-whitespace description must be returned as-is, not nullified."""
+        data = create_and_cleanup(
+            {"title": "desc-keep", "description": "This is a real description"}
+        )
+        assert data["description"] == "This is a real description"
+
+    def test_goodhart_description_explicit_null_stored_as_null(
+        self, client, create_and_cleanup
+    ):
+        """Explicit null description must remain null."""
+        data = create_and_cleanup({"title": "null-desc", "description": None})
+        assert data["description"] is None
+
+    def test_goodhart_description_empty_string_normalized_to_null(
+        self, client, create_and_cleanup
+    ):
+        """Empty string description must normalize to null per CROSS-TIER-09."""
+        data = create_and_cleanup({"title": "empty-desc", "description": ""})
+        assert data["description"] is None
+
+    def test_goodhart_put_only_title_preserves_description_and_status(
+        self, client, create_and_cleanup
+    ):
+        """PUT with only title must not alter description or status."""
+        task = create_and_cleanup(
+            {
+                "title": "Original",
+                "description": "Keep this",
+                "status": "in_progress",
+            }
+        )
+        resp = client.put(
+            f"/tasks/{task['id']}", json={"title": "Updated"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["title"] == "Updated"
+        assert body["description"] == "Keep this"
+        assert body["status"] == "in_progress"
+
+    def test_goodhart_put_only_status_preserves_title_and_description(
+        self, client, create_and_cleanup
+    ):
+        """PUT with only status must not alter title or description."""
+        task = create_and_cleanup(
+            {
+                "title": "Keep",
+                "description": "Also Keep",
+                "status": "pending",
+            }
+        )
+        resp = client.put(
+            f"/tasks/{task['id']}", json={"status": "done"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["title"] == "Keep"
+        assert body["description"] == "Also Keep"
+        assert body["status"] == "done"
+
+    def test_goodhart_put_only_description_preserves_title_and_status(
+        self, client, create_and_cleanup
+    ):
+        """PUT with only description must not alter title or status."""
+        task = create_and_cleanup(
+            {"title": "T", "status": "in_progress"}
+        )
+        resp = client.put(
+            f"/tasks/{task['id']}", json={"description": "New desc"}
+        )
+        assert resp.status_code == 200
+        body = resp.json()
+        assert body["title"] == "T"
+        assert body["description"] == "New desc"
+        assert body["status"] == "in_progress"
+
+    def test_goodhart_update_title_stripping(self, client, create_and_cleanup):
+        """PUT must also strip leading/trailing whitespace from title."""
+        task = create_and_cleanup({"title": "original"})
+        resp = client.put(
+            f"/tasks/{task['id']}", json={"title": "  Updated Title  "}
+        )
+        assert resp.status_code == 200
+        assert resp.json()["title"] == "Updated Title"
+
+    def test_goodhart_update_description_normalization(
+        self, client, create_and_cleanup
+    ):
+        """PUT with whitespace-only description must normalize to null."""
+        task = create_and_cleanup(
+            {"title": "desc-norm", "description": "Something"}
+        )
+        resp = client.put(
+            f"/tasks/{task['id']}", json={"description": "   "}
+        )
+        assert resp.status_code == 200
+        assert resp.json()["description"] is None
+
+    def test_goodhart_multiple_updates_each_refresh_updated_at(
+        self, client, create_and_cleanup
+    ):
+        """Multiple sequential PUTs must each produce non-decreasing updated_at."""
+        task = create_and_cleanup({"title": "multi-update"})
+        timestamps = []
+        for i in range(3):
+            resp = client.put(
+                f"/tasks/{task['id']}",
+                json={"title": f"multi-update-{i}"},
+            )
+            assert resp.status_code == 200
+            timestamps.append(resp.json()["updated_at"])
+            time.sleep(0.05)  # small delay to allow timestamp progression
+
+        for j in range(len(timestamps) - 1):
+            assert timestamps[j] <= timestamps[j + 1], (
+                f"updated_at did not increase: {timestamps[j]} -> {timestamps[j+1]}"
+            )
+
+    def test_goodhart_ordering_with_three_plus_tasks(
+        self, client, create_and_cleanup
+    ):
+        """GET /tasks ordering by created_at DESC for 3+ tasks."""
+        tasks = []
+        for i in range(3):
+            t = create_and_cleanup({"title": f"order-{i}"})
+            tasks.append(t)
+            time.sleep(0.05)
+
+        resp = client.get("/tasks")
+        assert resp.status_code == 200
+        listed = resp.json()
+
+        # Extract our created task ids
+        our_ids = [t["id"] for t in tasks]
+        our_listed = [t for t in listed if t["id"] in our_ids]
+
+        # They should appear in reverse creation order (newest first)
+        listed_ids = [t["id"] for t in our_listed]
+        expected_ids = list(reversed(our_ids))
+        assert listed_ids == expected_ids, (
+            f"Ordering wrong: got {listed_ids}, expected {expected_ids}"
+        )
+
+    def test_goodhart_timestamps_have_timezone_not_naive(
+        self, client, create_and_cleanup
+    ):
+        """Timestamps must include timezone offset, not be naive."""
+        data = create_and_cleanup({"title": "tz-check"})
+        for field in ("created_at", "updated_at"):
+            val = data[field]
+            assert "+" in val or "Z" in val, (
+                f"{field} lacks timezone: {val}"
+            )
+
+    def test_goodhart_double_delete_returns_404(self, client, create_and_cleanup):
+        """Deleting same task twice: second attempt must return 404."""
+        # Create manually to avoid cleanup fixture trying to delete again
+        resp = client.post("/tasks", json={"title": "double-del"})
+        assert resp.status_code == 201
+        tid = resp.json()["id"]
+
+        r1 = client.delete(f"/tasks/{tid}")
+        assert r1.status_code == 200
+
+        r2 = client.delete(f"/tasks/{tid}")
+        assert r2.status_code == 404
+
+    def test_goodhart_delete_then_list_excludes_deleted(
+        self, client, create_and_cleanup
+    ):
+        """After deletion, GET /tasks must not include the deleted task."""
+        resp = client.post("/tasks", json={"title": "list-excl"})
+        assert resp.status_code == 201
+        tid = resp.json()["id"]
+
+        client.delete(f"/tasks/{tid}")
+
+        resp = client.get("/tasks")
+        assert resp.status_code == 200
+        ids_in_list = [t["id"] for t in resp.json()]
+        assert tid not in ids_in_list
+
+    def test_goodhart_title_tab_and_newline_stripping(
+        self, client, create_and_cleanup
+    ):
+        """Title strip() handles tabs and newlines, not just spaces."""
+        data = create_and_cleanup({"title": "\t\nActual Title\n\t"})
+        assert data["title"] == "Actual Title"
+
+
+class TestGoodhartCors:
+    """Tests targeting verify_cors_configuration gaps."""
+
+    def test_goodhart_cors_allows_put_method(self, client):
+        """CORS must explicitly allow PUT method."""
+        resp = client.options(
+            "/tasks",
+            headers={
+                "Origin": "http://localhost:5173",
+                "Access-Control-Request-Method": "PUT",
+            },
+        )
+        methods = resp.headers.get("access-control-allow-methods", "")
+        assert "PUT" in methods.upper(), f"PUT not in allowed methods: {methods}"
+
+    def test_goodhart_cors_allows_delete_method(self, client):
+        """CORS must explicitly allow DELETE method."""
+        resp = client.options(
+            "/tasks",
+            headers={
+                "Origin": "http://localhost:5173",
+                "Access-Control-Request-Method": "DELETE",
+            },
+        )
+        methods = resp.headers.get("access-control-allow-methods", "")
+        assert "DELETE" in methods.upper(), f"DELETE not in allowed methods: {methods}"
