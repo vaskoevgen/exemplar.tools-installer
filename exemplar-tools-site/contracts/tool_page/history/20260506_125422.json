@@ -1,0 +1,900 @@
+{
+  "component_id": "tool_page",
+  "name": "Tool Page & Comments Section",
+  "description": "Renders individual tool documentation pages and a real-time comments section. ToolPage extracts toolSlug from React Router useParams, validates it with isToolSlug type guard, looks up the ToolDef from the constants registry, and renders the tool name heading, one-line description, StepBadge (step number pill), VersionBadge, step-by-step instructions with CodeBlock (dark terminal cards in JetBrains Mono), conditional VideoEmbed (YouTube iframe when tool has a video URL), and CommentsSection. CommentsSection uses Convex useQuery/useMutation for real-time comment listing and submission with client-side validation. Sub-components StepBadge, VersionBadge, CodeBlock, and VideoEmbed are pure presentational components kept under 300 lines each. Accent color from each tool's ToolDef is threaded through all themed sub-components via props.",
+  "version": 1,
+  "types": [
+    {
+      "name": "ToolPageProps",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "ToolPage is a zero-prop route-level page component. It receives no external props; toolSlug is extracted internally from useParams.",
+      "owner_component": ""
+    },
+    {
+      "name": "CommentsSectionProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "The validated tool slug identifying which page's comments to display and submit to.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color string used for accent styling on the comment form submit button and section heading.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a 6-digit hex color string prefixed with #"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the CommentsSection component: identifies which tool page to load comments for and the accent color for themed UI elements.",
+      "owner_component": ""
+    },
+    {
+      "name": "StepBadgeProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "The 1-based step number displayed in the badge.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "1 <= value <= 10",
+              "error_message": "step must be an integer between 1 and 10 inclusive"
+            }
+          ]
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color applied as the background-color of the pill via inline style.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a 6-digit hex color string prefixed with #"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the StepBadge presentational component: renders a pill-shaped badge showing the tool's step number in the workflow.",
+      "owner_component": ""
+    },
+    {
+      "name": "VersionBadgeProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "version",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Semantic version string displayed in the badge (e.g. 'v1.2.0').",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^v?\\d+\\.\\d+(\\.\\d+)?(-[a-zA-Z0-9.]+)?$",
+              "error_message": "version must be a valid semver-like string (e.g. 'v1.2.0', '1.0', '2.0.0-beta.1')"
+            }
+          ]
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color applied as border-color and text color of the pill via inline style.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a 6-digit hex color string prefixed with #"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the VersionBadge presentational component: renders a pill-shaped badge with the tool's version string, styled with accent-colored border and text.",
+      "owner_component": ""
+    },
+    {
+      "name": "CodeBlockProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "title",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The heading text displayed in the terminal card header bar.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 200",
+              "error_message": "title must be between 1 and 200 characters"
+            }
+          ]
+        },
+        {
+          "name": "bash",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The bash command or script content rendered inside the dark code area with JetBrains Mono monospace font.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 10000",
+              "error_message": "bash content must be between 1 and 10000 characters"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the CodeBlock presentational component: renders a dark terminal card with a title header and monospace bash code content styled with JetBrains Mono font.",
+      "owner_component": ""
+    },
+    {
+      "name": "VideoEmbedProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "url",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Full YouTube embed URL (e.g. 'https://www.youtube.com/embed/abc123'). Parent is responsible for only rendering VideoEmbed when a video URL exists.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https://(www\\.)?youtube\\.com/embed/[a-zA-Z0-9_-]+",
+              "error_message": "url must be a valid YouTube embed URL starting with https://www.youtube.com/embed/ or https://youtube.com/embed/"
+            }
+          ]
+        },
+        {
+          "name": "title",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Accessible title attribute for the iframe element, typically the tool name plus a descriptor.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 200",
+              "error_message": "title must be between 1 and 200 characters"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the VideoEmbed presentational component: renders a responsive YouTube iframe embed. The parent component guards optionality — VideoEmbed always receives a valid URL.",
+      "owner_component": ""
+    },
+    {
+      "name": "CommentFormState",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "author",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The commenter's display name, trimmed before validation.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 100",
+              "error_message": "Author name must be between 1 and 100 characters after trimming"
+            }
+          ]
+        },
+        {
+          "name": "body",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The comment body text, trimmed before validation.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 5000",
+              "error_message": "Comment body must be between 1 and 5000 characters after trimming"
+            }
+          ]
+        },
+        {
+          "name": "submitting",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True while the addComment mutation is in-flight; disables the form to prevent double-submission.",
+          "validators": []
+        },
+        {
+          "name": "validationErrors",
+          "type_ref": "ValidationErrors",
+          "required": true,
+          "default": "",
+          "description": "Map of field names to validation error messages, populated on failed client-side validation.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Local React state shape for the comment submission form managed within CommentsSection.",
+      "owner_component": ""
+    },
+    {
+      "name": "ValidationErrors",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "author",
+          "type_ref": "str",
+          "required": false,
+          "default": "",
+          "description": "Validation error message for the author field, empty string or absent if valid.",
+          "validators": []
+        },
+        {
+          "name": "body",
+          "type_ref": "str",
+          "required": false,
+          "default": "",
+          "description": "Validation error message for the body field, empty string or absent if valid.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Field-level validation error messages for the comment form. Null values indicate no error for that field.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactElement",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactElement — the return type of a React functional component (JSX).",
+      "owner_component": ""
+    },
+    {
+      "name": "RelativeTimeString",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A human-readable relative time string such as 'just now', '5 minutes ago', '2 hours ago', '3 days ago'. Always ends with 'ago' or equals 'just now'.",
+      "owner_component": ""
+    },
+    {
+      "name": "ToolSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "URL-safe identifier for each tool, used as route param and Convex page key.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "StepNumber",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Integer 1–11 representing the tool's position in the exemplar.tools workflow order.",
+      "owner_component": "data_layer"
+    },
+    {
+      "name": "HexColor",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "CSS hex color string (e.g. '#00e5ff') used for per-tool accent theming.",
+      "owner_component": "data_layer"
+    }
+  ],
+  "functions": [
+    {
+      "name": "ToolPage",
+      "description": "Zero-prop route-level React page component. Extracts toolSlug from React Router useParams(), validates it via isToolSlug type guard, looks up the corresponding ToolDef from the constants registry, and renders the complete tool documentation page: tool name heading, one-line description, StepBadge, VersionBadge, step-by-step InstructionStep list rendered via CodeBlock components, conditional VideoEmbed (only when ToolDef.videoUrl is defined), and CommentsSection. Invalid or missing slugs render a not-found fallback view. The tool's accent color from ToolDef is threaded to all themed sub-components.",
+      "inputs": [],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "invalid_slug",
+          "condition": "useParams().toolSlug is undefined or isToolSlug() returns false",
+          "error_type": "render_fallback",
+          "error_data": {
+            "behavior": "Renders a not-found view with message indicating the tool was not found and a link back to the home page"
+          }
+        },
+        {
+          "name": "slug_not_in_registry",
+          "condition": "isToolSlug() returns true but TOOL_DEFS_BY_SLUG does not contain an entry for the slug",
+          "error_type": "render_fallback",
+          "error_data": {
+            "behavior": "Renders a not-found view; this should not occur if isToolSlug and the registry are consistent"
+          }
+        }
+      ],
+      "preconditions": [
+        "Component is rendered inside a React Router <Route> with a :toolSlug path parameter",
+        "Convex provider is available in the React tree for CommentsSection's query/mutation hooks",
+        "TOOL_DEFS_BY_SLUG constant map is importable from the constants registry"
+      ],
+      "postconditions": [
+        "If toolSlug param is a valid ToolSlug and exists in TOOL_DEFS_BY_SLUG, renders the full tool documentation view with correct accent color, heading, description, badges, instruction steps, optional video, and comments section",
+        "If toolSlug param is undefined, empty, or not a valid ToolSlug, renders a not-found view with navigational guidance",
+        "StepBadge receives ToolDef.step and ToolDef.accentColor",
+        "VersionBadge receives ToolDef.version and ToolDef.accentColor",
+        "Each InstructionStep in ToolDef.steps is rendered as a CodeBlock with step.title and step.bash",
+        "VideoEmbed is rendered only when ToolDef.videoUrl is a non-empty string",
+        "CommentsSection receives the validated ToolSlug as page and ToolDef.accentColor"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function; all side effects are delegated to CommentsSection child component"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CommentsSection",
+      "description": "React component that renders a real-time comments list and a validated comment submission form for a specific tool page. Uses Convex useQuery(api.comments.listComments, { page }) for reactive comment loading and useMutation(api.comments.addComment) for submission. Manages local form state including author, body, submitting flag, and validation errors. Displays each comment with author name, body, and relative timestamp computed via formatRelativeTime. The submit button and section heading use the provided accent color.",
+      "inputs": [
+        {
+          "name": "page",
+          "type_ref": "ToolSlug",
+          "required": true,
+          "default": "",
+          "description": "The validated tool slug identifying which page's comments to query and submit to.",
+          "validators": []
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color string for accent styling on the submit button background and section heading text.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a valid 6-digit hex color"
+            }
+          ]
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "empty_author",
+          "condition": "User submits form with author field empty or whitespace-only after trimming",
+          "error_type": "validation_error",
+          "error_data": {
+            "field": "author",
+            "message": "Author name is required"
+          }
+        },
+        {
+          "name": "empty_body",
+          "condition": "User submits form with body field empty or whitespace-only after trimming",
+          "error_type": "validation_error",
+          "error_data": {
+            "field": "body",
+            "message": "Comment body is required"
+          }
+        },
+        {
+          "name": "mutation_failure",
+          "condition": "Convex addComment mutation rejects (network error, server validation, rate limit, etc.)",
+          "error_type": "submission_error",
+          "error_data": {
+            "behavior": "Displays a generic error message below the form, re-enables the submit button, preserves form field values"
+          }
+        },
+        {
+          "name": "query_error",
+          "condition": "Convex useQuery for listComments throws or returns an error state",
+          "error_type": "render_error",
+          "error_data": {
+            "behavior": "Displays an error message in place of the comment list, form remains functional"
+          }
+        }
+      ],
+      "preconditions": [
+        "Convex provider (ConvexProvider) is present in the ancestor React tree",
+        "api.comments.listComments query accepts { page: string } and returns CommentList",
+        "api.comments.addComment mutation accepts { page: string, author: string, body: string }",
+        "page is a validated ToolSlug (caller has already verified via isToolSlug)"
+      ],
+      "postconditions": [
+        "While useQuery returns undefined (loading), renders a loading indicator",
+        "When useQuery returns CommentList, renders each Comment with author, body, and formatRelativeTime(comment.createdAt)",
+        "Comment list is ordered by createdAt descending (newest first), as returned by the query",
+        "Submission form contains a text input for author, a textarea for body, and a submit button",
+        "Submit button is disabled and shows loading state while submitting is true",
+        "On form submit: trims author and body, validates non-empty, sets validationErrors if invalid, otherwise calls addComment mutation",
+        "On successful mutation: resets author and body to empty strings, clears validationErrors",
+        "On mutation error: sets a generic submission error and re-enables the form"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "Convex useQuery(api.comments.listComments)",
+          "description": "Reactive subscription to the comments list for the given tool page; re-renders automatically when comments change on the server"
+        },
+        {
+          "kind": "network_call",
+          "target": "Convex useMutation(api.comments.addComment)",
+          "description": "Sends a new comment (author, body, page) to the Convex backend on form submission"
+        },
+        {
+          "kind": "mutates_state",
+          "target": "CommentFormState (local React useState)",
+          "description": "Manages local form state: author string, body string, submitting boolean, and validationErrors object"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 200,
+        "max_memory_mb": null,
+        "complexity": "O(n) where n is the number of comments rendered"
+      }
+    },
+    {
+      "name": "StepBadge",
+      "description": "Pure presentational React component rendering a pill-shaped badge displaying the tool's step number in the workflow. The pill uses the accent color as its background-color applied via inline style, with white text. Renders as a small inline-flex span with rounded-full Tailwind class.",
+      "inputs": [
+        {
+          "name": "step",
+          "type_ref": "StepNumber",
+          "required": true,
+          "default": "",
+          "description": "The 1-based integer step number displayed as 'Step {n}' inside the pill.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "1 <= value <= 10",
+              "error_message": "Step number must be between 1 and 10"
+            }
+          ]
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color used as the pill's background-color via inline style.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a valid 6-digit hex color"
+            }
+          ]
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a span element with display text 'Step {step}'",
+        "Span has Tailwind classes for pill shape: inline-flex, items-center, rounded-full, px-3, py-1, text-sm, font-semibold, text-white",
+        "Span inline style includes backgroundColor set to accentColor"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component with no side effects"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "VersionBadge",
+      "description": "Pure presentational React component rendering a pill-shaped badge displaying the tool's version string. The pill uses the accent color for its border and text color applied via inline style, with a transparent background. Renders as a small inline-flex span with rounded-full Tailwind class and a 2px border.",
+      "inputs": [
+        {
+          "name": "version",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Semantic version string displayed verbatim inside the pill (e.g. 'v1.2.0').",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^v?\\d+\\.\\d+(\\.\\d+)?(-[a-zA-Z0-9.]+)?$",
+              "error_message": "version must be a valid semver-like string"
+            }
+          ]
+        },
+        {
+          "name": "accentColor",
+          "type_ref": "HexColor",
+          "required": true,
+          "default": "",
+          "description": "Hex color used as the pill's border-color and text color via inline style.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^#[0-9a-fA-F]{6}$",
+              "error_message": "accentColor must be a valid 6-digit hex color"
+            }
+          ]
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a span element with the version string as display text",
+        "Span has Tailwind classes for pill shape: inline-flex, items-center, rounded-full, px-3, py-1, text-sm, font-medium, border-2",
+        "Span inline style includes borderColor and color both set to accentColor, backgroundColor transparent"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component with no side effects"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CodeBlock",
+      "description": "Pure presentational React component rendering a dark terminal card with a title header bar and a monospace code content area styled with JetBrains Mono font. The terminal card has a dark background (e.g. bg-gray-900), a lighter header bar (e.g. bg-gray-800), and the code text in a lighter foreground color (e.g. text-green-400 or text-gray-100). No accent color — the terminal theme is universal across all tool pages.",
+      "inputs": [
+        {
+          "name": "title",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Heading text displayed in the terminal card's header bar.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 200",
+              "error_message": "Title must be between 1 and 200 characters"
+            }
+          ]
+        },
+        {
+          "name": "bash",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Bash command or script content rendered in the code area with JetBrains Mono font-family.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 10000",
+              "error_message": "Bash content must be between 1 and 10000 characters"
+            }
+          ]
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a div with rounded corners, overflow-hidden, and dark background (bg-gray-900)",
+        "Header bar div contains the title text in a semi-bold font with lighter background (bg-gray-800) and light text color",
+        "Code area contains a pre > code structure with the bash content",
+        "Code text has font-family 'JetBrains Mono', monospace applied via inline style or Tailwind font-mono with JetBrains Mono configured",
+        "Code area preserves whitespace (whitespace-pre-wrap or whitespace-pre with horizontal scroll)",
+        "Bash content is rendered as text content, not dangerously set as innerHTML"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component with no side effects"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "VideoEmbed",
+      "description": "Pure presentational React component rendering a responsive YouTube iframe embed. Wraps the iframe in an aspect-video container (Tailwind aspect-video class) for responsive 16:9 sizing. The parent component is responsible for conditional rendering — VideoEmbed always receives a valid URL and is never rendered with an absent URL.",
+      "inputs": [
+        {
+          "name": "url",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Full YouTube embed URL. Parent guards optionality; this prop is always a valid embed URL.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https://(www\\.)?youtube\\.com/embed/[a-zA-Z0-9_-]+",
+              "error_message": "URL must be a valid YouTube embed URL"
+            }
+          ]
+        },
+        {
+          "name": "title",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Accessible title attribute for the iframe element, used by screen readers and displayed on hover.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1 <= len <= 200",
+              "error_message": "Title must be between 1 and 200 characters"
+            }
+          ]
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [
+        "url is a valid YouTube embed URL (parent has validated before rendering this component)",
+        "This component is only rendered when the tool has a non-null videoUrl in its ToolDef"
+      ],
+      "postconditions": [
+        "Renders a wrapper div with Tailwind class aspect-video for responsive 16:9 aspect ratio",
+        "Contains an iframe element with src set to the url prop",
+        "iframe has title attribute set to the title prop for accessibility",
+        "iframe has width='100%' and height='100%' to fill the aspect-ratio container",
+        "iframe includes allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' and allowFullScreen attributes",
+        "iframe has frameBorder='0' for clean rendering"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component; the iframe itself loads external content but this is standard browser behavior, not an application-level side effect"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "isToolSlug",
+      "description": "TypeScript type guard function that validates whether an arbitrary string value is a member of the ToolSlug union type. Returns true (narrowing the type to ToolSlug) if the value matches one of the known tool slug literals from the canonical type registry, false otherwise. Used by ToolPage to validate the useParams() output before looking up the ToolDef.",
+      "inputs": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Arbitrary string to test for membership in the ToolSlug union type.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returns true if and only if value is one of the string literals in the ToolSlug union type",
+        "When true is returned, TypeScript narrows the type of value to ToolSlug (value is ToolSlug)",
+        "Returns false for empty strings, undefined coerced to string, and any string not in the ToolSlug set"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure predicate function with no side effects"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "formatRelativeTime",
+      "description": "Pure utility function that converts a Unix millisecond timestamp (as returned by Convex _creationTime or a custom createdAt field) into a human-readable relative time string. Used by CommentsSection to display comment ages. Output strings follow the pattern: 'just now' (< 60s), '{n} minute(s) ago', '{n} hour(s) ago', '{n} day(s) ago', '{n} week(s) ago', '{n} month(s) ago', '{n} year(s) ago'. Singular/plural forms are grammatically correct.",
+      "inputs": [
+        {
+          "name": "createdAt",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Unix timestamp in milliseconds representing when the comment was created.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "0 <= value",
+              "error_message": "createdAt must be a non-negative Unix timestamp in milliseconds"
+            }
+          ]
+        }
+      ],
+      "output_type": "RelativeTimeString",
+      "error_cases": [
+        {
+          "name": "negative_timestamp",
+          "condition": "createdAt is a negative number",
+          "error_type": "validation_error",
+          "error_data": {
+            "message": "createdAt must be a non-negative Unix timestamp in milliseconds"
+          }
+        }
+      ],
+      "preconditions": [
+        "createdAt is a non-negative integer representing milliseconds since Unix epoch",
+        "createdAt is not in the future relative to Date.now() under normal operation"
+      ],
+      "postconditions": [
+        "Returns 'just now' when the difference from Date.now() is less than 60 seconds",
+        "Returns '{n} minute(s) ago' for differences between 60 seconds and 60 minutes",
+        "Returns '{n} hour(s) ago' for differences between 60 minutes and 24 hours",
+        "Returns '{n} day(s) ago' for differences between 24 hours and 7 days",
+        "Returns '{n} week(s) ago' for differences between 7 days and 30 days",
+        "Returns '{n} month(s) ago' for differences between 30 days and 365 days",
+        "Returns '{n} year(s) ago' for differences of 365 days or more",
+        "Uses singular form ('1 minute ago') when n === 1, plural form ('2 minutes ago') when n > 1",
+        "If createdAt is in the future (clock skew), returns 'just now' rather than negative values"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function; reads Date.now() for current time but has no side effects"
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "type_registry",
+    "constants_registry",
+    "convex_comments_api"
+  ],
+  "dependency_contracts": {
+    "type_registry": [
+      "ToolSlug",
+      "ToolDef",
+      "HexColor",
+      "StepNumber",
+      "InstructionStep",
+      "Comment",
+      "CommentList"
+    ],
+    "constants_registry": [
+      "TOOL_DEFS_BY_SLUG"
+    ],
+    "convex_comments_api": [
+      "api.comments.listComments",
+      "api.comments.addComment"
+    ]
+  },
+  "invariants": [
+    "All six sub-components (ToolPage, CommentsSection, StepBadge, VersionBadge, CodeBlock, VideoEmbed) are React functional components with TypeScript type annotations on all exports",
+    "No class components are used anywhere in this component tree",
+    "Each source file remains under 300 lines; the six components are in separate files: src/pages/ToolPage.tsx, src/components/CommentsSection.tsx, src/components/StepBadge.tsx, src/components/VersionBadge.tsx, src/components/CodeBlock.tsx, src/components/VideoEmbed.tsx",
+    "isToolSlug is defined in a shared utils file (e.g. src/utils/typeGuards.ts) and imported by ToolPage",
+    "formatRelativeTime is defined in a shared utils file (e.g. src/utils/formatRelativeTime.ts) and imported by CommentsSection",
+    "Accent color is never hardcoded in sub-components; it is always received via props and applied via inline style objects, never via Tailwind arbitrary value classes",
+    "VideoEmbed is conditionally rendered by ToolPage only when ToolDef.videoUrl is defined and non-empty; VideoEmbed itself never checks for URL presence",
+    "CommentsSection never directly imports or references ToolDef or the constants registry; it receives only the ToolSlug page identifier and accentColor",
+    "The ToolSlug, ToolDef, HexColor, StepNumber, InstructionStep, Comment, and CommentList types are imported from the canonical type registry, never redefined in this component",
+    "All Tailwind classes are used for styling; no custom CSS files are introduced",
+    "CodeBlock renders bash content as text content (textContent/children), never via dangerouslySetInnerHTML",
+    "Convex hooks (useQuery, useMutation) are imported from 'convex/react' per project preferences",
+    "Comment form inputs are validated client-side (non-empty after trimming) before calling the Convex mutation"
+  ],
+  "requires": [
+    "type_registry",
+    "constants_registry",
+    "convex_comments_api"
+  ],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC",
+      "INTERNAL"
+    ],
+    "writes": [
+      "PUBLIC"
+    ],
+    "rationale": "Reads PUBLIC data: tool definitions (name, description, version, steps, videoUrl, accentColor) from the constants registry are static public content. Reads INTERNAL data: comment list via Convex useQuery(api.comments.listComments) returns user-submitted comments (author name, body, timestamp) which are user-generated content displayed publicly but stored internally. Writes PUBLIC data: submits new comments via Convex useMutation(api.comments.addComment) with author name and body text, which become publicly visible on the page.",
+    "side_effects": [
+      {
+        "type": "convex_query_subscription",
+        "classification": "INTERNAL",
+        "fields": [
+          "page",
+          "author",
+          "body",
+          "createdAt"
+        ],
+        "rationale": "CommentsSection subscribes to api.comments.listComments with the page parameter, receiving real-time updates of all comments for the current tool page including author names, comment bodies, and creation timestamps"
+      },
+      {
+        "type": "convex_mutation_call",
+        "classification": "PUBLIC",
+        "fields": [
+          "page",
+          "author",
+          "body"
+        ],
+        "rationale": "CommentsSection calls api.comments.addComment to persist a new comment with the user-provided author name and body text associated with the current tool page slug"
+      }
+    ]
+  },
+  "authority": {
+    "domains": [],
+    "rationale": null
+  }
+}

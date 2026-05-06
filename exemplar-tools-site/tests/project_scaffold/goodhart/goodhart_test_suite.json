@@ -1,0 +1,966 @@
+{
+  "component_id": "project_scaffold",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_filepath_dotdot_middle",
+      "description": "FilePath must reject path traversal sequences embedded within segments, not just the literal '..' string",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Paths containing '..' in various positions: 'src/../etc', 'a/b/../c', 'foo/..bar' (last one should pass since it doesn't contain literal '..')",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('src/../etc') raises validation error because it contains '..'",
+        "FilePath('a/b/../c') raises validation error",
+        "FilePath('foo/..bar') may raise or accept depending on whether '..' substring check is used vs path-component check"
+      ]
+    },
+    {
+      "id": "goodhart_filepath_only_dots",
+      "description": "FilePath must reject single dot and double dot as standalone paths since they represent relative traversal",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "The path '..' alone and paths like './src'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('..') raises validation error",
+        "FilePath('.') should be accepted (single dot is valid in regex)"
+      ]
+    },
+    {
+      "id": "goodhart_filepath_backslash",
+      "description": "FilePath must reject Windows-style backslash paths since only POSIX forward slashes are allowed",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Path with backslashes like 'src\\main.tsx'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "FilePath('src\\\\main.tsx') raises validation error because backslash is not in the allowed character set"
+      ]
+    },
+    {
+      "id": "goodhart_filepath_empty_string",
+      "description": "FilePath must reject empty string since it is not a valid file path",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty string ''",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "FilePath('') raises validation error because regex requires at least one character"
+      ]
+    },
+    {
+      "id": "goodhart_semver_wildcard_rejected",
+      "description": "SemVerConstraint must reject wildcard or range specifiers that are not in the defined format",
+      "function": "SemVerConstraint",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Strings like '*', '>=1.0.0', '1.x', '1.0.x', '1.0.0 - 2.0.0'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "SemVerConstraint('*') raises error",
+        "SemVerConstraint('>=1.0.0') raises error",
+        "SemVerConstraint('1.x') raises error",
+        "SemVerConstraint('1.0.0 - 2.0.0') raises error"
+      ]
+    },
+    {
+      "id": "goodhart_semver_or_with_prerelease",
+      "description": "SemVerConstraint must accept OR-combined constraints where individual parts have prerelease tags",
+      "function": "SemVerConstraint",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'^1.0.0-alpha.1 || ~2.0.0-beta.2'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SemVerConstraint('^1.0.0-alpha.1 || ~2.0.0-beta.2') is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_semver_triple_or",
+      "description": "SemVerConstraint must accept three-way OR constraints, not just two-way",
+      "function": "SemVerConstraint",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'^1.0.0 || ^2.0.0 || ^3.0.0'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SemVerConstraint('^1.0.0 || ^2.0.0 || ^3.0.0') is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_package_name_scoped_complex",
+      "description": "PackageDependency must accept scoped package names with dots and underscores after the scope",
+      "function": "PackageDependency",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Package name '@types/react-dom', '@vitejs/plugin-react', '@scope/my_pkg.js'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PackageDependency with package_name='@types/react-dom' is valid",
+        "PackageDependency with package_name='@vitejs/plugin-react' is valid"
+      ]
+    },
+    {
+      "id": "goodhart_package_name_invalid_scope",
+      "description": "PackageDependency must reject invalid scope formats like uppercase or missing slash",
+      "function": "PackageDependency",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Package names like '@Types/react', '@scope', 'React'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "PackageDependency with package_name='@Types/react' raises error",
+        "PackageDependency with package_name='React' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_css_color_hex_boundary",
+      "description": "CSSColorValue must accept 3, 4, 6, and 8 digit hex colors but reject invalid lengths",
+      "function": "CSSColorValue",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Various hex lengths: '#fff', '#ffff', '#ffffff', '#ffffffff', '#ff' (too short), '#fffffffff' (too long)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CSSColorValue('#fff') is accepted (3 digits)",
+        "CSSColorValue('#ffff') is accepted (4 digits)",
+        "CSSColorValue('#ffffff') is accepted (6 digits)",
+        "CSSColorValue('#ffffffff') is accepted (8 digits)",
+        "CSSColorValue('#ff') is rejected (2 digits)",
+        "CSSColorValue('#fffffffff') is rejected (9 digits)"
+      ]
+    },
+    {
+      "id": "goodhart_css_color_no_hash",
+      "description": "CSSColorValue must reject hex-like strings that lack the leading '#' character",
+      "function": "CSSColorValue",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'0a0a0a', 'ffffff'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "CSSColorValue('0a0a0a') raises error",
+        "CSSColorValue('ffffff') raises error"
+      ]
+    },
+    {
+      "id": "goodhart_tsconfig_target_rejects_old",
+      "description": "TSConfigShape compiler_target must reject ES versions older than ES2020",
+      "function": "TSConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Targets like 'ES2019', 'ES2015', 'ES5', 'ES6'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "TSConfigShape with compiler_target='ES2019' raises error",
+        "TSConfigShape with compiler_target='ES2015' raises error",
+        "TSConfigShape with compiler_target='ES5' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_tsconfig_target_esnext",
+      "description": "TSConfigShape compiler_target must accept 'ESNext' as a valid target",
+      "function": "TSConfigShape",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'ESNext'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TSConfigShape with compiler_target='ESNext' is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_tsconfig_target_es2025",
+      "description": "TSConfigShape compiler_target must accept future ES versions like ES2025, ES2030",
+      "function": "TSConfigShape",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'ES2025', 'ES2030'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "TSConfigShape with compiler_target='ES2025' is accepted",
+        "TSConfigShape with compiler_target='ES2030' is accepted"
+      ]
+    },
+    {
+      "id": "goodhart_vite_port_rejects_others",
+      "description": "ViteConfigShape must reject server_port values other than exactly 4000",
+      "function": "ViteConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Ports like 3000, 3999, 4001, 5173, 8080",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "ViteConfigShape with server_port=3000 raises error",
+        "ViteConfigShape with server_port=3999 raises error",
+        "ViteConfigShape with server_port=4001 raises error",
+        "ViteConfigShape with server_port=5173 raises error"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_exact_count",
+      "description": "get_dependency_manifest must return exactly 14 dependencies (4 prod + 10 dev), no more and no fewer",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Total number of dependencies is exactly 14",
+        "Number of prod dependencies (dev=False) is exactly 4",
+        "Number of dev dependencies (dev=True) is exactly 10"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_no_duplicates",
+      "description": "get_dependency_manifest must not contain duplicate package names",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All package_name values in the manifest are unique"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_convex_prod",
+      "description": "Convex must be classified as a production dependency, not dev",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The dependency with package_name='convex' has dev=False",
+        "The dependency with package_name='convex' has category BACKEND"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_jsdom_dev",
+      "description": "jsdom must be a dev dependency used for testing environment simulation",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The dependency with package_name='jsdom' has dev=True",
+        "The dependency with package_name='jsdom' has category TESTING"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_type_defs_category",
+      "description": "@types/react and @types/react-dom must have TYPE_DEFINITIONS category",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency '@types/react' has category TYPE_DEFINITIONS",
+        "Dependency '@types/react-dom' has category TYPE_DEFINITIONS"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_tailwind_styling",
+      "description": "Tailwind, postcss, and autoprefixer must be categorized under STYLING or BUILD_TOOLING appropriately",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'tailwindcss' has category STYLING",
+        "Dependency 'postcss' has category STYLING or BUILD_TOOLING",
+        "Dependency 'autoprefixer' has category STYLING or BUILD_TOOLING"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_router_category",
+      "description": "react-router-dom must be categorized as ROUTING",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'react-router-dom' has category ROUTING"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_vitest_category",
+      "description": "vitest must be categorized as TESTING",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'vitest' has category TESTING and dev=True"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_tailwind_v3_not_v4",
+      "description": "Tailwind version constraint must start with ^3 and must not be ^4 or any v4 constraint",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tailwindcss version_constraint starts with '^3' or '~3' or '3'",
+        "tailwindcss version_constraint does not contain '4'"
+      ]
+    },
+    {
+      "id": "goodhart_style_tokens_font_fallback_chains",
+      "description": "Font family tokens must include proper fallback chains, not just the primary font",
+      "function": "get_style_tokens",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "serif font list has length >= 2 with fallbacks after 'Instrument Serif'",
+        "mono font list has length >= 2 with 'monospace' as fallback",
+        "sans font list has length >= 3 with 'system-ui' and 'sans-serif' as fallbacks"
+      ]
+    },
+    {
+      "id": "goodhart_style_tokens_font_order",
+      "description": "Font family tokens must have the primary font as the first element, not in arbitrary position",
+      "function": "get_style_tokens",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "serif[0] == 'Instrument Serif'",
+        "mono[0] == 'JetBrains Mono'",
+        "sans[0] == 'Inter'"
+      ]
+    },
+    {
+      "id": "goodhart_style_tokens_body_background",
+      "description": "get_style_tokens must return base body background color matching the color token",
+      "function": "get_style_tokens",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Base body background is '#0a0a0a'",
+        "Color token 'background' matches base body background exactly"
+      ]
+    },
+    {
+      "id": "goodhart_style_tokens_return_type",
+      "description": "get_style_tokens must return a dict with well-defined keys, not an arbitrary structure",
+      "function": "get_style_tokens",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Return value is a dict",
+        "Dict contains keys for colors, fonts, utility_classes, and class_prefixes",
+        "utility_classes is a list",
+        "class_prefixes is a list"
+      ]
+    },
+    {
+      "id": "goodhart_style_tokens_serif_georgia_fallback",
+      "description": "Serif font family must include 'Georgia' as a fallback, not just generic 'serif'",
+      "function": "get_style_tokens",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'Georgia' is in the serif font list",
+        "'serif' is in the serif font list"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_wrong_tailwind_color",
+      "description": "validate_scaffold must detect when Tailwind background color is not exactly #0a0a0a",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Scaffold with background color set to '#000000' instead of '#0a0a0a'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ValidationResult.valid is False",
+        "checks_failed contains a check about tailwind_background_color",
+        "The failure expected value is '#0a0a0a'"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_wrong_font_primary",
+      "description": "validate_scaffold must detect when font family primary is incorrect",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Scaffold where serif primary is 'Georgia' instead of 'Instrument Serif'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ValidationResult.valid is False",
+        "checks_failed contains tailwind_font_serif check"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_missing_bg_grid_plugin",
+      "description": "validate_scaffold must detect when bg-grid is defined in CSS rather than via Tailwind plugin()",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "If bg-grid is not registered via plugin() in tailwind.config.js, tailwind_bg_grid_plugin check fails"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_postcss_order",
+      "description": "validate_scaffold must verify postcss plugins are in order [tailwindcss, autoprefixer], not reversed",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Scaffold with postcss plugins as [autoprefixer, tailwindcss]",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ValidationResult.valid is False when postcss plugin order is reversed",
+        "checks_failed contains postcss_plugins check"
+      ]
+    },
+    {
+      "id": "goodhart_google_font_display_non_swap",
+      "description": "GoogleFontSpec must reject display values other than 'swap'",
+      "function": "GoogleFontSpec",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "GoogleFontSpec with display='block', display='auto', display='fallback', display='optional'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "GoogleFontSpec with display='block' raises error",
+        "GoogleFontSpec with display='auto' raises error",
+        "GoogleFontSpec with display='fallback' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_bg_grid_registered_via_invalid",
+      "description": "BgGridUtilitySpec must reject registered_via values other than 'tailwind_plugin'",
+      "function": "BgGridUtilitySpec",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "BgGridUtilitySpec with registered_via='css', registered_via='postcss', registered_via='inline'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "BgGridUtilitySpec with registered_via='css' raises error",
+        "BgGridUtilitySpec with registered_via='postcss' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_package_json_type_not_commonjs",
+      "description": "PackageJsonShape must reject type values other than 'module'",
+      "function": "PackageJsonShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "PackageJsonShape with type='commonjs'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "PackageJsonShape with type='commonjs' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_vite_build_dir_not_build",
+      "description": "ViteConfigShape must reject build_out_dir values other than 'dist'",
+      "function": "ViteConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "build_out_dir='build', build_out_dir='out', build_out_dir='dist/'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "ViteConfigShape with build_out_dir='build' raises error",
+        "ViteConfigShape with build_out_dir='out' raises error",
+        "ViteConfigShape with build_out_dir='dist/' raises error (trailing slash)"
+      ]
+    },
+    {
+      "id": "goodhart_vitest_env_not_happy_dom",
+      "description": "VitestConfigShape must reject environment values other than 'jsdom' such as 'happy-dom' or 'node'",
+      "function": "VitestConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "environment='happy-dom', environment='node'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "VitestConfigShape with environment='happy-dom' raises error",
+        "VitestConfigShape with environment='node' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_tsconfig_jsx_not_react",
+      "description": "TSConfigShape must reject jsx values other than 'react-jsx' like 'react' or 'react-jsxdev'",
+      "function": "TSConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "jsx='react', jsx='react-jsxdev', jsx='preserve'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "TSConfigShape with jsx='react' raises error",
+        "TSConfigShape with jsx='react-jsxdev' raises error",
+        "TSConfigShape with jsx='preserve' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_tsconfig_module_res_not_node",
+      "description": "TSConfigShape must reject moduleResolution values other than 'bundler' like 'node' or 'classic'",
+      "function": "TSConfigShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "module_resolution='node', module_resolution='classic', module_resolution='nodenext'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "TSConfigShape with module_resolution='node' raises error",
+        "TSConfigShape with module_resolution='nodenext' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_index_html_module_script_not_jsx",
+      "description": "IndexHtmlShape must reject module_script_src values other than '/src/main.tsx'",
+      "function": "IndexHtmlShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "module_script_src='/src/main.jsx', module_script_src='src/main.tsx', module_script_src='/src/index.tsx'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "IndexHtmlShape with module_script_src='/src/main.jsx' raises error",
+        "IndexHtmlShape with module_script_src='src/main.tsx' raises error (missing leading slash)",
+        "IndexHtmlShape with module_script_src='/src/index.tsx' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_main_tsx_css_import_not_index",
+      "description": "MainTsxShape must reject css_import values other than './index.css'",
+      "function": "MainTsxShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "css_import='./styles.css', css_import='./app.css', css_import='index.css'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "MainTsxShape with css_import='./styles.css' raises error",
+        "MainTsxShape with css_import='index.css' raises error (missing ./)"
+      ]
+    },
+    {
+      "id": "goodhart_configure_entry_font_empty_weights",
+      "description": "configure_entry_points must reject GoogleFontSpec with empty weights list",
+      "function": "configure_entry_points",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "GoogleFontSpec with family='Inter' but weights=[]",
+      "expected_output_description": "",
+      "expected_error": "invalid_font_spec",
+      "assertions": [
+        "Raises invalid_font_spec error when a GoogleFontSpec has no weights"
+      ]
+    },
+    {
+      "id": "goodhart_configure_entry_font_empty_family",
+      "description": "configure_entry_points must reject GoogleFontSpec with empty family string",
+      "function": "configure_entry_points",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "GoogleFontSpec with family='' and weights=[400]",
+      "expected_output_description": "",
+      "expected_error": "invalid_font_spec",
+      "assertions": [
+        "Raises invalid_font_spec error when a GoogleFontSpec has empty family name"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_check_names_exhaustive",
+      "description": "validate_scaffold must include all 28+ check names specified in the contract, not a subset",
+      "function": "validate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "checks_passed list (when all pass) includes file_existence, vite_port, vite_strict_port, vite_build_dir, vitest_environment, vitest_globals",
+        "checks_passed includes tailwind_content_globs, tailwind_background_color, tailwind_font_serif, tailwind_font_mono, tailwind_font_sans, tailwind_bg_grid_plugin",
+        "checks_passed includes postcss_plugins, tsconfig_strict, tsconfig_jsx, tsconfig_module_resolution, tsconfig_vitest_types",
+        "checks_passed includes package_name, package_scripts_dev, package_scripts_build, package_scripts_test",
+        "checks_passed includes lockfile_bun_only, index_html_google_fonts, index_html_root_div",
+        "checks_passed includes main_tsx_strict_mode, main_tsx_css_import, index_css_tailwind_directives, index_css_background"
+      ]
+    },
+    {
+      "id": "goodhart_validate_failure_has_filepath",
+      "description": "Every ValidationFailure must include a non-empty file_path that is a valid FilePath",
+      "function": "validate_scaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every item in checks_failed has a file_path attribute that is non-empty",
+        "The file_path matches the FilePath regex pattern"
+      ]
+    },
+    {
+      "id": "goodhart_package_json_name_wrong",
+      "description": "PackageJsonShape must reject names that are close to but not exactly 'exemplar-tools-docs'",
+      "function": "PackageJsonShape",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "name='exemplar-tools', name='exemplar_tools_docs', name='Exemplar-Tools-Docs'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "PackageJsonShape with name='exemplar-tools' raises error",
+        "PackageJsonShape with name='exemplar_tools_docs' raises error",
+        "PackageJsonShape with name='Exemplar-Tools-Docs' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_scripts_dev_not_vite_dev",
+      "description": "PackageJsonScripts must reject dev script values that are similar but not exactly 'vite'",
+      "function": "PackageJsonScripts",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "dev='vite --port 4000', dev='vite dev', dev='npx vite'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "PackageJsonScripts with dev='vite --port 4000' raises error",
+        "PackageJsonScripts with dev='vite dev' raises error",
+        "PackageJsonScripts with dev='npx vite' raises error"
+      ]
+    },
+    {
+      "id": "goodhart_scripts_build_variations",
+      "description": "PackageJsonScripts must reject build script variations that are not exactly 'tsc && vite build'",
+      "function": "PackageJsonScripts",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "build='vite build', build='tsc && vite build --mode production', build='tsc; vite build'",
+      "expected_output_description": "",
+      "expected_error": "validation error",
+      "assertions": [
+        "PackageJsonScripts with build='vite build' raises error (missing tsc)",
+        "PackageJsonScripts with build='tsc; vite build' raises error (semicolon instead of &&)"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_prod_deps_not_dev",
+      "description": "Production dependencies (react, react-dom, react-router-dom, convex) must all have dev=False",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'react' has dev=False",
+        "Dependency 'react-dom' has dev=False",
+        "Dependency 'react-router-dom' has dev=False",
+        "Dependency 'convex' has dev=False"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_vite_build_tooling",
+      "description": "vite and @vitejs/plugin-react must be classified as BUILD_TOOLING, not other categories",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'vite' has category BUILD_TOOLING",
+        "Dependency '@vitejs/plugin-react' has category BUILD_TOOLING"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_react_core_framework",
+      "description": "react and react-dom must be classified as CORE_FRAMEWORK",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'react' has category CORE_FRAMEWORK",
+        "Dependency 'react-dom' has category CORE_FRAMEWORK"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_typescript_category",
+      "description": "typescript must be a dev dependency classified as BUILD_TOOLING",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Dependency 'typescript' has dev=True",
+        "Dependency 'typescript' has category BUILD_TOOLING"
+      ]
+    },
+    {
+      "id": "goodhart_dep_manifest_each_has_semver",
+      "description": "Every dependency in the manifest must have a version_constraint that passes SemVerConstraint validation",
+      "function": "get_dependency_manifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every dependency's version_constraint is a non-empty string matching SemVerConstraint regex"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_wrong_package_name",
+      "description": "validate_scaffold must detect when package.json name is not 'exemplar-tools-docs'",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Scaffold where package.json name is 'my-app'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ValidationResult.valid is False",
+        "checks_failed includes package_name check with expected='exemplar-tools-docs'"
+      ]
+    },
+    {
+      "id": "goodhart_validate_scaffold_missing_vitest_types",
+      "description": "validate_scaffold must detect when tsconfig.json types array does not include 'vitest/globals'",
+      "function": "validate_scaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ValidationResult.valid is False when vitest/globals is missing from types",
+        "checks_failed includes tsconfig_vitest_types"
+      ]
+    },
+    {
+      "id": "goodhart_filepath_trailing_slash",
+      "description": "FilePath must handle paths with trailing slashes correctly (reject since it implies directory, not file)",
+      "function": "FilePath",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "'src/main.tsx/' with trailing slash",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "FilePath('src/main.tsx/') - behavior is well-defined by regex (should pass since / is allowed in char set)"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vite_setup_files_optional",
+      "description": "VitestConfigShape setup_files is a list that can be empty — vitest config should still be valid with no setup files",
+      "function": "configure_vite",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VitestConfigShape with setup_files=[]",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "configure_vite succeeds with empty setup_files list",
+        "The generated vite.config.ts either omits setupFiles or sets it to empty array"
+      ]
+    },
+    {
+      "id": "goodhart_install_deps_yarn_lock_detected",
+      "description": "install_dependencies must detect and raise error for yarn.lock in addition to package-lock.json",
+      "function": "install_dependencies",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Project root that has a yarn.lock file present after installation",
+      "expected_output_description": "",
+      "expected_error": "stale_lockfile_detected",
+      "assertions": [
+        "Raises stale_lockfile_detected when yarn.lock exists"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nHidden adversarial acceptance tests for Project Scaffold & Configuration.\n\nThese tests target gaps in the visible test suite to catch implementations\nthat hardcode returns or take shortcuts matching only visible test inputs.\n\"\"\"\nimport re\nimport pytest\nfrom project_scaffold import *\n\n\n# ─────────────────────────── FilePath ───────────────────────────\n\nclass TestGoodhartFilePath:\n\n    def test_goodhart_filepath_dotdot_middle_segment(self):\n        \"\"\"FilePath must reject path traversal sequences embedded within path segments\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"src/../etc\")\n        with pytest.raises(Exception):\n            FilePath(\"a/b/../c\")\n\n    def test_goodhart_filepath_standalone_dotdot(self):\n        \"\"\"FilePath must reject '..' as a standalone path\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"..\")\n\n    def test_goodhart_filepath_single_dot_accepted(self):\n        \"\"\"FilePath should accept a single dot '.' since it matches the regex and doesn't start with / or contain '..'\"\"\"\n        fp = FilePath(\".\")\n        assert fp.value == \".\"\n\n    def test_goodhart_filepath_backslash_rejected(self):\n        \"\"\"FilePath must reject Windows-style backslash paths since only POSIX forward slashes are allowed\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"src\\\\main.tsx\")\n\n    def test_goodhart_filepath_empty_string_rejected(self):\n        \"\"\"FilePath must reject empty string since it is not a valid file path\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"\")\n\n    def test_goodhart_filepath_colon_rejected(self):\n        \"\"\"FilePath must reject paths with colons (e.g., Windows drive letters)\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"C:/src/main.tsx\")\n\n    def test_goodhart_filepath_starts_with_dotdot_slash(self):\n        \"\"\"FilePath must reject paths that start with ../ even if they look relative\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"../sibling/file.ts\")\n\n    def test_goodhart_filepath_dotdot_at_end(self):\n        \"\"\"FilePath must reject paths ending with /.. \"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"src/components/..\")\n\n    def test_goodhart_filepath_space_rejected(self):\n        \"\"\"FilePath must reject paths containing spaces\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"src/my file.tsx\")\n\n    def test_goodhart_filepath_question_mark_rejected(self):\n        \"\"\"FilePath must reject paths containing question marks\"\"\"\n        with pytest.raises(Exception):\n            FilePath(\"src/file?.tsx\")\n\n\n# ─────────────────────────── SemVerConstraint ───────────────────────────\n\nclass TestGoodhartSemVer:\n\n    def test_goodhart_semver_wildcard_rejected(self):\n        \"\"\"SemVerConstraint must reject wildcard and range specifiers not in the defined format\"\"\"\n        with pytest.raises(Exception):\n            SemVerConstraint(\"*\")\n        with pytest.raises(Exception):\n            SemVerConstraint(\">=1.0.0\")\n        with pytest.raises(Exception):\n            SemVerConstraint(\"1.x\")\n        with pytest.raises(Exception):\n            SemVerConstraint(\"1.0.0 - 2.0.0\")\n\n    def test_goodhart_semver_or_with_prerelease(self):\n        \"\"\"SemVerConstraint must accept OR-combined constraints with prerelease tags\"\"\"\n        sv = SemVerConstraint(\"^1.0.0-alpha.1 || ~2.0.0-beta.2\")\n        assert sv.value == \"^1.0.0-alpha.1 || ~2.0.0-beta.2\"\n\n    def test_goodhart_semver_triple_or(self):\n        \"\"\"SemVerConstraint must accept three-way OR constraints\"\"\"\n        sv = SemVerConstraint(\"^1.0.0 || ^2.0.0 || ^3.0.0\")\n        assert \"||\" in sv.value\n\n    def test_goodhart_semver_no_leading_zero_rejection(self):\n        \"\"\"SemVerConstraint must accept versions with leading zeros in parts (e.g., 0.0.1)\"\"\"\n        sv = SemVerConstraint(\"^0.0.1\")\n        assert sv.value == \"^0.0.1\"\n\n    def test_goodhart_semver_just_spaces_rejected(self):\n        \"\"\"SemVerConstraint must reject whitespace-only strings\"\"\"\n        with pytest.raises(Exception):\n            SemVerConstraint(\"   \")\n\n    def test_goodhart_semver_latest_rejected(self):\n        \"\"\"SemVerConstraint must reject the string 'latest'\"\"\"\n        with pytest.raises(Exception):\n            SemVerConstraint(\"latest\")\n\n    def test_goodhart_semver_double_caret_rejected(self):\n        \"\"\"SemVerConstraint must reject malformed constraints like '^^1.0.0'\"\"\"\n        with pytest.raises(Exception):\n            SemVerConstraint(\"^^1.0.0\")\n\n\n# ─────────────────────────── PackageDependency ───────────────────────────\n\nclass TestGoodhartPackageDependency:\n\n    def test_goodhart_package_name_scoped_with_dots(self):\n        \"\"\"PackageDependency must accept scoped packages with dots and underscores\"\"\"\n        dep = PackageDependency(\n            package_name=\"@types/react-dom\",\n            version_constraint=SemVerConstraint(\"^18.0.0\"),\n            dev=True,\n        )\n        assert dep.package_name == \"@types/react-dom\"\n\n    def test_goodhart_package_name_invalid_uppercase_scope(self):\n        \"\"\"PackageDependency must reject scoped names with uppercase in scope\"\"\"\n        with pytest.raises(Exception):\n            PackageDependency(\n                package_name=\"@Types/react\",\n                version_constraint=SemVerConstraint(\"^18.0.0\"),\n                dev=False,\n            )\n\n    def test_goodhart_package_name_no_scope_uppercase(self):\n        \"\"\"PackageDependency must reject unscoped names with uppercase\"\"\"\n        with pytest.raises(Exception):\n            PackageDependency(\n                package_name=\"React\",\n                version_constraint=SemVerConstraint(\"^18.0.0\"),\n                dev=False,\n            )\n\n    def test_goodhart_package_name_empty_rejected(self):\n        \"\"\"PackageDependency must reject empty package name\"\"\"\n        with pytest.raises(Exception):\n            PackageDependency(\n                package_name=\"\",\n                version_constraint=SemVerConstraint(\"^1.0.0\"),\n                dev=False,\n            )\n\n    def test_goodhart_package_name_with_at_but_no_slash(self):\n        \"\"\"PackageDependency must reject scope-like names missing the slash\"\"\"\n        with pytest.raises(Exception):\n            PackageDependency(\n                package_name=\"@scope\",\n                version_constraint=SemVerConstraint(\"^1.0.0\"),\n                dev=False,\n            )\n\n\n# ─────────────────────────── CSSColorValue ───────────────────────────\n\nclass TestGoodhartCSSColor:\n\n    def test_goodhart_hex_3_digit(self):\n        \"\"\"CSSColorValue must accept 3-digit hex\"\"\"\n        assert CSSColorValue(\"#fff\").value == \"#fff\"\n\n    def test_goodhart_hex_4_digit(self):\n        \"\"\"CSSColorValue must accept 4-digit hex (with alpha)\"\"\"\n        assert CSSColorValue(\"#ffff\").value == \"#ffff\"\n\n    def test_goodhart_hex_8_digit(self):\n        \"\"\"CSSColorValue must accept 8-digit hex (with alpha)\"\"\"\n        assert CSSColorValue(\"#0a0a0aff\").value == \"#0a0a0aff\"\n\n    def test_goodhart_hex_2_digit_rejected(self):\n        \"\"\"CSSColorValue must reject hex with only 2 digits\"\"\"\n        with pytest.raises(Exception):\n            CSSColorValue(\"#ff\")\n\n    def test_goodhart_hex_9_digit_rejected(self):\n        \"\"\"CSSColorValue must reject hex with 9 digits\"\"\"\n        with pytest.raises(Exception):\n            CSSColorValue(\"#fffffffff\")\n\n    def test_goodhart_no_hash_rejected(self):\n        \"\"\"CSSColorValue must reject hex-like strings without leading '#'\"\"\"\n        with pytest.raises(Exception):\n            CSSColorValue(\"0a0a0a\")\n        with pytest.raises(Exception):\n            CSSColorValue(\"ffffff\")\n\n    def test_goodhart_named_color_rejected(self):\n        \"\"\"CSSColorValue must reject named CSS colors like 'black'\"\"\"\n        with pytest.raises(Exception):\n            CSSColorValue(\"black\")\n        with pytest.raises(Exception):\n            CSSColorValue(\"transparent\")\n\n\n# ─────────────────────────── ViteConfigShape ───────────────────────────\n\nclass TestGoodhartViteConfig:\n\n    def test_goodhart_port_3999_rejected(self):\n        \"\"\"ViteConfigShape must reject port 3999 (one below the required 4000)\"\"\"\n        with pytest.raises(Exception):\n            ViteConfigShape(\n                plugins=[\"react()\"],\n                server_port=3999,\n                server_strict_port=True,\n                build_out_dir=\"dist\",\n                test_config=VitestConfigShape(\n                    globals=True, environment=\"jsdom\", setup_files=[], css=True\n                ),\n            )\n\n    def test_goodhart_port_4001_rejected(self):\n        \"\"\"ViteConfigShape must reject port 4001 (one above the required 4000)\"\"\"\n        with pytest.raises(Exception):\n            ViteConfigShape(\n                plugins=[\"react()\"],\n                server_port=4001,\n                server_strict_port=True,\n                build_out_dir=\"dist\",\n                test_config=VitestConfigShape(\n                    globals=True, environment=\"jsdom\", setup_files=[], css=True\n                ),\n            )\n\n    def test_goodhart_port_5173_rejected(self):\n        \"\"\"ViteConfigShape must reject Vite's default port 5173\"\"\"\n        with pytest.raises(Exception):\n            ViteConfigShape(\n                plugins=[\"react()\"],\n                server_port=5173,\n                server_strict_port=True,\n                build_out_dir=\"dist\",\n                test_config=VitestConfigShape(\n                    globals=True, environment=\"jsdom\", setup_files=[], css=True\n                ),\n            )\n\n    def test_goodhart_build_dir_trailing_slash_rejected(self):\n        \"\"\"ViteConfigShape must reject build_out_dir='dist/' with trailing slash\"\"\"\n        with pytest.raises(Exception):\n            ViteConfigShape(\n                plugins=[\"react()\"],\n                server_port=4000,\n                server_strict_port=True,\n                build_out_dir=\"dist/\",\n                test_config=VitestConfigShape(\n                    globals=True, environment=\"jsdom\", setup_files=[], css=True\n                ),\n            )\n\n    def test_goodhart_build_dir_build_rejected(self):\n        \"\"\"ViteConfigShape must reject build_out_dir='build'\"\"\"\n        with pytest.raises(Exception):\n            ViteConfigShape(\n                plugins=[\"react()\"],\n                server_port=4000,\n                server_strict_port=True,\n                build_out_dir=\"build\",\n                test_config=VitestConfigShape(\n                    globals=True, environment=\"jsdom\", setup_files=[], css=True\n                ),\n            )\n\n\n# ─────────────────────────── VitestConfigShape ───────────────────────────\n\nclass TestGoodhartVitestConfig:\n\n    def test_goodhart_env_happy_dom_rejected(self):\n        \"\"\"VitestConfigShape must reject 'happy-dom' as environment\"\"\"\n        with pytest.raises(Exception):\n            VitestConfigShape(globals=True, environment=\"happy-dom\", setup_files=[], css=True)\n\n    def test_goodhart_env_node_rejected(self):\n        \"\"\"VitestConfigShape must reject 'node' as environment\"\"\"\n        with pytest.raises(Exception):\n            VitestConfigShape(globals=True, environment=\"node\", setup_files=[], css=True)\n\n    def test_goodhart_env_empty_rejected(self):\n        \"\"\"VitestConfigShape must reject empty string as environment\"\"\"\n        with pytest.raises(Exception):\n            VitestConfigShape(globals=True, environment=\"\", setup_files=[], css=True)\n\n\n# ─────────────────────────── TSConfigShape ───────────────────────────\n\nclass TestGoodhartTSConfig:\n\n    def test_goodhart_target_es2019_rejected(self):\n        \"\"\"TSConfigShape must reject ES2019 (one version below the minimum ES2020)\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2019\",\n                jsx=\"react-jsx\",\n                strict=True,\n                module_resolution=\"bundler\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_target_es2015_rejected(self):\n        \"\"\"TSConfigShape must reject ES2015 (ES6)\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2015\",\n                jsx=\"react-jsx\",\n                strict=True,\n                module_resolution=\"bundler\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_target_es5_rejected(self):\n        \"\"\"TSConfigShape must reject ES5\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES5\",\n                jsx=\"react-jsx\",\n                strict=True,\n                module_resolution=\"bundler\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_target_es2025_accepted(self):\n        \"\"\"TSConfigShape must accept future ES2025 target\"\"\"\n        ts = TSConfigShape(\n            compiler_target=\"ES2025\",\n            jsx=\"react-jsx\",\n            strict=True,\n            module_resolution=\"bundler\",\n            include=[\"src\"],\n            types=[\"vitest/globals\"],\n        )\n        assert ts.compiler_target == \"ES2025\"\n\n    def test_goodhart_target_es2030_accepted(self):\n        \"\"\"TSConfigShape must accept far-future ES2030 target\"\"\"\n        ts = TSConfigShape(\n            compiler_target=\"ES2030\",\n            jsx=\"react-jsx\",\n            strict=True,\n            module_resolution=\"bundler\",\n            include=[\"src\"],\n            types=[\"vitest/globals\"],\n        )\n        assert ts.compiler_target == \"ES2030\"\n\n    def test_goodhart_jsx_react_rejected(self):\n        \"\"\"TSConfigShape must reject jsx='react' (old JSX transform)\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2020\",\n                jsx=\"react\",\n                strict=True,\n                module_resolution=\"bundler\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_jsx_preserve_rejected(self):\n        \"\"\"TSConfigShape must reject jsx='preserve'\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2020\",\n                jsx=\"preserve\",\n                strict=True,\n                module_resolution=\"bundler\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_module_resolution_node_rejected(self):\n        \"\"\"TSConfigShape must reject module_resolution='node'\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2020\",\n                jsx=\"react-jsx\",\n                strict=True,\n                module_resolution=\"node\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n    def test_goodhart_module_resolution_nodenext_rejected(self):\n        \"\"\"TSConfigShape must reject module_resolution='nodenext'\"\"\"\n        with pytest.raises(Exception):\n            TSConfigShape(\n                compiler_target=\"ES2020\",\n                jsx=\"react-jsx\",\n                strict=True,\n                module_resolution=\"nodenext\",\n                include=[\"src\"],\n                types=[\"vitest/globals\"],\n            )\n\n\n# ─────────────────────────── PackageJsonShape / Scripts ───────────────────────────\n\nclass TestGoodhartPackageJson:\n\n    def test_goodhart_name_close_but_wrong(self):\n        \"\"\"PackageJsonShape must reject names close to but not exactly 'exemplar-tools-docs'\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonShape(\n                name=\"exemplar-tools\",\n                private=True,\n                type=\"module\",\n                scripts=PackageJsonScripts(dev=\"vite\", build=\"tsc && vite build\", test=\"vitest\"),\n                dependencies=[],\n                dev_dependencies=[],\n            )\n\n    def test_goodhart_name_underscores_rejected(self):\n        \"\"\"PackageJsonShape must reject name with underscores instead of hyphens\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonShape(\n                name=\"exemplar_tools_docs\",\n                private=True,\n                type=\"module\",\n                scripts=PackageJsonScripts(dev=\"vite\", build=\"tsc && vite build\", test=\"vitest\"),\n                dependencies=[],\n                dev_dependencies=[],\n            )\n\n    def test_goodhart_type_commonjs_rejected(self):\n        \"\"\"PackageJsonShape must reject type='commonjs'\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonShape(\n                name=\"exemplar-tools-docs\",\n                private=True,\n                type=\"commonjs\",\n                scripts=PackageJsonScripts(dev=\"vite\", build=\"tsc && vite build\", test=\"vitest\"),\n                dependencies=[],\n                dev_dependencies=[],\n            )\n\n    def test_goodhart_scripts_dev_with_flags_rejected(self):\n        \"\"\"PackageJsonScripts must reject dev script with extra flags\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonScripts(dev=\"vite --port 4000\", build=\"tsc && vite build\", test=\"vitest\")\n\n    def test_goodhart_scripts_dev_with_subcommand_rejected(self):\n        \"\"\"PackageJsonScripts must reject dev script 'vite dev'\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonScripts(dev=\"vite dev\", build=\"tsc && vite build\", test=\"vitest\")\n\n    def test_goodhart_scripts_build_semicolon_rejected(self):\n        \"\"\"PackageJsonScripts must reject build script with semicolon instead of &&\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonScripts(dev=\"vite\", build=\"tsc; vite build\", test=\"vitest\")\n\n    def test_goodhart_scripts_build_no_tsc_rejected(self):\n        \"\"\"PackageJsonScripts must reject build script without tsc\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonScripts(dev=\"vite\", build=\"vite build\", test=\"vitest\")\n\n    def test_goodhart_scripts_test_run_rejected(self):\n        \"\"\"PackageJsonScripts must reject test='vitest run' (should be just 'vitest')\"\"\"\n        with pytest.raises(Exception):\n            PackageJsonScripts(dev=\"vite\", build=\"tsc && vite build\", test=\"vitest run\")\n\n\n# ─────────────────────────── IndexHtmlShape ───────────────────────────\n\nclass TestGoodhartIndexHtml:\n\n    def test_goodhart_script_src_jsx_rejected(self):\n        \"\"\"IndexHtmlShape must reject module_script_src ending with .jsx instead of .tsx\"\"\"\n        with pytest.raises(Exception):\n            IndexHtmlShape(\n                lang=\"en\",\n                google_fonts_links=[],\n                root_div_id=\"root\",\n                module_script_src=\"/src/main.jsx\",\n            )\n\n    def test_goodhart_script_src_no_leading_slash(self):\n        \"\"\"IndexHtmlShape must reject module_script_src without leading slash\"\"\"\n        with pytest.raises(Exception):\n            IndexHtmlShape(\n                lang=\"en\",\n                google_fonts_links=[],\n                root_div_id=\"root\",\n                module_script_src=\"src/main.tsx\",\n            )\n\n    def test_goodhart_script_src_index_tsx_rejected(self):\n        \"\"\"IndexHtmlShape must reject module_script_src pointing to index.tsx instead of main.tsx\"\"\"\n        with pytest.raises(Exception):\n            IndexHtmlShape(\n                lang=\"en\",\n                google_fonts_links=[],\n                root_div_id=\"root\",\n                module_script_src=\"/src/index.tsx\",\n            )\n\n    def test_goodhart_root_div_app_rejected(self):\n        \"\"\"IndexHtmlShape must reject root_div_id='app' (common alternative)\"\"\"\n        with pytest.raises(Exception):\n            IndexHtmlShape(\n                lang=\"en\",\n                google_fonts_links=[],\n                root_div_id=\"app\",\n                module_script_src=\"/src/main.tsx\",\n            )\n\n\n# ─────────────────────────── MainTsxShape ───────────────────────────\n\nclass TestGoodhartMainTsx:\n\n    def test_goodhart_css_import_styles_rejected(self):\n        \"\"\"MainTsxShape must reject css_import='./styles.css'\"\"\"\n        with pytest.raises(Exception):\n            MainTsxShape(\n                mount_element_id=\"root\",\n                uses_strict_mode=True,\n                provider_slots=[],\n                css_import=\"./styles.css\",\n            )\n\n    def test_goodhart_css_import_no_dot_slash_rejected(self):\n        \"\"\"MainTsxShape must reject css_import='index.css' without './'\"\"\"\n        with pytest.raises(Exception):\n            MainTsxShape(\n                mount_element_id=\"root\",\n                uses_strict_mode=True,\n                provider_slots=[],\n                css_import=\"index.css\",\n            )\n\n    def test_goodhart_mount_app_rejected(self):\n        \"\"\"MainTsxShape must reject mount_element_id='app'\"\"\"\n        with pytest.raises(Exception):\n            MainTsxShape(\n                mount_element_id=\"app\",\n                uses_strict_mode=True,\n                provider_slots=[],\n                css_import=\"./index.css\",\n            )\n\n\n# ─────────────────────────── GoogleFontSpec ───────────────────────────\n\nclass TestGoodhartGoogleFont:\n\n    def test_goodhart_display_block_rejected(self):\n        \"\"\"GoogleFontSpec must reject display='block'\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontSpec(family=\"Inter\", weights=[400, 700], italic=False, display=\"block\")\n\n    def test_goodhart_display_auto_rejected(self):\n        \"\"\"GoogleFontSpec must reject display='auto'\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontSpec(family=\"Inter\", weights=[400], italic=False, display=\"auto\")\n\n    def test_goodhart_display_fallback_rejected(self):\n        \"\"\"GoogleFontSpec must reject display='fallback'\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontSpec(family=\"Inter\", weights=[400], italic=False, display=\"fallback\")\n\n    def test_goodhart_display_optional_rejected(self):\n        \"\"\"GoogleFontSpec must reject display='optional'\"\"\"\n        with pytest.raises(Exception):\n            GoogleFontSpec(family=\"Inter\", weights=[400], italic=False, display=\"optional\")\n\n\n# ─────────────────────────── BgGridUtilitySpec ───────────────────────────\n\nclass TestGoodhartBgGrid:\n\n    def test_goodhart_registered_via_css_rejected(self):\n        \"\"\"BgGridUtilitySpec must reject registered_via='css'\"\"\"\n        with pytest.raises(Exception):\n            BgGridUtilitySpec(\n                class_name=\"bg-grid\",\n                css_property=\"background-image\",\n                grid_color=\"#333\",\n                grid_size=\"40px\",\n                registered_via=\"css\",\n            )\n\n    def test_goodhart_registered_via_postcss_rejected(self):\n        \"\"\"BgGridUtilitySpec must reject registered_via='postcss'\"\"\"\n        with pytest.raises(Exception):\n            BgGridUtilitySpec(\n                class_name=\"bg-grid\",\n                css_property=\"background-image\",\n                grid_color=\"#333\",\n                grid_size=\"40px\",\n                registered_via=\"postcss\",\n            )\n\n    def test_goodhart_class_name_not_bg_grid_rejected(self):\n        \"\"\"BgGridUtilitySpec must reject class_name other than 'bg-grid'\"\"\"\n        with pytest.raises(Exception):\n            BgGridUtilitySpec(\n                class_name=\"grid-bg\",\n                css_property=\"background-image\",\n                grid_color=\"#333\",\n                grid_size=\"40px\",\n                registered_via=\"tailwind_plugin\",\n            )\n\n\n# ─────────────────────────── get_dependency_manifest ───────────────────────────\n\nclass TestGoodhartDepManifest:\n\n    def test_goodhart_exact_dep_count(self):\n        \"\"\"get_dependency_manifest must return exactly 14 dependencies (4 prod + 10 dev)\"\"\"\n        deps = get_dependency_manifest()\n        assert len(deps) == 14\n        prod = [d for d in deps if not d.dependency.dev]\n        dev = [d for d in deps if d.dependency.dev]\n        assert len(prod) == 4\n        assert len(dev) == 10\n\n    def test_goodhart_no_duplicate_packages(self):\n        \"\"\"get_dependency_manifest must not contain duplicate package names\"\"\"\n        deps = get_dependency_manifest()\n        names = [d.dependency.package_name for d in deps]\n        assert len(names) == len(set(names))\n\n    def test_goodhart_convex_is_prod_backend(self):\n        \"\"\"Convex must be a production dependency categorized as BACKEND\"\"\"\n        deps = get_dependency_manifest()\n        convex = [d for d in deps if d.dependency.package_name == \"convex\"]\n        assert len(convex) == 1\n        assert convex[0].dependency.dev is False\n        assert convex[0].category == DependencyCategory.BACKEND\n\n    def test_goodhart_jsdom_is_dev_testing(self):\n        \"\"\"jsdom must be a dev dependency categorized as TESTING\"\"\"\n        deps = get_dependency_manifest()\n        jsdom = [d for d in deps if d.dependency.package_name == \"jsdom\"]\n        assert len(jsdom) == 1\n        assert jsdom[0].dependency.dev is True\n        assert jsdom[0].category == DependencyCategory.TESTING\n\n    def test_goodhart_types_react_type_definitions(self):\n        \"\"\"@types/react and @types/react-dom must have TYPE_DEFINITIONS category\"\"\"\n        deps = get_dependency_manifest()\n        types_react = [d for d in deps if d.dependency.package_name == \"@types/react\"]\n        types_react_dom = [d for d in deps if d.dependency.package_name == \"@types/react-dom\"]\n        assert len(types_react) == 1\n        assert types_react[0].category == DependencyCategory.TYPE_DEFINITIONS\n        assert len(types_react_dom) == 1\n        assert types_react_dom[0].category == DependencyCategory.TYPE_DEFINITIONS\n\n    def test_goodhart_tailwind_styling_category(self):\n        \"\"\"tailwindcss must be categorized as STYLING\"\"\"\n        deps = get_dependency_manifest()\n        tw = [d for d in deps if d.dependency.package_name == \"tailwindcss\"]\n        assert len(tw) == 1\n        assert tw[0].category == DependencyCategory.STYLING\n\n    def test_goodhart_router_routing_category(self):\n        \"\"\"react-router-dom must be categorized as ROUTING\"\"\"\n        deps = get_dependency_manifest()\n        router = [d for d in deps if d.dependency.package_name == \"react-router-dom\"]\n        assert len(router) == 1\n        assert router[0].category == DependencyCategory.ROUTING\n\n    def test_goodhart_vitest_testing_dev(self):\n        \"\"\"vitest must be categorized as TESTING and dev=True\"\"\"\n        deps = get_dependency_manifest()\n        vt = [d for d in deps if d.dependency.package_name == \"vitest\"]\n        assert len(vt) == 1\n        assert vt[0].dependency.dev is True\n        assert vt[0].category == DependencyCategory.TESTING\n\n    def test_goodhart_tailwind_v3_not_v4(self):\n        \"\"\"Tailwind version constraint must indicate v3.x, not v4\"\"\"\n        deps = get_dependency_manifest()\n        tw = [d for d in deps if d.dependency.package_name == \"tailwindcss\"][0]\n        constraint = tw.dependency.version_constraint.value\n        assert constraint.startswith(\"^3\") or constraint.startswith(\"~3\") or constraint.startswith(\"3\")\n        assert \"4\" not in constraint\n\n    def test_goodhart_all_prod_deps_not_dev(self):\n        \"\"\"All four production dependencies must have dev=False\"\"\"\n        deps = get_dependency_manifest()\n        prod_names = {\"react\", \"react-dom\", \"react-router-dom\", \"convex\"}\n        for d in deps:\n            if d.dependency.package_name in prod_names:\n                assert d.dependency.dev is False, f\"{d.dependency.package_name} should be dev=False\"\n\n    def test_goodhart_vite_build_tooling(self):\n        \"\"\"vite and @vitejs/plugin-react must be BUILD_TOOLING\"\"\"\n        deps = get_dependency_manifest()\n        vite = [d for d in deps if d.dependency.package_name == \"vite\"]\n        plugin = [d for d in deps if d.dependency.package_name == \"@vitejs/plugin-react\"]\n        assert len(vite) == 1\n        assert vite[0].category == DependencyCategory.BUILD_TOOLING\n        assert len(plugin) == 1\n        assert plugin[0].category == DependencyCategory.BUILD_TOOLING\n\n    def test_goodhart_react_core_framework(self):\n        \"\"\"react and react-dom must be CORE_FRAMEWORK\"\"\"\n        deps = get_dependency_manifest()\n        react = [d for d in deps if d.dependency.package_name == \"react\"]\n        react_dom = [d for d in deps if d.dependency.package_name == \"react-dom\"]\n        assert len(react) == 1\n        assert react[0].category == DependencyCategory.CORE_FRAMEWORK\n        assert len(react_dom) == 1\n        assert react_dom[0].category == DependencyCategory.CORE_FRAMEWORK\n\n    def test_goodhart_typescript_build_tooling_dev(self):\n        \"\"\"typescript must be dev and BUILD_TOOLING\"\"\"\n        deps = get_dependency_manifest()\n        ts = [d for d in deps if d.dependency.package_name == \"typescript\"]\n        assert len(ts) == 1\n        assert ts[0].dependency.dev is True\n        assert ts[0].category == DependencyCategory.BUILD_TOOLING\n\n    def test_goodhart_all_deps_valid_semver(self):\n        \"\"\"Every dependency must have a version_constraint matching the SemVerConstraint regex\"\"\"\n        semver_pattern = re.compile(\n            r\"^[~^]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?(\\s*\\|\\|\\s*[~^]?\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?)*$\"\n        )\n        deps = get_dependency_manifest()\n        for d in deps:\n            assert semver_pattern.match(d.dependency.version_constraint.value), (\n                f\"{d.dependency.package_name} has invalid semver: {d.dependency.version_constraint.value}\"\n            )\n\n    def test_goodhart_rationale_non_trivial(self):\n        \"\"\"Every dependency rationale should be meaningfully descriptive (more than a few characters)\"\"\"\n        deps = get_dependency_manifest()\n        for d in deps:\n            assert len(d.rationale.strip()) > 5, (\n                f\"{d.dependency.package_name} has trivial rationale: '{d.rationale}'\"\n            )\n\n    def test_goodhart_postcss_autoprefixer_present(self):\n        \"\"\"postcss and autoprefixer must both be present as dev dependencies\"\"\"\n        deps = get_dependency_manifest()\n        postcss = [d for d in deps if d.dependency.package_name == \"postcss\"]\n        autoprefixer = [d for d in deps if d.dependency.package_name == \"autoprefixer\"]\n        assert len(postcss) == 1\n        assert postcss[0].dependency.dev is True\n        assert len(autoprefixer) == 1\n        assert autoprefixer[0].dependency.dev is True\n\n\n# ─────────────────────────── get_style_tokens ───────────────────────────\n\nclass TestGoodhartStyleTokens:\n\n    def test_goodhart_font_fallback_chain_lengths(self):\n        \"\"\"Font family tokens must include proper fallback chains, not just primary fonts\"\"\"\n        tokens = get_style_tokens()\n        fonts = tokens.get(\"fonts\") or tokens.get(\"font_families\") or tokens.get(\"font_tokens\")\n        # Try common key names\n        if fonts is None:\n            for k, v in tokens.items():\n                if isinstance(v, dict) and \"serif\" in v:\n                    fonts = v\n                    break\n        assert fonts is not None, \"Could not find font tokens in style tokens\"\n        assert len(fonts[\"serif\"]) >= 2, \"serif font list needs fallbacks\"\n        assert len(fonts[\"mono\"]) >= 2, \"mono font list needs fallbacks\"\n        assert len(fonts[\"sans\"]) >= 3, \"sans font list needs fallbacks including system-ui and sans-serif\"\n\n    def test_goodhart_font_primary_is_first(self):\n        \"\"\"Font family tokens must have the designated primary font as the first element\"\"\"\n        tokens = get_style_tokens()\n        fonts = None\n        for k, v in tokens.items():\n            if isinstance(v, dict) and \"serif\" in v:\n                fonts = v\n                break\n        assert fonts is not None\n        assert fonts[\"serif\"][0] == \"Instrument Serif\"\n        assert fonts[\"mono\"][0] == \"JetBrains Mono\"\n        assert fonts[\"sans\"][0] == \"Inter\"\n\n    def test_goodhart_serif_georgia_fallback(self):\n        \"\"\"Serif font family must include 'Georgia' as an intermediate fallback\"\"\"\n        tokens = get_style_tokens()\n        fonts = None\n        for k, v in tokens.items():\n            if isinstance(v, dict) and \"serif\" in v:\n                fonts = v\n                break\n        assert fonts is not None\n        assert \"Georgia\" in fonts[\"serif\"]\n        assert \"serif\" in fonts[\"serif\"]\n\n    def test_goodhart_sans_system_ui_fallback(self):\n        \"\"\"Sans font family must include 'system-ui' as a fallback\"\"\"\n        tokens = get_style_tokens()\n        fonts = None\n        for k, v in tokens.items():\n            if isinstance(v, dict) and \"sans\" in v:\n                fonts = v\n                break\n        assert fonts is not None\n        assert \"system-ui\" in fonts[\"sans\"]\n        assert \"sans-serif\" in fonts[\"sans\"]\n\n    def test_goodhart_mono_monospace_fallback(self):\n        \"\"\"Mono font family must include 'monospace' as a fallback\"\"\"\n        tokens = get_style_tokens()\n        fonts = None\n        for k, v in tokens.items():\n            if isinstance(v, dict) and \"mono\" in v:\n                fonts = v\n                break\n        assert fonts is not None\n        assert \"monospace\" in fonts[\"mono\"]\n\n    def test_goodhart_body_background_matches_color_token(self):\n        \"\"\"Base body background must match the background color token exactly\"\"\"\n        tokens = get_style_tokens()\n        # Find color tokens and body background\n        bg_color = None\n        body_bg = None\n        for k, v in tokens.items():\n            if isinstance(v, dict) and \"background\" in v:\n                bg_color = v[\"background\"]\n            if k in (\"base_body_background\", \"body_background\", \"base_background\"):\n                body_bg = v\n        # At minimum the background color token must be #0a0a0a\n        assert bg_color == \"#0a0a0a\" or body_bg == \"#0a0a0a\"\n\n    def test_goodhart_return_is_dict(self):\n        \"\"\"get_style_tokens must return a dict\"\"\"\n        tokens = get_style_tokens()\n        assert isinstance(tokens, dict)\n\n    def test_goodhart_utility_classes_list(self):\n        \"\"\"Utility classes in style tokens must be a list containing 'bg-grid'\"\"\"\n        tokens = get_style_tokens()\n        found = False\n        for k, v in tokens.items():\n            if isinstance(v, list) and \"bg-grid\" in v:\n                found = True\n                break\n        assert found, \"Could not find 'bg-grid' in any list within style tokens\"\n\n    def test_goodhart_class_prefixes_list(self):\n        \"\"\"Class prefixes in style tokens must include font-serif, font-mono, font-sans\"\"\"\n        tokens = get_style_tokens()\n        found_prefixes = None\n        for k, v in tokens.items():\n            if isinstance(v, list) and \"font-serif\" in v:\n                found_prefixes = v\n                break\n        assert found_prefixes is not None\n        assert \"font-serif\" in found_prefixes\n        assert \"font-mono\" in found_prefixes\n        assert \"font-sans\" in found_prefixes\n\n    def test_goodhart_style_tokens_idempotent(self):\n        \"\"\"get_style_tokens must return identical results on multiple calls (pure function)\"\"\"\n        t1 = get_style_tokens()\n        t2 = get_style_tokens()\n        assert t1 == t2\n\n\n# ─────────────────────────── configure_entry_points edge cases ───────────────────────────\n\nclass TestGoodhartConfigureEntryEdge:\n\n    def test_goodhart_font_spec_empty_weights_rejected(self):\n        \"\"\"configure_entry_points must reject GoogleFontSpec with empty weights list\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            font = GoogleFontSpec(family=\"Inter\", weights=[], italic=False, display=\"swap\")\n            # If GoogleFontSpec doesn't validate weights, then configure_entry_points must\n            configure_entry_points(\n                project_root=FilePath(\"test_project\"),\n                index_html=IndexHtmlShape(\n                    lang=\"en\",\n                    google_fonts_links=[],\n                    root_div_id=\"root\",\n                    module_script_src=\"/src/main.tsx\",\n                ),\n                main_tsx=MainTsxShape(\n                    mount_element_id=\"root\",\n                    uses_strict_mode=True,\n                    provider_slots=[],\n                    css_import=\"./index.css\",\n                ),\n                index_css=IndexCssShape(\n                    tailwind_directives=[\"@tailwind base\", \"@tailwind components\", \"@tailwind utilities\"],\n                    base_background_color=CSSColorValue(\"#0a0a0a\"),\n                    base_text_color=CSSColorValue(\"#ffffff\"),\n                    font_face_assignments=[],\n                ),\n                google_fonts=[font],\n            )\n        # Should raise invalid_font_spec at some point in the chain\n\n    def test_goodhart_font_spec_empty_family_rejected(self):\n        \"\"\"configure_entry_points must reject GoogleFontSpec with empty family name\"\"\"\n        with pytest.raises(Exception):\n            font = GoogleFontSpec(family=\"\", weights=[400], italic=False, display=\"swap\")\n            configure_entry_points(\n                project_root=FilePath(\"test_project\"),\n                index_html=IndexHtmlShape(\n                    lang=\"en\",\n                    google_fonts_links=[],\n                    root_div_id=\"root\",\n                    module_script_src=\"/src/main.tsx\",\n                ),\n                main_tsx=MainTsxShape(\n                    mount_element_id=\"root\",\n                    uses_strict_mode=True,\n                    provider_slots=[],\n                    css_import=\"./index.css\",\n                ),\n                index_css=IndexCssShape(\n                    tailwind_directives=[\"@tailwind base\", \"@tailwind components\", \"@tailwind utilities\"],\n                    base_background_color=CSSColorValue(\"#0a0a0a\"),\n                    base_text_color=CSSColorValue(\"#ffffff\"),\n                    font_face_assignments=[],\n                ),\n                google_fonts=[font],\n            )\n"
+}

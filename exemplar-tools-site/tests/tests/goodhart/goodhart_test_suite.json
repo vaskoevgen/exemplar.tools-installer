@@ -1,0 +1,830 @@
+{
+  "component_id": "tests",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_configure_vitest_setupfiles_is_list_of_exactly_one",
+      "description": "The setupFiles field must be a list (not a plain string) containing exactly one entry, ensuring the implementation models it as a collection type rather than hardcoding a string return",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "setupFiles is a list with exactly one element",
+      "expected_error": "",
+      "assertions": [
+        "isinstance(result.setupFiles, list)",
+        "len(result.setupFiles) == 1"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_include_is_list_of_exactly_one",
+      "description": "The include field must be a list (not a plain string) containing exactly one glob pattern, verifying collection semantics",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "include is a list with exactly one element",
+      "expected_error": "",
+      "assertions": [
+        "isinstance(result.include, list)",
+        "len(result.include) == 1"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_returns_struct_not_dict",
+      "description": "configure_vitest must return a VitestConfigBlock struct with named attributes, not a raw dictionary or arbitrary object",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "Object with all four VitestConfigBlock fields as attributes",
+      "expected_error": "",
+      "assertions": [
+        "hasattr(result, 'environment')",
+        "hasattr(result, 'globals')",
+        "hasattr(result, 'setupFiles')",
+        "hasattr(result, 'include')"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_setup_path_passes_regex_validation",
+      "description": "The setup file path in setupFiles must conform to the SetupFilePath regex validator, ensuring it is not an approximate or subtly different path",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "setupFiles[0] matches SetupFilePath regex exactly",
+      "expected_error": "",
+      "assertions": [
+        "re.match(r'^\\./src/__tests__/[a-zA-Z0-9_-]+\\.ts$', result.setupFiles[0]) is not None"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_include_pattern_passes_regex_validation",
+      "description": "The include glob pattern must conform to the GlobPattern regex validator, catching subtle deviations like missing braces or wrong extension list",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "include[0] matches GlobPattern regex exactly",
+      "expected_error": "",
+      "assertions": [
+        "re.match(r'^src/.+\\.test\\.\\{[a-z,]+\\}$', result.include[0]) is not None"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_idempotent",
+      "description": "Calling configure_vitest multiple times must return equivalent results, verifying it is a pure function with no hidden state mutation",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Two successive calls to configure_vitest",
+      "expected_output_description": "Both results are structurally equal",
+      "expected_error": "",
+      "assertions": [
+        "result1.environment == result2.environment",
+        "result1.globals == result2.globals",
+        "result1.setupFiles == result2.setupFiles",
+        "result1.include == result2.include"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_globals_is_bool_true_not_truthy",
+      "description": "The globals field must be boolean True, not a truthy value like 1 or 'true'",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "globals is exactly boolean True",
+      "expected_error": "",
+      "assertions": [
+        "result.globals is True",
+        "type(result.globals) is bool"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_environment_is_string_jsdom",
+      "description": "The environment field must be the string 'jsdom', not an enum object or other representation",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No input; vite.config.ts exists",
+      "expected_output_description": "environment is string 'jsdom'",
+      "expected_error": "",
+      "assertions": [
+        "result.environment == 'jsdom'",
+        "isinstance(result.environment, str)"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_array_length_rejects_none",
+      "description": "The function must reject None/null input rather than silently returning True or treating it as length 0",
+      "function": "validate_tools_array_length",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "None"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "tools_import_failed or unexpected_count",
+      "assertions": [
+        "raises an error for None input"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_array_length_rejects_non_list",
+      "description": "The function must reject non-list inputs (e.g., a dict or string of length 11) rather than treating them as valid collections",
+      "function": "validate_tools_array_length",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "'abcdefghijk'"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "tools_import_failed or unexpected_count",
+      "assertions": [
+        "raises an error for string input with 11 characters"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_array_length_ten_items",
+      "description": "The function must reject arrays of length 10, the boundary just below the required cardinality of 11",
+      "function": "validate_tools_array_length",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "list of 10 items"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "unexpected_count",
+      "assertions": [
+        "raises unexpected_count for 10-element list"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_array_length_twelve_items",
+      "description": "The function must reject arrays of length 12, the boundary just above the required cardinality of 11",
+      "function": "validate_tools_array_length",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "list of 12 items"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "unexpected_count",
+      "assertions": [
+        "raises unexpected_count for 12-element list"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_name_none",
+      "description": "A tool with name set to None must be rejected as missing_name, not just empty string checks",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{'name': None, 'description': 'valid', 'version': '1.0', 'accentColor': '#abcdef', 'step': 5, 'slug': 'test'}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_name",
+      "assertions": [
+        "raises missing_name for None name"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_description_none",
+      "description": "A tool with description set to None must be rejected, testing null vs empty-string distinction",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{'name': 'valid', 'description': None, 'version': '1.0', 'accentColor': '#abcdef', 'step': 5, 'slug': 'test'}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_description",
+      "assertions": [
+        "raises missing_description for None description"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_version_none",
+      "description": "A tool with version set to None must be rejected as missing_version",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{'name': 'valid', 'description': 'valid', 'version': None, 'accentColor': '#abcdef', 'step': 5, 'slug': 'test'}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_version",
+      "assertions": [
+        "raises missing_version for None version"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_step_negative",
+      "description": "A negative step value must be rejected, testing beyond visible boundary of 0 and 12",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": -1, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": [
+        "raises step_out_of_range for step=-1"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_step_float",
+      "description": "A float step value like 5.5 must be rejected as not an integer, even if within range",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": 5.5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": [
+        "raises step_out_of_range for float step"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_no_hash",
+      "description": "An accent color without leading '#' must be rejected even if the hex digits are valid",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"abcdef\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_accent_color",
+      "assertions": [
+        "raises invalid_accent_color for color without # prefix"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_8digit",
+      "description": "An 8-digit hex color (with alpha channel) must be rejected since the regex requires exactly 6 hex digits after #",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef99\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_accent_color",
+      "assertions": [
+        "raises invalid_accent_color for 8-digit hex"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_uppercase",
+      "description": "Uppercase hex digits in accentColor should be accepted per the regex /^#[0-9a-fA-F]{6}$/",
+      "function": "validate_tool_required_fields",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#ABCDEF\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns True for uppercase hex color",
+      "expected_error": "",
+      "assertions": [
+        "returns True"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_mixed_case",
+      "description": "Mixed-case hex digits in accentColor should be accepted per the regex",
+      "function": "validate_tool_required_fields",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#aB3Cd9\", \"step\": 3, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns True for mixed-case hex color",
+      "expected_error": "",
+      "assertions": [
+        "returns True"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_step_midrange",
+      "description": "A mid-range step value (e.g., 6) must be accepted, ensuring validation is range-based not just checking boundaries 1 and 11",
+      "function": "validate_tool_required_fields",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"mid\", \"description\": \"mid tool\", \"version\": \"2.0\", \"accentColor\": \"#123456\", \"step\": 6, \"slug\": \"mid-tool\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns True for step=6",
+      "expected_error": "",
+      "assertions": [
+        "returns True"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_name_whitespace_only",
+      "description": "A tool with name consisting only of whitespace should be treated as empty/missing since it is not a meaningful non-empty string",
+      "function": "validate_tool_required_fields",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"   \", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_name",
+      "assertions": [
+        "raises missing_name for whitespace-only name"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_missing_field_entirely",
+      "description": "A tool dict missing the 'name' key entirely must be rejected, not just when name is present but empty",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_name",
+      "assertions": [
+        "raises missing_name when name key is absent"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_slugs_ordered_duplicate_slugs",
+      "description": "An array with duplicate slugs must not match the canonical ordered array, even if length is correct",
+      "function": "validate_tools_slugs_ordered",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "11 tools with first two slugs identical",
+        "expected_slugs": "canonical 11 slugs"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "slug_mismatch",
+      "assertions": [
+        "raises slug_mismatch for duplicated slug values"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_slugs_ordered_single_swap",
+      "description": "Swapping only the first and last slugs must be detected as a mismatch, testing that comparison is positional not set-based",
+      "function": "validate_tools_slugs_ordered",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "11 tools with first and last slug swapped",
+        "expected_slugs": "canonical 11 slugs"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "slug_mismatch",
+      "assertions": [
+        "raises slug_mismatch for first/last swap"
+      ]
+    },
+    {
+      "id": "goodhart_validate_kindex_video_url_null_vs_undefined",
+      "description": "kindex with videoUrl set to None/null must be treated as undefined (passing), ensuring the check is for absence of value not just falsy",
+      "function": "validate_kindex_no_video_url",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "array with kindex having videoUrl=None"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns True when videoUrl is None/undefined",
+      "expected_error": "",
+      "assertions": [
+        "returns True"
+      ]
+    },
+    {
+      "id": "goodhart_validate_kindex_video_url_empty_string",
+      "description": "kindex with videoUrl set to empty string should be treated as having a defined videoUrl (raising error), since the contract checks for undefined specifically",
+      "function": "validate_kindex_no_video_url",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "array with kindex having videoUrl=''"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "kindex_has_video_url",
+      "assertions": [
+        "raises kindex_has_video_url for empty string videoUrl"
+      ]
+    },
+    {
+      "id": "goodhart_validate_non_kindex_video_url_whitespace_only",
+      "description": "A non-kindex tool with videoUrl containing only whitespace should be rejected as non-meaningful content",
+      "function": "validate_non_kindex_have_video_url",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "array with one non-kindex tool having videoUrl='   '"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_video_url",
+      "assertions": [
+        "raises missing_video_url for whitespace-only videoUrl"
+      ]
+    },
+    {
+      "id": "goodhart_validate_non_kindex_video_url_none_value",
+      "description": "A non-kindex tool with videoUrl=None must be rejected as missing, not just checking for empty string",
+      "function": "validate_non_kindex_have_video_url",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "array with one non-kindex tool having videoUrl=None"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_video_url",
+      "assertions": [
+        "raises missing_video_url for None videoUrl"
+      ]
+    },
+    {
+      "id": "goodhart_initialize_setup_file_returns_none",
+      "description": "initialize_setup_file must return None, not a truthy value or the file path, confirming it is a side-effect-only function",
+      "function": "initialize_setup_file",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "mock_config": "{'useQuery_default': None, 'useMutation_default': 'vi.fn()'}"
+      },
+      "input_description": "",
+      "expected_output_description": "Return value is None",
+      "expected_error": "",
+      "assertions": [
+        "result is None"
+      ]
+    },
+    {
+      "id": "goodhart_setup_file_mock_convex_react_module_name_exact",
+      "description": "The vi.mock call must target exactly 'convex/react', not a different module path like 'convex' or 'convex/react/hooks'",
+      "function": "initialize_setup_file",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "mock_config": "{'useQuery_default': None, 'useMutation_default': 'vi.fn()'}"
+      },
+      "input_description": "",
+      "expected_output_description": "Generated setup.ts contains vi.mock('convex/react', ...) with exact module name",
+      "expected_error": "",
+      "assertions": [
+        "setup.ts contains the string convex/react as the mock target"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_include_pattern_contains_tsx",
+      "description": "The include glob pattern must contain 'tsx' in its brace group to match .test.tsx files, not just .test.ts",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "include pattern references both ts and tsx extensions",
+      "expected_error": "",
+      "assertions": [
+        "'tsx' in result.include[0]",
+        "'ts' in result.include[0]"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_include_uses_double_star_glob",
+      "description": "The include pattern must use '**' for recursive directory matching, not a single '*'",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "include pattern contains ** for recursive glob",
+      "expected_error": "",
+      "assertions": [
+        "'**' in result.include[0]"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_with_non_hex_chars",
+      "description": "An accent color with non-hex characters (e.g., #gggggg) must be rejected by the regex validator",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#gggggg\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_accent_color",
+      "assertions": [
+        "raises invalid_accent_color for non-hex characters"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_step_string_number",
+      "description": "A step value provided as a string (e.g., '5') must be rejected since the contract requires an integer type",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": \"5\", \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": [
+        "raises step_out_of_range for string step value"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_name_is_number",
+      "description": "A tool with name set to a number (non-string type) must be rejected as missing_name since the contract requires a non-empty string",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": 42, \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_name",
+      "assertions": [
+        "raises missing_name for numeric name"
+      ]
+    },
+    {
+      "id": "goodhart_execute_test_suite_total_tests_gte_6",
+      "description": "The test suite must discover and run at least 6 test cases as specified by the postcondition minimum",
+      "function": "execute_test_suite",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "total_tests is at least 6",
+      "expected_error": "",
+      "assertions": [
+        "result.total_tests >= 6"
+      ]
+    },
+    {
+      "id": "goodhart_execute_test_suite_passed_equals_total",
+      "description": "In a successful run, the number of passed tests must exactly equal total_tests with no skipped or pending tests unaccounted for",
+      "function": "execute_test_suite",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "passed == total_tests and failed == 0",
+      "expected_error": "",
+      "assertions": [
+        "result.passed == result.total_tests",
+        "result.failed == 0"
+      ]
+    },
+    {
+      "id": "goodhart_setup_file_path_rejects_js_extension",
+      "description": "SetupFilePath must reject .js extension since only .ts files are valid setup files",
+      "function": "SetupFilePath",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "./src/__tests__/setup.js"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "regex validation fails for .js extension"
+      ]
+    },
+    {
+      "id": "goodhart_setup_file_path_rejects_nested_subdirectory",
+      "description": "SetupFilePath must reject paths with additional subdirectories under __tests__/",
+      "function": "SetupFilePath",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "./src/__tests__/sub/setup.ts"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "regex validation fails for nested path"
+      ]
+    },
+    {
+      "id": "goodhart_glob_pattern_rejects_uppercase_extensions",
+      "description": "GlobPattern must reject brace groups containing uppercase letters since the regex requires [a-z,]+",
+      "function": "GlobPattern",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "src/**/*.test.{TS,TSX}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "regex validation fails for uppercase brace group"
+      ]
+    },
+    {
+      "id": "goodhart_exit_code_accepts_one",
+      "description": "ExitCode must accept value 1, the most common non-zero failure code, as it is within the valid range",
+      "function": "ExitCode",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "1"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ExitCode(1) is valid"
+      ]
+    },
+    {
+      "id": "goodhart_exit_code_accepts_midrange",
+      "description": "ExitCode must accept a mid-range value like 127, ensuring range check is not just 0 and 255",
+      "function": "ExitCode",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "value": "127"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ExitCode(127) is valid"
+      ]
+    },
+    {
+      "id": "goodhart_configure_vitest_no_extra_keys",
+      "description": "The returned VitestConfigBlock should contain only the four specified fields, not additional unexpected configuration keys",
+      "function": "configure_vitest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "No extra fields beyond the four defined in VitestConfigBlock",
+      "expected_error": "",
+      "assertions": [
+        "returned object has exactly environment, globals, setupFiles, include fields"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tools_slugs_ordered_empty_slug_value",
+      "description": "A tools array where one tool has an empty string slug must not match the canonical expected_slugs array",
+      "function": "validate_tools_slugs_ordered",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "11 tools with one having slug=''",
+        "expected_slugs": "canonical 11 slugs"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "slug_mismatch",
+      "assertions": [
+        "raises slug_mismatch for empty slug in array"
+      ]
+    },
+    {
+      "id": "goodhart_validate_kindex_multiple_kindex_entries",
+      "description": "If multiple tools have slug 'kindex', the function should still correctly validate the first found entry's videoUrl absence",
+      "function": "validate_kindex_no_video_url",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tools": "array with two tools having slug 'kindex', both without videoUrl"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns True — at minimum validates that a kindex entry has no videoUrl",
+      "expected_error": "",
+      "assertions": [
+        "does not raise an error when kindex entries lack videoUrl"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_accent_color_empty_string",
+      "description": "An empty string accentColor must be rejected by the hex color regex",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"\", \"step\": 5, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_accent_color",
+      "assertions": [
+        "raises invalid_accent_color for empty accentColor"
+      ]
+    },
+    {
+      "id": "goodhart_validate_tool_required_fields_step_large_positive",
+      "description": "A very large step value (e.g., 100) must be rejected, ensuring the upper bound is enforced and not just checking against 12",
+      "function": "validate_tool_required_fields",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "tool": "{\"name\": \"valid\", \"description\": \"valid\", \"version\": \"1.0\", \"accentColor\": \"#abcdef\", \"step\": 100, \"slug\": \"test\"}"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": [
+        "raises step_out_of_range for step=100"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for the Test Harness & Smoke Tests component.\n\nThese tests catch implementations that pass visible tests via shortcuts\n(hardcoded returns, incomplete validation, etc.) rather than genuinely\nsatisfying the contract.\n\"\"\"\n\nimport re\nimport pytest\nfrom tests import (\n    configure_vitest,\n    initialize_setup_file,\n    validate_tools_array_length,\n    validate_tools_slugs_ordered,\n    validate_tool_required_fields,\n    validate_kindex_no_video_url,\n    validate_non_kindex_have_video_url,\n    execute_test_suite,\n    VitestConfigBlock,\n    SetupFilePath,\n    GlobPattern,\n    ExitCode,\n    TestSuiteResult,\n    VitestEnvironment,\n    ToolFieldName,\n    TestFile,\n    DevDependency,\n    ConvexMockConfig,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helpers\n# ---------------------------------------------------------------------------\n\ndef _make_tool(**overrides):\n    \"\"\"Create a minimal valid tool dict, with optional overrides.\"\"\"\n    base = {\n        \"name\": \"Test Tool\",\n        \"description\": \"A test tool description\",\n        \"version\": \"1.0.0\",\n        \"accentColor\": \"#abcdef\",\n        \"step\": 5,\n        \"slug\": \"test-tool\",\n        \"videoUrl\": \"https://example.com/video.mp4\",\n    }\n    base.update(overrides)\n    return base\n\n\ndef _make_tools_list(n=11, slugs=None):\n    \"\"\"Create a list of n tool dicts with unique slugs.\"\"\"\n    if slugs is None:\n        slugs = [f\"tool-{i}\" for i in range(n)]\n    tools = []\n    for i, slug in enumerate(slugs):\n        tools.append(_make_tool(\n            name=f\"Tool {i}\",\n            slug=slug,\n            step=min(i + 1, 11),\n            videoUrl=\"https://example.com/v.mp4\" if slug != \"kindex\" else None,\n        ))\n    return tools\n\n\n# ---------------------------------------------------------------------------\n# configure_vitest: structural and type-level checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartConfigureVitest:\n    \"\"\"Tests that configure_vitest returns a properly structured VitestConfigBlock.\"\"\"\n\n    def test_goodhart_setupfiles_is_list_of_exactly_one(self, tmp_path, monkeypatch):\n        \"\"\"The setupFiles field must be a list containing exactly one entry.\"\"\"\n        # Ensure vite.config.ts exists for precondition\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable or raised precondition error\")\n        assert isinstance(result.setupFiles, list), \"setupFiles must be a list\"\n        assert len(result.setupFiles) == 1, \"setupFiles must have exactly one entry\"\n\n    def test_goodhart_include_is_list_of_exactly_one(self, tmp_path, monkeypatch):\n        \"\"\"The include field must be a list containing exactly one glob pattern.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable or raised precondition error\")\n        assert isinstance(result.include, list), \"include must be a list\"\n        assert len(result.include) == 1, \"include must have exactly one entry\"\n\n    def test_goodhart_returns_struct_with_named_attributes(self, tmp_path, monkeypatch):\n        \"\"\"Return value must expose all four VitestConfigBlock fields as attributes.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        for attr in (\"environment\", \"globals\", \"setupFiles\", \"include\"):\n            assert hasattr(result, attr), f\"Missing attribute: {attr}\"\n\n    def test_goodhart_setup_path_matches_regex(self, tmp_path, monkeypatch):\n        \"\"\"setupFiles[0] must conform to the SetupFilePath regex validator.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        path = result.setupFiles[0]\n        assert re.match(r\"^\\./src/__tests__/[a-zA-Z0-9_-]+\\.ts$\", path), (\n            f\"setupFiles path '{path}' does not match SetupFilePath regex\"\n        )\n\n    def test_goodhart_include_pattern_matches_regex(self, tmp_path, monkeypatch):\n        \"\"\"include[0] must conform to the GlobPattern regex validator.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        pattern = result.include[0]\n        assert re.match(r\"^src/.+\\.test\\.\\{[a-z,]+\\}$\", pattern), (\n            f\"include pattern '{pattern}' does not match GlobPattern regex\"\n        )\n\n    def test_goodhart_idempotent_calls(self, tmp_path, monkeypatch):\n        \"\"\"Multiple invocations must return structurally equivalent results.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            r1 = configure_vitest()\n            r2 = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        assert r1.environment == r2.environment\n        assert r1.globals == r2.globals\n        assert r1.setupFiles == r2.setupFiles\n        assert r1.include == r2.include\n\n    def test_goodhart_globals_is_bool_true_not_truthy(self, tmp_path, monkeypatch):\n        \"\"\"globals must be exactly boolean True, not 1 or 'true'.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        assert result.globals is True, \"globals must be boolean True\"\n        assert type(result.globals) is bool, \"globals must be bool type\"\n\n    def test_goodhart_environment_is_string_jsdom(self, tmp_path, monkeypatch):\n        \"\"\"environment must be the plain string 'jsdom'.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        assert result.environment == \"jsdom\"\n        assert isinstance(result.environment, str)\n\n    def test_goodhart_include_contains_tsx_and_ts(self, tmp_path, monkeypatch):\n        \"\"\"The include glob must reference both ts and tsx extensions.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        pattern = result.include[0]\n        assert \"tsx\" in pattern, \"include pattern must contain tsx\"\n        assert \"ts\" in pattern, \"include pattern must contain ts\"\n\n    def test_goodhart_include_uses_double_star(self, tmp_path, monkeypatch):\n        \"\"\"The include pattern must use '**' for recursive matching.\"\"\"\n        vite_cfg = tmp_path / \"vite.config.ts\"\n        vite_cfg.write_text(\"export default {}\")\n        monkeypatch.chdir(tmp_path)\n        try:\n            result = configure_vitest()\n        except Exception:\n            pytest.skip(\"configure_vitest unavailable\")\n        assert \"**\" in result.include[0], \"include pattern must contain ** for recursion\"\n\n\n# ---------------------------------------------------------------------------\n# validate_tools_array_length: boundary and type checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartValidateToolsArrayLength:\n\n    def test_goodhart_rejects_none_input(self):\n        \"\"\"Must reject None input, not silently return True.\"\"\"\n        with pytest.raises(Exception):\n            validate_tools_array_length(None)\n\n    def test_goodhart_rejects_string_of_length_11(self):\n        \"\"\"A string with 11 characters must not pass the cardinality check.\"\"\"\n        with pytest.raises(Exception):\n            validate_tools_array_length(\"abcdefghijk\")\n\n    def test_goodhart_rejects_ten_items(self):\n        \"\"\"10 items (one below required) must be rejected.\"\"\"\n        tools = _make_tools_list(10)\n        with pytest.raises(Exception):\n            validate_tools_array_length(tools)\n\n    def test_goodhart_rejects_twelve_items(self):\n        \"\"\"12 items (one above required) must be rejected.\"\"\"\n        tools = _make_tools_list(12)\n        with pytest.raises(Exception):\n            validate_tools_array_length(tools)\n\n    def test_goodhart_accepts_exactly_eleven(self):\n        \"\"\"Exactly 11 items must return True.\"\"\"\n        tools = _make_tools_list(11)\n        assert validate_tools_array_length(tools) is True\n\n\n# ---------------------------------------------------------------------------\n# validate_tool_required_fields: comprehensive field validation\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartValidateToolRequiredFields:\n\n    def test_goodhart_name_none_raises(self):\n        \"\"\"None name must trigger missing_name, not just empty string.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(name=None))\n\n    def test_goodhart_description_none_raises(self):\n        \"\"\"None description must trigger missing_description.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(description=None))\n\n    def test_goodhart_version_none_raises(self):\n        \"\"\"None version must trigger missing_version.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(version=None))\n\n    def test_goodhart_step_negative_raises(self):\n        \"\"\"Negative step must be rejected, testing beyond visible 0 and 12.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(step=-1))\n\n    def test_goodhart_step_float_raises(self):\n        \"\"\"Float step (e.g. 5.5) must be rejected as not an integer.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(step=5.5))\n\n    def test_goodhart_step_string_raises(self):\n        \"\"\"String step (e.g. '5') must be rejected as wrong type.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(step=\"5\"))\n\n    def test_goodhart_step_large_positive_raises(self):\n        \"\"\"Step=100 must be rejected, not just values 12 and above the visible tests.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(step=100))\n\n    def test_goodhart_accent_color_no_hash_raises(self):\n        \"\"\"Hex digits without '#' prefix must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(accentColor=\"abcdef\"))\n\n    def test_goodhart_accent_color_8digit_raises(self):\n        \"\"\"8-digit hex (with alpha) must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(accentColor=\"#abcdef99\"))\n\n    def test_goodhart_accent_color_non_hex_chars_raises(self):\n        \"\"\"Non-hex characters in color must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(accentColor=\"#gggggg\"))\n\n    def test_goodhart_accent_color_empty_string_raises(self):\n        \"\"\"Empty accentColor string must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(accentColor=\"\"))\n\n    def test_goodhart_accent_color_uppercase_accepted(self):\n        \"\"\"Uppercase hex digits must be accepted per the regex.\"\"\"\n        assert validate_tool_required_fields(_make_tool(accentColor=\"#ABCDEF\")) is True\n\n    def test_goodhart_accent_color_mixed_case_accepted(self):\n        \"\"\"Mixed-case hex digits must be accepted.\"\"\"\n        assert validate_tool_required_fields(_make_tool(accentColor=\"#aB3Cd9\")) is True\n\n    def test_goodhart_step_midrange_accepted(self):\n        \"\"\"Mid-range step=6 must be accepted (not just boundaries 1 and 11).\"\"\"\n        assert validate_tool_required_fields(_make_tool(step=6)) is True\n\n    def test_goodhart_name_whitespace_only_raises(self):\n        \"\"\"Whitespace-only name should be treated as empty.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(name=\"   \"))\n\n    def test_goodhart_missing_name_key_entirely_raises(self):\n        \"\"\"Tool dict missing 'name' key entirely must raise.\"\"\"\n        tool = _make_tool()\n        del tool[\"name\"]\n        with pytest.raises(Exception):\n            validate_tool_required_fields(tool)\n\n    def test_goodhart_name_is_number_raises(self):\n        \"\"\"Numeric name (non-string) must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            validate_tool_required_fields(_make_tool(name=42))\n\n\n# ---------------------------------------------------------------------------\n# validate_tools_slugs_ordered: ordering and uniqueness checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartValidateToolsSlugsOrdered:\n\n    def test_goodhart_duplicate_slugs_rejected(self):\n        \"\"\"Array with duplicate slugs must fail even if length is correct.\"\"\"\n        canonical = [f\"slug-{i}\" for i in range(11)]\n        duplicated = list(canonical)\n        duplicated[1] = duplicated[0]  # duplicate first slug into second position\n        tools = _make_tools_list(11, slugs=duplicated)\n        with pytest.raises(Exception):\n            validate_tools_slugs_ordered(tools, canonical)\n\n    def test_goodhart_first_last_swap_rejected(self):\n        \"\"\"Swapping first and last slugs must be detected as mismatch.\"\"\"\n        canonical = [f\"slug-{i}\" for i in range(11)]\n        swapped = list(canonical)\n        swapped[0], swapped[10] = swapped[10], swapped[0]\n        tools = _make_tools_list(11, slugs=swapped)\n        with pytest.raises(Exception):\n            validate_tools_slugs_ordered(tools, canonical)\n\n    def test_goodhart_empty_slug_value_rejected(self):\n        \"\"\"A tool with empty string slug must not match canonical array.\"\"\"\n        canonical = [f\"slug-{i}\" for i in range(11)]\n        modified = list(canonical)\n        modified[5] = \"\"\n        tools = _make_tools_list(11, slugs=modified)\n        with pytest.raises(Exception):\n            validate_tools_slugs_ordered(tools, canonical)\n\n    def test_goodhart_correct_order_accepted(self):\n        \"\"\"Exact match in order must return True.\"\"\"\n        canonical = [f\"slug-{i}\" for i in range(11)]\n        tools = _make_tools_list(11, slugs=canonical)\n        assert validate_tools_slugs_ordered(tools, canonical) is True\n\n\n# ---------------------------------------------------------------------------\n# validate_kindex_no_video_url: edge cases\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartValidateKindexNoVideoUrl:\n\n    def test_goodhart_kindex_videourl_none_is_undefined(self):\n        \"\"\"kindex with videoUrl=None should pass (treated as undefined).\"\"\"\n        tools = _make_tools_list(11, slugs=[f\"t-{i}\" for i in range(10)] + [\"kindex\"])\n        kindex_tool = next(t for t in tools if t[\"slug\"] == \"kindex\")\n        kindex_tool[\"videoUrl\"] = None\n        assert validate_kindex_no_video_url(tools) is True\n\n    def test_goodhart_kindex_videourl_absent_key_passes(self):\n        \"\"\"kindex without videoUrl key should pass (undefined).\"\"\"\n        tools = _make_tools_list(11, slugs=[f\"t-{i}\" for i in range(10)] + [\"kindex\"])\n        kindex_tool = next(t for t in tools if t[\"slug\"] == \"kindex\")\n        kindex_tool.pop(\"videoUrl\", None)\n        assert validate_kindex_no_video_url(tools) is True\n\n    def test_goodhart_kindex_videourl_empty_string_raises(self):\n        \"\"\"kindex with videoUrl='' has a defined value and should raise.\"\"\"\n        tools = _make_tools_list(11, slugs=[f\"t-{i}\" for i in range(10)] + [\"kindex\"])\n        kindex_tool = next(t for t in tools if t[\"slug\"] == \"kindex\")\n        kindex_tool[\"videoUrl\"] = \"\"\n        with pytest.raises(Exception):\n            validate_kindex_no_video_url(tools)\n\n\n# ---------------------------------------------------------------------------\n# validate_non_kindex_have_video_url: edge cases\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartValidateNonKindexHaveVideoUrl:\n\n    def test_goodhart_whitespace_only_videourl_raises(self):\n        \"\"\"Non-kindex tool with whitespace-only videoUrl should be rejected.\"\"\"\n        slugs = [f\"tool-{i}\" for i in range(10)] + [\"kindex\"]\n        tools = _make_tools_list(11, slugs=slugs)\n        # Set a non-kindex tool's videoUrl to whitespace\n        non_kindex = next(t for t in tools if t[\"slug\"] != \"kindex\")\n        non_kindex[\"videoUrl\"] = \"   \"\n        with pytest.raises(Exception):\n            validate_non_kindex_have_video_url(tools)\n\n    def test_goodhart_none_videourl_raises(self):\n        \"\"\"Non-kindex tool with videoUrl=None must be rejected.\"\"\"\n        slugs = [f\"tool-{i}\" for i in range(10)] + [\"kindex\"]\n        tools = _make_tools_list(11, slugs=slugs)\n        non_kindex = next(t for t in tools if t[\"slug\"] != \"kindex\")\n        non_kindex[\"videoUrl\"] = None\n        with pytest.raises(Exception):\n            validate_non_kindex_have_video_url(tools)\n\n    def test_goodhart_all_non_kindex_valid_passes(self):\n        \"\"\"All non-kindex tools with valid videoUrl must pass.\"\"\"\n        slugs = [f\"tool-{i}\" for i in range(10)] + [\"kindex\"]\n        tools = _make_tools_list(11, slugs=slugs)\n        # Ensure all non-kindex have valid URLs\n        for t in tools:\n            if t[\"slug\"] != \"kindex\":\n                t[\"videoUrl\"] = \"https://example.com/video.mp4\"\n        assert validate_non_kindex_have_video_url(tools) is True\n\n\n# ---------------------------------------------------------------------------\n# initialize_setup_file: return value and content checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartInitializeSetupFile:\n\n    def test_goodhart_returns_none(self, tmp_path, monkeypatch):\n        \"\"\"initialize_setup_file must return None (side-effect only function).\"\"\"\n        monkeypatch.chdir(tmp_path)\n        (tmp_path / \"src\" / \"__tests__\").mkdir(parents=True, exist_ok=True)\n        mock_config = ConvexMockConfig(\n            useQuery_default=None,\n            useMutation_default=\"vi.fn()\",\n        )\n        try:\n            result = initialize_setup_file(mock_config)\n        except Exception:\n            pytest.skip(\"initialize_setup_file precondition not met\")\n        assert result is None, \"initialize_setup_file must return None\"\n\n    def test_goodhart_setup_file_created(self, tmp_path, monkeypatch):\n        \"\"\"initialize_setup_file must create the setup.ts file on disk.\"\"\"\n        monkeypatch.chdir(tmp_path)\n        tests_dir = tmp_path / \"src\" / \"__tests__\"\n        tests_dir.mkdir(parents=True, exist_ok=True)\n        mock_config = ConvexMockConfig(\n            useQuery_default=None,\n            useMutation_default=\"vi.fn()\",\n        )\n        try:\n            initialize_setup_file(mock_config)\n        except Exception:\n            pytest.skip(\"initialize_setup_file precondition not met\")\n        setup_file = tests_dir / \"setup.ts\"\n        assert setup_file.exists(), \"setup.ts must be created\"\n\n    def test_goodhart_setup_file_contains_convex_react_mock(self, tmp_path, monkeypatch):\n        \"\"\"The generated setup.ts must contain 'convex/react' as the mock target string.\"\"\"\n        monkeypatch.chdir(tmp_path)\n        tests_dir = tmp_path / \"src\" / \"__tests__\"\n        tests_dir.mkdir(parents=True, exist_ok=True)\n        mock_config = ConvexMockConfig(\n            useQuery_default=None,\n            useMutation_default=\"vi.fn()\",\n        )\n        try:\n            initialize_setup_file(mock_config)\n        except Exception:\n            pytest.skip(\"initialize_setup_file precondition not met\")\n        content = (tests_dir / \"setup.ts\").read_text()\n        assert \"convex/react\" in content, \"setup.ts must mock 'convex/react'\"\n\n    def test_goodhart_setup_file_contains_jest_dom_import(self, tmp_path, monkeypatch):\n        \"\"\"The generated setup.ts must import @testing-library/jest-dom.\"\"\"\n        monkeypatch.chdir(tmp_path)\n        tests_dir = tmp_path / \"src\" / \"__tests__\"\n        tests_dir.mkdir(parents=True, exist_ok=True)\n        mock_config = ConvexMockConfig(\n            useQuery_default=None,\n            useMutation_default=\"vi.fn()\",\n        )\n        try:\n            initialize_setup_file(mock_config)\n        except Exception:\n            pytest.skip(\"initialize_setup_file precondition not met\")\n        content = (tests_dir / \"setup.ts\").read_text()\n        assert \"@testing-library/jest-dom\" in content, (\n            \"setup.ts must import @testing-library/jest-dom\"\n        )\n\n\n# ---------------------------------------------------------------------------\n# SetupFilePath: additional regex boundary checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartSetupFilePath:\n\n    def test_goodhart_rejects_js_extension(self):\n        \"\"\"Only .ts extension is valid; .js must be rejected.\"\"\"\n        pattern = r\"^\\./src/__tests__/[a-zA-Z0-9_-]+\\.ts$\"\n        assert re.match(pattern, \"./src/__tests__/setup.js\") is None\n        try:\n            result = SetupFilePath(\"./src/__tests__/setup.js\")\n            # If constructor doesn't raise, check it was rejected\n            pytest.fail(\"SetupFilePath should reject .js extension\")\n        except Exception:\n            pass\n\n    def test_goodhart_rejects_nested_subdirectory(self):\n        \"\"\"Paths with subdirectories under __tests__/ must be rejected.\"\"\"\n        try:\n            result = SetupFilePath(\"./src/__tests__/sub/setup.ts\")\n            pytest.fail(\"SetupFilePath should reject nested subdirectory paths\")\n        except Exception:\n            pass\n\n    def test_goodhart_accepts_valid_hyphenated_name(self):\n        \"\"\"A hyphenated filename under __tests__/ should be accepted.\"\"\"\n        try:\n            result = SetupFilePath(\"./src/__tests__/my-setup-file.ts\")\n            # Should not raise\n        except Exception:\n            pytest.fail(\"SetupFilePath should accept hyphenated filenames\")\n\n    def test_goodhart_rejects_dot_in_filename(self):\n        \"\"\"Dots in the filename (before .ts) are not in [a-zA-Z0-9_-] and must be rejected.\"\"\"\n        try:\n            result = SetupFilePath(\"./src/__tests__/setup.extra.ts\")\n            pytest.fail(\"SetupFilePath should reject dots in filename\")\n        except Exception:\n            pass\n\n\n# ---------------------------------------------------------------------------\n# GlobPattern: additional regex boundary checks\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartGlobPattern:\n\n    def test_goodhart_rejects_uppercase_brace_group(self):\n        \"\"\"Brace group with uppercase letters must be rejected per [a-z,]+ regex.\"\"\"\n        try:\n            result = GlobPattern(\"src/**/*.test.{TS,TSX}\")\n            pytest.fail(\"GlobPattern should reject uppercase extensions in brace group\")\n        except Exception:\n            pass\n\n    def test_goodhart_rejects_empty_brace_group(self):\n        \"\"\"Empty brace group {} is not matched by [a-z,]+ (requires one or more).\"\"\"\n        try:\n            result = GlobPattern(\"src/**/*.test.{}\")\n            pytest.fail(\"GlobPattern should reject empty brace group\")\n        except Exception:\n            pass\n\n    def test_goodhart_accepts_single_extension_brace(self):\n        \"\"\"A brace group with a single extension like {ts} should be accepted.\"\"\"\n        try:\n            result = GlobPattern(\"src/**/*.test.{ts}\")\n        except Exception:\n            pytest.fail(\"GlobPattern should accept single-extension brace group\")\n\n\n# ---------------------------------------------------------------------------\n# ExitCode: mid-range acceptance\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartExitCode:\n\n    def test_goodhart_accepts_one(self):\n        \"\"\"ExitCode 1 is within [0, 255] and must be accepted.\"\"\"\n        try:\n            ec = ExitCode(1)\n        except Exception:\n            pytest.fail(\"ExitCode should accept value 1\")\n\n    def test_goodhart_accepts_127(self):\n        \"\"\"ExitCode 127 is within [0, 255] and must be accepted.\"\"\"\n        try:\n            ec = ExitCode(127)\n        except Exception:\n            pytest.fail(\"ExitCode should accept value 127\")\n\n    def test_goodhart_rejects_float(self):\n        \"\"\"ExitCode must reject float values even if within range.\"\"\"\n        with pytest.raises(Exception):\n            ExitCode(1.5)\n\n    def test_goodhart_rejects_negative_boundary(self):\n        \"\"\"ExitCode -1 (just below 0) must be rejected.\"\"\"\n        with pytest.raises(Exception):\n            ExitCode(-1)\n\n\n# ---------------------------------------------------------------------------\n# TestSuiteResult: structural validation\n# ---------------------------------------------------------------------------\n\nclass TestGoodhartTestSuiteResult:\n\n    def test_goodhart_rejects_failed_nonzero(self):\n        \"\"\"Any nonzero failed count (e.g., 2) must be rejected, not just 1.\"\"\"\n        with pytest.raises(Exception):\n            TestSuiteResult(\n                exit_code=ExitCode(1),\n                total_tests=10,\n                passed=8,\n                failed=2,\n                test_files_count=3,\n                duration_ms=1000,\n            )\n\n    def test_goodhart_rejects_test_files_count_zero(self):\n        \"\"\"test_files_count=0 must be rejected (validator >=2).\"\"\"\n        with pytest.raises(Exception):\n            TestSuiteResult(\n                exit_code=ExitCode(0),\n                total_tests=6,\n                passed=6,\n                failed=0,\n                test_files_count=0,\n                duration_ms=1000,\n            )\n\n    def test_goodhart_accepts_minimum_valid(self):\n        \"\"\"The minimum valid TestSuiteResult per contract constraints must be accepted.\"\"\"\n        try:\n            result = TestSuiteResult(\n                exit_code=ExitCode(0),\n                total_tests=6,\n                passed=6,\n                failed=0,\n                test_files_count=2,\n                duration_ms=500,\n            )\n        except Exception:\n            pytest.fail(\"Minimum valid TestSuiteResult should be accepted\")\n"
+}

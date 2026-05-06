@@ -1,0 +1,672 @@
+{
+  "project_id": "exemplar-tools-site",
+  "tasks": [
+    {
+      "id": "T001",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Initialize project directory structure",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "scaffold"
+    },
+    {
+      "id": "T002",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Verify environment and dependencies",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T001"
+      ],
+      "category": "scaffold"
+    },
+    {
+      "id": "T003",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: Comment",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T004",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: CommentList",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T005",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: GoogleFontLink",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T006",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: HexColor",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T007",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: HexColorString",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T008",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: InstructionStep",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T009",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: InstructionStepList",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T010",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: OptionalVideoUrl",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T011",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ReactElement",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T012",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: StepNumber",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T013",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ToolDef",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T014",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ToolDefList",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T015",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ToolSlug",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T016",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: number",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T017",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: string",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T018",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Review contract for Project Scaffold & Configuration",
+      "file_path": "contracts/project_scaffold/interface.json",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T019",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Set up test harness for Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T018"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T020",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Write contract tests for Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T019"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T021",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Implement Project Scaffold & Configuration",
+      "file_path": "implementations/project_scaffold/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T020"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T022",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Run tests and verify Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T021"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T023",
+      "phase": "component",
+      "component_id": "data_layer",
+      "description": "Review contract for Data Constants & Convex Backend",
+      "file_path": "contracts/data_layer/interface.json",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T024",
+      "phase": "component",
+      "component_id": "data_layer",
+      "description": "Set up test harness for Data Constants & Convex Backend",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T023"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T025",
+      "phase": "component",
+      "component_id": "data_layer",
+      "description": "Write contract tests for Data Constants & Convex Backend",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T024"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T026",
+      "phase": "component",
+      "component_id": "data_layer",
+      "description": "Implement Data Constants & Convex Backend",
+      "file_path": "implementations/data_layer/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T025"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T027",
+      "phase": "component",
+      "component_id": "data_layer",
+      "description": "Run tests and verify Data Constants & Convex Backend",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T026"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T028",
+      "phase": "component",
+      "component_id": "app_shell",
+      "description": "Review contract for App Shell, Routing & Layout",
+      "file_path": "contracts/app_shell/interface.json",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T029",
+      "phase": "component",
+      "component_id": "app_shell",
+      "description": "Set up test harness for App Shell, Routing & Layout",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T028"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T030",
+      "phase": "component",
+      "component_id": "app_shell",
+      "description": "Write contract tests for App Shell, Routing & Layout",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T029"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T031",
+      "phase": "component",
+      "component_id": "app_shell",
+      "description": "Implement App Shell, Routing & Layout",
+      "file_path": "implementations/app_shell/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T030"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T032",
+      "phase": "component",
+      "component_id": "app_shell",
+      "description": "Run tests and verify App Shell, Routing & Layout",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T031"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T033",
+      "phase": "component",
+      "component_id": "home_page",
+      "description": "Review contract for Home Page",
+      "file_path": "contracts/home_page/interface.json",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T034",
+      "phase": "component",
+      "component_id": "home_page",
+      "description": "Set up test harness for Home Page",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T033"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T035",
+      "phase": "component",
+      "component_id": "home_page",
+      "description": "Write contract tests for Home Page",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T034"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T036",
+      "phase": "component",
+      "component_id": "home_page",
+      "description": "Implement Home Page",
+      "file_path": "implementations/home_page/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T035"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T037",
+      "phase": "component",
+      "component_id": "home_page",
+      "description": "Run tests and verify Home Page",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T036"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T038",
+      "phase": "component",
+      "component_id": "tool_page",
+      "description": "Review contract for Tool Page & Comments Section",
+      "file_path": "contracts/tool_page/interface.json",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T039",
+      "phase": "component",
+      "component_id": "tool_page",
+      "description": "Set up test harness for Tool Page & Comments Section",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T038"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T040",
+      "phase": "component",
+      "component_id": "tool_page",
+      "description": "Write contract tests for Tool Page & Comments Section",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T039"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T041",
+      "phase": "component",
+      "component_id": "tool_page",
+      "description": "Implement Tool Page & Comments Section",
+      "file_path": "implementations/tool_page/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T040"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T042",
+      "phase": "component",
+      "component_id": "tool_page",
+      "description": "Run tests and verify Tool Page & Comments Section",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T041"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T043",
+      "phase": "component",
+      "component_id": "tests",
+      "description": "Review contract for Test Harness & Smoke Tests",
+      "file_path": "contracts/tests/interface.json",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T044",
+      "phase": "component",
+      "component_id": "tests",
+      "description": "Set up test harness for Test Harness & Smoke Tests",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T043"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T045",
+      "phase": "component",
+      "component_id": "tests",
+      "description": "Write contract tests for Test Harness & Smoke Tests",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T044"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T046",
+      "phase": "component",
+      "component_id": "tests",
+      "description": "Implement Test Harness & Smoke Tests",
+      "file_path": "implementations/tests/src/",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T045"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T047",
+      "phase": "component",
+      "component_id": "tests",
+      "description": "Run tests and verify Test Harness & Smoke Tests",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T046"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T048",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Review integration contract for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T049",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Write integration tests for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "test_write"
+    },
+    {
+      "id": "T050",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Wire children for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T032",
+        "T027",
+        "T037",
+        "T022",
+        "T047",
+        "T042"
+      ],
+      "category": "integrate"
+    },
+    {
+      "id": "T051",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Run integration tests for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T050"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T052",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Run full contract validation gate",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T053",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Cross-artifact analysis",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T054",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Update design document",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "document"
+    }
+  ],
+  "checkpoints": [
+    {
+      "after_phase": "component",
+      "description": "All leaf components verified",
+      "validation": "All leaf contract tests pass"
+    },
+    {
+      "after_phase": "integration",
+      "description": "All integrations verified",
+      "validation": "All integration tests pass"
+    }
+  ],
+  "generated_at": "2026-05-06T13:11:58.258819",
+  "version": 1
+}

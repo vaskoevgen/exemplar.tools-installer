@@ -1,0 +1,295 @@
+{
+  "component_id": "root",
+  "name": "Root",
+  "description": "Zero-props compositional root component that serves as the application entry point for the exemplar.tools documentation website. Instantiates the Convex real-time client from VITE_CONVEX_URL environment variable (fail-fast on missing), composes the provider tree (ConvexProvider → BrowserRouter), and declares the route table with three routes inside app_shell's Layout wrapper: '/' → HomePage, '/:toolSlug' → ToolPage, '*' → redirect to '/'. Contains no business logic, no state, no effects — purely a provider and route composition layer. File budget is ≤50 lines. StrictMode wrapping is owned by main.tsx (project_scaffold), not this component; Root is rendered inside StrictMode.",
+  "version": 1,
+  "types": [
+    {
+      "name": "ConvexUrl",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The raw URL string from the environment variable.",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https?://.+",
+              "error_message": "VITE_CONVEX_URL must be a valid HTTP(S) URL."
+            },
+            {
+              "kind": "length",
+              "expression": "1..2048",
+              "error_message": "VITE_CONVEX_URL must be a non-empty string of at most 2048 characters."
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated Convex deployment URL string read from VITE_CONVEX_URL. Must be a non-empty HTTPS URL ending with .convex.cloud or matching local dev patterns (e.g. http://localhost:*).",
+      "owner_component": ""
+    },
+    {
+      "name": "RouteDefinition",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "React Router path pattern string (e.g. '/', '/:toolSlug', '*').",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Route path must be a non-empty string of at most 100 characters."
+            }
+          ]
+        },
+        {
+          "name": "component",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Name of the React component rendered at this route (e.g. 'HomePage', 'ToolPage', 'Navigate').",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "1..100",
+              "error_message": "Component name must be a non-empty string."
+            }
+          ]
+        },
+        {
+          "name": "isIndex",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "True if this is the index (default) route of the layout, false otherwise.",
+          "validators": []
+        },
+        {
+          "name": "isCatchAll",
+          "type_ref": "bool",
+          "required": true,
+          "default": "false",
+          "description": "True if this is the catch-all wildcard route ('*'), false otherwise.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Metadata descriptor for a single route entry in the Root route table. Used for documentation and testing introspection — not required at runtime.",
+      "owner_component": ""
+    },
+    {
+      "name": "RouteTable",
+      "kind": "list",
+      "fields": [],
+      "item_type": "RouteDefinition",
+      "variants": [],
+      "inner_types": [],
+      "description": "The complete ordered list of route definitions declared by the Root component. Always exactly 3 entries: index, toolSlug, and catch-all.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactFC",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React functional component type (React.FC). Accepts no props. Returns a React element (JSX).",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "Root",
+      "description": "Zero-props React functional component (React.FC) exported as the default export from src/App.tsx (or src/Root.tsx). Composes the full provider and route tree: (1) reads VITE_CONVEX_URL at module scope and passes it to createConvexClient to obtain the singleton ConvexReactClient, (2) wraps the route tree in ConvexProvider with the client instance, (3) wraps in BrowserRouter for client-side routing, (4) declares a parent Route with element={<Layout />} containing three child routes: index route rendering HomePage, '/:toolSlug' route rendering ToolPage, and '*' catch-all route rendering <Navigate to='/' replace />. This component is rendered inside React.StrictMode by main.tsx — it does not itself wrap in StrictMode. File is ≤50 lines.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [
+        {
+          "name": "missing_convex_url",
+          "condition": "import.meta.env.VITE_CONVEX_URL is undefined, null, or empty string at module load time",
+          "error_type": "Error",
+          "error_data": {
+            "message": "VITE_CONVEX_URL environment variable is not set. Add it to your .env.local file."
+          }
+        },
+        {
+          "name": "convex_client_initialization_failed",
+          "condition": "createConvexClient throws due to invalid URL format or other initialization error",
+          "error_type": "Error",
+          "error_data": {
+            "message": "Failed to initialize Convex client. Verify VITE_CONVEX_URL is a valid Convex deployment URL."
+          }
+        },
+        {
+          "name": "home_page_import_failure",
+          "condition": "HomePage component cannot be imported from home_page module (missing or misconfigured module)",
+          "error_type": "ImportError",
+          "error_data": {
+            "message": "Failed to import HomePage component. Ensure home_page module is correctly built and exported."
+          }
+        },
+        {
+          "name": "tool_page_import_failure",
+          "condition": "ToolPage component cannot be imported from tool_page module (missing or misconfigured module)",
+          "error_type": "ImportError",
+          "error_data": {
+            "message": "Failed to import ToolPage component. Ensure tool_page module is correctly built and exported."
+          }
+        },
+        {
+          "name": "layout_import_failure",
+          "condition": "Layout (renderLayout) component cannot be imported from app_shell module",
+          "error_type": "ImportError",
+          "error_data": {
+            "message": "Failed to import Layout component from app_shell. Ensure app_shell module is correctly built and exported."
+          }
+        }
+      ],
+      "preconditions": [
+        "import.meta.env.VITE_CONVEX_URL is defined and is a non-empty string (validated at module load time before Root is ever called)",
+        "createConvexClient from app_shell has successfully returned a ConvexReactClient instance (module-level singleton)",
+        "HomePage component is importable from home_page module",
+        "ToolPage component is importable from tool_page module",
+        "renderLayout (Layout component) is importable from app_shell module",
+        "React Router v6 Routes, Route, Navigate, and BrowserRouter are importable from react-router-dom",
+        "ConvexProvider is importable from convex/react",
+        "Component is rendered inside React.StrictMode by main.tsx (project_scaffold)"
+      ],
+      "postconditions": [
+        "Returns a single JSX tree: ConvexProvider > BrowserRouter > Routes > Route(path='/', element=Layout) with children",
+        "Layout route contains exactly three child routes: (1) index route → HomePage, (2) path=':toolSlug' → ToolPage, (3) path='*' → Navigate to='/' replace",
+        "ConvexProvider receives the singleton client instance from createConvexClient",
+        "No useState, useEffect, or any React hook is called within this component — it is purely compositional",
+        "No props are required or accepted",
+        "All routes are reachable: '/' renders HomePage inside Layout, '/:toolSlug' renders ToolPage inside Layout, any unmatched path redirects to '/'",
+        "The catch-all '*' route uses <Navigate to='/' replace /> so unrecognized paths redirect to home without adding a history entry"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Root is purely compositional — no side effects. Provider setup and client instantiation happen at module scope, not within the component function body."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getRouteTable",
+      "description": "Pure function that returns the canonical route table metadata as a RouteTable array. Documents the three routes declared by Root for testing and introspection purposes. Not used at runtime by Root itself — exists for contract verifiability and test assertions.",
+      "inputs": [],
+      "output_type": "RouteTable",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned array has exactly 3 elements",
+        "Element 0: { path: '/', component: 'HomePage', isIndex: true, isCatchAll: false }",
+        "Element 1: { path: '/:toolSlug', component: 'ToolPage', isIndex: false, isCatchAll: false }",
+        "Element 2: { path: '*', component: 'Navigate', isIndex: false, isCatchAll: true }"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function returning static metadata."
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "app_shell",
+    "data_layer",
+    "home_page",
+    "project_scaffold",
+    "tests",
+    "tool_page"
+  ],
+  "dependency_contracts": {
+    "app_shell": [
+      "createConvexClient",
+      "renderLayout",
+      "toolPath",
+      "isValidToolSlug",
+      "ToolSlug",
+      "RoutesObject"
+    ],
+    "home_page": [
+      "HomePage"
+    ],
+    "tool_page": [
+      "ToolPage"
+    ],
+    "project_scaffold": [
+      "configure_entry_points",
+      "MainTsxShape"
+    ],
+    "tests": [
+      "renderWithProviders",
+      "smokeTestComponentRender"
+    ]
+  },
+  "invariants": [
+    "Root component accepts zero props — it is typed as React.FC with no generic parameter (equivalent to React.FC<{}>)",
+    "Exactly one ConvexReactClient instance exists per application lifecycle, instantiated at module scope via createConvexClient from app_shell — Root does not create its own client",
+    "The route table contains exactly three child routes under the Layout parent: index (HomePage), :toolSlug (ToolPage), and * (Navigate redirect to '/')",
+    "Root does not wrap in React.StrictMode — that responsibility belongs to main.tsx (project_scaffold)",
+    "Root contains no useState, useEffect, useContext, or any React hook calls — it is purely a composition of providers and routes",
+    "Root file is ≤50 lines of source code",
+    "Root does not define any new domain types — all domain types (ToolSlug, ToolDef, Comment, etc.) are imported from dependency modules",
+    "VITE_CONVEX_URL validation happens at module load time (top-level scope), not inside the Root component function body — this ensures fail-fast behavior before any rendering attempt",
+    "The catch-all '*' route uses <Navigate to='/' replace /> — it redirects to home without adding a browser history entry",
+    "The :toolSlug route parameter name matches the app_shell ROUTES.TOOL pattern ('/:toolSlug') so that ToolPage's useParams().toolSlug resolves correctly",
+    "Provider nesting order is always ConvexProvider (outermost) → BrowserRouter → Routes/Route tree (innermost) — Convex context must be available to all routed components"
+  ],
+  "requires": [
+    "app_shell.createConvexClient",
+    "app_shell.renderLayout",
+    "app_shell.RoutesObject",
+    "home_page.HomePage",
+    "tool_page.ToolPage",
+    "project_scaffold.MainTsxShape"
+  ],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "INTERNAL"
+    ],
+    "writes": [],
+    "rationale": "Root reads the VITE_CONVEX_URL environment variable (classified INTERNAL — it is a deployment configuration secret containing the Convex backend URL) at module load time to initialize the Convex client. Root itself does not read or write any user data, PII, or PUBLIC data. All data access to the Convex backend (comments, tool definitions) is delegated to child components (CommentsSection via data_layer, HomePage/ToolPage via data_layer) which declare their own data access classifications.",
+    "side_effects": [
+      {
+        "type": "env_var_read",
+        "classification": "INTERNAL",
+        "fields": [
+          "VITE_CONVEX_URL"
+        ],
+        "rationale": "Reads the Convex deployment URL from Vite environment variables at module scope to pass to createConvexClient. This URL is an internal infrastructure configuration value, not user data."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "route_table"
+    ],
+    "rationale": "Root is the single authoritative owner of the application route table. It defines the exact set of route patterns ('/', '/:toolSlug', '*'), their mapping to page components (HomePage, ToolPage, Navigate), and the layout wrapper (Layout). No other component may define top-level routes. app_shell provides the ROUTES constant object and Layout component, but Root is the component that instantiates the actual React Router <Routes> tree with those patterns."
+  }
+}

@@ -1,0 +1,882 @@
+{
+  "component_id": "tool_page",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_is_tool_slug_case_sensitive",
+      "description": "isToolSlug must be case-sensitive — uppercase or mixed-case variants of valid slugs must return false, ensuring the guard doesn't use case-insensitive comparison",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Uppercase and mixed-case variants of valid slugs like 'Constrain', 'LEDGER', 'Pact'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('Constrain') == False",
+        "isToolSlug('LEDGER') == False",
+        "isToolSlug('Pact') == False",
+        "isToolSlug('ADVOCATE') == False",
+        "isToolSlug('Kindex') == False"
+      ]
+    },
+    {
+      "id": "goodhart_is_tool_slug_substring_and_prefix",
+      "description": "isToolSlug must reject strings that are substrings, prefixes, or suffixes of valid slugs — no partial matching allowed",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Substrings and extended forms of valid slugs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('constr') == False",
+        "isToolSlug('constrain_extra') == False",
+        "isToolSlug('ledger ') == False",
+        "isToolSlug(' pact') == False",
+        "isToolSlug('arbiter2') == False",
+        "isToolSlug('sentinel-v2') == False"
+      ]
+    },
+    {
+      "id": "goodhart_is_tool_slug_empty_and_whitespace",
+      "description": "isToolSlug must return false for empty string, whitespace-only strings, and None-coerced strings",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Empty string, spaces, tabs, newlines",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('') == False",
+        "isToolSlug(' ') == False",
+        "isToolSlug('\\t') == False",
+        "isToolSlug('\\n') == False"
+      ]
+    },
+    {
+      "id": "goodhart_is_tool_slug_each_member_individually",
+      "description": "isToolSlug must return true for every individual canonical slug — not just a subset that visible tests happened to check",
+      "function": "isToolSlug",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 ToolSlug members tested individually with assertion per member",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('constrain') == True",
+        "isToolSlug('ledger') == True",
+        "isToolSlug('pact') == True",
+        "isToolSlug('advocate') == True",
+        "isToolSlug('arbiter') == True",
+        "isToolSlug('baton') == True",
+        "isToolSlug('sentinel') == True",
+        "isToolSlug('chronicler') == True",
+        "isToolSlug('stigmergy') == True",
+        "isToolSlug('apprentice') == True",
+        "isToolSlug('kindex') == True"
+      ]
+    },
+    {
+      "id": "goodhart_is_tool_slug_returns_bool_type",
+      "description": "isToolSlug must return a strict boolean type, not a truthy/falsy value — the type guard contract requires actual bool",
+      "function": "isToolSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "type(isToolSlug('constrain')) is bool",
+        "type(isToolSlug('invalid')) is bool"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_exact_boundary_60_minutes",
+      "description": "formatRelativeTime must transition from minutes to hours at exactly 60 minutes — boundary not covered by visible tests",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 60 minutes (3600000ms) ago and 59 minutes 59 seconds ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'hour' in formatRelativeTime(now - 3600000)",
+        "'minute' in formatRelativeTime(now - 3599000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_exact_boundary_24_hours",
+      "description": "formatRelativeTime must transition from hours to days at exactly 24 hours — tests the day boundary",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 24 hours (86400000ms) ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'day' in formatRelativeTime(now - 86400000)",
+        "'hour' in formatRelativeTime(now - 86399000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_exact_boundary_7_days",
+      "description": "formatRelativeTime must transition from days to weeks at exactly 7 days",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 7 days ago vs 6 days 23 hours ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'week' in formatRelativeTime(now - 7*86400000)",
+        "'day' in formatRelativeTime(now - 6*86400000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_exact_boundary_30_days",
+      "description": "formatRelativeTime must transition from weeks to months at exactly 30 days",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 30 days ago vs 29 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'month' in formatRelativeTime(now - 30*86400000)",
+        "'week' in formatRelativeTime(now - 29*86400000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_exact_boundary_365_days",
+      "description": "formatRelativeTime must transition from months to years at exactly 365 days",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp exactly 365 days ago vs 364 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'year' in formatRelativeTime(now - 365*86400000)",
+        "'month' in formatRelativeTime(now - 364*86400000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_plural_2_minutes",
+      "description": "formatRelativeTime must use plural form 'minutes' for n=2, not just for the specific values visible tests check",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 2 minutes ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 120000) == '2 minutes ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_1_hour",
+      "description": "formatRelativeTime must use singular 'hour' when exactly 1 hour ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 1 hour ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 3600000) == '1 hour ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_1_day",
+      "description": "formatRelativeTime must use singular 'day' when exactly 1 day ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 1 day ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 86400000) == '1 day ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_1_week",
+      "description": "formatRelativeTime must use singular 'week' when exactly 1 week ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 7 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 7*86400000) == '1 week ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_1_month",
+      "description": "formatRelativeTime must use singular 'month' when exactly 30 days ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 30 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 30*86400000) == '1 month ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_singular_1_year",
+      "description": "formatRelativeTime must use singular 'year' when exactly 365 days ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 365 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 365*86400000) == '1 year ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_large_values",
+      "description": "formatRelativeTime must handle large time differences correctly (multi-year) without overflow or incorrect unit selection",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamps 5 years and 10 years ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 5*365*86400000) == '5 years ago'",
+        "'year' in formatRelativeTime(now - 10*365*86400000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_zero_timestamp",
+      "description": "formatRelativeTime must handle timestamp 0 (Unix epoch) without error — this is a valid non-negative timestamp",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "createdAt=0 representing Unix epoch",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'year' in formatRelativeTime(0)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_59_seconds",
+      "description": "formatRelativeTime must return 'just now' at 59 seconds — verifying the < 60 boundary is strictly less-than",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 59 seconds ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 59000) == 'just now'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_output_never_negative",
+      "description": "formatRelativeTime output must never contain negative numbers or minus signs for any valid input",
+      "function": "formatRelativeTime",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Various timestamps including future timestamps",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "'-' not in formatRelativeTime(now - 1000)",
+        "'-' not in formatRelativeTime(now + 5000)",
+        "'-' not in formatRelativeTime(now - 300000)"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_return_type_string",
+      "description": "formatRelativeTime must always return a string type, not None or another type",
+      "function": "formatRelativeTime",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isinstance(formatRelativeTime(now - 1000), str)",
+        "isinstance(formatRelativeTime(now - 3600000), str)",
+        "isinstance(formatRelativeTime(0), str)"
+      ]
+    },
+    {
+      "id": "goodhart_step_badge_props_step_min_valid",
+      "description": "StepBadgeProps must accept step=1 as the minimum valid step number",
+      "function": "StepBadgeProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "step": "1",
+        "accentColor": "#ff0000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "StepBadgeProps(step=1, accentColor='#ff0000') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_step_badge_props_step_float_rejected",
+      "description": "StepBadgeProps must reject non-integer step values like floats — StepNumber is an integer type",
+      "function": "StepBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "step": "1.5",
+        "accentColor": "#ff0000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for non-integer step",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_version_badge_two_segment_version",
+      "description": "VersionBadgeProps must accept two-segment versions like '1.0' since the regex allows optional third segment",
+      "function": "VersionBadgeProps",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "1.0",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VersionBadgeProps(version='1.0', accentColor='#abcdef') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_version_badge_rejects_single_segment",
+      "description": "VersionBadgeProps must reject single-segment versions like '1' or 'v1' — minimum is major.minor",
+      "function": "VersionBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "1",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for single-segment version",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_version_badge_rejects_empty_version",
+      "description": "VersionBadgeProps must reject empty string versions",
+      "function": "VersionBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for empty version",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_version_badge_prerelease_with_dots",
+      "description": "VersionBadgeProps must accept pre-release versions with dots in the pre-release segment like 'v1.2.3-rc.1'",
+      "function": "VersionBadgeProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "v1.2.3-rc.1",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VersionBadgeProps(version='v1.2.3-rc.1', accentColor='#abcdef') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_version_badge_rejects_trailing_dash",
+      "description": "VersionBadgeProps must reject version strings with trailing dash and no pre-release identifier",
+      "function": "VersionBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "v1.2.3-",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for trailing dash",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_code_block_bash_max_length",
+      "description": "CodeBlockProps must accept bash content at exactly 10000 characters (upper boundary)",
+      "function": "CodeBlockProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Test",
+        "bash": "a]*10000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlockProps(title='Test', bash='a'*10000) is valid"
+      ]
+    },
+    {
+      "id": "goodhart_code_block_bash_over_max",
+      "description": "CodeBlockProps must reject bash content exceeding 10000 characters",
+      "function": "CodeBlockProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "Test",
+        "bash": "a]*10001"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for bash over max length",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_code_block_title_single_char",
+      "description": "CodeBlockProps must accept single-character titles (minimum valid length)",
+      "function": "CodeBlockProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "title": "X",
+        "bash": "echo hello"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlockProps(title='X', bash='echo hello') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_url_with_hyphens_underscores",
+      "description": "VideoEmbedProps URL validator must accept YouTube video IDs containing hyphens and underscores per the regex [a-zA-Z0-9_-]+",
+      "function": "VideoEmbedProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/embed/a-B_c-D_1-2",
+        "title": "Video"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VideoEmbedProps(url='https://www.youtube.com/embed/a-B_c-D_1-2', title='Video') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_rejects_watch_url",
+      "description": "VideoEmbedProps must reject YouTube watch URLs (not embed format) — only /embed/ path is valid",
+      "function": "VideoEmbedProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "title": "Video"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for watch URL",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_video_embed_rejects_youtu_be",
+      "description": "VideoEmbedProps must reject youtu.be short URLs — only youtube.com/embed/ is valid",
+      "function": "VideoEmbedProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://youtu.be/dQw4w9WgXcQ",
+        "title": "Video"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for short URL",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_video_embed_rejects_http_not_https",
+      "description": "VideoEmbedProps URL must require https — http URLs should be rejected",
+      "function": "VideoEmbedProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "http://www.youtube.com/embed/abc123",
+        "title": "Video"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for http URL",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_hex_color_rejects_8_digit",
+      "description": "HexColor validator must reject 8-digit hex colors (with alpha channel) — only exactly 6 hex digits after # are valid",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "color": "#00e5ffaa"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for 8-digit hex",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_hex_color_case_insensitive",
+      "description": "HexColor validator must accept both uppercase and lowercase hex digits per the regex [0-9a-fA-F]",
+      "function": "HexColor",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "color": "#ABCDEF"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HexColor '#ABCDEF' is valid",
+        "HexColor '#abcdef' is valid",
+        "HexColor '#AbCdEf' is valid"
+      ]
+    },
+    {
+      "id": "goodhart_hex_color_rejects_no_hash",
+      "description": "HexColor validator must reject hex strings without the leading # character",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "color": "00e5ff"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for missing hash",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_comments_section_props_all_slugs",
+      "description": "CommentsSectionProps must accept every valid ToolSlug as the page parameter — not just a hardcoded subset",
+      "function": "CommentsSectionProps",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 tool slugs paired with a valid accent color",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CommentsSectionProps(page='constrain', accentColor='#000000') is valid",
+        "CommentsSectionProps(page='ledger', accentColor='#111111') is valid",
+        "CommentsSectionProps(page='pact', accentColor='#222222') is valid",
+        "CommentsSectionProps(page='advocate', accentColor='#333333') is valid",
+        "CommentsSectionProps(page='arbiter', accentColor='#444444') is valid",
+        "CommentsSectionProps(page='baton', accentColor='#555555') is valid",
+        "CommentsSectionProps(page='sentinel', accentColor='#666666') is valid",
+        "CommentsSectionProps(page='chronicler', accentColor='#777777') is valid",
+        "CommentsSectionProps(page='stigmergy', accentColor='#888888') is valid",
+        "CommentsSectionProps(page='apprentice', accentColor='#999999') is valid",
+        "CommentsSectionProps(page='kindex', accentColor='#aaaaaa') is valid"
+      ]
+    },
+    {
+      "id": "goodhart_comments_section_props_rejects_invalid_slug",
+      "description": "CommentsSectionProps must reject page values that are not valid ToolSlug enum members",
+      "function": "CommentsSectionProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "invalid_tool",
+        "accentColor": "#000000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for invalid ToolSlug",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_comment_form_state_author_at_max",
+      "description": "CommentFormState must accept author at exactly 100 characters (upper boundary)",
+      "function": "CommentFormState",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "author": "a]*100",
+        "body": "test body",
+        "submitting": "false"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CommentFormState with author of length 100 is valid"
+      ]
+    },
+    {
+      "id": "goodhart_comment_form_state_body_at_max",
+      "description": "CommentFormState must accept body at exactly 5000 characters (upper boundary)",
+      "function": "CommentFormState",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "author": "test",
+        "body": "a]*5000",
+        "submitting": "false"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CommentFormState with body of length 5000 is valid"
+      ]
+    },
+    {
+      "id": "goodhart_comment_form_state_single_char_fields",
+      "description": "CommentFormState must accept single-character author and body (minimum valid length)",
+      "function": "CommentFormState",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "author": "A",
+        "body": "B",
+        "submitting": "false"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CommentFormState(author='A', body='B', submitting=False) is valid"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_plural_3_hours",
+      "description": "formatRelativeTime must use plural form for 3 hours, verifying pluralization works beyond the specific values in visible tests",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 3 hours ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 3*3600000) == '3 hours ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_plural_4_days",
+      "description": "formatRelativeTime must use plural form for 4 days — testing a day value not in visible tests",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 4 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 4*86400000) == '4 days ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_11_months",
+      "description": "formatRelativeTime must correctly report 11 months for timestamps near but below the year boundary",
+      "function": "formatRelativeTime",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp approximately 11 months ago (330 days)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 330*86400000) == '11 months ago'"
+      ]
+    },
+    {
+      "id": "goodhart_format_relative_time_3_weeks",
+      "description": "formatRelativeTime must correctly report 3 weeks for timestamps around 21 days ago",
+      "function": "formatRelativeTime",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Timestamp 21 days ago",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "formatRelativeTime(now - 21*86400000) == '3 weeks ago'"
+      ]
+    },
+    {
+      "id": "goodhart_is_tool_slug_rejects_numeric_string",
+      "description": "isToolSlug must reject purely numeric strings and other non-slug string formats",
+      "function": "isToolSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Numeric strings, special characters, URLs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "isToolSlug('123') == False",
+        "isToolSlug('0') == False",
+        "isToolSlug('/constrain') == False",
+        "isToolSlug('constrain/') == False"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_url_allows_query_params",
+      "description": "VideoEmbedProps URL regex starts with ^ but has no $ anchor — URLs with additional path segments or query params after the video ID should still be accepted",
+      "function": "VideoEmbedProps",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/embed/abc123?autoplay=1",
+        "title": "Video"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "VideoEmbedProps with query params in URL is valid"
+      ]
+    },
+    {
+      "id": "goodhart_step_badge_props_step_11_rejected",
+      "description": "StepBadgeProps must reject step=11 even though StepNumber type allows 1-11 — StepBadgeProps validator specifies range 1-10",
+      "function": "StepBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "step": "11",
+        "accentColor": "#ff0000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for step=11 exceeding StepBadgeProps range",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_version_badge_rejects_version_with_spaces",
+      "description": "VersionBadgeProps must reject version strings containing spaces",
+      "function": "VersionBadgeProps",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "version": "v1.0 beta",
+        "accentColor": "#abcdef"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for version with spaces",
+      "assertions": []
+    },
+    {
+      "id": "goodhart_hex_color_rejects_empty_string",
+      "description": "HexColor validator must reject empty string as invalid",
+      "function": "HexColor",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "color": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "validation error for empty hex color",
+      "assertions": []
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for Tool Page & Comments Section.\nThese tests target behavioral gaps not covered by visible tests, focusing on\nhardcoded-return detection, boundary adjacency, invariant generalization,\nand postcondition universality.\n\"\"\"\n\nimport pytest\nimport time\nimport math\n\nfrom tool_page import (\n    isToolSlug,\n    formatRelativeTime,\n    StepBadgeProps,\n    VersionBadgeProps,\n    CodeBlockProps,\n    VideoEmbedProps,\n    CommentFormState,\n    CommentsSectionProps,\n    HexColor,\n    ToolSlug,\n    ValidationErrors,\n)\n\n\n# ---------------------------------------------------------------------------\n# Helper: current time in milliseconds\n# ---------------------------------------------------------------------------\ndef _now_ms():\n    return int(time.time() * 1000)\n\n\n# ===========================================================================\n# isToolSlug — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartIsToolSlug:\n\n    def test_goodhart_is_tool_slug_case_sensitive(self):\n        \"\"\"isToolSlug must be case-sensitive — uppercase/mixed-case variants of valid slugs must be rejected.\"\"\"\n        assert isToolSlug(\"Constrain\") is False\n        assert isToolSlug(\"LEDGER\") is False\n        assert isToolSlug(\"Pact\") is False\n        assert isToolSlug(\"ADVOCATE\") is False\n        assert isToolSlug(\"Kindex\") is False\n        assert isToolSlug(\"ARBITER\") is False\n        assert isToolSlug(\"Baton\") is False\n        assert isToolSlug(\"SENTINEL\") is False\n        assert isToolSlug(\"Chronicler\") is False\n        assert isToolSlug(\"STIGMERGY\") is False\n        assert isToolSlug(\"Apprentice\") is False\n\n    def test_goodhart_is_tool_slug_substring_and_prefix(self):\n        \"\"\"isToolSlug must reject substrings, prefixes, suffixes, and padded variants of valid slugs.\"\"\"\n        assert isToolSlug(\"constr\") is False\n        assert isToolSlug(\"constrain_extra\") is False\n        assert isToolSlug(\"ledger \") is False\n        assert isToolSlug(\" pact\") is False\n        assert isToolSlug(\"arbiter2\") is False\n        assert isToolSlug(\"sentinel-v2\") is False\n        assert isToolSlug(\"my-baton\") is False\n        assert isToolSlug(\"chronicler!\") is False\n\n    def test_goodhart_is_tool_slug_empty_and_whitespace(self):\n        \"\"\"isToolSlug must return false for empty string and whitespace-only strings.\"\"\"\n        assert isToolSlug(\"\") is False\n        assert isToolSlug(\" \") is False\n        assert isToolSlug(\"\\t\") is False\n        assert isToolSlug(\"\\n\") is False\n        assert isToolSlug(\"  \") is False\n\n    def test_goodhart_is_tool_slug_each_member_individually(self):\n        \"\"\"isToolSlug must return true for every individual canonical slug member.\"\"\"\n        valid_slugs = [\n            \"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n            \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\"\n        ]\n        for slug in valid_slugs:\n            result = isToolSlug(slug)\n            assert result is True, f\"isToolSlug('{slug}') should be True but got {result}\"\n\n    def test_goodhart_is_tool_slug_returns_bool_type(self):\n        \"\"\"isToolSlug must return a strict boolean type, not merely a truthy/falsy value.\"\"\"\n        assert type(isToolSlug(\"constrain\")) is bool\n        assert type(isToolSlug(\"invalid\")) is bool\n        assert type(isToolSlug(\"\")) is bool\n\n    def test_goodhart_is_tool_slug_rejects_numeric_string(self):\n        \"\"\"isToolSlug must reject purely numeric strings and path-like formats.\"\"\"\n        assert isToolSlug(\"123\") is False\n        assert isToolSlug(\"0\") is False\n        assert isToolSlug(\"/constrain\") is False\n        assert isToolSlug(\"constrain/\") is False\n        assert isToolSlug(\"null\") is False\n        assert isToolSlug(\"undefined\") is False\n        assert isToolSlug(\"true\") is False\n\n\n# ===========================================================================\n# formatRelativeTime — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartFormatRelativeTime:\n\n    def test_goodhart_format_relative_time_exact_boundary_60_minutes(self):\n        \"\"\"formatRelativeTime must transition from minutes to hours at exactly 60 minutes.\"\"\"\n        now = _now_ms()\n        result_at_60m = formatRelativeTime(now - 3600000)\n        assert \"hour\" in result_at_60m, f\"Expected 'hour' in '{result_at_60m}' at 60 minutes\"\n        result_at_59m59s = formatRelativeTime(now - 3599000)\n        assert \"minute\" in result_at_59m59s, f\"Expected 'minute' in '{result_at_59m59s}' at 59m59s\"\n\n    def test_goodhart_format_relative_time_exact_boundary_24_hours(self):\n        \"\"\"formatRelativeTime must transition from hours to days at exactly 24 hours.\"\"\"\n        now = _now_ms()\n        result_at_24h = formatRelativeTime(now - 86400000)\n        assert \"day\" in result_at_24h, f\"Expected 'day' in '{result_at_24h}' at 24 hours\"\n        result_at_23h = formatRelativeTime(now - 86399000)\n        assert \"hour\" in result_at_23h, f\"Expected 'hour' in '{result_at_23h}' at ~23h59m\"\n\n    def test_goodhart_format_relative_time_exact_boundary_7_days(self):\n        \"\"\"formatRelativeTime must transition from days to weeks at exactly 7 days.\"\"\"\n        now = _now_ms()\n        result_at_7d = formatRelativeTime(now - 7 * 86400000)\n        assert \"week\" in result_at_7d, f\"Expected 'week' in '{result_at_7d}' at 7 days\"\n        result_at_6d = formatRelativeTime(now - 6 * 86400000)\n        assert \"day\" in result_at_6d, f\"Expected 'day' in '{result_at_6d}' at 6 days\"\n\n    def test_goodhart_format_relative_time_exact_boundary_30_days(self):\n        \"\"\"formatRelativeTime must transition from weeks to months at exactly 30 days.\"\"\"\n        now = _now_ms()\n        result_at_30d = formatRelativeTime(now - 30 * 86400000)\n        assert \"month\" in result_at_30d, f\"Expected 'month' in '{result_at_30d}' at 30 days\"\n        result_at_29d = formatRelativeTime(now - 29 * 86400000)\n        assert \"week\" in result_at_29d, f\"Expected 'week' in '{result_at_29d}' at 29 days\"\n\n    def test_goodhart_format_relative_time_exact_boundary_365_days(self):\n        \"\"\"formatRelativeTime must transition from months to years at exactly 365 days.\"\"\"\n        now = _now_ms()\n        result_at_365d = formatRelativeTime(now - 365 * 86400000)\n        assert \"year\" in result_at_365d, f\"Expected 'year' in '{result_at_365d}' at 365 days\"\n        result_at_364d = formatRelativeTime(now - 364 * 86400000)\n        assert \"month\" in result_at_364d, f\"Expected 'month' in '{result_at_364d}' at 364 days\"\n\n    def test_goodhart_format_relative_time_singular_1_hour(self):\n        \"\"\"formatRelativeTime must produce exact singular form '1 hour ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 3600000) == \"1 hour ago\"\n\n    def test_goodhart_format_relative_time_singular_1_day(self):\n        \"\"\"formatRelativeTime must produce exact singular form '1 day ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 86400000) == \"1 day ago\"\n\n    def test_goodhart_format_relative_time_singular_1_week(self):\n        \"\"\"formatRelativeTime must produce exact singular form '1 week ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 7 * 86400000) == \"1 week ago\"\n\n    def test_goodhart_format_relative_time_singular_1_month(self):\n        \"\"\"formatRelativeTime must produce exact singular form '1 month ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 30 * 86400000) == \"1 month ago\"\n\n    def test_goodhart_format_relative_time_singular_1_year(self):\n        \"\"\"formatRelativeTime must produce exact singular form '1 year ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 365 * 86400000) == \"1 year ago\"\n\n    def test_goodhart_format_relative_time_singular_2_minutes(self):\n        \"\"\"formatRelativeTime must produce exact plural form '2 minutes ago'.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 120000) == \"2 minutes ago\"\n\n    def test_goodhart_format_relative_time_plural_3_hours(self):\n        \"\"\"formatRelativeTime must use plural form for 3 hours.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 3 * 3600000) == \"3 hours ago\"\n\n    def test_goodhart_format_relative_time_plural_4_days(self):\n        \"\"\"formatRelativeTime must use plural form for 4 days.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 4 * 86400000) == \"4 days ago\"\n\n    def test_goodhart_format_relative_time_3_weeks(self):\n        \"\"\"formatRelativeTime must correctly report 3 weeks for 21 days.\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 21 * 86400000) == \"3 weeks ago\"\n\n    def test_goodhart_format_relative_time_11_months(self):\n        \"\"\"formatRelativeTime must correctly report 11 months near year boundary.\"\"\"\n        now = _now_ms()\n        result = formatRelativeTime(now - 330 * 86400000)\n        assert result == \"11 months ago\", f\"Expected '11 months ago' but got '{result}'\"\n\n    def test_goodhart_format_relative_time_large_values(self):\n        \"\"\"formatRelativeTime must handle multi-year differences without overflow.\"\"\"\n        now = _now_ms()\n        result_5y = formatRelativeTime(now - 5 * 365 * 86400000)\n        assert result_5y == \"5 years ago\", f\"Expected '5 years ago' but got '{result_5y}'\"\n        result_10y = formatRelativeTime(now - 10 * 365 * 86400000)\n        assert \"year\" in result_10y\n\n    def test_goodhart_format_relative_time_zero_timestamp(self):\n        \"\"\"formatRelativeTime must handle timestamp 0 (Unix epoch) as a valid non-negative input.\"\"\"\n        result = formatRelativeTime(0)\n        assert \"year\" in result, f\"Expected 'year' in '{result}' for epoch timestamp\"\n        assert result.endswith(\"ago\")\n\n    def test_goodhart_format_relative_time_59_seconds(self):\n        \"\"\"formatRelativeTime must return 'just now' at 59 seconds (< 60 boundary).\"\"\"\n        now = _now_ms()\n        assert formatRelativeTime(now - 59000) == \"just now\"\n\n    def test_goodhart_format_relative_time_output_never_negative(self):\n        \"\"\"formatRelativeTime output must never contain minus signs or negative numbers.\"\"\"\n        now = _now_ms()\n        for delta in [1000, 60000, 300000, 3600000, 86400000]:\n            result = formatRelativeTime(now - delta)\n            assert \"-\" not in result, f\"Negative sign found in '{result}'\"\n        # Future timestamp (clock skew)\n        future_result = formatRelativeTime(now + 5000)\n        assert \"-\" not in future_result, f\"Negative sign found in '{future_result}'\"\n\n    def test_goodhart_format_relative_time_return_type_string(self):\n        \"\"\"formatRelativeTime must always return a string type.\"\"\"\n        now = _now_ms()\n        assert isinstance(formatRelativeTime(now - 1000), str)\n        assert isinstance(formatRelativeTime(now - 3600000), str)\n        assert isinstance(formatRelativeTime(0), str)\n\n    def test_goodhart_format_relative_time_invariant_all_units(self):\n        \"\"\"formatRelativeTime output must always end with 'ago' or equal 'just now' for diverse inputs beyond visible test values.\"\"\"\n        now = _now_ms()\n        test_deltas = [\n            500, 30000, 59999,  # just now range\n            61000, 90000, 120000, 300000, 1800000, 3540000,  # minutes\n            3660000, 7200000, 43200000, 82800000,  # hours\n            90000000, 172800000, 518400000,  # days\n            604800000, 1209600000, 2419200000,  # weeks\n            2592000000, 5184000000, 15552000000,  # months\n            31536000000, 63072000000,  # years\n        ]\n        for delta in test_deltas:\n            result = formatRelativeTime(now - delta)\n            assert result == \"just now\" or result.endswith(\" ago\"), \\\n                f\"formatRelativeTime result '{result}' for delta {delta}ms doesn't match expected format\"\n\n\n# ===========================================================================\n# StepBadgeProps — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartStepBadgeProps:\n\n    def test_goodhart_step_badge_props_step_1_valid(self):\n        \"\"\"StepBadgeProps must accept step=1 as minimum valid step number.\"\"\"\n        # Should not raise\n        StepBadgeProps(step=1, accentColor=\"#ff0000\")\n\n    def test_goodhart_step_badge_props_step_5_mid_range(self):\n        \"\"\"StepBadgeProps must accept mid-range step values like 5.\"\"\"\n        StepBadgeProps(step=5, accentColor=\"#00ff00\")\n\n    def test_goodhart_step_badge_props_step_11_rejected(self):\n        \"\"\"StepBadgeProps must reject step=11 — the validator range is 1-10 even though StepNumber allows 1-11.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            StepBadgeProps(step=11, accentColor=\"#ff0000\")\n\n    def test_goodhart_step_badge_props_step_0_rejected(self):\n        \"\"\"StepBadgeProps must reject step=0 — below the minimum of 1.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            StepBadgeProps(step=0, accentColor=\"#ff0000\")\n\n    def test_goodhart_step_badge_props_various_hex_colors(self):\n        \"\"\"StepBadgeProps must accept various valid hex colors, not just the ones in visible tests.\"\"\"\n        for color in [\"#000000\", \"#ffffff\", \"#FFFFFF\", \"#AbCdEf\", \"#123456\", \"#7890ab\"]:\n            StepBadgeProps(step=3, accentColor=color)\n\n    def test_goodhart_step_badge_props_rejects_rgb_format(self):\n        \"\"\"StepBadgeProps must reject CSS rgb() format colors.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            StepBadgeProps(step=3, accentColor=\"rgb(0,0,0)\")\n\n    def test_goodhart_step_badge_props_rejects_named_color(self):\n        \"\"\"StepBadgeProps must reject CSS named colors like 'red'.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            StepBadgeProps(step=3, accentColor=\"red\")\n\n\n# ===========================================================================\n# VersionBadgeProps — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartVersionBadgeProps:\n\n    def test_goodhart_version_badge_two_segment_version(self):\n        \"\"\"VersionBadgeProps must accept two-segment versions like '1.0'.\"\"\"\n        VersionBadgeProps(version=\"1.0\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_two_segment_with_v(self):\n        \"\"\"VersionBadgeProps must accept 'v1.0' (v prefix with two segments).\"\"\"\n        VersionBadgeProps(version=\"v1.0\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_rejects_single_segment(self):\n        \"\"\"VersionBadgeProps must reject single-segment versions like '1' or 'v1'.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"1\", accentColor=\"#abcdef\")\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"v1\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_rejects_empty_version(self):\n        \"\"\"VersionBadgeProps must reject empty string versions.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_prerelease_with_dots(self):\n        \"\"\"VersionBadgeProps must accept pre-release versions with dots like 'v1.2.3-rc.1'.\"\"\"\n        VersionBadgeProps(version=\"v1.2.3-rc.1\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_prerelease_with_numbers(self):\n        \"\"\"VersionBadgeProps must accept pre-release versions like 'v2.0.0-alpha1'.\"\"\"\n        VersionBadgeProps(version=\"v2.0.0-alpha1\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_rejects_trailing_dash(self):\n        \"\"\"VersionBadgeProps must reject version strings with trailing dash and no pre-release identifier.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"v1.2.3-\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_rejects_version_with_spaces(self):\n        \"\"\"VersionBadgeProps must reject version strings containing spaces.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"v1.0 beta\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_rejects_letters_in_version_number(self):\n        \"\"\"VersionBadgeProps must reject non-numeric characters in version number segments.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VersionBadgeProps(version=\"va.b.c\", accentColor=\"#abcdef\")\n\n    def test_goodhart_version_badge_large_version_numbers(self):\n        \"\"\"VersionBadgeProps must accept large version numbers like '100.200.300'.\"\"\"\n        VersionBadgeProps(version=\"100.200.300\", accentColor=\"#abcdef\")\n\n\n# ===========================================================================\n# CodeBlockProps — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartCodeBlockProps:\n\n    def test_goodhart_code_block_bash_max_length(self):\n        \"\"\"CodeBlockProps must accept bash content at exactly 10000 characters.\"\"\"\n        CodeBlockProps(title=\"Test\", bash=\"a\" * 10000)\n\n    def test_goodhart_code_block_bash_over_max(self):\n        \"\"\"CodeBlockProps must reject bash content exceeding 10000 characters.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CodeBlockProps(title=\"Test\", bash=\"a\" * 10001)\n\n    def test_goodhart_code_block_title_single_char(self):\n        \"\"\"CodeBlockProps must accept single-character titles.\"\"\"\n        CodeBlockProps(title=\"X\", bash=\"echo hello\")\n\n    def test_goodhart_code_block_bash_single_char(self):\n        \"\"\"CodeBlockProps must accept single-character bash content.\"\"\"\n        CodeBlockProps(title=\"Test\", bash=\"x\")\n\n    def test_goodhart_code_block_multiline_bash(self):\n        \"\"\"CodeBlockProps must accept multi-line bash content with newlines.\"\"\"\n        CodeBlockProps(title=\"Install\", bash=\"apt update\\napt install -y curl\\ncurl http://example.com\")\n\n    def test_goodhart_code_block_title_with_special_chars(self):\n        \"\"\"CodeBlockProps must accept titles containing special characters.\"\"\"\n        CodeBlockProps(title=\"Step 1: Install & Configure (v2.0)\", bash=\"echo ok\")\n\n    def test_goodhart_code_block_bash_at_9999(self):\n        \"\"\"CodeBlockProps must accept bash content at 9999 characters (just under max).\"\"\"\n        CodeBlockProps(title=\"Test\", bash=\"b\" * 9999)\n\n\n# ===========================================================================\n# VideoEmbedProps — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartVideoEmbedProps:\n\n    def test_goodhart_video_embed_url_with_hyphens_underscores(self):\n        \"\"\"VideoEmbedProps must accept YouTube video IDs containing hyphens and underscores.\"\"\"\n        VideoEmbedProps(url=\"https://www.youtube.com/embed/a-B_c-D_1-2\", title=\"Video\")\n\n    def test_goodhart_video_embed_rejects_watch_url(self):\n        \"\"\"VideoEmbedProps must reject YouTube /watch URLs.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"https://www.youtube.com/watch?v=dQw4w9WgXcQ\", title=\"Video\")\n\n    def test_goodhart_video_embed_rejects_youtu_be(self):\n        \"\"\"VideoEmbedProps must reject youtu.be short URLs.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"https://youtu.be/dQw4w9WgXcQ\", title=\"Video\")\n\n    def test_goodhart_video_embed_rejects_http_not_https(self):\n        \"\"\"VideoEmbedProps must reject http (non-https) URLs.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"http://www.youtube.com/embed/abc123\", title=\"Video\")\n\n    def test_goodhart_video_embed_url_allows_query_params(self):\n        \"\"\"VideoEmbedProps URL regex has no $ anchor — URLs with query params after video ID should be accepted.\"\"\"\n        VideoEmbedProps(url=\"https://www.youtube.com/embed/abc123?autoplay=1\", title=\"Video\")\n\n    def test_goodhart_video_embed_rejects_empty_url(self):\n        \"\"\"VideoEmbedProps must reject empty URL string.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"\", title=\"Video\")\n\n    def test_goodhart_video_embed_title_at_max(self):\n        \"\"\"VideoEmbedProps must accept title at exactly 200 characters.\"\"\"\n        VideoEmbedProps(url=\"https://www.youtube.com/embed/abc123\", title=\"T\" * 200)\n\n    def test_goodhart_video_embed_title_over_max(self):\n        \"\"\"VideoEmbedProps must reject title exceeding 200 characters.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"https://www.youtube.com/embed/abc123\", title=\"T\" * 201)\n\n    def test_goodhart_video_embed_rejects_vimeo(self):\n        \"\"\"VideoEmbedProps must reject Vimeo embed URLs — only YouTube is valid.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            VideoEmbedProps(url=\"https://player.vimeo.com/video/123456\", title=\"Video\")\n\n\n# ===========================================================================\n# HexColor — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartHexColor:\n\n    def test_goodhart_hex_color_rejects_8_digit(self):\n        \"\"\"HexColor must reject 8-digit hex colors (with alpha channel).\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#00e5ffaa\")\n\n    def test_goodhart_hex_color_case_insensitive(self):\n        \"\"\"HexColor must accept both uppercase and lowercase hex digits.\"\"\"\n        HexColor(\"#ABCDEF\")\n        HexColor(\"#abcdef\")\n        HexColor(\"#AbCdEf\")\n\n    def test_goodhart_hex_color_rejects_no_hash(self):\n        \"\"\"HexColor must reject hex strings without leading #.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"00e5ff\")\n\n    def test_goodhart_hex_color_rejects_empty_string(self):\n        \"\"\"HexColor must reject empty string.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"\")\n\n    def test_goodhart_hex_color_rejects_hash_only(self):\n        \"\"\"HexColor must reject a string that is just '#'.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#\")\n\n    def test_goodhart_hex_color_rejects_5_digits(self):\n        \"\"\"HexColor must reject 5-digit hex (too short for 6-digit requirement).\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#abcde\")\n\n    def test_goodhart_hex_color_rejects_7_digits(self):\n        \"\"\"HexColor must reject 7-digit hex (too long for 6-digit requirement).\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#abcdef0\")\n\n    def test_goodhart_hex_color_rejects_non_hex_chars(self):\n        \"\"\"HexColor must reject strings with non-hex characters like g, h, z.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#gggggg\")\n        with pytest.raises((ValueError, TypeError, Exception)):\n            HexColor(\"#xyz123\")\n\n\n# ===========================================================================\n# CommentsSectionProps — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartCommentsSectionProps:\n\n    def test_goodhart_comments_section_props_all_slugs(self):\n        \"\"\"CommentsSectionProps must accept every valid ToolSlug as page — not just a hardcoded subset.\"\"\"\n        valid_slugs = [\n            \"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n            \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\"\n        ]\n        for slug in valid_slugs:\n            CommentsSectionProps(page=slug, accentColor=\"#000000\")\n\n    def test_goodhart_comments_section_props_rejects_invalid_slug(self):\n        \"\"\"CommentsSectionProps must reject page values that are not valid ToolSlug members.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentsSectionProps(page=\"invalid_tool\", accentColor=\"#000000\")\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentsSectionProps(page=\"\", accentColor=\"#000000\")\n\n    def test_goodhart_comments_section_props_rejects_empty_accent(self):\n        \"\"\"CommentsSectionProps must reject empty accentColor.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentsSectionProps(page=\"constrain\", accentColor=\"\")\n\n    def test_goodhart_comments_section_props_rejects_3_digit_hex(self):\n        \"\"\"CommentsSectionProps must reject 3-digit shorthand hex colors.\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentsSectionProps(page=\"constrain\", accentColor=\"#fff\")\n\n\n# ===========================================================================\n# CommentFormState — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartCommentFormState:\n\n    def test_goodhart_comment_form_state_author_at_max(self):\n        \"\"\"CommentFormState must accept author at exactly 100 characters.\"\"\"\n        CommentFormState(author=\"a\" * 100, body=\"test body\", submitting=False, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n    def test_goodhart_comment_form_state_body_at_max(self):\n        \"\"\"CommentFormState must accept body at exactly 5000 characters.\"\"\"\n        CommentFormState(author=\"test\", body=\"b\" * 5000, submitting=False, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n    def test_goodhart_comment_form_state_single_char_fields(self):\n        \"\"\"CommentFormState must accept single-character author and body (minimum valid length).\"\"\"\n        CommentFormState(author=\"A\", body=\"B\", submitting=False, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n    def test_goodhart_comment_form_state_author_at_101_rejected(self):\n        \"\"\"CommentFormState must reject author at 101 characters (just over max).\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentFormState(author=\"a\" * 101, body=\"test\", submitting=False, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n    def test_goodhart_comment_form_state_body_at_5001_rejected(self):\n        \"\"\"CommentFormState must reject body at 5001 characters (just over max).\"\"\"\n        with pytest.raises((ValueError, TypeError, Exception)):\n            CommentFormState(author=\"test\", body=\"b\" * 5001, submitting=False, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n    def test_goodhart_comment_form_state_submitting_true(self):\n        \"\"\"CommentFormState must accept submitting=True as a valid state.\"\"\"\n        CommentFormState(author=\"test\", body=\"test body\", submitting=True, validationErrors=ValidationErrors(author=\"\", body=\"\"))\n\n\n# ===========================================================================\n# ToolSlug enum — adversarial coverage\n# ===========================================================================\n\nclass TestGoodhartToolSlug:\n\n    def test_goodhart_tool_slug_no_extra_members(self):\n        \"\"\"ToolSlug enum must contain exactly 11 members — no more, no less.\"\"\"\n        expected = {\"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n                    \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\"}\n        # Get all members - adapt to however ToolSlug is implemented\n        if hasattr(ToolSlug, '__members__'):\n            actual = set(ToolSlug.__members__.keys()) if hasattr(ToolSlug, '__members__') else set()\n            # For string enum, values might differ from keys\n            actual_values = {m.value if hasattr(m, 'value') else m for m in ToolSlug}\n            assert actual_values == expected or actual == expected\n        elif hasattr(ToolSlug, '__iter__'):\n            actual = set(ToolSlug)\n            assert len(actual) == 11\n        else:\n            # If ToolSlug is a list or similar\n            assert len(expected) == 11\n\n    def test_goodhart_tool_slug_members_are_lowercase(self):\n        \"\"\"All ToolSlug members must be lowercase strings.\"\"\"\n        expected = [\"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n                    \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\"]\n        for slug in expected:\n            assert slug == slug.lower()\n            assert isToolSlug(slug) is True\n"
+}

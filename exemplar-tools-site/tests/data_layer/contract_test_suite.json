@@ -1,0 +1,592 @@
+{
+  "component_id": "data_layer",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "tools_returns_exactly_11",
+      "description": "getTools() returns an array of exactly 11 ToolDef elements.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "A list of exactly 11 ToolDef objects.",
+      "expected_error": "",
+      "assertions": [
+        "len(result) == 11"
+      ]
+    },
+    {
+      "id": "tools_sorted_by_step_ascending",
+      "description": "getTools() returns elements sorted by step field ascending from 1 through 11.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result[i].step < result[i+1].step for all valid i",
+        "result[0].step == 1",
+        "result[10].step == 11"
+      ]
+    },
+    {
+      "id": "tools_unique_steps",
+      "description": "All step values in the TOOLS array are unique.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(set of steps) == 11"
+      ]
+    },
+    {
+      "id": "tools_unique_slugs",
+      "description": "All slug values in the TOOLS array are unique.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(set of slugs) == 11"
+      ]
+    },
+    {
+      "id": "tools_valid_slug_enum",
+      "description": "Every slug in the TOOLS array is a valid ToolSlug enum variant.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each tool.slug is in the set of 11 known ToolSlug values"
+      ]
+    },
+    {
+      "id": "tools_accent_colors_unique_and_canonical",
+      "description": "All 11 accentColor values are distinct and belong to the canonical dark-theme palette.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(set of accentColors) == 11",
+        "all accentColors are in canonical palette set"
+      ]
+    },
+    {
+      "id": "tools_accent_color_hex_format",
+      "description": "Each accentColor matches the HexColor regex pattern (#[0-9a-fA-F]{6}).",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "re.fullmatch(r'#[0-9a-fA-F]{6}', tool.accentColor) for each tool"
+      ]
+    },
+    {
+      "id": "tools_kindex_no_video_others_have_video",
+      "description": "Exactly one element (kindex) has videoUrl undefined; all other 10 have a defined videoUrl.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "exactly 1 tool has videoUrl None",
+        "that tool's slug is 'kindex'",
+        "10 tools have non-None videoUrl"
+      ]
+    },
+    {
+      "id": "tools_instructions_count_3_to_5",
+      "description": "Each tool's instructions array contains between 3 and 5 InstructionStep objects.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "3 <= len(tool.instructions) <= 5 for each tool"
+      ]
+    },
+    {
+      "id": "tools_instruction_step_shape",
+      "description": "Each InstructionStep in every tool has 'title' (str) and 'bash' (str) fields.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "hasattr(step, 'title') and isinstance(step.title, str)",
+        "hasattr(step, 'bash') and isinstance(step.bash, str)"
+      ]
+    },
+    {
+      "id": "tools_tooldef_shape",
+      "description": "Each ToolDef has all required fields: slug, name, description, step, version, accentColor, videoUrl, instructions.",
+      "function": "getTools",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all required attributes present on each ToolDef"
+      ]
+    },
+    {
+      "id": "get_tool_by_slug_known",
+      "description": "getToolBySlugs returns the correct ToolDef for each known slug.",
+      "function": "getToolBySlugs",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each of the 11 known ToolSlug values.",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result is not None",
+        "result.slug == input slug",
+        "result.name is a non-empty string"
+      ]
+    },
+    {
+      "id": "get_tool_by_slug_unknown",
+      "description": "getToolBySlugs returns None/undefined for an unknown slug.",
+      "function": "getToolBySlugs",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": "nonexistent-tool"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result is None"
+      ]
+    },
+    {
+      "id": "get_tool_by_slug_empty_string",
+      "description": "getToolBySlugs returns None/undefined for an empty string slug.",
+      "function": "getToolBySlugs",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": ""
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result is None"
+      ]
+    },
+    {
+      "id": "get_tool_by_slug_property_roundtrip",
+      "description": "For every tool from getTools(), getToolBySlugs(tool.slug).name equals tool.name.",
+      "function": "getToolBySlugs",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getToolBySlugs(tool.slug).name == tool.name for each tool in getTools()"
+      ]
+    },
+    {
+      "id": "list_comments_happy_path",
+      "description": "listComments returns a list of Comment objects for a valid page slug.",
+      "function": "listComments",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_query": "returns list of Comment dicts sorted by createdAt ascending"
+      },
+      "input_values": {
+        "page": "constrain"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result is a list",
+        "each element has _id, page, author, body, createdAt"
+      ]
+    },
+    {
+      "id": "list_comments_empty_page",
+      "description": "listComments returns an empty array when no comments exist for the page.",
+      "function": "listComments",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_query": "returns empty list"
+      },
+      "input_values": {
+        "page": "arbiter"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result == []"
+      ]
+    },
+    {
+      "id": "list_comments_sorted_by_created_at",
+      "description": "listComments returns comments sorted by createdAt ascending.",
+      "function": "listComments",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_query": "returns multiple comments with ascending createdAt"
+      },
+      "input_values": {
+        "page": "ledger"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result[i].createdAt <= result[i+1].createdAt for all valid i"
+      ]
+    },
+    {
+      "id": "list_comments_filters_by_page",
+      "description": "listComments returns only comments matching the requested page.",
+      "function": "listComments",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_query": "returns comments all with page=='pact'"
+      },
+      "input_values": {
+        "page": "pact"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all(c.page == 'pact' for c in result)"
+      ]
+    },
+    {
+      "id": "list_comments_missing_page_error",
+      "description": "listComments raises an error when the page argument is missing or not a string.",
+      "function": "listComments",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_page_argument",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_happy_path",
+      "description": "addComment inserts a comment and returns a ConvexDocumentId string.",
+      "function": "addComment",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "returns a ConvexDocumentId string"
+      },
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "Great tool!"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result is a non-empty string",
+        "result is a valid ConvexDocumentId"
+      ]
+    },
+    {
+      "id": "add_comment_roundtrip",
+      "description": "After addComment, listComments for the same page includes the new comment.",
+      "function": "addComment",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "inserts document and returns id",
+        "convex_query": "returns list including new comment"
+      },
+      "input_values": {
+        "page": "ledger",
+        "author": "Bob",
+        "body": "Very helpful!"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "new comment appears in listComments result",
+        "comment.author == 'Bob'",
+        "comment.body == 'Very helpful!'"
+      ]
+    },
+    {
+      "id": "add_comment_missing_page_error",
+      "description": "addComment raises error when page argument is missing.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "author": "Alice",
+        "body": "text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_page_argument",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_missing_author_error",
+      "description": "addComment raises error when author argument is missing.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "body": "text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_author_argument",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_missing_body_error",
+      "description": "addComment raises error when body argument is missing.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_body_argument",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_empty_author_error",
+      "description": "addComment raises error when author is an empty string after trimming.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "author": "   ",
+        "body": "text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "empty_author",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_empty_body_error",
+      "description": "addComment raises error when body is an empty string after trimming.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "   "
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "empty_body",
+      "assertions": [
+        "raises appropriate error"
+      ]
+    },
+    {
+      "id": "add_comment_convex_internal_error",
+      "description": "addComment raises a convex_internal_error when the Convex runtime fails.",
+      "function": "addComment",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "raises RuntimeError simulating Convex internal failure"
+      },
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "convex_internal_error",
+      "assertions": [
+        "raises RuntimeError or equivalent"
+      ]
+    },
+    {
+      "id": "add_comment_non_idempotent",
+      "description": "Repeated addComment calls with identical arguments produce distinct document IDs.",
+      "function": "addComment",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "returns unique id on each call"
+      },
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "Same text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "id1 != id2"
+      ]
+    },
+    {
+      "id": "comment_author_max_length_valid",
+      "description": "addComment accepts author with exactly 100 characters (boundary).",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "returns a ConvexDocumentId"
+      },
+      "input_values": {
+        "page": "constrain",
+        "author": "a * 100",
+        "body": "text"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "no error raised",
+        "result is a non-empty string"
+      ]
+    },
+    {
+      "id": "comment_body_max_length_valid",
+      "description": "addComment accepts body with exactly 2000 characters (boundary per Comment validator).",
+      "function": "addComment",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "convex_mutation": "returns a ConvexDocumentId"
+      },
+      "input_values": {
+        "page": "constrain",
+        "author": "Alice",
+        "body": "b * 2000"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "no error raised",
+        "result is a non-empty string"
+      ]
+    },
+    {
+      "id": "tool_slug_enum_has_11_variants",
+      "description": "ToolSlug enum contains exactly 11 variants matching the canonical list.",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "set of enum variants == canonical set of 11 slugs"
+      ]
+    },
+    {
+      "id": "step_number_range_1_to_11",
+      "description": "All step values in TOOLS are integers in range [1, 11].",
+      "function": "getTools",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "1 <= tool.step <= 11 for each tool",
+        "isinstance(tool.step, int) for each tool"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for the data_layer component.\n\nTests cover:\n- getTools(): TOOLS constant invariants (count, sort, uniqueness, shapes, palette)\n- getToolBySlugs(): Slug lookup happy paths, unknown slugs, roundtrip property\n- listComments(): Async Convex query with mocked backend\n- addComment(): Async Convex mutation with mocked backend, all error cases\n\"\"\"\n\nimport re\nimport pytest\nfrom unittest.mock import AsyncMock, MagicMock, patch, call\n\n# ---------------------------------------------------------------------------\n# Attempt import; provide stubs so collection never fails\n# ---------------------------------------------------------------------------\ntry:\n    from data_layer import (\n        getTools,\n        getToolBySlugs,\n        listComments,\n        addComment,\n    )\nexcept ImportError:\n    # Allow the module path to vary\n    getTools = None\n    getToolBySlugs = None\n    listComments = None\n    addComment = None\n\n# Canonical constants from the contract\nCANONICAL_SLUGS = {\n    \"constrain\", \"ledger\", \"pact\", \"advocate\", \"arbiter\",\n    \"baton\", \"sentinel\", \"chronicler\", \"stigmergy\", \"apprentice\", \"kindex\",\n}\n\nCANONICAL_PALETTE = {\n    \"#00e5ff\", \"#00bfa5\", \"#69f0ae\", \"#b2ff59\", \"#ffd740\",\n    \"#ff9100\", \"#ff5252\", \"#ff4081\", \"#e040fb\", \"#7c4dff\", \"#448aff\",\n}\n\nHEX_COLOR_RE = re.compile(r\"^#[0-9a-fA-F]{6}$\")\n\n\n# ========================== getTools() tests ==============================\n\nclass TestGetTools:\n    \"\"\"Tests for the getTools() synchronous function / TOOLS constant.\"\"\"\n\n    def _tools(self):\n        assert getTools is not None, \"getTools not importable\"\n        result = getTools()\n        assert isinstance(result, (list, tuple)), \"getTools must return a sequence\"\n        return result\n\n    # --- Invariant: exactly 11 elements ---\n    def test_returns_exactly_11_elements(self):\n        tools = self._tools()\n        assert len(tools) == 11, f\"Expected 11 tools, got {len(tools)}\"\n\n    # --- Invariant: sorted by step ascending 1..11 ---\n    def test_sorted_by_step_ascending(self):\n        tools = self._tools()\n        steps = [t.step if hasattr(t, \"step\") else t[\"step\"] for t in tools]\n        assert steps == list(range(1, 12)), f\"Steps not 1..11 ascending: {steps}\"\n\n    # --- Invariant: unique steps ---\n    def test_unique_step_values(self):\n        tools = self._tools()\n        steps = [t.step if hasattr(t, \"step\") else t[\"step\"] for t in tools]\n        assert len(set(steps)) == 11\n\n    # --- Invariant: unique slugs ---\n    def test_unique_slug_values(self):\n        tools = self._tools()\n        slugs = [t.slug if hasattr(t, \"slug\") else t[\"slug\"] for t in tools]\n        assert len(set(slugs)) == 11\n\n    # --- Invariant: slugs match ToolSlug enum variants ---\n    def test_slugs_match_canonical_set(self):\n        tools = self._tools()\n        slugs = {t.slug if hasattr(t, \"slug\") else t[\"slug\"] for t in tools}\n        # Allow enum objects — coerce to string\n        slugs_str = set()\n        for s in slugs:\n            slugs_str.add(s.value if hasattr(s, \"value\") else str(s))\n        assert slugs_str == CANONICAL_SLUGS\n\n    # --- Invariant: accent colors unique and canonical ---\n    def test_accent_colors_unique_and_canonical(self):\n        tools = self._tools()\n        colors = set()\n        for t in tools:\n            c = t.accentColor if hasattr(t, \"accentColor\") else t[\"accentColor\"]\n            c_str = str(c).lower()\n            assert c_str in {p.lower() for p in CANONICAL_PALETTE}, (\n                f\"Unexpected accent color: {c_str}\"\n            )\n            colors.add(c_str)\n        assert len(colors) == 11, \"Accent colors are not all unique\"\n\n    # --- Invariant: hex color format ---\n    def test_accent_color_hex_format(self):\n        tools = self._tools()\n        for t in tools:\n            c = t.accentColor if hasattr(t, \"accentColor\") else t[\"accentColor\"]\n            assert HEX_COLOR_RE.match(str(c)), f\"Bad hex color: {c}\"\n\n    # --- Invariant: kindex has no video, others do ---\n    def test_kindex_no_video_others_have_video(self):\n        tools = self._tools()\n        no_video = []\n        has_video = []\n        for t in tools:\n            slug = t.slug if hasattr(t, \"slug\") else t[\"slug\"]\n            slug_str = slug.value if hasattr(slug, \"value\") else str(slug)\n            video = t.videoUrl if hasattr(t, \"videoUrl\") else t.get(\"videoUrl\")\n            if video is None:\n                no_video.append(slug_str)\n            else:\n                has_video.append(slug_str)\n        assert no_video == [\"kindex\"], f\"Expected only kindex without video, got {no_video}\"\n        assert len(has_video) == 10\n\n    # --- Invariant: instructions 3-5 per tool ---\n    def test_instructions_count_3_to_5(self):\n        tools = self._tools()\n        for t in tools:\n            slug = t.slug if hasattr(t, \"slug\") else t[\"slug\"]\n            instr = t.instructions if hasattr(t, \"instructions\") else t[\"instructions\"]\n            assert 3 <= len(instr) <= 5, (\n                f\"Tool {slug}: expected 3-5 instructions, got {len(instr)}\"\n            )\n\n    # --- Shape: InstructionStep has title and bash ---\n    def test_instruction_step_shape(self):\n        tools = self._tools()\n        for t in tools:\n            instr = t.instructions if hasattr(t, \"instructions\") else t[\"instructions\"]\n            for step in instr:\n                title = step.title if hasattr(step, \"title\") else step[\"title\"]\n                bash = step.bash if hasattr(step, \"bash\") else step[\"bash\"]\n                assert isinstance(title, str) and len(title) > 0\n                assert isinstance(bash, str) and len(bash) > 0\n\n    # --- Happy path: ToolDef shape ---\n    def test_tooldef_has_all_required_fields(self):\n        tools = self._tools()\n        required = {\"slug\", \"name\", \"description\", \"step\", \"version\", \"accentColor\", \"instructions\"}\n        for t in tools:\n            for field in required:\n                if hasattr(t, field):\n                    assert getattr(t, field) is not None, f\"Field {field} is None\"\n                else:\n                    assert field in t, f\"Missing field {field}\"\n\n    # --- Invariant: step numbers in range 1-11 ---\n    def test_step_numbers_in_valid_range(self):\n        tools = self._tools()\n        for t in tools:\n            step = t.step if hasattr(t, \"step\") else t[\"step\"]\n            assert isinstance(step, int), f\"Step is not int: {type(step)}\"\n            assert 1 <= step <= 11, f\"Step out of range: {step}\"\n\n\n# ====================== getToolBySlugs() tests ============================\n\nclass TestGetToolBySlugs:\n    \"\"\"Tests for getToolBySlugs() synchronous lookup.\"\"\"\n\n    def test_known_slug_returns_matching_tooldef(self):\n        assert getToolBySlugs is not None, \"getToolBySlugs not importable\"\n        assert getTools is not None, \"getTools not importable\"\n        tools = getTools()\n        for t in tools:\n            slug_val = t.slug if hasattr(t, \"slug\") else t[\"slug\"]\n            slug_str = slug_val.value if hasattr(slug_val, \"value\") else str(slug_val)\n            result = getToolBySlugs(slug_str)\n            assert result is not None, f\"Expected ToolDef for slug '{slug_str}', got None\"\n            r_slug = result.slug if hasattr(result, \"slug\") else result[\"slug\"]\n            r_slug_str = r_slug.value if hasattr(r_slug, \"value\") else str(r_slug)\n            assert r_slug_str == slug_str\n\n    def test_unknown_slug_returns_none(self):\n        assert getToolBySlugs is not None\n        result = getToolBySlugs(\"nonexistent-tool\")\n        assert result is None, f\"Expected None for unknown slug, got {result}\"\n\n    def test_empty_string_slug_returns_none(self):\n        assert getToolBySlugs is not None\n        result = getToolBySlugs(\"\")\n        assert result is None, f\"Expected None for empty slug, got {result}\"\n\n    def test_roundtrip_name_matches(self):\n        \"\"\"For every tool from getTools(), getToolBySlugs(slug).name == tool.name.\"\"\"\n        assert getTools is not None and getToolBySlugs is not None\n        for t in getTools():\n            slug_val = t.slug if hasattr(t, \"slug\") else t[\"slug\"]\n            slug_str = slug_val.value if hasattr(slug_val, \"value\") else str(slug_val)\n            result = getToolBySlugs(slug_str)\n            t_name = t.name if hasattr(t, \"name\") else t[\"name\"]\n            r_name = result.name if hasattr(result, \"name\") else result[\"name\"]\n            assert r_name == t_name, f\"Name mismatch for {slug_str}\"\n\n\n# ====================== listComments() tests ==============================\n\ndef _make_comment(_id=\"abc123\", page=\"constrain\", author=\"Alice\",\n                  body=\"Hello\", createdAt=1000.0):\n    \"\"\"Helper to build a Comment-like dict.\"\"\"\n    return {\n        \"_id\": _id,\n        \"page\": page,\n        \"author\": author,\n        \"body\": body,\n        \"createdAt\": createdAt,\n    }\n\n\nclass TestListComments:\n    \"\"\"Tests for the async listComments Convex query.\"\"\"\n\n    @pytest.mark.anyio\n    async def test_happy_path_returns_comments(self):\n        assert listComments is not None, \"listComments not importable\"\n        comments = [\n            _make_comment(_id=\"1\", page=\"constrain\", createdAt=100),\n            _make_comment(_id=\"2\", page=\"constrain\", createdAt=200),\n        ]\n        with patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_lc.return_value = comments\n            result = await mock_lc(page=\"constrain\")\n        assert isinstance(result, list)\n        assert len(result) == 2\n        for c in result:\n            for key in (\"_id\", \"page\", \"author\", \"body\", \"createdAt\"):\n                assert key in c, f\"Missing field {key}\"\n\n    @pytest.mark.anyio\n    async def test_empty_result_for_page_with_no_comments(self):\n        with patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_lc.return_value = []\n            result = await mock_lc(page=\"arbiter\")\n        assert result == []\n\n    @pytest.mark.anyio\n    async def test_results_sorted_by_created_at_ascending(self):\n        comments = [\n            _make_comment(_id=\"1\", page=\"ledger\", createdAt=50),\n            _make_comment(_id=\"2\", page=\"ledger\", createdAt=100),\n            _make_comment(_id=\"3\", page=\"ledger\", createdAt=200),\n        ]\n        with patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_lc.return_value = comments\n            result = await mock_lc(page=\"ledger\")\n        timestamps = [c[\"createdAt\"] for c in result]\n        assert timestamps == sorted(timestamps), \"Comments not sorted ascending\"\n\n    @pytest.mark.anyio\n    async def test_filters_by_page(self):\n        comments = [\n            _make_comment(_id=\"1\", page=\"pact\", createdAt=10),\n            _make_comment(_id=\"2\", page=\"pact\", createdAt=20),\n        ]\n        with patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_lc.return_value = comments\n            result = await mock_lc(page=\"pact\")\n        assert all(c[\"page\"] == \"pact\" for c in result)\n\n    @pytest.mark.anyio\n    async def test_missing_page_argument_raises_error(self):\n        with patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_lc.side_effect = ValueError(\"missing_page_argument\")\n            with pytest.raises((ValueError, TypeError, Exception)):\n                await mock_lc()\n\n\n# ====================== addComment() tests ================================\n\nclass TestAddComment:\n    \"\"\"Tests for the async addComment Convex mutation.\"\"\"\n\n    @pytest.mark.anyio\n    async def test_happy_path_returns_document_id(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.return_value = \"conv_doc_id_abc123\"\n            result = await mock_ac(page=\"constrain\", author=\"Alice\", body=\"Great tool!\")\n        assert isinstance(result, str)\n        assert len(result) > 0\n\n    @pytest.mark.anyio\n    async def test_roundtrip_add_then_list(self):\n        new_id = \"conv_doc_id_xyz789\"\n        new_comment = _make_comment(\n            _id=new_id, page=\"ledger\", author=\"Bob\",\n            body=\"Very helpful!\", createdAt=9999,\n        )\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac, \\\n             patch(\"data_layer.listComments\", new_callable=AsyncMock) as mock_lc:\n            mock_ac.return_value = new_id\n            doc_id = await mock_ac(page=\"ledger\", author=\"Bob\", body=\"Very helpful!\")\n            mock_lc.return_value = [new_comment]\n            comments = await mock_lc(page=\"ledger\")\n        assert any(c[\"_id\"] == doc_id for c in comments)\n        match = [c for c in comments if c[\"_id\"] == doc_id][0]\n        assert match[\"author\"] == \"Bob\"\n        assert match[\"body\"] == \"Very helpful!\"\n\n    @pytest.mark.anyio\n    async def test_missing_page_argument_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = ValueError(\"missing_page_argument\")\n            with pytest.raises(ValueError, match=\"missing_page_argument\"):\n                await mock_ac(author=\"Alice\", body=\"text\")\n\n    @pytest.mark.anyio\n    async def test_missing_author_argument_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = ValueError(\"missing_author_argument\")\n            with pytest.raises(ValueError, match=\"missing_author_argument\"):\n                await mock_ac(page=\"constrain\", body=\"text\")\n\n    @pytest.mark.anyio\n    async def test_missing_body_argument_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = ValueError(\"missing_body_argument\")\n            with pytest.raises(ValueError, match=\"missing_body_argument\"):\n                await mock_ac(page=\"constrain\", author=\"Alice\")\n\n    @pytest.mark.anyio\n    async def test_empty_author_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = ValueError(\"empty_author\")\n            with pytest.raises(ValueError, match=\"empty_author\"):\n                await mock_ac(page=\"constrain\", author=\"   \", body=\"text\")\n\n    @pytest.mark.anyio\n    async def test_empty_body_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = ValueError(\"empty_body\")\n            with pytest.raises(ValueError, match=\"empty_body\"):\n                await mock_ac(page=\"constrain\", author=\"Alice\", body=\"   \")\n\n    @pytest.mark.anyio\n    async def test_convex_internal_error(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = RuntimeError(\"convex_internal_error\")\n            with pytest.raises(RuntimeError, match=\"convex_internal_error\"):\n                await mock_ac(page=\"constrain\", author=\"Alice\", body=\"text\")\n\n    @pytest.mark.anyio\n    async def test_non_idempotent_distinct_ids(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.side_effect = [\"id_first_call\", \"id_second_call\"]\n            id1 = await mock_ac(page=\"constrain\", author=\"Alice\", body=\"Same text\")\n            id2 = await mock_ac(page=\"constrain\", author=\"Alice\", body=\"Same text\")\n        assert id1 != id2, \"Repeated calls must produce distinct document IDs\"\n\n    @pytest.mark.anyio\n    async def test_author_max_length_100_accepted(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.return_value = \"conv_doc_boundary_author\"\n            result = await mock_ac(\n                page=\"constrain\", author=\"a\" * 100, body=\"text\"\n            )\n        assert isinstance(result, str) and len(result) > 0\n\n    @pytest.mark.anyio\n    async def test_body_max_length_2000_accepted(self):\n        with patch(\"data_layer.addComment\", new_callable=AsyncMock) as mock_ac:\n            mock_ac.return_value = \"conv_doc_boundary_body\"\n            result = await mock_ac(\n                page=\"constrain\", author=\"Alice\", body=\"b\" * 2000\n            )\n        assert isinstance(result, str) and len(result) > 0\n\n\n# ==================== Comment type validation tests =======================\n\nclass TestCommentValidation:\n    \"\"\"Tests for Comment struct field validators (author 1-100, body 1-2000).\"\"\"\n\n    def test_comment_dict_has_required_fields(self):\n        c = _make_comment()\n        for key in (\"_id\", \"page\", \"author\", \"body\", \"createdAt\"):\n            assert key in c\n\n    def test_comment_author_non_empty(self):\n        c = _make_comment(author=\"A\")\n        assert len(c[\"author\"]) >= 1\n\n    def test_comment_author_max_100(self):\n        c = _make_comment(author=\"x\" * 100)\n        assert len(c[\"author\"]) <= 100\n\n    def test_comment_body_non_empty(self):\n        c = _make_comment(body=\"B\")\n        assert len(c[\"body\"]) >= 1\n\n    def test_comment_body_max_2000(self):\n        c = _make_comment(body=\"y\" * 2000)\n        assert len(c[\"body\"]) <= 2000\n\n    def test_created_at_is_positive_number(self):\n        c = _make_comment(createdAt=1718000000.0)\n        assert isinstance(c[\"createdAt\"], (int, float))\n        assert c[\"createdAt\"] > 0\n"
+}

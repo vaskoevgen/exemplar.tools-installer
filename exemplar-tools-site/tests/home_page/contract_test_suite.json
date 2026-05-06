@@ -1,0 +1,622 @@
+{
+  "component_id": "home_page",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "hp_toQuickStartRow_happy",
+      "description": "toQuickStartRow returns QuickStartRow with all fields projected from a valid ToolDef",
+      "function": "toQuickStartRow",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef with step=1, slug=constrain, name='Constrain', description='desc', accentColor='#00e5ff'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.step == tool.step",
+        "returned.slug == tool.slug",
+        "returned.name == tool.name",
+        "returned.description == tool.description",
+        "returned.accentColor == tool.accentColor"
+      ]
+    },
+    {
+      "id": "hp_toQuickStartRow_all_slugs",
+      "description": "toQuickStartRow works for each of the 11 ToolSlug enum values",
+      "function": "toQuickStartRow",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "11 ToolDef records, one per slug/step",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each returned row has correct step, slug, name, description, accentColor"
+      ]
+    },
+    {
+      "id": "err_toQuickStartRow_null",
+      "description": "toQuickStartRow raises invalid_tool_def when tool is None",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tool=None",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": []
+    },
+    {
+      "id": "err_toQuickStartRow_missing_fields",
+      "description": "toQuickStartRow raises invalid_tool_def when required fields are missing",
+      "function": "toQuickStartRow",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef missing 'name' field",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": []
+    },
+    {
+      "id": "hp_toDiagramNode_happy",
+      "description": "toDiagramNode returns DiagramNode with slug, name, step, accentColor from valid ToolDef",
+      "function": "toDiagramNode",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid ToolDef",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.slug == tool.slug",
+        "returned.name == tool.name",
+        "returned.step == tool.step",
+        "returned.accentColor == tool.accentColor"
+      ]
+    },
+    {
+      "id": "err_toDiagramNode_null",
+      "description": "toDiagramNode raises invalid_tool_def when tool is None",
+      "function": "toDiagramNode",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tool=None",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": []
+    },
+    {
+      "id": "err_toDiagramNode_missing_fields",
+      "description": "toDiagramNode raises invalid_tool_def when required fields missing",
+      "function": "toDiagramNode",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef missing 'step' field",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_def",
+      "assertions": []
+    },
+    {
+      "id": "hp_toQuickStartRows_happy",
+      "description": "toQuickStartRows maps 11 sorted ToolDefs to 11 QuickStartRows preserving order",
+      "function": "toQuickStartRows",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sorted list of 11 valid ToolDefs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(result) == 11",
+        "result[i].step == i+1 for all i in 0..10",
+        "each element has correct slug, name, description, accentColor"
+      ]
+    },
+    {
+      "id": "err_toQuickStartRows_none",
+      "description": "toQuickStartRows raises invalid_tool_list when tools is None",
+      "function": "toQuickStartRows",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools=None",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toQuickStartRows_empty",
+      "description": "toQuickStartRows raises invalid_tool_list when tools is empty list",
+      "function": "toQuickStartRows",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools=[]",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toQuickStartRows_wrong_length",
+      "description": "toQuickStartRows raises invalid_tool_list when tools has length != 11",
+      "function": "toQuickStartRows",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools with 10 elements",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toQuickStartRows_unsorted",
+      "description": "toQuickStartRows raises unsorted_input when tools are not sorted by step ascending",
+      "function": "toQuickStartRows",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "11 valid ToolDefs with step order reversed",
+      "expected_output_description": "",
+      "expected_error": "unsorted_input",
+      "assertions": []
+    },
+    {
+      "id": "hp_toDiagramNodes_happy",
+      "description": "toDiagramNodes maps 11 sorted ToolDefs to 11 DiagramNodes preserving order",
+      "function": "toDiagramNodes",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sorted list of 11 valid ToolDefs",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(result) == 11",
+        "result[i].step == i+1 for all i in 0..10"
+      ]
+    },
+    {
+      "id": "err_toDiagramNodes_none",
+      "description": "toDiagramNodes raises invalid_tool_list when tools is None",
+      "function": "toDiagramNodes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools=None",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toDiagramNodes_empty",
+      "description": "toDiagramNodes raises invalid_tool_list when tools is empty list",
+      "function": "toDiagramNodes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools=[]",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toDiagramNodes_wrong_length",
+      "description": "toDiagramNodes raises invalid_tool_list when tools has length != 11",
+      "function": "toDiagramNodes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "tools with 5 elements",
+      "expected_output_description": "",
+      "expected_error": "invalid_tool_list",
+      "assertions": []
+    },
+    {
+      "id": "err_toDiagramNodes_unsorted",
+      "description": "toDiagramNodes raises unsorted_input when tools are not sorted by step ascending",
+      "function": "toDiagramNodes",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "11 valid ToolDefs with steps shuffled",
+      "expected_output_description": "",
+      "expected_error": "unsorted_input",
+      "assertions": []
+    },
+    {
+      "id": "hp_computeNodePosition_step1_top",
+      "description": "computeNodePosition for step=1, 11 nodes, center=(250,250), radius=200 yields top-center (~250, 50)",
+      "function": "computeNodePosition",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1, totalNodes=11, centerX=250.0, centerY=250.0, radius=200.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 250.0 (within 0.01)",
+        "y ≈ 50.0 (within 0.01)"
+      ]
+    },
+    {
+      "id": "hp_computeNodePosition_step1_of4",
+      "description": "computeNodePosition for step=1 of 4 nodes on unit circle yields top (0, -1) offset from center",
+      "function": "computeNodePosition",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1, totalNodes=4, centerX=250.0, centerY=250.0, radius=100.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 250.0",
+        "y ≈ 150.0"
+      ]
+    },
+    {
+      "id": "hp_computeNodePosition_step2_of4",
+      "description": "computeNodePosition for step=2 of 4 nodes yields right (1, 0) offset from center",
+      "function": "computeNodePosition",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=2, totalNodes=4, centerX=250.0, centerY=250.0, radius=100.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 350.0",
+        "y ≈ 250.0"
+      ]
+    },
+    {
+      "id": "hp_computeNodePosition_step3_of4",
+      "description": "computeNodePosition for step=3 of 4 nodes yields bottom (0, 1) offset from center",
+      "function": "computeNodePosition",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=3, totalNodes=4, centerX=250.0, centerY=250.0, radius=100.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 250.0",
+        "y ≈ 350.0"
+      ]
+    },
+    {
+      "id": "hp_computeNodePosition_step4_of4",
+      "description": "computeNodePosition for step=4 of 4 nodes yields left (-1, 0) offset from center",
+      "function": "computeNodePosition",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=4, totalNodes=4, centerX=250.0, centerY=250.0, radius=100.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 150.0",
+        "y ≈ 250.0"
+      ]
+    },
+    {
+      "id": "edge_computeNodePosition_single_node",
+      "description": "computeNodePosition for step=1, totalNodes=1 yields top of circle",
+      "function": "computeNodePosition",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1, totalNodes=1, centerX=250.0, centerY=250.0, radius=100.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "x ≈ 250.0",
+        "y ≈ 150.0"
+      ]
+    },
+    {
+      "id": "inv_computeNodePosition_within_bounds",
+      "description": "All computed positions lie within [center-radius, center+radius] for every step",
+      "function": "computeNodePosition",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1..11, totalNodes=11, centerX=250.0, centerY=250.0, radius=200.0",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "50.0 <= x <= 450.0 for all steps",
+        "50.0 <= y <= 450.0 for all steps"
+      ]
+    },
+    {
+      "id": "inv_computeNodePosition_distinct_points",
+      "description": "All 11 positions are distinct for 11 steps",
+      "function": "computeNodePosition",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1..11, totalNodes=11",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all 11 (x,y) pairs are distinct"
+      ]
+    },
+    {
+      "id": "err_computeNodePosition_step_zero",
+      "description": "computeNodePosition raises step_out_of_range when step=0",
+      "function": "computeNodePosition",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=0, totalNodes=11",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": []
+    },
+    {
+      "id": "err_computeNodePosition_step_exceeds_total",
+      "description": "computeNodePosition raises step_out_of_range when step > totalNodes",
+      "function": "computeNodePosition",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=12, totalNodes=11",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": []
+    },
+    {
+      "id": "err_computeNodePosition_negative_step",
+      "description": "computeNodePosition raises step_out_of_range when step is negative",
+      "function": "computeNodePosition",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=-1, totalNodes=11",
+      "expected_output_description": "",
+      "expected_error": "step_out_of_range",
+      "assertions": []
+    },
+    {
+      "id": "err_computeNodePosition_zero_radius",
+      "description": "computeNodePosition raises invalid_radius when radius=0",
+      "function": "computeNodePosition",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1, totalNodes=11, radius=0",
+      "expected_output_description": "",
+      "expected_error": "invalid_radius",
+      "assertions": []
+    },
+    {
+      "id": "err_computeNodePosition_negative_radius",
+      "description": "computeNodePosition raises invalid_radius when radius is negative",
+      "function": "computeNodePosition",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "step=1, totalNodes=11, radius=-50.0",
+      "expected_output_description": "",
+      "expected_error": "invalid_radius",
+      "assertions": []
+    },
+    {
+      "id": "inv_projection_purity_toQuickStartRow",
+      "description": "toQuickStartRow is pure: identical inputs produce identical outputs across multiple calls",
+      "function": "toQuickStartRow",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toQuickStartRow(tool) == toQuickStartRow(tool) for same input"
+      ]
+    },
+    {
+      "id": "inv_projection_purity_toDiagramNode",
+      "description": "toDiagramNode is pure: identical inputs produce identical outputs across multiple calls",
+      "function": "toDiagramNode",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toDiagramNode(tool) == toDiagramNode(tool) for same input"
+      ]
+    },
+    {
+      "id": "inv_projection_purity_toQuickStartRows",
+      "description": "toQuickStartRows is pure: identical inputs produce identical outputs",
+      "function": "toQuickStartRows",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toQuickStartRows(tools) == toQuickStartRows(tools) for same input"
+      ]
+    },
+    {
+      "id": "inv_projection_purity_toDiagramNodes",
+      "description": "toDiagramNodes is pure: identical inputs produce identical outputs",
+      "function": "toDiagramNodes",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "toDiagramNodes(tools) == toDiagramNodes(tools) for same input"
+      ]
+    },
+    {
+      "id": "inv_exactly_11_tools",
+      "description": "QuickStartRowList and DiagramNodeList always contain exactly 11 entries",
+      "function": "toQuickStartRows",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "len(toQuickStartRows(tools)) == 11",
+        "len(toDiagramNodes(tools)) == 11"
+      ]
+    },
+    {
+      "id": "inv_step_ascending_order",
+      "description": "Output lists are always sorted by step ascending from 1 to 11",
+      "function": "toQuickStartRows",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result[i].step == i + 1 for i in range(11)"
+      ]
+    },
+    {
+      "id": "edge_toQuickStartRow_step_boundary_1",
+      "description": "toQuickStartRow accepts step=1 (lower boundary)",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef with step=1",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.step == 1"
+      ]
+    },
+    {
+      "id": "edge_toQuickStartRow_step_boundary_11",
+      "description": "toQuickStartRow accepts step=11 (upper boundary)",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef with step=11",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.step == 11"
+      ]
+    },
+    {
+      "id": "edge_hex_color_uppercase",
+      "description": "toQuickStartRow accepts uppercase hex color #00E5FF",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef with accentColor='#00E5FF'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.accentColor == '#00E5FF'"
+      ]
+    },
+    {
+      "id": "edge_hex_color_lowercase",
+      "description": "toQuickStartRow accepts lowercase hex color #00e5ff",
+      "function": "toQuickStartRow",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "ToolDef with accentColor='#00e5ff'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "returned.accentColor == '#00e5ff'"
+      ]
+    },
+    {
+      "id": "inv_circularLayoutPoint_x_range",
+      "description": "CircularLayoutPoint x must be within 0.0..=500.0",
+      "function": "computeNodePosition",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "0.0 <= point.x <= 500.0 for all valid inputs with centerX=250, radius=200"
+      ]
+    },
+    {
+      "id": "inv_circularLayoutPoint_y_range",
+      "description": "CircularLayoutPoint y must be within 0.0..=500.0",
+      "function": "computeNodePosition",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "0.0 <= point.y <= 500.0 for all valid inputs with centerY=250, radius=200"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nContract test suite for home_page component.\n\nTests cover:\n- Tier 1: Pure projection functions (toQuickStartRow, toDiagramNode, toQuickStartRows, toDiagramNodes)\n- Tier 1: Circular layout computation (computeNodePosition)\n- Invariants: purity, ordering, count, coordinate bounds\n\nExecution: pytest contract_test.py -v\n\"\"\"\nimport math\nimport pytest\nfrom unittest.mock import MagicMock, patch\nfrom copy import deepcopy\n\n# ---------------------------------------------------------------------------\n# Import the component module\n# ---------------------------------------------------------------------------\nfrom home_page import (\n    toQuickStartRow,\n    toDiagramNode,\n    toQuickStartRows,\n    toDiagramNodes,\n    computeNodePosition,\n)\n\n# Try importing canonical types if available; tests will work with dicts too\ntry:\n    from home_page import (\n        ToolDef,\n        ToolSlug,\n        StepNumber,\n        HexColor,\n        QuickStartRow,\n        DiagramNode,\n        CircularLayoutPoint,\n    )\n    HAS_TYPES = True\nexcept ImportError:\n    HAS_TYPES = False\n\n\n# ---------------------------------------------------------------------------\n# Canonical slug/step/color data matching the 11-tool contract\n# ---------------------------------------------------------------------------\nTOOL_SPECS = [\n    {\"slug\": \"constrain\",   \"step\": 1,  \"name\": \"Constrain\",   \"accentColor\": \"#00e5ff\", \"description\": \"Constrain desc\"},\n    {\"slug\": \"ledger\",      \"step\": 2,  \"name\": \"Ledger\",      \"accentColor\": \"#76ff03\", \"description\": \"Ledger desc\"},\n    {\"slug\": \"pact\",        \"step\": 3,  \"name\": \"Pact\",        \"accentColor\": \"#ffea00\", \"description\": \"Pact desc\"},\n    {\"slug\": \"advocate\",    \"step\": 4,  \"name\": \"Advocate\",    \"accentColor\": \"#ff6d00\", \"description\": \"Advocate desc\"},\n    {\"slug\": \"arbiter\",     \"step\": 5,  \"name\": \"Arbiter\",     \"accentColor\": \"#d500f9\", \"description\": \"Arbiter desc\"},\n    {\"slug\": \"baton\",       \"step\": 6,  \"name\": \"Baton\",       \"accentColor\": \"#00b0ff\", \"description\": \"Baton desc\"},\n    {\"slug\": \"sentinel\",    \"step\": 7,  \"name\": \"Sentinel\",    \"accentColor\": \"#1de9b6\", \"description\": \"Sentinel desc\"},\n    {\"slug\": \"chronicler\",  \"step\": 8,  \"name\": \"Chronicler\",  \"accentColor\": \"#f50057\", \"description\": \"Chronicler desc\"},\n    {\"slug\": \"stigmergy\",   \"step\": 9,  \"name\": \"Stigmergy\",   \"accentColor\": \"#651fff\", \"description\": \"Stigmergy desc\"},\n    {\"slug\": \"apprentice\",  \"step\": 10, \"name\": \"Apprentice\",  \"accentColor\": \"#ff9100\", \"description\": \"Apprentice desc\"},\n    {\"slug\": \"kindex\",      \"step\": 11, \"name\": \"Kindex\",      \"accentColor\": \"#00e676\", \"description\": \"Kindex desc\"},\n]\n\n\ndef _make_tool_def(overrides=None, **kwargs):\n    \"\"\"Factory for a single ToolDef-like dict with sensible defaults.\"\"\"\n    base = {\n        \"slug\": \"constrain\",\n        \"name\": \"Constrain\",\n        \"description\": \"Constrain description\",\n        \"step\": 1,\n        \"version\": \"1.0.0\",\n        \"accentColor\": \"#00e5ff\",\n        \"videoUrl\": \"https://youtube.com/embed/abc\",\n        \"instructions\": [{\"title\": \"Install\", \"bash\": \"npm install\"}],\n    }\n    if overrides:\n        base.update(overrides)\n    base.update(kwargs)\n    # If the module exposes a ToolDef constructor, try to use it\n    if HAS_TYPES:\n        try:\n            return ToolDef(**base)\n        except Exception:\n            pass\n    return base\n\n\ndef _make_tool_def_from_spec(spec):\n    \"\"\"Create a ToolDef from one of the TOOL_SPECS entries.\"\"\"\n    return _make_tool_def(\n        slug=spec[\"slug\"],\n        step=spec[\"step\"],\n        name=spec[\"name\"],\n        description=spec[\"description\"],\n        accentColor=spec[\"accentColor\"],\n    )\n\n\ndef _make_all_tool_defs():\n    \"\"\"Create the canonical sorted list of 11 ToolDefs.\"\"\"\n    return [_make_tool_def_from_spec(s) for s in TOOL_SPECS]\n\n\ndef _get(obj, key):\n    \"\"\"Attribute or dict access helper.\"\"\"\n    if isinstance(obj, dict):\n        return obj[key]\n    return getattr(obj, key)\n\n\n# ===========================================================================\n# Tier 1: toQuickStartRow\n# ===========================================================================\n\nclass TestToQuickStartRow:\n    \"\"\"Tests for toQuickStartRow pure projection function.\"\"\"\n\n    def test_happy_path_all_fields_projected(self):\n        \"\"\"toQuickStartRow returns QuickStartRow with all fields from valid ToolDef.\"\"\"\n        tool = _make_tool_def(step=1, slug=\"constrain\", name=\"Constrain\",\n                              description=\"Constrain desc\", accentColor=\"#00e5ff\")\n        result = toQuickStartRow(tool)\n        assert _get(result, \"step\") == 1\n        assert _get(result, \"slug\") == \"constrain\"\n        assert _get(result, \"name\") == \"Constrain\"\n        assert _get(result, \"description\") == \"Constrain desc\"\n        assert _get(result, \"accentColor\") == \"#00e5ff\"\n\n    def test_happy_path_all_11_slugs(self):\n        \"\"\"toQuickStartRow works for each of the 11 canonical ToolSlug values.\"\"\"\n        for spec in TOOL_SPECS:\n            tool = _make_tool_def_from_spec(spec)\n            result = toQuickStartRow(tool)\n            assert _get(result, \"step\") == spec[\"step\"]\n            assert _get(result, \"slug\") == spec[\"slug\"]\n            assert _get(result, \"name\") == spec[\"name\"]\n            assert _get(result, \"description\") == spec[\"description\"]\n            assert _get(result, \"accentColor\") == spec[\"accentColor\"]\n\n    def test_error_null_tool(self):\n        \"\"\"toQuickStartRow raises on None input (invalid_tool_def).\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            toQuickStartRow(None)\n        assert \"invalid_tool_def\" in str(exc_info.value).lower() or exc_info.type is not None\n\n    def test_error_missing_required_field_name(self):\n        \"\"\"toQuickStartRow raises when 'name' field is missing.\"\"\"\n        tool = _make_tool_def()\n        # Remove the name field\n        if isinstance(tool, dict):\n            del tool[\"name\"]\n        else:\n            # For dataclass-like objects, set to None or remove\n            try:\n                delattr(tool, \"name\")\n            except Exception:\n                tool = {k: v for k, v in vars(tool).items() if k != \"name\"}\n        with pytest.raises(Exception):\n            toQuickStartRow(tool)\n\n    def test_error_missing_required_field_step(self):\n        \"\"\"toQuickStartRow raises when 'step' field is missing.\"\"\"\n        tool = _make_tool_def()\n        if isinstance(tool, dict):\n            del tool[\"step\"]\n        else:\n            try:\n                delattr(tool, \"step\")\n            except Exception:\n                tool = {k: v for k, v in vars(tool).items() if k != \"step\"}\n        with pytest.raises(Exception):\n            toQuickStartRow(tool)\n\n    def test_edge_step_lower_boundary(self):\n        \"\"\"toQuickStartRow accepts step=1 (lower boundary).\"\"\"\n        tool = _make_tool_def(step=1)\n        result = toQuickStartRow(tool)\n        assert _get(result, \"step\") == 1\n\n    def test_edge_step_upper_boundary(self):\n        \"\"\"toQuickStartRow accepts step=11 (upper boundary).\"\"\"\n        tool = _make_tool_def(step=11, slug=\"kindex\", name=\"Kindex\",\n                              description=\"Kindex desc\", accentColor=\"#00e676\")\n        result = toQuickStartRow(tool)\n        assert _get(result, \"step\") == 11\n\n    def test_edge_hex_color_uppercase(self):\n        \"\"\"toQuickStartRow accepts uppercase hex color.\"\"\"\n        tool = _make_tool_def(accentColor=\"#00E5FF\")\n        result = toQuickStartRow(tool)\n        assert _get(result, \"accentColor\") == \"#00E5FF\"\n\n    def test_edge_hex_color_lowercase(self):\n        \"\"\"toQuickStartRow accepts lowercase hex color.\"\"\"\n        tool = _make_tool_def(accentColor=\"#00e5ff\")\n        result = toQuickStartRow(tool)\n        assert _get(result, \"accentColor\") == \"#00e5ff\"\n\n    def test_invariant_purity(self):\n        \"\"\"toQuickStartRow is pure: identical inputs produce identical outputs.\"\"\"\n        tool = _make_tool_def(step=3, slug=\"pact\", name=\"Pact\",\n                              description=\"Pact desc\", accentColor=\"#ffea00\")\n        result_a = toQuickStartRow(tool)\n        result_b = toQuickStartRow(tool)\n        for field in (\"step\", \"slug\", \"name\", \"description\", \"accentColor\"):\n            assert _get(result_a, field) == _get(result_b, field)\n\n\n# ===========================================================================\n# Tier 1: toDiagramNode\n# ===========================================================================\n\nclass TestToDiagramNode:\n    \"\"\"Tests for toDiagramNode pure projection function.\"\"\"\n\n    def test_happy_path_all_fields_projected(self):\n        \"\"\"toDiagramNode returns DiagramNode with slug, name, step, accentColor.\"\"\"\n        tool = _make_tool_def(step=5, slug=\"arbiter\", name=\"Arbiter\",\n                              description=\"Arbiter desc\", accentColor=\"#d500f9\")\n        result = toDiagramNode(tool)\n        assert _get(result, \"slug\") == \"arbiter\"\n        assert _get(result, \"name\") == \"Arbiter\"\n        assert _get(result, \"step\") == 5\n        assert _get(result, \"accentColor\") == \"#d500f9\"\n\n    def test_error_null_tool(self):\n        \"\"\"toDiagramNode raises on None input (invalid_tool_def).\"\"\"\n        with pytest.raises(Exception):\n            toDiagramNode(None)\n\n    def test_error_missing_required_field_slug(self):\n        \"\"\"toDiagramNode raises when 'slug' field is missing.\"\"\"\n        tool = _make_tool_def()\n        if isinstance(tool, dict):\n            del tool[\"slug\"]\n        else:\n            try:\n                delattr(tool, \"slug\")\n            except Exception:\n                tool = {k: v for k, v in vars(tool).items() if k != \"slug\"}\n        with pytest.raises(Exception):\n            toDiagramNode(tool)\n\n    def test_error_missing_required_field_accentColor(self):\n        \"\"\"toDiagramNode raises when 'accentColor' field is missing.\"\"\"\n        tool = _make_tool_def()\n        if isinstance(tool, dict):\n            del tool[\"accentColor\"]\n        else:\n            try:\n                delattr(tool, \"accentColor\")\n            except Exception:\n                tool = {k: v for k, v in vars(tool).items() if k != \"accentColor\"}\n        with pytest.raises(Exception):\n            toDiagramNode(tool)\n\n    def test_invariant_purity(self):\n        \"\"\"toDiagramNode is pure: identical inputs produce identical outputs.\"\"\"\n        tool = _make_tool_def(step=7, slug=\"sentinel\", name=\"Sentinel\",\n                              description=\"Sentinel desc\", accentColor=\"#1de9b6\")\n        result_a = toDiagramNode(tool)\n        result_b = toDiagramNode(tool)\n        for field in (\"slug\", \"name\", \"step\", \"accentColor\"):\n            assert _get(result_a, field) == _get(result_b, field)\n\n\n# ===========================================================================\n# Tier 1: toQuickStartRows\n# ===========================================================================\n\nclass TestToQuickStartRows:\n    \"\"\"Tests for toQuickStartRows batch projection function.\"\"\"\n\n    def test_happy_path_11_tools(self):\n        \"\"\"toQuickStartRows maps 11 sorted ToolDefs to 11 QuickStartRows in order.\"\"\"\n        tools = _make_all_tool_defs()\n        result = toQuickStartRows(tools)\n        assert len(result) == 11\n        for i in range(11):\n            assert _get(result[i], \"step\") == i + 1\n            assert _get(result[i], \"slug\") == TOOL_SPECS[i][\"slug\"]\n            assert _get(result[i], \"name\") == TOOL_SPECS[i][\"name\"]\n            assert _get(result[i], \"description\") == TOOL_SPECS[i][\"description\"]\n            assert _get(result[i], \"accentColor\") == TOOL_SPECS[i][\"accentColor\"]\n\n    def test_error_none_input(self):\n        \"\"\"toQuickStartRows raises invalid_tool_list when tools is None.\"\"\"\n        with pytest.raises(Exception) as exc_info:\n            toQuickStartRows(None)\n        # Accept any exception indicating invalid input\n        assert exc_info.type is not None\n\n    def test_error_empty_list(self):\n        \"\"\"toQuickStartRows raises invalid_tool_list when tools is empty list.\"\"\"\n        with pytest.raises(Exception):\n            toQuickStartRows([])\n\n    def test_error_wrong_length_10(self):\n        \"\"\"toQuickStartRows raises invalid_tool_list when tools has 10 elements.\"\"\"\n        tools = _make_all_tool_defs()[:10]\n        with pytest.raises(Exception):\n            toQuickStartRows(tools)\n\n    def test_error_wrong_length_12(self):\n        \"\"\"toQuickStartRows raises invalid_tool_list when tools has 12 elements.\"\"\"\n        tools = _make_all_tool_defs()\n        tools.append(_make_tool_def(step=12, slug=\"constrain\"))\n        with pytest.raises(Exception):\n            toQuickStartRows(tools)\n\n    def test_error_unsorted_input(self):\n        \"\"\"toQuickStartRows raises unsorted_input when tools are reversed.\"\"\"\n        tools = list(reversed(_make_all_tool_defs()))\n        with pytest.raises(Exception):\n            toQuickStartRows(tools)\n\n    def test_error_unsorted_input_swapped_pair(self):\n        \"\"\"toQuickStartRows raises unsorted_input when two adjacent tools are swapped.\"\"\"\n        tools = _make_all_tool_defs()\n        tools[3], tools[4] = tools[4], tools[3]  # swap step 4 and 5\n        with pytest.raises(Exception):\n            toQuickStartRows(tools)\n\n    def test_invariant_purity(self):\n        \"\"\"toQuickStartRows is pure: identical inputs produce identical outputs.\"\"\"\n        tools = _make_all_tool_defs()\n        result_a = toQuickStartRows(tools)\n        result_b = toQuickStartRows(tools)\n        assert len(result_a) == len(result_b)\n        for i in range(11):\n            for field in (\"step\", \"slug\", \"name\", \"description\", \"accentColor\"):\n                assert _get(result_a[i], field) == _get(result_b[i], field)\n\n    def test_invariant_exactly_11(self):\n        \"\"\"Output always has exactly 11 entries.\"\"\"\n        tools = _make_all_tool_defs()\n        result = toQuickStartRows(tools)\n        assert len(result) == 11\n\n    def test_invariant_step_ascending(self):\n        \"\"\"Output is sorted by step ascending 1..11.\"\"\"\n        tools = _make_all_tool_defs()\n        result = toQuickStartRows(tools)\n        for i in range(11):\n            assert _get(result[i], \"step\") == i + 1\n\n\n# ===========================================================================\n# Tier 1: toDiagramNodes\n# ===========================================================================\n\nclass TestToDiagramNodes:\n    \"\"\"Tests for toDiagramNodes batch projection function.\"\"\"\n\n    def test_happy_path_11_tools(self):\n        \"\"\"toDiagramNodes maps 11 sorted ToolDefs to 11 DiagramNodes in order.\"\"\"\n        tools = _make_all_tool_defs()\n        result = toDiagramNodes(tools)\n        assert len(result) == 11\n        for i in range(11):\n            assert _get(result[i], \"step\") == i + 1\n            assert _get(result[i], \"slug\") == TOOL_SPECS[i][\"slug\"]\n            assert _get(result[i], \"name\") == TOOL_SPECS[i][\"name\"]\n            assert _get(result[i], \"accentColor\") == TOOL_SPECS[i][\"accentColor\"]\n\n    def test_error_none_input(self):\n        \"\"\"toDiagramNodes raises invalid_tool_list when tools is None.\"\"\"\n        with pytest.raises(Exception):\n            toDiagramNodes(None)\n\n    def test_error_empty_list(self):\n        \"\"\"toDiagramNodes raises invalid_tool_list when tools is empty list.\"\"\"\n        with pytest.raises(Exception):\n            toDiagramNodes([])\n\n    def test_error_wrong_length(self):\n        \"\"\"toDiagramNodes raises invalid_tool_list when tools has 5 elements.\"\"\"\n        tools = _make_all_tool_defs()[:5]\n        with pytest.raises(Exception):\n            toDiagramNodes(tools)\n\n    def test_error_unsorted_input(self):\n        \"\"\"toDiagramNodes raises unsorted_input when tools order is shuffled.\"\"\"\n        tools = _make_all_tool_defs()\n        # Shuffle: move last to front\n        tools = [tools[-1]] + tools[:-1]\n        with pytest.raises(Exception):\n            toDiagramNodes(tools)\n\n    def test_invariant_purity(self):\n        \"\"\"toDiagramNodes is pure: identical inputs produce identical outputs.\"\"\"\n        tools = _make_all_tool_defs()\n        result_a = toDiagramNodes(tools)\n        result_b = toDiagramNodes(tools)\n        assert len(result_a) == len(result_b)\n        for i in range(11):\n            for field in (\"step\", \"slug\", \"name\", \"accentColor\"):\n                assert _get(result_a[i], field) == _get(result_b[i], field)\n\n\n# ===========================================================================\n# Tier 1: computeNodePosition\n# ===========================================================================\n\nclass TestComputeNodePosition:\n    \"\"\"Tests for computeNodePosition trigonometric layout function.\"\"\"\n\n    # --- Happy path: known positions ---\n\n    def test_step1_of_11_top_center(self):\n        \"\"\"step=1 of 11 at center=(250,250) radius=200 yields top-center (~250, 50).\"\"\"\n        result = computeNodePosition(1, 11, 250.0, 250.0, 200.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        assert x == pytest.approx(250.0, abs=0.01)\n        assert y == pytest.approx(50.0, abs=0.01)\n\n    def test_step1_of_4_top(self):\n        \"\"\"step=1 of 4 at center=(250,250) radius=100 yields (250, 150) — top.\"\"\"\n        result = computeNodePosition(1, 4, 250.0, 250.0, 100.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        assert x == pytest.approx(250.0, abs=0.01)\n        assert y == pytest.approx(150.0, abs=0.01)\n\n    def test_step2_of_4_right(self):\n        \"\"\"step=2 of 4 at center=(250,250) radius=100 yields (350, 250) — right.\"\"\"\n        result = computeNodePosition(2, 4, 250.0, 250.0, 100.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        assert x == pytest.approx(350.0, abs=0.01)\n        assert y == pytest.approx(250.0, abs=0.01)\n\n    def test_step3_of_4_bottom(self):\n        \"\"\"step=3 of 4 at center=(250,250) radius=100 yields (250, 350) — bottom.\"\"\"\n        result = computeNodePosition(3, 4, 250.0, 250.0, 100.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        assert x == pytest.approx(250.0, abs=0.01)\n        assert y == pytest.approx(350.0, abs=0.01)\n\n    def test_step4_of_4_left(self):\n        \"\"\"step=4 of 4 at center=(250,250) radius=100 yields (150, 250) — left.\"\"\"\n        result = computeNodePosition(4, 4, 250.0, 250.0, 100.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        assert x == pytest.approx(150.0, abs=0.01)\n        assert y == pytest.approx(250.0, abs=0.01)\n\n    # --- Edge case: single node ---\n\n    def test_single_node(self):\n        \"\"\"step=1, totalNodes=1 yields top of circle.\"\"\"\n        result = computeNodePosition(1, 1, 250.0, 250.0, 100.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        # angle = (0/1)*2pi - pi/2 = -pi/2 => cos(-pi/2)=0, sin(-pi/2)=-1\n        assert x == pytest.approx(250.0, abs=0.01)\n        assert y == pytest.approx(150.0, abs=0.01)\n\n    # --- Edge case: step equals totalNodes (last position) ---\n\n    def test_step_equals_total(self):\n        \"\"\"step=totalNodes is a valid position (last node before closing loop).\"\"\"\n        result = computeNodePosition(11, 11, 250.0, 250.0, 200.0)\n        x, y = _get(result, \"x\"), _get(result, \"y\")\n        # Verify it's a valid point on the circle\n        dx = x - 250.0\n        dy = y - 250.0\n        dist = math.sqrt(dx * dx + dy * dy)\n        assert dist == pytest.approx(200.0, abs=0.01)\n\n    # --- Invariant: all points within bounds ---\n\n    def test_all_11_within_bounds(self):\n        \"\"\"All 11 positions lie within [centerX-radius, centerX+radius] and same for y.\"\"\"\n        for step in range(1, 12):\n            result = computeNodePosition(step, 11, 250.0, 250.0, 200.0)\n            x, y = _get(result, \"x\"), _get(result, \"y\")\n            assert 50.0 - 0.01 <= x <= 450.0 + 0.01, f\"x={x} out of bounds for step={step}\"\n            assert 50.0 - 0.01 <= y <= 450.0 + 0.01, f\"y={y} out of bounds for step={step}\"\n\n    # --- Invariant: all points distinct ---\n\n    def test_all_11_positions_distinct(self):\n        \"\"\"All 11 computed positions are distinct.\"\"\"\n        points = []\n        for step in range(1, 12):\n            result = computeNodePosition(step, 11, 250.0, 250.0, 200.0)\n            x, y = _get(result, \"x\"), _get(result, \"y\")\n            points.append((round(x, 4), round(y, 4)))\n        assert len(set(points)) == 11\n\n    # --- Invariant: all points lie on the circle ---\n\n    def test_all_11_on_circle(self):\n        \"\"\"All 11 positions are at distance=radius from center.\"\"\"\n        for step in range(1, 12):\n            result = computeNodePosition(step, 11, 250.0, 250.0, 200.0)\n            x, y = _get(result, \"x\"), _get(result, \"y\")\n            dist = math.sqrt((x - 250.0) ** 2 + (y - 250.0) ** 2)\n            assert dist == pytest.approx(200.0, abs=0.01), f\"step={step} not on circle\"\n\n    # --- Invariant: CircularLayoutPoint x,y within 0..500 for default viewBox ---\n\n    def test_circularLayoutPoint_x_range(self):\n        \"\"\"x values within [0.0, 500.0] for center=250, radius=200.\"\"\"\n        for step in range(1, 12):\n            result = computeNodePosition(step, 11, 250.0, 250.0, 200.0)\n            x = _get(result, \"x\")\n            assert 0.0 <= x <= 500.0\n\n    def test_circularLayoutPoint_y_range(self):\n        \"\"\"y values within [0.0, 500.0] for center=250, radius=200.\"\"\"\n        for step in range(1, 12):\n            result = computeNodePosition(step, 11, 250.0, 250.0, 200.0)\n            y = _get(result, \"y\")\n            assert 0.0 <= y <= 500.0\n\n    # --- Error cases ---\n\n    def test_error_step_zero(self):\n        \"\"\"computeNodePosition raises step_out_of_range when step=0.\"\"\"\n        with pytest.raises(Exception):\n            computeNodePosition(0, 11, 250.0, 250.0, 200.0)\n\n    def test_error_step_exceeds_total(self):\n        \"\"\"computeNodePosition raises step_out_of_range when step > totalNodes.\"\"\"\n        with pytest.raises(Exception):\n            computeNodePosition(12, 11, 250.0, 250.0, 200.0)\n\n    def test_error_negative_step(self):\n        \"\"\"computeNodePosition raises step_out_of_range when step < 0.\"\"\"\n        with pytest.raises(Exception):\n            computeNodePosition(-1, 11, 250.0, 250.0, 200.0)\n\n    def test_error_zero_radius(self):\n        \"\"\"computeNodePosition raises invalid_radius when radius=0.\"\"\"\n        with pytest.raises(Exception):\n            computeNodePosition(1, 11, 250.0, 250.0, 0.0)\n\n    def test_error_negative_radius(self):\n        \"\"\"computeNodePosition raises invalid_radius when radius < 0.\"\"\"\n        with pytest.raises(Exception):\n            computeNodePosition(1, 11, 250.0, 250.0, -50.0)\n\n    # --- Verify the trigonometric formula directly ---\n\n    def test_formula_step6_of_11(self):\n        \"\"\"Verify manual formula computation for step=6 of 11.\"\"\"\n        step = 6\n        total = 11\n        cx, cy, r = 250.0, 250.0, 200.0\n        angle = ((step - 1) / total) * 2 * math.pi - math.pi / 2\n        expected_x = cx + r * math.cos(angle)\n        expected_y = cy + r * math.sin(angle)\n\n        result = computeNodePosition(step, total, cx, cy, r)\n        assert _get(result, \"x\") == pytest.approx(expected_x, abs=0.01)\n        assert _get(result, \"y\") == pytest.approx(expected_y, abs=0.01)\n\n    def test_formula_all_steps(self):\n        \"\"\"Verify trigonometric formula for all 11 steps.\"\"\"\n        cx, cy, r, total = 250.0, 250.0, 200.0, 11\n        for step in range(1, 12):\n            angle = ((step - 1) / total) * 2 * math.pi - math.pi / 2\n            expected_x = cx + r * math.cos(angle)\n            expected_y = cy + r * math.sin(angle)\n            result = computeNodePosition(step, total, cx, cy, r)\n            assert _get(result, \"x\") == pytest.approx(expected_x, abs=0.001)\n            assert _get(result, \"y\") == pytest.approx(expected_y, abs=0.001)\n\n\n# ===========================================================================\n# Tier 3: Integration — full pipeline without mocking intermediary functions\n# ===========================================================================\n\nclass TestIntegrationPipeline:\n    \"\"\"Integration tests composing projection functions end-to-end.\"\"\"\n\n    def test_full_pipeline_quick_start(self):\n        \"\"\"toQuickStartRows produces valid output from canonical tool list.\"\"\"\n        tools = _make_all_tool_defs()\n        rows = toQuickStartRows(tools)\n        assert len(rows) == 11\n        # Verify step ordering\n        steps = [_get(r, \"step\") for r in rows]\n        assert steps == list(range(1, 12))\n        # Verify slugs match\n        slugs = [_get(r, \"slug\") for r in rows]\n        expected_slugs = [s[\"slug\"] for s in TOOL_SPECS]\n        assert slugs == expected_slugs\n\n    def test_full_pipeline_diagram_nodes(self):\n        \"\"\"toDiagramNodes produces valid output from canonical tool list.\"\"\"\n        tools = _make_all_tool_defs()\n        nodes = toDiagramNodes(tools)\n        assert len(nodes) == 11\n        steps = [_get(n, \"step\") for n in nodes]\n        assert steps == list(range(1, 12))\n        slugs = [_get(n, \"slug\") for n in nodes]\n        expected_slugs = [s[\"slug\"] for s in TOOL_SPECS]\n        assert slugs == expected_slugs\n\n    def test_pipeline_consistency(self):\n        \"\"\"QuickStartRows and DiagramNodes from same input share step and slug values.\"\"\"\n        tools = _make_all_tool_defs()\n        rows = toQuickStartRows(tools)\n        nodes = toDiagramNodes(tools)\n        for i in range(11):\n            assert _get(rows[i], \"step\") == _get(nodes[i], \"step\")\n            assert _get(rows[i], \"slug\") == _get(nodes[i], \"slug\")\n            assert _get(rows[i], \"accentColor\") == _get(nodes[i], \"accentColor\")\n"
+}

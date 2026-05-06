@@ -1,0 +1,32 @@
+[
+  {
+    "ambiguity": "",
+    "decision": "Component granularity: ToolPage and CommentsSection in one component rather than two separate top-level components",
+    "rationale": "CommentsSection is only used within ToolPage and shares the same data dependency (tool slug). They form a single feature unit. Sub-components (badges, code block, video embed) are split out purely to respect the 300-line file limit, not because they represent independent subsystems."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Fade-in animation implemented via key-based remount on location.pathname",
+    "rationale": "A CSS animation triggered on mount (e.g., Tailwind animate-fadeIn via a custom keyframe in tailwind.config.js) is the simplest approach that avoids adding framer-motion or react-transition-group as dependencies. Re-keying the content wrapper on pathname change triggers the animation on each navigation."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Routing uses a single dynamic route /:toolSlug rather than 11 static routes",
+    "rationale": "A parameterized route with validation against the tools constant array is DRY and extensible. ToolPage reads useParams().toolSlug and looks up the data; a 404 fallback handles unknown slugs."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Convex provider setup assumes environment variable VITE_CONVEX_URL will be set",
+    "rationale": "Standard Convex React integration reads the deployment URL from an env var. The scaffold component will document this in a .env.example file. The app will initialize ConvexReactClient with import.meta.env.VITE_CONVEX_URL."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Background grid implemented as a Tailwind utility via a custom plugin or arbitrary CSS background on the body/layout",
+    "rationale": "A repeating linear-gradient or SVG-based grid applied as a pseudo-element or background-image on the layout container avoids any custom CSS file, keeping within the Tailwind-only styling constraint."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Google Fonts loaded via <link> tags in index.html rather than @font-face in CSS",
+    "rationale": "This is the simplest zero-CSS approach for loading Instrument Serif, JetBrains Mono, and Inter. Tailwind config maps fontFamily keys to these families."
+  }
+]

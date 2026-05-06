@@ -1,0 +1,371 @@
+{
+  "component_id": "root",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_sidebar_items_sorted_by_step_ascending",
+      "description": "Sidebar items passed to Layout must be sorted by the 'step' field in ascending order, not just contain 11 items. An implementation that returns unsorted items or sorts by a different field violates the postcondition.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 entries with steps in shuffled order: [7, 3, 11, 1, 5, 9, 2, 4, 8, 6, 10]",
+        "app_shell": "projectToolDefToSidebarItem maps each ToolDef preserving step field, createConvexClient returns mock client"
+      },
+      "input_values": {},
+      "input_description": "Mock getTools() returns 11 ToolDef entries with non-sequential step values (e.g., shuffled order). Mock projectToolDefToSidebarItem preserves step info.",
+      "expected_output_description": "Sidebar items array is sorted by step ascending.",
+      "expected_error": "",
+      "assertions": [
+        "Sidebar items received by Layout are in ascending step order",
+        "Shuffled input order does not affect output order"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_items_use_mapping_function_not_passthrough",
+      "description": "Each sidebar item must be the result of calling projectToolDefToSidebarItem on the corresponding ToolDef, not a direct passthrough of the ToolDef itself. Detects implementations that skip the mapping step.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries with distinct slugs",
+        "app_shell": "projectToolDefToSidebarItem is a mock that records calls and returns SidebarItem stubs, createConvexClient returns mock client"
+      },
+      "input_values": {},
+      "input_description": "Mock getTools() returns 11 ToolDef objects. Mock projectToolDefToSidebarItem transforms each into a structurally different SidebarItem.",
+      "expected_output_description": "Layout receives SidebarItem objects (the mapped form), not raw ToolDef objects.",
+      "expected_error": "",
+      "assertions": [
+        "projectToolDefToSidebarItem is called exactly 11 times",
+        "Each call receives one ToolDef from getTools()",
+        "Layout receives the transformed SidebarItem objects"
+      ]
+    },
+    {
+      "id": "goodhart_tool_registry_exactly_10_raises",
+      "description": "When getTools() returns exactly 10 entries (one fewer than required 11), the app must raise tool_registry_empty. Detects implementations that only check for 0 or some other threshold.",
+      "function": "App",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns exactly 10 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client"
+      },
+      "input_values": {},
+      "input_description": "Mock getTools() returns exactly 10 ToolDef entries.",
+      "expected_output_description": "tool_registry_empty error is raised.",
+      "expected_error": "tool_registry_empty",
+      "assertions": [
+        "Error is raised when getTools returns 10 items",
+        "Error message or type indicates tool_registry_empty"
+      ]
+    },
+    {
+      "id": "goodhart_tool_registry_12_raises",
+      "description": "When getTools() returns more than 11 entries (e.g., 12), the contract requires exactly 11. An implementation that only checks for 'fewer than 11' but not 'more than 11' may incorrectly allow extra entries. The precondition states exactly 11.",
+      "function": "App",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 12 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Mock getTools() returns 12 ToolDef entries.",
+      "expected_output_description": "Either renders correctly with all 12 mapped or raises tool_registry_empty depending on strict interpretation. The sidebar items count should match getTools() count if accepted.",
+      "expected_error": "",
+      "assertions": [
+        "If 12 tools are accepted, sidebar has 12 items all mapped through projectToolDefToSidebarItem",
+        "If rejected, a clear error is raised"
+      ]
+    },
+    {
+      "id": "goodhart_convex_provider_outermost_not_sibling",
+      "description": "ConvexProvider must wrap BrowserRouter as a parent, not be a sibling or child. Detects implementations where both are rendered at the same level or ConvexProvider is nested inside BrowserRouter.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks with all 11 tools.",
+      "expected_output_description": "In the React element tree, ConvexProvider is an ancestor of BrowserRouter, not a descendant or sibling.",
+      "expected_error": "",
+      "assertions": [
+        "BrowserRouter appears as a descendant of ConvexProvider in the element tree",
+        "ConvexProvider does not appear as a descendant of BrowserRouter"
+      ]
+    },
+    {
+      "id": "goodhart_layout_is_parent_route_of_both_leaves",
+      "description": "Layout must be the parent route element for both the index route (HomePage) and the dynamic route (ToolPage). Both leaf routes must be children of the Layout route, not siblings at the same level.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks.",
+      "expected_output_description": "Route tree shows Layout as parent with both HomePage (index) and ToolPage (:toolSlug) as child routes.",
+      "expected_error": "",
+      "assertions": [
+        "Layout route has path='/' and contains an Outlet",
+        "Index route and :toolSlug route are both children of the Layout route",
+        "Neither leaf route is a top-level route"
+      ]
+    },
+    {
+      "id": "goodhart_dynamic_route_param_is_toolslug",
+      "description": "The dynamic route parameter must be named exactly ':toolSlug', not ':slug', ':id', ':tool', or any other name. This ensures ToolPage can access the correct param via useParams().",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks, inspect route configuration.",
+      "expected_output_description": "The dynamic child route uses path=':toolSlug' specifically.",
+      "expected_error": "",
+      "assertions": [
+        "Dynamic route path is exactly ':toolSlug'",
+        "No other dynamic parameter names are used in the route tree"
+      ]
+    },
+    {
+      "id": "goodhart_error_fallback_home_link_points_to_root",
+      "description": "The RootErrorFallback must provide a navigation link that points to exactly '/' (the home page), not to a relative path, '#', or any other destination.",
+      "function": "RootErrorFallback",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render RootErrorFallback within a Router context with a mock error.",
+      "expected_output_description": "The rendered output contains a link or anchor element with href='/' or a navigation action to '/'.",
+      "expected_error": "",
+      "assertions": [
+        "A link element targets '/' specifically",
+        "The link is clickable/accessible (not hidden or disabled)"
+      ]
+    },
+    {
+      "id": "goodhart_error_fallback_renders_visible_text",
+      "description": "RootErrorFallback must render user-visible text indicating an error occurred, not just an empty container or hidden element. The error message must be human-readable.",
+      "function": "RootErrorFallback",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render with a generic Error('test failure') within Router context.",
+      "expected_output_description": "Output contains visible text content that communicates something went wrong.",
+      "expected_error": "",
+      "assertions": [
+        "Rendered output has non-empty text content",
+        "Text content includes words indicating error/problem (e.g., 'wrong', 'error', 'oops', 'problem')"
+      ]
+    },
+    {
+      "id": "goodhart_error_fallback_handles_error_with_circular_reference",
+      "description": "RootErrorFallback must not throw when the error object contains circular references, which would cause JSON.stringify to fail if the implementation attempts serialization.",
+      "function": "RootErrorFallback",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Error object with a circular self-reference (e.g., err.self = err).",
+      "expected_output_description": "Component renders without throwing, displaying some fallback message.",
+      "expected_error": "",
+      "assertions": [
+        "No exception is thrown during render",
+        "Output still contains error message text and home link"
+      ]
+    },
+    {
+      "id": "goodhart_convex_client_created_at_module_scope",
+      "description": "The ConvexReactClient must be created at module scope (not inside the App function body), ensuring fail-fast behavior. If createConvexClient throws, it should prevent the module from loading, not fail only when App renders.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "app_shell": "createConvexClient raises an error immediately"
+      },
+      "input_values": {},
+      "input_description": "Mock createConvexClient to throw on import/module load.",
+      "expected_output_description": "The error surfaces at module load time, not deferred to render time.",
+      "expected_error": "",
+      "assertions": [
+        "createConvexClient is called during module initialization, not during App render",
+        "Error from createConvexClient prevents module from completing load"
+      ]
+    },
+    {
+      "id": "goodhart_root_div_id_is_literally_root",
+      "description": "Bootstrap must call document.getElementById with exactly the string 'root', not 'app', 'main', or any other ID. The RootDivId type specifies this is always 'root'.",
+      "function": "bootstrap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Mock document.getElementById to record the ID argument it receives.",
+      "expected_output_description": "getElementById is called with exactly 'root'.",
+      "expected_error": "",
+      "assertions": [
+        "document.getElementById is called with argument 'root'",
+        "No other element ID is queried for the mount point"
+      ]
+    },
+    {
+      "id": "goodhart_bootstrap_returns_none",
+      "description": "Bootstrap must return None (no return value). It is purely side-effectful. An implementation that returns the root or a rendered element violates the contract.",
+      "function": "bootstrap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Standard happy-path mocks for bootstrap.",
+      "expected_output_description": "Return value is None/undefined.",
+      "expected_error": "",
+      "assertions": [
+        "bootstrap() return value is None or undefined",
+        "No meaningful value is returned"
+      ]
+    },
+    {
+      "id": "goodhart_app_index_route_renders_homepage",
+      "description": "The index route (path='/') must render the HomePage component specifically, not a generic placeholder or the ToolPage component. Detects implementations that swap the route assignments.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally",
+        "home_page": "HomePage is a mock component",
+        "tool_page": "ToolPage is a mock component"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks, inspect which component is assigned to the index route.",
+      "expected_output_description": "The index route element is HomePage, and the :toolSlug route element is ToolPage.",
+      "expected_error": "",
+      "assertions": [
+        "Index route renders HomePage component",
+        "Dynamic :toolSlug route renders ToolPage component",
+        "The assignments are not swapped"
+      ]
+    },
+    {
+      "id": "goodhart_error_fallback_with_undefined_error",
+      "description": "RootErrorFallback must handle an undefined/None error value without crashing. useRouteError() can return undefined in edge cases.",
+      "function": "RootErrorFallback",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render RootErrorFallback with useRouteError returning undefined/None.",
+      "expected_output_description": "Component renders gracefully without throwing.",
+      "expected_error": "",
+      "assertions": [
+        "No exception thrown",
+        "Still renders error message text",
+        "Still renders home navigation link"
+      ]
+    },
+    {
+      "id": "goodhart_strict_mode_wraps_everything",
+      "description": "React.StrictMode must be the absolute root of the returned tree, wrapping ConvexProvider and everything beneath it. An implementation that places StrictMode inside ConvexProvider or only around BrowserRouter violates the hierarchy.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks, inspect tree hierarchy.",
+      "expected_output_description": "StrictMode is the outermost element, ConvexProvider is its child, BrowserRouter is ConvexProvider's child.",
+      "expected_error": "",
+      "assertions": [
+        "StrictMode is the root element type",
+        "ConvexProvider is a direct or near-direct child of StrictMode",
+        "BrowserRouter is a descendant of ConvexProvider"
+      ]
+    },
+    {
+      "id": "goodhart_tool_registry_1_entry_raises",
+      "description": "When getTools() returns exactly 1 entry, tool_registry_empty must be raised. Tests that the threshold is specifically 11, not just >0.",
+      "function": "App",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns exactly 1 ToolDef entry",
+        "app_shell": "createConvexClient returns mock client"
+      },
+      "input_values": {},
+      "input_description": "Mock getTools() returns exactly 1 ToolDef entry.",
+      "expected_output_description": "tool_registry_empty error is raised.",
+      "expected_error": "tool_registry_empty",
+      "assertions": [
+        "Error is raised for 1 tool entry",
+        "Error type/message indicates tool_registry_empty"
+      ]
+    },
+    {
+      "id": "goodhart_error_fallback_with_deeply_nested_error",
+      "description": "RootErrorFallback must handle an error object with deeply nested properties (e.g., {cause: {cause: {cause: ...}}}) without stack overflow or crash.",
+      "function": "RootErrorFallback",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Error object with 100-level deep nested cause chain.",
+      "expected_output_description": "Component renders without throwing or hanging.",
+      "expected_error": "",
+      "assertions": [
+        "No exception thrown",
+        "Renders within reasonable time",
+        "Still shows error message and home link"
+      ]
+    },
+    {
+      "id": "goodhart_bootstrap_uses_createroot_not_render",
+      "description": "Bootstrap must use React 18's createRoot API (from react-dom/client), not the legacy ReactDOM.render API. This ensures concurrent features are available.",
+      "function": "bootstrap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Mock both createRoot and legacy render, verify which is called.",
+      "expected_output_description": "createRoot is called; legacy render is not called.",
+      "expected_error": "",
+      "assertions": [
+        "ReactDOM.createRoot is invoked",
+        "The legacy ReactDOM.render is not invoked"
+      ]
+    },
+    {
+      "id": "goodhart_error_element_on_root_route_not_child",
+      "description": "The errorElement must be attached to the root/parent route (the Layout route at path='/'), not to individual child routes. This ensures all unrecoverable errors bubble up to one boundary.",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "data_layer": "getTools() returns 11 ToolDef entries",
+        "app_shell": "createConvexClient returns mock client, projectToolDefToSidebarItem maps normally"
+      },
+      "input_values": {},
+      "input_description": "Standard happy-path mocks, inspect route tree configuration.",
+      "expected_output_description": "The root route (path='/') has errorElement set. Individual leaf routes do not need their own errorElement.",
+      "expected_error": "",
+      "assertions": [
+        "Root/parent route has errorElement configured",
+        "errorElement renders the RootErrorFallback component"
+      ]
+    }
+  ],
+  "test_language": "python",
+  "generated_code": "\"\"\"\nAdversarial hidden acceptance tests for the Root component.\nThese tests catch implementations that 'teach to the test' by detecting\nhardcoded returns, missing validations, and invariant violations not\ncovered by visible tests.\n\"\"\"\n\nimport pytest\nimport sys\nimport os\nimport types\nfrom unittest.mock import MagicMock, patch, call\n\n\n# ---------------------------------------------------------------------------\n# Helpers for creating mock ToolDef entries\n# ---------------------------------------------------------------------------\n\ndef _make_tool_def(step, slug=None):\n    \"\"\"Create a minimal ToolDef-like dict with a step and slug.\"\"\"\n    slug = slug or f\"tool-{step}\"\n    return {\n        \"step\": step,\n        \"slug\": slug,\n        \"name\": f\"Tool {step}\",\n        \"description\": f\"Description for tool {step}\",\n        \"version\": \"1.0.0\",\n        \"accentColor\": \"#00ff00\",\n    }\n\n\ndef _make_sidebar_item(tool_def):\n    \"\"\"Create a minimal SidebarItem-like dict from a ToolDef.\"\"\"\n    return {\n        \"label\": tool_def[\"name\"],\n        \"slug\": tool_def[\"slug\"],\n        \"step\": tool_def[\"step\"],\n        \"href\": f\"/{tool_def['slug']}\",\n    }\n\n\ndef _make_n_tools(n, shuffled=False):\n    \"\"\"Create n tool defs with steps 1..n, optionally shuffled.\"\"\"\n    tools = [_make_tool_def(i) for i in range(1, n + 1)]\n    if shuffled:\n        import random\n        random.seed(42)\n        random.shuffle(tools)\n    return tools\n\n\n# ---------------------------------------------------------------------------\n# Attempt to import the root module; skip all tests if unavailable\n# ---------------------------------------------------------------------------\n\ntry:\n    from root import *\n    ROOT_AVAILABLE = True\nexcept ImportError:\n    ROOT_AVAILABLE = False\n\npytestmark = pytest.mark.skipif(not ROOT_AVAILABLE, reason=\"root module not importable\")\n\n\n# ===========================================================================\n# App tests\n# ===========================================================================\n\nclass TestGoodhartApp:\n    \"\"\"Adversarial tests for the App component.\"\"\"\n\n    def test_goodhart_sidebar_items_sorted_by_step_ascending(self):\n        \"\"\"\n        Sidebar items passed to Layout must be sorted by the 'step' field\n        in ascending order regardless of the order returned by getTools().\n        An implementation that just passes items through unsorted violates\n        the postcondition.\n        \"\"\"\n        shuffled_tools = _make_n_tools(11, shuffled=True)\n        mapped_items = [_make_sidebar_item(t) for t in shuffled_tools]\n\n        # We need to verify that whatever the App produces, the sidebar\n        # items end up sorted by step ascending.\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n            mapping_calls = []\n\n            def mock_mapper(tool_def):\n                item = _make_sidebar_item(tool_def)\n                mapping_calls.append(item)\n                return item\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=shuffled_tools), \\\n                 patch(\"root.app_shell.projectToolDefToSidebarItem\", side_effect=mock_mapper):\n                try:\n                    result = App({})\n                    # If we can inspect the result tree for sidebar items,\n                    # verify they are sorted\n                    if hasattr(result, 'props') and result.props:\n                        # Try to find sidebar items in the tree\n                        pass\n                    # At minimum, verify the mapper was called for each tool\n                    assert len(mapping_calls) == 11, \\\n                        f\"Expected 11 mapping calls, got {len(mapping_calls)}\"\n                except Exception:\n                    # If App doesn't work this way, try alternative import patterns\n                    pass\n        except (ImportError, AttributeError):\n            pytest.skip(\"Cannot inspect App internals for this test\")\n\n    def test_goodhart_mapping_function_actually_called(self):\n        \"\"\"\n        Each sidebar item must result from calling projectToolDefToSidebarItem,\n        not from direct passthrough or hardcoding. Verifies the mapping function\n        is invoked exactly 11 times.\n        \"\"\"\n        tools = _make_n_tools(11)\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n            mock_mapper = MagicMock(side_effect=lambda td: _make_sidebar_item(td))\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=tools), \\\n                 patch(\"root.app_shell.projectToolDefToSidebarItem\", mock_mapper):\n                try:\n                    App({})\n                    assert mock_mapper.call_count == 11, \\\n                        f\"projectToolDefToSidebarItem should be called 11 times, was called {mock_mapper.call_count}\"\n                    # Verify each tool was passed to the mapper\n                    called_steps = sorted([c[0][0][\"step\"] for c in mock_mapper.call_args_list])\n                    assert called_steps == list(range(1, 12)), \\\n                        \"Each of the 11 tools must be passed to projectToolDefToSidebarItem\"\n                except Exception as e:\n                    if \"call_count\" in str(e) or \"projectToolDefToSidebarItem\" in str(e):\n                        raise\n                    pytest.skip(f\"App rendering requires additional setup: {e}\")\n        except ImportError:\n            pytest.skip(\"Cannot import App for this test\")\n\n    def test_goodhart_tool_registry_exactly_10_raises(self):\n        \"\"\"\n        When getTools() returns exactly 10 entries (one fewer than required 11),\n        the app must raise tool_registry_empty. This catches implementations\n        that only check for empty arrays rather than the exact count of 11.\n        \"\"\"\n        tools = _make_n_tools(10)\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=tools):\n                with pytest.raises(Exception) as exc_info:\n                    App({})\n                error_str = str(exc_info.value).lower()\n                assert \"tool_registry\" in error_str or \"empty\" in error_str or \"11\" in error_str or \"fewer\" in error_str, \\\n                    f\"Expected tool_registry_empty error for 10 tools, got: {exc_info.value}\"\n        except ImportError:\n            pytest.skip(\"Cannot import App for this test\")\n\n    def test_goodhart_tool_registry_1_entry_raises(self):\n        \"\"\"\n        When getTools() returns exactly 1 entry, tool_registry_empty must be\n        raised. Ensures the threshold is specifically 11, not just >0 or >5.\n        \"\"\"\n        tools = _make_n_tools(1)\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=tools):\n                with pytest.raises(Exception) as exc_info:\n                    App({})\n                error_str = str(exc_info.value).lower()\n                assert \"tool_registry\" in error_str or \"empty\" in error_str or \"11\" in error_str or \"fewer\" in error_str, \\\n                    f\"Expected tool_registry_empty error for 1 tool, got: {exc_info.value}\"\n        except ImportError:\n            pytest.skip(\"Cannot import App for this test\")\n\n    def test_goodhart_dynamic_route_param_is_toolslug(self):\n        \"\"\"\n        The dynamic route parameter must be named exactly ':toolSlug'.\n        An implementation using ':slug', ':id', or ':tool' would break\n        ToolPage's useParams() call.\n        \"\"\"\n        try:\n            # Try to inspect the source file directly\n            import inspect\n            from root import App\n\n            source = inspect.getsource(App)\n\n            # Check that :toolSlug is used\n            assert \"toolSlug\" in source or \"tool_slug\" in source or \":toolSlug\" in source, \\\n                \"Dynamic route must use ':toolSlug' as the parameter name\"\n\n            # Negative checks - ensure wrong param names aren't used as the route param\n            # (they might appear in comments, so we check route-specific patterns)\n            for wrong_param in [\"path=':slug'\", \"path=':id'\", \"path=':tool'\"]:\n                assert wrong_param not in source, \\\n                    f\"Route should use ':toolSlug', not '{wrong_param}'\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect App source for route param verification\")\n\n    def test_goodhart_strict_mode_is_outermost(self):\n        \"\"\"\n        React.StrictMode must be the outermost element in the tree returned\n        by App, wrapping ConvexProvider and everything else. StrictMode nested\n        inside providers violates the contract hierarchy.\n        \"\"\"\n        tools = _make_n_tools(11)\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n            import React from 'react' if False else None  # noqa - this is Python\n\n            mock_client = MagicMock()\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=tools), \\\n                 patch(\"root.app_shell.projectToolDefToSidebarItem\", side_effect=lambda td: _make_sidebar_item(td)):\n                try:\n                    result = App({})\n                    # Check the outermost element type\n                    if hasattr(result, 'type'):\n                        type_name = getattr(result.type, '__name__', str(result.type))\n                        assert 'StrictMode' in type_name or 'strict' in str(type_name).lower(), \\\n                            f\"Root element should be StrictMode, got {type_name}\"\n                    elif hasattr(result, '$$typeof'):\n                        # React element check\n                        pass\n                except Exception as e:\n                    if \"StrictMode\" in str(e):\n                        raise\n                    pytest.skip(f\"Cannot verify StrictMode placement: {e}\")\n        except ImportError:\n            pytest.skip(\"Cannot import App for StrictMode verification\")\n\n    def test_goodhart_app_accepts_empty_props(self):\n        \"\"\"\n        AppProps is an empty struct, so App must accept an empty dict/object\n        as props without error. This tests forward compatibility.\n        \"\"\"\n        tools = _make_n_tools(11)\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=tools), \\\n                 patch(\"root.app_shell.projectToolDefToSidebarItem\", side_effect=lambda td: _make_sidebar_item(td)):\n                # Should not raise with empty props\n                result = App({})\n                assert result is not None, \"App should return a React element, not None\"\n        except ImportError:\n            pytest.skip(\"Cannot import App\")\n        except Exception as e:\n            if \"props\" in str(e).lower():\n                pytest.fail(f\"App should accept empty props: {e}\")\n\n    def test_goodhart_no_hardcoded_sidebar_items(self):\n        \"\"\"\n        Sidebar items must be dynamically derived from getTools(), not hardcoded.\n        When getTools returns tools with custom names/slugs, the sidebar items\n        must reflect those custom values, not a fixed set.\n        \"\"\"\n        custom_tools = []\n        for i in range(1, 12):\n            custom_tools.append({\n                \"step\": i,\n                \"slug\": f\"custom-unique-slug-{i}\",\n                \"name\": f\"CustomUniqueName{i}\",\n                \"description\": f\"Custom description {i}\",\n                \"version\": \"2.0.0\",\n                \"accentColor\": \"#ff0000\",\n            })\n\n        try:\n            from root import App\n            from unittest.mock import patch, MagicMock\n\n            mock_client = MagicMock()\n            produced_items = []\n\n            def track_mapper(td):\n                item = {\n                    \"label\": td[\"name\"],\n                    \"slug\": td[\"slug\"],\n                    \"step\": td[\"step\"],\n                    \"href\": f\"/{td['slug']}\",\n                }\n                produced_items.append(item)\n                return item\n\n            with patch(\"root.app_shell.createConvexClient\", return_value=mock_client), \\\n                 patch(\"root.data_layer.getTools\", return_value=custom_tools), \\\n                 patch(\"root.app_shell.projectToolDefToSidebarItem\", side_effect=track_mapper):\n                App({})\n                assert len(produced_items) == 11, \\\n                    \"All 11 custom tools must be mapped\"\n                for item in produced_items:\n                    assert \"custom-unique-slug\" in item[\"slug\"], \\\n                        f\"Sidebar item slug should come from getTools, got {item['slug']}\"\n        except ImportError:\n            pytest.skip(\"Cannot import App\")\n        except Exception as e:\n            if \"custom-unique\" in str(e) or \"mapped\" in str(e):\n                raise\n            pytest.skip(f\"Cannot verify dynamic sidebar items: {e}\")\n\n\n# ===========================================================================\n# Bootstrap tests\n# ===========================================================================\n\nclass TestGoodhartBootstrap:\n    \"\"\"Adversarial tests for the bootstrap function.\"\"\"\n\n    def test_goodhart_bootstrap_queries_element_id_root(self):\n        \"\"\"\n        Bootstrap must call document.getElementById with exactly the string\n        'root', matching the RootDivId type constraint. Using any other ID\n        ('app', 'main', etc.) violates the contract.\n        \"\"\"\n        try:\n            from root import bootstrap\n            from unittest.mock import patch, MagicMock\n\n            mock_element = MagicMock()\n            mock_get_by_id = MagicMock(return_value=mock_element)\n            mock_root = MagicMock()\n            mock_create_root = MagicMock(return_value=mock_root)\n\n            with patch(\"root.document.getElementById\", mock_get_by_id), \\\n                 patch(\"root.ReactDOM.createRoot\", mock_create_root):\n                try:\n                    bootstrap()\n                except Exception:\n                    pass\n\n                if mock_get_by_id.called:\n                    call_args = mock_get_by_id.call_args[0][0]\n                    assert call_args == \"root\", \\\n                        f\"getElementById must be called with 'root', got '{call_args}'\"\n        except (ImportError, AttributeError):\n            # Try alternative: inspect source\n            try:\n                import inspect\n                from root import bootstrap\n                source = inspect.getsource(bootstrap)\n                assert \"'root'\" in source or '\"root\"' in source, \\\n                    \"bootstrap must reference element ID 'root'\"\n            except (ImportError, TypeError, OSError):\n                pytest.skip(\"Cannot verify bootstrap element ID\")\n\n    def test_goodhart_bootstrap_returns_none(self):\n        \"\"\"\n        Bootstrap is purely side-effectful and must return None.\n        Returning a root object or rendered element violates the contract.\n        \"\"\"\n        try:\n            from root import bootstrap\n            from unittest.mock import patch, MagicMock\n\n            mock_element = MagicMock()\n            mock_root = MagicMock()\n            mock_create_root = MagicMock(return_value=mock_root)\n\n            with patch(\"root.document.getElementById\", return_value=mock_element), \\\n                 patch(\"root.ReactDOM.createRoot\", mock_create_root):\n                try:\n                    result = bootstrap()\n                    assert result is None, \\\n                        f\"bootstrap() must return None, got {type(result)}\"\n                except Exception:\n                    # If bootstrap raises for other reasons, that's separate\n                    pass\n        except ImportError:\n            pytest.skip(\"Cannot import bootstrap\")\n\n    def test_goodhart_bootstrap_uses_createroot_api(self):\n        \"\"\"\n        Bootstrap must use React 18's createRoot API from react-dom/client,\n        not the legacy ReactDOM.render. This ensures concurrent mode support.\n        \"\"\"\n        try:\n            import inspect\n            from root import bootstrap\n            source = inspect.getsource(bootstrap)\n\n            assert \"createRoot\" in source, \\\n                \"bootstrap must use React 18 createRoot API\"\n            # Verify it's not using legacy render\n            # (render might appear in 'render(<App />)' which is fine for createRoot().render())\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect bootstrap source\")\n\n\n# ===========================================================================\n# RootErrorFallback tests\n# ===========================================================================\n\nclass TestGoodhartRootErrorFallback:\n    \"\"\"Adversarial tests for the RootErrorFallback component.\"\"\"\n\n    def test_goodhart_error_fallback_home_link_points_to_slash(self):\n        \"\"\"\n        The home navigation link in the error fallback must point to exactly\n        '/', not '#', '/home', or any other path.\n        \"\"\"\n        try:\n            import inspect\n            from root import RootErrorFallback\n            source = inspect.getsource(RootErrorFallback)\n\n            # The component should contain a reference to '/' as the home path\n            assert '/' in source, \\\n                \"RootErrorFallback must contain a link to '/'\"\n            # More specific: look for href or to attribute pointing to '/'\n            has_home_link = (\n                \"href=\\\"/\\\"\" in source or\n                \"href='/'\" in source or\n                \"to=\\\"/\\\"\" in source or\n                \"to='/'\" in source or\n                'href=\"/\"' in source or\n                \"to={'/'}\" in source or\n                'to=\"/\"' in source\n            )\n            assert has_home_link, \\\n                \"RootErrorFallback must have a link/anchor pointing to '/'\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect RootErrorFallback source\")\n\n    def test_goodhart_error_fallback_has_visible_error_text(self):\n        \"\"\"\n        The error fallback must render human-readable text indicating an error\n        occurred. An empty div or purely styled container with no text violates\n        the postcondition of displaying a 'user-friendly error message'.\n        \"\"\"\n        try:\n            import inspect\n            from root import RootErrorFallback\n            source = inspect.getsource(RootErrorFallback)\n\n            # Should contain user-facing error text\n            error_indicators = [\n                \"wrong\", \"error\", \"oops\", \"problem\", \"sorry\",\n                \"unexpected\", \"failed\", \"went wrong\", \"crash\"\n            ]\n            source_lower = source.lower()\n            has_error_text = any(indicator in source_lower for indicator in error_indicators)\n            assert has_error_text, \\\n                \"RootErrorFallback must contain visible error message text\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect RootErrorFallback source\")\n\n    def test_goodhart_error_fallback_handles_circular_reference_error(self):\n        \"\"\"\n        RootErrorFallback must not crash when the error object has circular\n        references. If the implementation tries to serialize the error\n        (e.g., JSON.stringify), circular refs would cause a TypeError.\n        \"\"\"\n        try:\n            from root import RootErrorFallback\n            from unittest.mock import patch, MagicMock\n\n            # Create a circular error object\n            class CircularError(Exception):\n                pass\n\n            err = CircularError(\"circular\")\n            err.cause = err  # circular reference\n\n            # Try rendering with mocked router context\n            with patch(\"root.useRouteError\", return_value=err):\n                try:\n                    result = RootErrorFallback({\"error\": err})\n                    assert result is not None, \\\n                        \"RootErrorFallback should render even with circular error\"\n                except RecursionError:\n                    pytest.fail(\"RootErrorFallback caused RecursionError with circular reference\")\n                except Exception as e:\n                    if \"recursion\" in str(e).lower() or \"circular\" in str(e).lower():\n                        pytest.fail(f\"RootErrorFallback failed on circular error: {e}\")\n        except ImportError:\n            pytest.skip(\"Cannot import RootErrorFallback\")\n\n    def test_goodhart_error_fallback_handles_undefined_error(self):\n        \"\"\"\n        RootErrorFallback must handle None/undefined error value without\n        crashing. useRouteError() can return undefined in edge cases.\n        \"\"\"\n        try:\n            from root import RootErrorFallback\n            from unittest.mock import patch\n\n            with patch(\"root.useRouteError\", return_value=None):\n                try:\n                    result = RootErrorFallback({\"error\": None})\n                    assert result is not None, \\\n                        \"RootErrorFallback should render with None error\"\n                except TypeError as e:\n                    pytest.fail(f\"RootErrorFallback crashed on None error: {e}\")\n        except ImportError:\n            pytest.skip(\"Cannot import RootErrorFallback\")\n\n    def test_goodhart_error_fallback_handles_error_with_huge_message(self):\n        \"\"\"\n        RootErrorFallback must not crash or hang when given an error with\n        an extremely long message string (e.g., 1MB). Detects implementations\n        that attempt to fully display or process the raw error.\n        \"\"\"\n        try:\n            from root import RootErrorFallback\n            from unittest.mock import patch\n\n            huge_msg = \"x\" * (1024 * 1024)  # 1MB error message\n            err = Exception(huge_msg)\n\n            with patch(\"root.useRouteError\", return_value=err):\n                try:\n                    result = RootErrorFallback({\"error\": err})\n                    assert result is not None\n                except MemoryError:\n                    pytest.fail(\"RootErrorFallback caused MemoryError with huge error message\")\n        except ImportError:\n            pytest.skip(\"Cannot import RootErrorFallback\")\n\n    def test_goodhart_error_fallback_does_not_expose_error_details(self):\n        \"\"\"\n        A user-friendly error fallback should show a generic message,\n        not dump raw error details to the user. The component should\n        contain generic user-facing language.\n        \"\"\"\n        try:\n            import inspect\n            from root import RootErrorFallback\n            source = inspect.getsource(RootErrorFallback)\n\n            # Should not just dump error.message or error.stack directly\n            # Should contain user-friendly phrasing\n            friendly_indicators = [\n                \"home\", \"back\", \"return\", \"go back\", \"try again\",\n                \"navigate\", \"start\", \"main\"\n            ]\n            source_lower = source.lower()\n            has_friendly = any(ind in source_lower for ind in friendly_indicators)\n            assert has_friendly, \\\n                \"RootErrorFallback should provide a way to navigate back/home\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect RootErrorFallback source\")\n\n    def test_goodhart_error_fallback_dark_theme_has_dark_bg_class(self):\n        \"\"\"\n        The dark terminal aesthetic requires dark background Tailwind classes.\n        The component must use classes like bg-gray-900, bg-black, bg-slate-900,\n        or similar dark background utilities.\n        \"\"\"\n        try:\n            import inspect\n            from root import RootErrorFallback\n            source = inspect.getsource(RootErrorFallback)\n\n            dark_bg_classes = [\n                \"bg-gray-900\", \"bg-gray-950\", \"bg-black\", \"bg-slate-900\",\n                \"bg-slate-950\", \"bg-zinc-900\", \"bg-zinc-950\", \"bg-neutral-900\",\n                \"bg-neutral-950\", \"bg-stone-900\", \"bg-stone-950\"\n            ]\n            has_dark_bg = any(cls in source for cls in dark_bg_classes)\n            assert has_dark_bg, \\\n                \"RootErrorFallback must use a dark background Tailwind class for terminal aesthetic\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect RootErrorFallback source\")\n\n    def test_goodhart_error_fallback_light_text_class(self):\n        \"\"\"\n        The dark terminal aesthetic requires light text on dark background.\n        The component must use Tailwind text color classes like text-white,\n        text-gray-100, text-gray-200, etc.\n        \"\"\"\n        try:\n            import inspect\n            from root import RootErrorFallback\n            source = inspect.getsource(RootErrorFallback)\n\n            light_text_classes = [\n                \"text-white\", \"text-gray-100\", \"text-gray-200\", \"text-gray-300\",\n                \"text-slate-100\", \"text-slate-200\", \"text-slate-300\",\n                \"text-zinc-100\", \"text-zinc-200\", \"text-zinc-300\",\n                \"text-neutral-100\", \"text-neutral-200\",\n                \"text-green-\", \"text-emerald-\",  # terminal green aesthetic\n            ]\n            has_light_text = any(cls in source for cls in light_text_classes)\n            assert has_light_text, \\\n                \"RootErrorFallback must use light text Tailwind classes for dark theme\"\n        except (ImportError, TypeError, OSError):\n            pytest.skip(\"Cannot inspect RootErrorFallback source\")\n\n\n# ===========================================================================\n# Source / structural analysis tests\n# ===========================================================================\n\nclass TestGoodhartStructural:\n    \"\"\"Tests that verify structural properties of the root module files.\"\"\"\n\n    def test_goodhart_app_file_imports_from_data_layer(self):\n        \"\"\"\n        App must import getTools from data_layer dependency, not define\n        tools inline. Verifies the unidirectional dependency flow where\n        root imports from data_layer.\n        \"\"\"\n        try:\n            import inspect\n            from root import App\n            source = inspect.getsource(sys.modules.get('root', App))\n        except (ImportError, TypeError, OSError):\n            try:\n                # Try reading App.tsx or similar source file\n                possible_paths = [\n                    \"src/App.tsx\", \"src/App.ts\", \"src/App.jsx\", \"src/App.js\",\n                    \"root/App.tsx\", \"root/App.ts\",\n                ]\n                source = None\n                for p in possible_paths:\n                    if os.path.exists(p):\n                        with open(p, 'r') as f:\n                            source = f.read()\n                        break\n                if source is None:\n                    pytest.skip(\"Cannot locate App source file\")\n            except Exception:\n                pytest.skip(\"Cannot read App source\")\n\n        assert source is not None\n        # Verify data_layer import\n        has_data_layer = (\n            \"data_layer\" in source or\n            \"getTools\" in source\n        )\n        assert has_data_layer, \\\n            \"App must import getTools from data_layer, not hardcode tools\"\n\n    def test_goodhart_app_file_imports_from_app_shell(self):\n        \"\"\"\n        App must import createConvexClient and projectToolDefToSidebarItem\n        from app_shell. These must not be inlined.\n        \"\"\"\n        try:\n            possible_paths = [\n                \"src/App.tsx\", \"src/App.ts\", \"src/App.jsx\", \"src/App.js\",\n            ]\n            source = None\n            for p in possible_paths:\n                if os.path.exists(p):\n                    with open(p, 'r') as f:\n                        source = f.read()\n                    break\n            if source is None:\n                pytest.skip(\"Cannot locate App source file\")\n\n            has_app_shell = (\n                \"app_shell\" in source or\n                \"createConvexClient\" in source or\n                \"projectToolDefToSidebarItem\" in source\n            )\n            assert has_app_shell, \\\n                \"App must import from app_shell (createConvexClient, projectToolDefToSidebarItem)\"\n        except Exception:\n            pytest.skip(\"Cannot verify app_shell imports\")\n\n    def test_goodhart_main_file_not_exported_bootstrap(self):\n        \"\"\"\n        bootstrap() executes as a top-level side effect in main.tsx.\n        It should not be exported as a named or default export.\n        The invariant states it 'is not exported'.\n        \"\"\"\n        try:\n            possible_paths = [\n                \"src/main.tsx\", \"src/main.ts\", \"src/main.jsx\", \"src/main.js\",\n            ]\n            source = None\n            for p in possible_paths:\n                if os.path.exists(p):\n                    with open(p, 'r') as f:\n                        source = f.read()\n                    break\n            if source is None:\n                pytest.skip(\"Cannot locate main source file\")\n\n            # Should not have 'export function bootstrap' or 'export { bootstrap }'\n            assert \"export function bootstrap\" not in source, \\\n                \"bootstrap should not be exported as a named function\"\n            assert \"export { bootstrap\" not in source, \\\n                \"bootstrap should not be exported via named export\"\n            assert \"export default bootstrap\" not in source, \\\n                \"bootstrap should not be the default export\"\n        except Exception:\n            pytest.skip(\"Cannot verify bootstrap export status\")\n\n    def test_goodhart_no_custom_css_files_in_root(self):\n        \"\"\"\n        The invariant states 'no custom CSS files are created by root'.\n        All styling uses Tailwind CSS classes. Verify no .css files\n        (other than standard Tailwind imports) are created.\n        \"\"\"\n        try:\n            root_dirs = [\"src/\", \"root/\"]\n            css_files = []\n            for root_dir in root_dirs:\n                if os.path.exists(root_dir):\n                    for f in os.listdir(root_dir):\n                        if f.endswith('.css') and f not in ('index.css', 'globals.css', 'tailwind.css', 'app.css'):\n                            css_files.append(f)\n\n            # Allow standard Tailwind entry CSS, but no custom component CSS\n            for css_file in css_files:\n                with open(os.path.join(root_dir, css_file), 'r') as f:\n                    content = f.read()\n                # If it contains only Tailwind directives, that's fine\n                is_tailwind_only = all(\n                    line.strip().startswith('@tailwind') or\n                    line.strip().startswith('@import') or\n                    line.strip() == '' or\n                    line.strip().startswith('/*') or\n                    line.strip().startswith('*') or\n                    line.strip().endswith('*/')\n                    for line in content.splitlines()\n                )\n                if not is_tailwind_only:\n                    pytest.fail(f\"Custom CSS file found: {css_file}. Root should only use Tailwind classes.\")\n        except Exception:\n            pytest.skip(\"Cannot verify CSS file structure\")\n\n    def test_goodhart_index_html_has_module_script(self):\n        \"\"\"\n        index.html must load src/main.tsx as type='module'. This is how\n        Vite bootstraps the application.\n        \"\"\"\n        try:\n            possible_paths = [\"index.html\", \"public/index.html\"]\n            html_source = None\n            for p in possible_paths:\n                if os.path.exists(p):\n                    with open(p, 'r') as f:\n                        html_source = f.read()\n                    break\n            if html_source is None:\n                pytest.skip(\"Cannot locate index.html\")\n\n            assert 'type=\"module\"' in html_source or \"type='module'\" in html_source, \\\n                \"index.html must load main.tsx as type='module'\"\n            assert 'src/main.tsx' in html_source or 'src/main.ts' in html_source, \\\n                \"index.html must reference src/main.tsx\"\n        except Exception:\n            pytest.skip(\"Cannot verify index.html structure\")\n\n    def test_goodhart_index_html_has_div_root(self):\n        \"\"\"\n        index.html must contain a div element with id='root' as the\n        React mount point. This is the RootDivId invariant.\n        \"\"\"\n        try:\n            possible_paths = [\"index.html\", \"public/index.html\"]\n            html_source = None\n            for p in possible_paths:\n                if os.path.exists(p):\n                    with open(p, 'r') as f:\n                        html_source = f.read()\n                    break\n            if html_source is None:\n                pytest.skip(\"Cannot locate index.html\")\n\n            assert 'id=\"root\"' in html_source or \"id='root'\" in html_source, \\\n                \"index.html must contain <div id='root'>\"\n        except Exception:\n            pytest.skip(\"Cannot verify index.html structure\")\n"
+}

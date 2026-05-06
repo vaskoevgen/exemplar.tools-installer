@@ -1,0 +1,62 @@
+{
+  "packages": [
+    "pydantic>=2.0",
+    "pytest"
+  ],
+  "shared_types": {
+    "HexColor": "primitive",
+    "GoogleFontLink": "struct(href: str, preconnect_origins: list)",
+    "ToolSlug": "enum(constrain, ledger, pact, advocate, arbiter, baton, sentinel, chronicler, stigmergy, apprentice, kindex)",
+    "StepNumber": "primitive",
+    "ToolDef": "struct(slug: ToolSlug, name: string, description: string, step: StepNumber, version: string, accentColor: HexColor, videoUrl: OptionalVideoUrl, instructions: InstructionStepList)",
+    "ToolDefList": "list",
+    "OptionalVideoUrl": "optional",
+    "InstructionStepList": "list",
+    "InstructionStep": "struct(title: string, bash: string)",
+    "ReactElement": "struct",
+    "string": "struct",
+    "HexColorString": "struct(value: str)",
+    "Comment": "struct(_id: string, page: ToolSlug, author: string, body: string, createdAt: number)",
+    "CommentList": "list",
+    "number": "struct"
+  },
+  "conventions": [
+    "Language: TypeScript with React 18",
+    "Framework: Vite + React, initialized with bun create vite",
+    "Package manager: Bun only \u2014 never use npm or yarn or npx",
+    "Styling: Tailwind CSS v3",
+    "Routing: React Router v6",
+    "Database: Convex (real-time backend)",
+    "Testing: vitest",
+    "Type annotations on all exported functions and components",
+    "React functional components only, no class components",
+    "Props typed with TypeScript interfaces",
+    "All Tailwind classes, no custom CSS unless absolutely necessary",
+    "Components must render without errors",
+    "Convex queries and mutations must be correctly typed",
+    "All pages must be reachable via React Router routes",
+    "Tests must run with vitest",
+    "Keep files under 300 lines",
+    "Split large components into smaller ones",
+    "Use React hooks for state management (useState, useEffect)",
+    "Import Convex hooks from convex/react",
+    "Dev server must run on port 4000 (set in vite.config.ts server.port)",
+    "Build output goes to dist/",
+    "Bun is used for all package installation and script execution"
+  ],
+  "validators": [
+    "custom(value == true)",
+    "length(1..100)",
+    "length(1..200)",
+    "length(1..2000)",
+    "length(1..512)",
+    "range(0.0..=500.0)",
+    "regex(^[a-z]+$)",
+    "regex(^\\^?18\\.)",
+    "regex(^\\d+\\.\\d+\\.\\d+(-[a-zA-Z0-9.]+)?$)",
+    "regex(^https://fonts\\.googleapis\\.com/css2\\?family=.+&display=swap$)",
+    "regex(^https://www\\.youtube\\.com/embed/[a-zA-Z0-9_-]{11}(\\?.*)?$)"
+  ],
+  "tools": [],
+  "mocks": {}
+}

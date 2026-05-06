@@ -1,0 +1,1003 @@
+{
+  "component_id": "tests",
+  "name": "Test Harness & Smoke Tests",
+  "description": "Consumer-only test component comprising three files: (1) src/__tests__/setup.ts — Vitest setup importing @testing-library/jest-dom and centralizing vi.mock for convex/react hooks; (2) src/__tests__/tools-data.test.ts — pure data smoke tests validating the canonical 11-tool array structure, field presence, type constraints, and kindex-specific invariant; (3) src/__tests__/component-smoke.test.tsx — at least one @testing-library/react render test wrapping a presentational component in MemoryRouter. The contract is that `bunx vitest run` exits 0 with all tests passing. Vitest config lives in vite.config.ts test block with environment: 'jsdom', globals: true, setupFiles: ['./src/__tests__/setup.ts'], include: ['src/**/*.test.{ts,tsx}']. DevDependencies: vitest, @testing-library/react, @testing-library/jest-dom, jsdom — all installed via `bun add -d`.",
+  "version": 1,
+  "types": [
+    {
+      "name": "VitestEnvironment",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "jsdom",
+        "node",
+        "happy-dom"
+      ],
+      "inner_types": [],
+      "description": "Supported vitest test environments. Only jsdom is used in this project.",
+      "owner_component": ""
+    },
+    {
+      "name": "VitestConfigBlock",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "environment",
+          "type_ref": "VitestEnvironment",
+          "required": true,
+          "default": "",
+          "description": "DOM emulation environment. Must be 'jsdom' for component tests.",
+          "validators": []
+        },
+        {
+          "name": "globals",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "When true, vitest globals (describe, it, expect, vi) are available without import.",
+          "validators": []
+        },
+        {
+          "name": "setupFiles",
+          "type_ref": "SetupFilePathList",
+          "required": true,
+          "default": "",
+          "description": "Paths to setup files executed before each test file.",
+          "validators": []
+        },
+        {
+          "name": "include",
+          "type_ref": "GlobPatternList",
+          "required": true,
+          "default": "",
+          "description": "Glob patterns specifying which files vitest should discover as tests.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "The test configuration block added to vite.config.ts for vitest.",
+      "owner_component": ""
+    },
+    {
+      "name": "SetupFilePathList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "SetupFilePath",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered list of setup file paths relative to project root.",
+      "owner_component": ""
+    },
+    {
+      "name": "SetupFilePath",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^\\./src/__tests__/[a-zA-Z0-9_-]+\\.ts$",
+              "error_message": "Setup file path must be a relative path to a .ts file under src/__tests__/"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Relative path from project root to a vitest setup file. Must point to an existing .ts file under src/__tests__/.",
+      "owner_component": ""
+    },
+    {
+      "name": "GlobPatternList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "GlobPattern",
+      "variants": [],
+      "inner_types": [],
+      "description": "List of glob patterns for test file discovery.",
+      "owner_component": ""
+    },
+    {
+      "name": "GlobPattern",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^src/.+\\.test\\.\\{[a-z,]+\\}$",
+              "error_message": "Glob pattern must match src/**/*.test.{ext,ext} format"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A glob pattern string for matching test files.",
+      "owner_component": ""
+    },
+    {
+      "name": "ConvexMockConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "useQuery_default",
+          "type_ref": "any",
+          "required": true,
+          "default": "undefined",
+          "description": "Default return value for mocked useQuery. Must be undefined to simulate loading state.",
+          "validators": []
+        },
+        {
+          "name": "useMutation_default",
+          "type_ref": "str",
+          "required": true,
+          "default": "vi.fn()",
+          "description": "Expression for mocked useMutation return. Must be 'vi.fn()' to produce a callable spy.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Configuration for centralized convex/react hook mocks in setup.ts. Ensures components importing Convex hooks do not throw at test time.",
+      "owner_component": ""
+    },
+    {
+      "name": "CanonicalSlugArray",
+      "kind": "list",
+      "fields": [],
+      "item_type": "str",
+      "variants": [],
+      "inner_types": [],
+      "description": "The exact ordered array of 11 canonical tool slugs expected in the data layer. Used by tools-data.test.ts to assert slug correctness.",
+      "owner_component": ""
+    },
+    {
+      "name": "TestSuiteResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "exit_code",
+          "type_ref": "ExitCode",
+          "required": true,
+          "default": "",
+          "description": "Process exit code. 0 indicates all tests passed.",
+          "validators": []
+        },
+        {
+          "name": "total_tests",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Total number of test cases discovered and executed.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": ">=1",
+              "error_message": "Suite must contain at least 1 test"
+            }
+          ]
+        },
+        {
+          "name": "passed",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of tests that passed.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": ">=0",
+              "error_message": "Passed count must be non-negative"
+            }
+          ]
+        },
+        {
+          "name": "failed",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of tests that failed. Must be 0 for a passing suite.",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "==0",
+              "error_message": "All tests must pass; failed count must be 0"
+            }
+          ]
+        },
+        {
+          "name": "test_files_count",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of test files discovered. Must be at least 2 (data + component).",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": ">=2",
+              "error_message": "At least 2 test files required (tools-data.test.ts and component-smoke.test.tsx)"
+            }
+          ]
+        },
+        {
+          "name": "duration_ms",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Total wall-clock duration of the test run in milliseconds.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Represents the outcome of executing the full vitest test suite via `bunx vitest run`.",
+      "owner_component": ""
+    },
+    {
+      "name": "ExitCode",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": ">=0 && <=255",
+              "error_message": "Exit code must be in range 0-255"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Unix process exit code. 0 = success, non-zero = failure.",
+      "owner_component": ""
+    },
+    {
+      "name": "ToolFieldName",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "name",
+        "description",
+        "step",
+        "version",
+        "accentColor",
+        "slug"
+      ],
+      "inner_types": [],
+      "description": "Required field names that every ToolDef entry must possess.",
+      "owner_component": ""
+    },
+    {
+      "name": "TestFile",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "src/__tests__/setup.ts",
+        "src/__tests__/tools-data.test.ts",
+        "src/__tests__/component-smoke.test.tsx"
+      ],
+      "inner_types": [],
+      "description": "The three files comprising this test harness component.",
+      "owner_component": ""
+    },
+    {
+      "name": "DevDependency",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "vitest",
+        "@testing-library/react",
+        "@testing-library/jest-dom",
+        "jsdom"
+      ],
+      "inner_types": [],
+      "description": "NPM packages required as devDependencies for the test harness.",
+      "owner_component": ""
+    },
+    {
+      "name": "RenderResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "container",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "The DOM container element wrapping the rendered component.",
+          "validators": []
+        },
+        {
+          "name": "unmount",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "Function to unmount the rendered component and clean up.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Simplified representation of @testing-library/react render() output used in component smoke tests.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "configure_vitest",
+      "description": "Defines and validates the vitest configuration block that must be added to the 'test' key of vite.config.ts. This is a pure configuration function — it produces the VitestConfigBlock struct. The resulting config sets environment to jsdom, globals to true, setupFiles to ['./src/__tests__/setup.ts'], and include to ['src/**/*.test.{ts,tsx}'].",
+      "inputs": [],
+      "output_type": "VitestConfigBlock",
+      "error_cases": [
+        {
+          "name": "vite_config_missing",
+          "condition": "vite.config.ts does not exist at project root",
+          "error_type": "FileNotFoundError",
+          "error_data": {
+            "path": "vite.config.ts"
+          }
+        }
+      ],
+      "preconditions": [
+        "vite.config.ts exists at project root",
+        "vitest, jsdom devDependencies are installed via `bun add -d`"
+      ],
+      "postconditions": [
+        "Returned VitestConfigBlock.environment == 'jsdom'",
+        "Returned VitestConfigBlock.globals == true",
+        "Returned VitestConfigBlock.setupFiles contains exactly one entry: './src/__tests__/setup.ts'",
+        "Returned VitestConfigBlock.include contains exactly one pattern: 'src/**/*.test.{ts,tsx}'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure configuration generation — no I/O"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "initialize_setup_file",
+      "description": "Creates src/__tests__/setup.ts which: (1) imports '@testing-library/jest-dom' to extend expect matchers with DOM-specific assertions (toBeInTheDocument, toHaveTextContent, etc.); (2) calls vi.mock('convex/react') to provide safe defaults — useQuery returns undefined, useMutation returns vi.fn(). This file is executed once per test file invocation via vitest setupFiles.",
+      "inputs": [
+        {
+          "name": "mock_config",
+          "type_ref": "ConvexMockConfig",
+          "required": true,
+          "default": "",
+          "description": "Configuration for the Convex hook mocks.",
+          "validators": []
+        }
+      ],
+      "output_type": "None",
+      "error_cases": [
+        {
+          "name": "jest_dom_not_installed",
+          "condition": "@testing-library/jest-dom package is not resolvable",
+          "error_type": "DependencyResolutionError",
+          "error_data": {
+            "package": "@testing-library/jest-dom"
+          }
+        },
+        {
+          "name": "directory_creation_failed",
+          "condition": "Cannot create src/__tests__/ directory due to filesystem permissions",
+          "error_type": "FileSystemError",
+          "error_data": {
+            "path": "src/__tests__/"
+          }
+        }
+      ],
+      "preconditions": [
+        "src/__tests__/ directory exists or can be created",
+        "@testing-library/jest-dom is installed as devDependency",
+        "vitest is installed as devDependency (vi global available)"
+      ],
+      "postconditions": [
+        "src/__tests__/setup.ts exists and is syntactically valid TypeScript",
+        "@testing-library/jest-dom is imported at module scope",
+        "vi.mock('convex/react', ...) is called with factory returning { useQuery: () => undefined, useMutation: () => vi.fn() }",
+        "Any test file importing from 'convex/react' receives the mocked implementations"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [
+        "Writes src/__tests__/setup.ts to filesystem"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "writes_file",
+          "target": "src/__tests__/setup.ts",
+          "description": "Creates or overwrites the vitest setup file with jest-dom import and convex/react mocks"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_tools_array_length",
+      "description": "Test case: asserts that the imported tools array from the data layer contains exactly 11 entries. This is the foundational cardinality check ensuring no tools were accidentally added or removed.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "The canonical ToolDef[] array imported from the data layer.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "tools_import_failed",
+          "condition": "The tools array could not be imported from the data layer module",
+          "error_type": "ModuleImportError",
+          "error_data": {
+            "module": "data_layer/tools"
+          }
+        },
+        {
+          "name": "unexpected_count",
+          "condition": "tools.length !== 11",
+          "error_type": "AssertionError",
+          "error_data": {
+            "expected": "11",
+            "received": "tools.length"
+          }
+        }
+      ],
+      "preconditions": [
+        "tools array is imported from data_layer component",
+        "tools array is defined and non-null"
+      ],
+      "postconditions": [
+        "Returns true if and only if tools.length === 11"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure assertion against in-memory data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_tools_slugs_ordered",
+      "description": "Test case: maps tools to their slug values and asserts exact ordered match against the canonical 11-slug array. Verifies both slug correctness and array ordering.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "The canonical ToolDef[] array imported from the data layer.",
+          "validators": []
+        },
+        {
+          "name": "expected_slugs",
+          "type_ref": "CanonicalSlugArray",
+          "required": true,
+          "default": "",
+          "description": "The exact ordered list of 11 expected slug strings.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "slug_mismatch",
+          "condition": "Mapped slug array does not match expected_slugs in order or content",
+          "error_type": "AssertionError",
+          "error_data": {
+            "expected": "expected_slugs",
+            "received": "actual_slugs"
+          }
+        }
+      ],
+      "preconditions": [
+        "tools array is imported and has length 11",
+        "expected_slugs has length 11"
+      ],
+      "postconditions": [
+        "Returns true if tools.map(t => t.slug) deep-equals expected_slugs"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure assertion against in-memory data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_tool_required_fields",
+      "description": "Test case (describe.each over tools): for each ToolDef entry, asserts non-empty 'name' (string), non-empty 'description' (string), 'version' (string), 'accentColor' matching HexColor regex /^#[0-9a-fA-F]{6}$/, and 'step' as integer in range 1–11 inclusive. Uses describe.each(tools) to generate per-tool test blocks.",
+      "inputs": [
+        {
+          "name": "tool",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "A single ToolDef entry from the tools array, provided by describe.each iteration.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "missing_name",
+          "condition": "tool.name is undefined, null, or empty string",
+          "error_type": "AssertionError",
+          "error_data": {
+            "field": "name",
+            "slug": "tool.slug"
+          }
+        },
+        {
+          "name": "missing_description",
+          "condition": "tool.description is undefined, null, or empty string",
+          "error_type": "AssertionError",
+          "error_data": {
+            "field": "description",
+            "slug": "tool.slug"
+          }
+        },
+        {
+          "name": "missing_version",
+          "condition": "tool.version is undefined, null, or empty string",
+          "error_type": "AssertionError",
+          "error_data": {
+            "field": "version",
+            "slug": "tool.slug"
+          }
+        },
+        {
+          "name": "invalid_accent_color",
+          "condition": "tool.accentColor does not match /^#[0-9a-fA-F]{6}$/",
+          "error_type": "AssertionError",
+          "error_data": {
+            "field": "accentColor",
+            "slug": "tool.slug",
+            "pattern": "/^#[0-9a-fA-F]{6}$/"
+          }
+        },
+        {
+          "name": "step_out_of_range",
+          "condition": "tool.step is not an integer in range [1, 11]",
+          "error_type": "AssertionError",
+          "error_data": {
+            "field": "step",
+            "slug": "tool.slug",
+            "valid_range": "1-11"
+          }
+        }
+      ],
+      "preconditions": [
+        "tool is a valid object with at minimum the ToolFieldName fields"
+      ],
+      "postconditions": [
+        "Returns true if: tool.name is non-empty string, tool.description is non-empty string, tool.version is non-empty string, tool.accentColor matches /^#[0-9a-fA-F]{6}$/, tool.step is integer >= 1 and <= 11"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure assertion against in-memory data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_kindex_no_video_url",
+      "description": "Test case: finds the tool with slug 'kindex' in the tools array and asserts that its videoUrl property is undefined. This is a domain-specific invariant — kindex is the only tool without a video.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "The canonical ToolDef[] array imported from the data layer.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "kindex_not_found",
+          "condition": "No tool with slug 'kindex' exists in the array",
+          "error_type": "AssertionError",
+          "error_data": {
+            "slug": "kindex",
+            "reason": "not found in tools array"
+          }
+        },
+        {
+          "name": "kindex_has_video_url",
+          "condition": "kindex tool has a defined videoUrl property",
+          "error_type": "AssertionError",
+          "error_data": {
+            "slug": "kindex",
+            "field": "videoUrl",
+            "expected": "undefined"
+          }
+        }
+      ],
+      "preconditions": [
+        "tools array contains an entry with slug 'kindex'"
+      ],
+      "postconditions": [
+        "Returns true if tools.find(t => t.slug === 'kindex')?.videoUrl === undefined"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure assertion against in-memory data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "validate_non_kindex_have_video_url",
+      "description": "Test case: for every tool whose slug is not 'kindex', asserts that videoUrl is a defined, non-empty string. Complements the kindex-specific test to ensure full videoUrl coverage.",
+      "inputs": [
+        {
+          "name": "tools",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "The canonical ToolDef[] array imported from the data layer.",
+          "validators": []
+        }
+      ],
+      "output_type": "bool",
+      "error_cases": [
+        {
+          "name": "missing_video_url",
+          "condition": "A non-kindex tool has undefined or empty videoUrl",
+          "error_type": "AssertionError",
+          "error_data": {
+            "slug": "affected_tool.slug",
+            "field": "videoUrl",
+            "expected": "defined non-empty string"
+          }
+        }
+      ],
+      "preconditions": [
+        "tools array has been validated to contain 11 entries"
+      ],
+      "postconditions": [
+        "Returns true if every tool with slug !== 'kindex' has a defined, non-empty videoUrl string"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure assertion against in-memory data"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "render_component_smoke_test",
+      "description": "Test case: renders at least one presentational component using @testing-library/react's render() within a <MemoryRouter> wrapper. Asserts the component does not throw during render and that the resulting container contains expected DOM content (verified via screen.getByText or container query). Convex hooks are mocked by setup.ts to prevent runtime errors.",
+      "inputs": [
+        {
+          "name": "component_module",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Import path of the React component to render (e.g. a ToolCard or HomePage).",
+          "validators": []
+        },
+        {
+          "name": "wrapper_router_initial_entries",
+          "type_ref": "list",
+          "required": true,
+          "default": "['/']",
+          "description": "Initial route entries for MemoryRouter, e.g. ['/'].",
+          "validators": []
+        }
+      ],
+      "output_type": "RenderResult",
+      "error_cases": [
+        {
+          "name": "component_import_failed",
+          "condition": "The component module path cannot be resolved",
+          "error_type": "ModuleImportError",
+          "error_data": {
+            "module": "component_module"
+          }
+        },
+        {
+          "name": "render_threw",
+          "condition": "The component throws during React render (e.g. uncaught exception in useEffect or render body)",
+          "error_type": "RenderError",
+          "error_data": {
+            "component": "component_module"
+          }
+        },
+        {
+          "name": "missing_expected_content",
+          "condition": "screen.getByText or equivalent query fails to find expected DOM content",
+          "error_type": "AssertionError",
+          "error_data": {
+            "reason": "Expected text content not found in rendered output"
+          }
+        },
+        {
+          "name": "router_context_missing",
+          "condition": "Component uses React Router hooks but MemoryRouter wrapper was not provided",
+          "error_type": "RenderError",
+          "error_data": {
+            "reason": "useNavigate/useLocation called outside Router context"
+          }
+        },
+        {
+          "name": "convex_mock_not_active",
+          "condition": "setup.ts did not properly mock convex/react, causing real hook invocation to fail",
+          "error_type": "RenderError",
+          "error_data": {
+            "reason": "ConvexProvider not found — mock may not be active"
+          }
+        }
+      ],
+      "preconditions": [
+        "@testing-library/react is installed as devDependency",
+        "react-router-dom is installed (provides MemoryRouter)",
+        "convex/react is mocked via setup.ts (useQuery returns undefined, useMutation returns vi.fn())",
+        "jsdom environment is active (configured in vitest config)",
+        "The component referenced by component_module exists and is a valid React functional component"
+      ],
+      "postconditions": [
+        "render() completes without throwing an exception",
+        "RenderResult.container is a non-null DOM element",
+        "At least one screen.getByText or container query assertion passes, confirming visible content"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "jsdom document",
+          "description": "Renders React component tree into jsdom's virtual DOM; cleaned up after test via RTL automatic cleanup"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "execute_test_suite",
+      "description": "Top-level contract function representing the execution of `bunx vitest run`. Orchestrates discovery and execution of all test files matching the configured include pattern. The contract requires exit code 0 with zero failures.",
+      "inputs": [],
+      "output_type": "TestSuiteResult",
+      "error_cases": [
+        {
+          "name": "vitest_not_installed",
+          "condition": "vitest binary cannot be resolved via bunx",
+          "error_type": "DependencyResolutionError",
+          "error_data": {
+            "binary": "vitest"
+          }
+        },
+        {
+          "name": "config_parse_error",
+          "condition": "vite.config.ts has syntax errors or missing test block",
+          "error_type": "ConfigurationError",
+          "error_data": {
+            "file": "vite.config.ts"
+          }
+        },
+        {
+          "name": "setup_file_error",
+          "condition": "src/__tests__/setup.ts fails to execute (import error, syntax error)",
+          "error_type": "SetupFileError",
+          "error_data": {
+            "file": "src/__tests__/setup.ts"
+          }
+        },
+        {
+          "name": "test_failure",
+          "condition": "One or more test cases fail, resulting in non-zero exit code",
+          "error_type": "TestSuiteFailure",
+          "error_data": {
+            "exit_code": "non-zero"
+          }
+        },
+        {
+          "name": "no_tests_found",
+          "condition": "Vitest discovers zero test files matching the include pattern",
+          "error_type": "NoTestsFoundError",
+          "error_data": {
+            "pattern": "src/**/*.test.{ts,tsx}"
+          }
+        }
+      ],
+      "preconditions": [
+        "All devDependencies installed: vitest, @testing-library/react, @testing-library/jest-dom, jsdom",
+        "vite.config.ts contains the vitest test configuration block",
+        "src/__tests__/setup.ts exists and is valid",
+        "src/__tests__/tools-data.test.ts exists and is valid",
+        "src/__tests__/component-smoke.test.tsx exists and is valid",
+        "data_layer component exports a 'tools' array of type ToolDef[] with 11 entries",
+        "At least one renderable component exists in ui_components",
+        "bun is available on PATH"
+      ],
+      "postconditions": [
+        "TestSuiteResult.exit_code == 0",
+        "TestSuiteResult.failed == 0",
+        "TestSuiteResult.passed == TestSuiteResult.total_tests",
+        "TestSuiteResult.test_files_count >= 2",
+        "TestSuiteResult.total_tests >= 6 (minimum: array length + slugs ordered + required fields via each + kindex no video + non-kindex video + component render)"
+      ],
+      "idempotent": false,
+      "is_async": true,
+      "side_effects": [
+        "Spawns bunx vitest run as child process",
+        "Reads all test files and source files under src/",
+        "Writes to stdout/stderr"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "reads_file",
+          "target": "src/__tests__/*.test.{ts,tsx}",
+          "description": "Vitest reads and parses all discovered test files"
+        },
+        {
+          "kind": "reads_file",
+          "target": "src/__tests__/setup.ts",
+          "description": "Vitest executes the setup file before each test file"
+        },
+        {
+          "kind": "reads_file",
+          "target": "vite.config.ts",
+          "description": "Vitest reads vite config to extract test configuration block"
+        },
+        {
+          "kind": "reads_file",
+          "target": "src/**/*.{ts,tsx}",
+          "description": "Vitest resolves imports from test files into source modules (data layer, components)"
+        },
+        {
+          "kind": "logging",
+          "target": "stdout/stderr",
+          "description": "Vitest outputs test results, pass/fail counts, and timing to console"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 30000,
+        "max_memory_mb": 512,
+        "complexity": "O(n) where n = number of test cases"
+      }
+    }
+  ],
+  "dependencies": [
+    "data_layer",
+    "ui_components"
+  ],
+  "dependency_contracts": {
+    "data_layer": [
+      "ToolDef",
+      "ToolDefList",
+      "HexColor",
+      "StepNumber",
+      "ToolSlug",
+      "tools"
+    ],
+    "ui_components": [
+      "HomePage",
+      "ToolCard"
+    ]
+  },
+  "invariants": [
+    "The test suite MUST pass with `bunx vitest run` exiting with code 0 and zero failures",
+    "The tools-data.test.ts file performs ONLY pure data assertions — no DOM, no rendering, no side effects",
+    "The component-smoke.test.tsx file renders at least one component wrapped in MemoryRouter",
+    "setup.ts MUST import '@testing-library/jest-dom' at module scope for extended matchers",
+    "setup.ts MUST mock 'convex/react' with useQuery returning undefined and useMutation returning vi.fn()",
+    "vite.config.ts test block MUST specify environment: 'jsdom', globals: true",
+    "All devDependencies (vitest, @testing-library/react, @testing-library/jest-dom, jsdom) are installed via `bun add -d` — never npm or yarn",
+    "Test files reside exclusively under src/__tests__/ and match pattern src/**/*.test.{ts,tsx}",
+    "No test file exceeds 300 lines per project operating procedures",
+    "The tests component exports nothing — it is a pure consumer of data_layer and ui_components"
+  ],
+  "requires": [
+    "data_layer",
+    "ui_components"
+  ],
+  "processing_register": "systematic-implementation",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Tests read the canonical tools data array (PUBLIC tier — tool names, slugs, descriptions, versions, accent colors, video URLs are non-sensitive documentation metadata). Tests also import and render UI components to verify they produce correct DOM output. No data is written to any persistent store; all mutations are in-memory within the jsdom virtual DOM and are discarded after each test.",
+    "side_effects": [
+      {
+        "type": "read",
+        "classification": "PUBLIC",
+        "fields": [
+          "tools[].name",
+          "tools[].slug",
+          "tools[].description",
+          "tools[].version",
+          "tools[].accentColor",
+          "tools[].step",
+          "tools[].videoUrl"
+        ],
+        "rationale": "Data smoke tests import the canonical tools array to validate cardinality (11 entries), ordered slug correctness, required field presence and format constraints, and the kindex videoUrl invariant"
+      },
+      {
+        "type": "read",
+        "classification": "PUBLIC",
+        "fields": [
+          "React component JSX output"
+        ],
+        "rationale": "Component smoke test imports and renders at least one presentational component to verify it produces DOM content without throwing"
+      },
+      {
+        "type": "filesystem_read",
+        "classification": "INTERNAL",
+        "fields": [
+          "vite.config.ts",
+          "src/__tests__/setup.ts",
+          "src/__tests__/*.test.{ts,tsx}"
+        ],
+        "rationale": "Vitest reads configuration and test files from the local filesystem during test discovery and execution"
+      }
+    ]
+  },
+  "authority": {
+    "domains": [],
+    "rationale": null
+  }
+}

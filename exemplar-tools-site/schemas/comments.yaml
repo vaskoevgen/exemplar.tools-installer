@@ -1,0 +1,42 @@
+name: comments
+version: 1
+
+fields:
+  - name: id
+    field_type: varchar(255)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: primary_key
+      - name: immutable
+      - name: not_null
+
+  - name: page
+    field_type: varchar(100)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: author
+    field_type: varchar(255)
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: body
+    field_type: text
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: not_null
+
+  - name: created_at
+    field_type: timestamptz
+    classification: PUBLIC
+    nullable: false
+    annotations:
+      - name: immutable
+      - name: not_null
+      - name: audit_field
