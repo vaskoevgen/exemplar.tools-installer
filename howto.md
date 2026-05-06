@@ -1217,6 +1217,15 @@ If `ANTHROPIC_API_KEY` is not set, the wizard prints `env ANTHROPIC_API_KEY not 
 | LLM provider | `stub` *(no API key needed)* |
 | Daily cap / Hourly cap | *(Enter — keep defaults)* |
 
+> **Gotcha — stdin piping misaligns prompts:** If you automate `stigmergy init` by piping answers (e.g. `echo -e "...\n..." | stigmergy init`), the inputs can land on the wrong prompts. The result is `mode: Y` and `provider: N` in the generated config. Always run `stigmergy init` interactively, or verify `.stigmergy/config.yaml` after and fix any wrong values:
+> ```yaml
+> sources:
+>   github:
+>     mode: mock   # must be "mock" or "live", not "Y"
+> llm:
+>   provider: stub  # must be "stub" or "anthropic", not "N"
+> ```
+
 Expected confirmation:
 
 ```
@@ -1255,6 +1264,12 @@ Mesh Session Summary
 All findings are mock data from the built-in stub. The run is archived to `.stigmergy/runs/`.
 
 > **Note:** The agent intelligence report will show `WARNING: 2 agents running without LLM — mechanical heuristics producing noise`. This is expected in stub mode — findings are still written to disk.
+
+#### Learnings (2026-05-05)
+
+- 7 mock GitHub signals → 3 findings: parallel-activity patterns between `@alice.chen`, `@bob.martinez`, `@carol.park`
+- `Quorum not achieved` is expected in stub mode — findings still persisted to `.stigmergy/insights.jsonl`
+- `Normalized Deviance` indicator shows `compression` for `acme-org/backend` — normal for mock data
 
 **View status from last run:**
 
@@ -1375,7 +1390,9 @@ The wizard walks through 4 steps: task definition, remote provider (Claude/GPT),
 apprentice serve
 ```
 
-Note: the `--config` flag does not exist. `serve` always reads `./apprentice.yaml` from the current directory.
+Note: `--config` flag exists but is optional. `serve` defaults to `./apprentice.yaml` in the current directory.
+
+> **Gotcha — API key must be set before `serve`:** `apprentice serve` (and `status`, `run`) all fail with `API key is unresolved` if `ANTHROPIC_API_KEY` is not in the process environment. In fish shell, set it first: `set -x ANTHROPIC_API_KEY your-key`.
 
 Expected output:
 ```
@@ -1411,7 +1428,7 @@ Task: calculator_eval
 apprentice run calculator_eval --input '{"expression": "2 + 2"}'
 ```
 
-> **Known bug:** `apprentice run` crashes immediately with `Error: 'TaskResponse' object has no attribute 'success'`. The task never executes. No CLI workaround — the HTTP API at `POST http://127.0.0.1:8710/v1/run` may work directly via `curl`. See `UPSTREAM_BUGS.md`.
+> **Bug (fixed in `vaskoevgen/fix/cli-run-and-report`):** `apprentice run` crashed with `Error: 'TaskResponse' object has no attribute 'success'`. `TaskResponse` uses `status: RunStatus` enum, not a `success: bool`. Fixed by importing `RunStatus` and checking `response.status == RunStatus.success`.
 
 **Generate a full report:**
 
@@ -1419,13 +1436,20 @@ apprentice run calculator_eval --input '{"expression": "2 + 2"}'
 apprentice report
 ```
 
-> **Known bug:** `apprentice report` crashes with `Error: 'SystemReport' object has no attribute 'tasks'`. See `UPSTREAM_BUGS.md`.
+> **Bug (fixed in `vaskoevgen/fix/cli-run-and-report`):** `apprentice report` crashed with `'SystemReport' object has no attribute 'tasks'`. `SystemReport` uses `task_snapshots` (not `tasks`), `global_budget_used_usd` / `global_budget_remaining_usd` (not `total_budget_*`), and `uptime_seconds` (not `system_uptime_seconds`). All fixed in the branch above.
 
 **Deactivate when done:**
 
 ```bash
 deactivate
 ```
+
+#### Learnings (2026-05-06)
+
+- `apprentice init` wizard input schema bug: wizard always writes `name: text` regardless of your `{expression}` variable — manually fix `input_schema.name` in `apprentice.yaml` after init
+- Two CLI bugs fixed in `vaskoevgen:fix/cli-run-and-report` (PR #2 → jmcentire/apprentice): `run` AttributeError on `response.success`, `report` AttributeError on `raw_report.tasks` — both are field name mismatches between CLI and core models
+- After fixes: `apprentice run calculator_eval --input '{"expression": "2 + 2"}'` → `Success: True`, `Output: {'content': '# Result\n\n2 + 2 = **4**'}` (Claude Haiku answered correctly)
+- Phase starts at `bootstrapping` / confidence `0.00` — needs 100 examples before local model fine-tuning triggers
 
 </details>
 
@@ -1466,6 +1490,13 @@ claude mcp add --scope user --transport stdio kindex -- kin-mcp
 ```bash
 deactivate
 ```
+
+#### Learnings (2026-05-06)
+
+- `kin` is installed globally at `~/.local/bin/kin` — no venv activation needed
+- `kindex` MCP server already registered and connected (`claude mcp list` shows `✓ Connected`)
+- Useful commands: `kin status` (graph stats), `kin search <term>` (find nodes), `kin add --type concept "..."` (capture learnings)
+- Graph persists across sessions — search before adding to avoid duplicates
 
 </details>
 
