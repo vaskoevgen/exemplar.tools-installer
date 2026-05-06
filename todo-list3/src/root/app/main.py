@@ -204,7 +204,14 @@ def create_app(
 
 def _init_schema(pool: psycopg2.pool.ThreadedConnectionPool) -> None:
     """Run init.sql against the database if file exists."""
-    init_paths = ["init.sql", "database/init.sql", "db/init.sql"]
+    _app_dir = os.path.dirname(os.path.abspath(__file__))
+    _root_dir = os.path.dirname(_app_dir)
+    init_paths = [
+        os.path.join(_root_dir, "init.sql"),
+        os.path.join(_root_dir, "database", "init.sql"),
+        os.path.join(_root_dir, "db", "init.sql"),
+        "init.sql", "database/init.sql", "db/init.sql",
+    ]
     init_sql_path = None
     for p in init_paths:
         if os.path.isfile(p):

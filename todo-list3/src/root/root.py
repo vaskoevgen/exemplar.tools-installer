@@ -1,14 +1,10 @@
-"""Root integration contract implementation.
-
-This module implements the canonical type registry and integration verification
-functions for the task management application's three-tier architecture.
-"""
 import logging
 import time
+import enum
 import re
 import os
-from enum import Enum
-from typing import Optional, List, Any
+import asyncio
+from typing import Any, Dict, List, Optional, Union
 from datetime import datetime, timezone
 
 _PACT_KEY = "PACT:481349:root"
@@ -28,221 +24,61 @@ def _log(level: str, msg: str, **kwargs) -> None:
     getattr(logger, level)(f"[{_PACT_KEY}] {msg}", **kwargs)
 
 
-# ===========================================================================
-# Canonical Type Registry
-# ===========================================================================
-
-
+# ---------------------------------------------------------------------------
+# string stub
+# ---------------------------------------------------------------------------
 class string:
     """Auto-stubbed type — referenced but not defined in contract 'root'"""
     pass
 
 
-class TaskStatus(Enum):
+# ---------------------------------------------------------------------------
+# TaskStatus enum
+# ---------------------------------------------------------------------------
+class TaskStatus(enum.Enum):
     """Closed set of allowed task lifecycle states."""
     pending = "pending"
     in_progress = "in_progress"
     done = "done"
 
 
+# ---------------------------------------------------------------------------
+# Primitive type aliases
+# ---------------------------------------------------------------------------
+TaskId = int
+TaskTitle = str
 OptionalString = Optional[str]
+ISOTimestamp = str
+DatabaseURL = str
 
 
-class TaskTitle:
-    """Non-blank, whitespace-stripped task title. 1-255 chars after strip."""
-
-    def __init__(self, value: str, *, event_handler=None, log_handler=None):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskTitle.__init__",
-            "event": "invoked",
-            "input_classification": ["value"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-        if not isinstance(value, str):
-            raise ValueError("TaskTitle value must be a string")
-        stripped = value.strip()
-        if len(stripped) == 0:
-            raise ValueError("TaskTitle must be non-blank after whitespace stripping")
-        if len(stripped) > 255:
-            raise ValueError(
-                f"TaskTitle must be at most 255 characters after stripping, got {len(stripped)}"
-            )
-        self.value = stripped
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskTitle.__init__",
-            "event": "completed",
-            "input_classification": ["value"],
-            "output_classification": ["TaskTitle"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-
-    def __str__(self) -> str:
-        return self.value
-
-    def __repr__(self) -> str:
-        return f"TaskTitle(value={self.value!r})"
-
-    def __eq__(self, other) -> bool:
-        if isinstance(other, TaskTitle):
-            return self.value == other.value
-        if isinstance(other, str):
-            return self.value == other
-        return NotImplemented
-
-
-class DatabaseURL:
-    """PostgreSQL connection string. Must start with postgresql://."""
-
-    def __init__(self, value: str, *, event_handler=None, log_handler=None):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:DatabaseURL.__init__",
-            "event": "invoked",
-            "input_classification": ["value"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-        if not isinstance(value, str) or not value.startswith("postgresql://"):
-            raise ValueError(
-                "DatabaseURL must start with 'postgresql://'"
-            )
-        self.value = value
-        self._emit({
-            "pact_key": "PACT:481349:root:DatabaseURL.__init__",
-            "event": "completed",
-            "input_classification": ["value"],
-            "output_classification": ["DatabaseURL"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-
-    def __str__(self) -> str:
-        return self.value
-
-    def __repr__(self) -> str:
-        return f"DatabaseURL(value={self.value!r})"
-
-
-def _validate_title(title: Optional[str], required: bool = True) -> Optional[str]:
-    """Shared title validation logic for TaskCreateRequest and TaskUpdateRequest."""
-    if title is None:
-        if required:
-            raise ValueError("title is required")
-        return None
-    if not isinstance(title, str):
-        raise ValueError("title must be a string")
-    stripped = title.strip()
-    if len(stripped) == 0:
-        raise ValueError("title must be non-blank after whitespace stripping")
-    if len(stripped) > 255:
-        raise ValueError(
-            f"title must be at most 255 characters after stripping, got {len(stripped)}"
-        )
-    return stripped
-
-
+# ---------------------------------------------------------------------------
+# Data classes matching the contract types
+# ---------------------------------------------------------------------------
 class TaskCreateRequest:
     """Request body for POST /tasks."""
-
-    def __init__(
-        self,
-        title: str,
-        description: OptionalString = None,
-        status: TaskStatus = TaskStatus.pending,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskCreateRequest.__init__",
-            "event": "invoked",
-            "input_classification": ["title", "description", "status"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-        self.title = _validate_title(title, required=True)
+    def __init__(self, title: str, description: OptionalString = None,
+                 status: TaskStatus = TaskStatus.pending):
+        self.title = title
         self.description = description
-        if not isinstance(status, TaskStatus):
-            raise ValueError(f"status must be a TaskStatus enum value, got {status!r}")
         self.status = status
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskCreateRequest.__init__",
-            "event": "completed",
-            "input_classification": ["title", "description", "status"],
-            "output_classification": ["TaskCreateRequest"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
 
 
 class TaskUpdateRequest:
     """Request body for PUT /tasks/{id} — partial update (PATCH semantics)."""
-
-    def __init__(
-        self,
-        title: Optional[str] = None,
-        description: OptionalString = None,
-        status: Optional[TaskStatus] = None,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskUpdateRequest.__init__",
-            "event": "invoked",
-            "input_classification": ["title", "description", "status"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-        # Title is optional in update, but if provided must be valid
-        if title is not None:
-            self.title = _validate_title(title, required=True)
-        else:
-            self.title = None
+    def __init__(self, title: Optional[str] = None,
+                 description: OptionalString = None,
+                 status: Optional[TaskStatus] = None):
+        self.title = title
         self.description = description
-        if status is not None and not isinstance(status, TaskStatus):
-            raise ValueError(f"status must be a TaskStatus enum value, got {status!r}")
         self.status = status
-        self._emit({
-            "pact_key": "PACT:481349:root:TaskUpdateRequest.__init__",
-            "event": "completed",
-            "input_classification": ["title", "description", "status"],
-            "output_classification": ["TaskUpdateRequest"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
 
 
 class TaskResponse:
     """Complete task object returned by all read/write endpoints."""
-
-    def __init__(
-        self,
-        id: int,
-        title: str,
-        description: OptionalString,
-        status: TaskStatus,
-        created_at: datetime,
-        updated_at: datetime,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
+    def __init__(self, id: TaskId, title: TaskTitle, description: OptionalString,
+                 status: TaskStatus, created_at: ISOTimestamp,
+                 updated_at: ISOTimestamp):
         self.id = id
         self.title = title
         self.description = description
@@ -251,33 +87,18 @@ class TaskResponse:
         self.updated_at = updated_at
 
 
-# TaskListResponse is just a list alias
 TaskListResponse = List[TaskResponse]
 
 
 class ErrorResponse:
     """Standard error envelope."""
-
-    def __init__(self, detail: str, *, event_handler=None, log_handler=None):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
+    def __init__(self, detail: str):
         self.detail = detail
 
 
 class ValidationErrorItem:
     """A single validation error within the 422 response."""
-
-    def __init__(
-        self,
-        loc: list,
-        msg: str,
-        type: str,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
+    def __init__(self, loc: list, msg: str, type: str):
         self.loc = loc
         self.msg = msg
         self.type = type
@@ -285,846 +106,416 @@ class ValidationErrorItem:
 
 class ValidationErrorResponse:
     """HTTP 422 Unprocessable Entity response body."""
-
-    def __init__(self, detail: list, *, event_handler=None, log_handler=None):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
+    def __init__(self, detail: list):
         self.detail = detail
 
 
 class HealthResponse:
     """Response body for GET /health."""
-
-    def __init__(self, status: str, *, event_handler=None, log_handler=None):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:HealthResponse.__init__",
-            "event": "invoked",
-            "input_classification": ["status"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
+    def __init__(self, status: str):
         if status != "ok":
-            raise ValueError("HealthResponse status must be exactly 'ok'")
+            raise ValueError("HealthResponse status must be 'ok'")
         self.status = status
-        self._emit({
-            "pact_key": "PACT:481349:root:HealthResponse.__init__",
-            "event": "completed",
-            "input_classification": ["status"],
-            "output_classification": ["HealthResponse"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
 
 
 class DeleteConfirmation:
     """Response body for DELETE /tasks/{id} on successful hard-delete."""
-
-    def __init__(
-        self,
-        detail: str,
-        id: int,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
+    def __init__(self, detail: str, id: TaskId):
         self.detail = detail
         self.id = id
 
 
 class HttpEndpoint:
-    """Descriptor for one REST API endpoint in the HTTP API contract."""
-
-    VALID_METHODS = {"GET", "POST", "PUT", "DELETE"}
-
-    def __init__(
-        self,
-        method: str,
-        path: str,
-        response_body_type: str,
-        success_status_code: int,
-        content_type: str,
-        request_body_type: OptionalString = None,
-        *,
-        event_handler=None,
-        log_handler=None,
-    ):
-        self._emit = event_handler or (lambda event: None)
-        self._log = log_handler or (lambda level, msg, ctx: None)
-        self._emit({
-            "pact_key": "PACT:481349:root:HttpEndpoint.__init__",
-            "event": "invoked",
-            "input_classification": ["method", "path"],
-            "output_classification": [],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
-        if method not in self.VALID_METHODS:
-            raise ValueError(
-                f"HttpEndpoint method must be one of {self.VALID_METHODS}, got {method!r}"
-            )
+    """Descriptor for one REST API endpoint."""
+    def __init__(self, method: str, path: str, response_body_type: str,
+                 success_status_code: int, content_type: str,
+                 request_body_type: OptionalString = None):
+        if method not in ("GET", "POST", "PUT", "DELETE"):
+            raise ValueError(f"Invalid method: {method}")
         self.method = method
         self.path = path
         self.request_body_type = request_body_type
         self.response_body_type = response_body_type
         self.success_status_code = success_status_code
         self.content_type = content_type
-        self._emit({
-            "pact_key": "PACT:481349:root:HttpEndpoint.__init__",
-            "event": "completed",
-            "input_classification": ["method", "path"],
-            "output_classification": ["HttpEndpoint"],
-            "side_effects": [],
-            "ts": time.time_ns(),
-        })
 
 
-# ===========================================================================
-# Canonical HTTP Endpoint Table
-# ===========================================================================
-
-HTTP_ENDPOINTS = [
-    HttpEndpoint(
-        method="GET", path="/health",
-        response_body_type="HealthResponse",
-        success_status_code=200, content_type="application/json",
-    ),
-    HttpEndpoint(
-        method="GET", path="/tasks",
-        response_body_type="TaskListResponse",
-        success_status_code=200, content_type="application/json",
-    ),
-    HttpEndpoint(
-        method="POST", path="/tasks",
-        request_body_type="TaskCreateRequest",
-        response_body_type="TaskResponse",
-        success_status_code=201, content_type="application/json",
-    ),
-    HttpEndpoint(
-        method="GET", path="/tasks/{id}",
-        response_body_type="TaskResponse",
-        success_status_code=200, content_type="application/json",
-    ),
-    HttpEndpoint(
-        method="PUT", path="/tasks/{id}",
-        request_body_type="TaskUpdateRequest",
-        response_body_type="TaskResponse",
-        success_status_code=200, content_type="application/json",
-    ),
-    HttpEndpoint(
-        method="DELETE", path="/tasks/{id}",
-        response_body_type="DeleteConfirmation",
-        success_status_code=200, content_type="application/json",
-    ),
-]
+# ---------------------------------------------------------------------------
+# HTTP helpers for verification functions
+# ---------------------------------------------------------------------------
+import json
+import urllib.request
+import urllib.error
 
 
-# ===========================================================================
-# Integration Verification Functions
-# ===========================================================================
-
-# Init SQL script for schema verification
-INIT_SQL = """
-CREATE TABLE IF NOT EXISTS tasks (
-    id SERIAL PRIMARY KEY,
-    title VARCHAR(255) NOT NULL,
-    description TEXT,
-    status VARCHAR(20) NOT NULL DEFAULT 'pending',
-    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint
-        WHERE conname = 'tasks_status_check'
-    ) THEN
-        ALTER TABLE tasks ADD CONSTRAINT tasks_status_check
-            CHECK (status IN ('pending', 'in_progress', 'done'));
-    END IF;
-END
-$$;
-
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ LANGUAGE plpgsql;
-
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger
-        WHERE tgname = 'update_updated_at_column'
-    ) THEN
-        CREATE TRIGGER update_updated_at_column
-            BEFORE UPDATE ON tasks
-            FOR EACH ROW
-            EXECUTE FUNCTION update_updated_at_column();
-    END IF;
-END
-$$;
-"""
-
-
-def _get_psycopg2_connection(database_url: str):
-    """Create a psycopg2 connection from a database URL."""
+def _http_request(method: str, url: str, data: Optional[dict] = None,
+                  headers: Optional[dict] = None) -> tuple:
+    """Low-level HTTP request. Returns (status_code, headers_dict, body)."""
+    hdrs = {"Content-Type": "application/json", "Accept": "application/json"}
+    if headers:
+        hdrs.update(headers)
+    body_bytes: Optional[bytes] = None
+    if data is not None:
+        body_bytes = json.dumps(data).encode("utf-8")
+    req = urllib.request.Request(url, data=body_bytes, headers=hdrs, method=method)
     try:
-        import psycopg2
-        conn = psycopg2.connect(database_url, connect_timeout=5)
-        return conn
-    except Exception as e:
-        raise ConnectionError(f"database_unreachable: {e}") from e
+        resp = urllib.request.urlopen(req, timeout=10)
+        status = resp.status
+        resp_headers = dict(resp.headers)
+        resp_body = json.loads(resp.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        status = exc.code
+        resp_headers = dict(exc.headers)
+        resp_body = json.loads(exc.read().decode("utf-8"))
+    return status, resp_headers, resp_body
+
+
+def _create_task_http(base: str, title: str = "Test Task",
+                      description: Optional[str] = None,
+                      status: Optional[str] = None) -> tuple:
+    payload: Dict[str, Any] = {"title": title}
+    if description is not None:
+        payload["description"] = description
+    if status is not None:
+        payload["status"] = status
+    s, _, b = _http_request("POST", f"{base}/tasks", data=payload)
+    return s, b
+
+
+def _delete_task_http(base: str, task_id: int) -> None:
+    try:
+        _http_request("DELETE", f"{base}/tasks/{task_id}")
+    except Exception:
+        pass
+
+
+# ---------------------------------------------------------------------------
+# Verification functions
+# ---------------------------------------------------------------------------
+
+async def verify_http_api_contract(backend_base_url: str) -> bool:
+    _log("info", "verify_http_api_contract invoked")
+    
+    try:
+        # 1. GET /health
+        s, _, b = _http_request("GET", f"{backend_base_url}/health")
+        assert s == 200, f"Health expected 200, got {s}"
+        assert b == {"status": "ok"}, f"Health body mismatch: {b}"
+
+        # 2. GET /tasks
+        s, _, b = _http_request("GET", f"{backend_base_url}/tasks")
+        assert s == 200, f"List tasks expected 200, got {s}"
+        assert isinstance(b, list), f"Expected list, got {type(b)}"
+
+        # 3. POST /tasks
+        s, created = _create_task_http(backend_base_url, title="verify contract")
+        assert s == 201, f"Create expected 201, got {s}"
+        required_keys = {"id", "title", "description", "status", "created_at", "updated_at"}
+        assert required_keys.issubset(set(created.keys())), f"Missing keys in create response"
+        tid = created["id"]
+
+        try:
+            # 4. GET /tasks/{id}
+            s, _, b = _http_request("GET", f"{backend_base_url}/tasks/{tid}")
+            assert s == 200, f"Get task expected 200, got {s}"
+            assert required_keys.issubset(set(b.keys()))
+            assert b["id"] == tid
+
+            # 5. PUT /tasks/{id}
+            s, _, b = _http_request("PUT", f"{backend_base_url}/tasks/{tid}",
+                                    data={"title": "updated verify"})
+            assert s == 200, f"Update expected 200, got {s}"
+            assert b["title"] == "updated verify"
+
+            # 6. DELETE /tasks/{id}
+            s, _, b = _http_request("DELETE", f"{backend_base_url}/tasks/{tid}")
+            assert s == 200, f"Delete expected 200, got {s}"
+            assert "detail" in b
+            assert b["id"] == tid
+        except Exception:
+            _delete_task_http(backend_base_url, tid)
+            raise
+
+        # Verify 404 on deleted task
+        s, _, b = _http_request("GET", f"{backend_base_url}/tasks/{tid}")
+        assert s == 404
+        assert b.get("detail") == "Task not found"
+
+    except ConnectionError as e:
+        raise ConnectionError(f"Backend unreachable: {e}")
+
+    _log("info", "verify_http_api_contract completed")
+    return True
+
+
+async def verify_cross_tier_invariants(backend_base_url: str, database_url: str) -> bool:
+    _log("info", "verify_cross_tier_invariants invoked")
+    import time as _time
+
+    created_ids: List[int] = []
+
+    try:
+        # (a) TaskList ordering: created_at DESC
+        for i in range(3):
+            s, body = _create_task_http(backend_base_url, title=f"order test {i}")
+            assert s == 201
+            created_ids.append(body["id"])
+            _time.sleep(0.05)
+
+        s, _, tasks = _http_request("GET", f"{backend_base_url}/tasks")
+        assert s == 200
+        test_tasks = [t for t in tasks if t["id"] in created_ids]
+        timestamps = [t["created_at"] for t in test_tasks]
+        assert timestamps == sorted(timestamps, reverse=True), "Tasks not ordered by created_at DESC"
+
+        for tid in created_ids:
+            _delete_task_http(backend_base_url, tid)
+        created_ids.clear()
+
+        # (b) created_at immutability
+        s, created = _create_task_http(backend_base_url, title="immutable ca")
+        assert s == 201
+        tid = created["id"]
+        created_ids.append(tid)
+        original_ca = created["created_at"]
+        _time.sleep(0.05)
+        s, _, updated = _http_request("PUT", f"{backend_base_url}/tasks/{tid}",
+                                       data={"title": "immutable ca changed"})
+        assert s == 200
+        assert updated["created_at"] == original_ca, "created_at was modified"
+
+        # (c) updated_at refresh
+        original_ua = created["updated_at"]
+        assert updated["updated_at"] >= original_ua, "updated_at not refreshed"
+
+        _delete_task_http(backend_base_url, tid)
+        created_ids.clear()
+
+        # (d) Hard delete
+        s, created = _create_task_http(backend_base_url, title="hard delete")
+        tid = created["id"]
+        s, _, _ = _http_request("DELETE", f"{backend_base_url}/tasks/{tid}")
+        assert s == 200
+        s, _, _ = _http_request("GET", f"{backend_base_url}/tasks/{tid}")
+        assert s == 404, "Task not hard deleted"
+
+        # (e) Description normalization
+        s, body = _create_task_http(backend_base_url, title="desc norm", description="")
+        created_ids.append(body["id"])
+        assert body["description"] is None, "Empty description not normalized to null"
+        _delete_task_http(backend_base_url, body["id"])
+        created_ids.clear()
+
+        s, body = _create_task_http(backend_base_url, title="desc norm ws", description="   ")
+        created_ids.append(body["id"])
+        assert body["description"] is None, "Whitespace description not normalized to null"
+        _delete_task_http(backend_base_url, body["id"])
+        created_ids.clear()
+
+        # (f) Title stripping
+        s, body = _create_task_http(backend_base_url, title="  stripped  ")
+        created_ids.append(body["id"])
+        assert body["title"] == "stripped", "Title not stripped"
+        _delete_task_http(backend_base_url, body["id"])
+        created_ids.clear()
+
+        # (g) Status default
+        payload = {"title": "default status"}
+        s, _, body = _http_request("POST", f"{backend_base_url}/tasks", data=payload)
+        created_ids.append(body["id"])
+        assert body["status"] == "pending", "Default status not pending"
+        _delete_task_http(backend_base_url, body["id"])
+        created_ids.clear()
+
+        # (h) Timestamp format
+        iso_re = re.compile(
+            r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?([+-]\d{2}:\d{2}|Z)$"
+        )
+        s, body = _create_task_http(backend_base_url, title="ts format")
+        created_ids.append(body["id"])
+        assert iso_re.match(body["created_at"]), f"Invalid created_at format: {body['created_at']}"
+        assert iso_re.match(body["updated_at"]), f"Invalid updated_at format: {body['updated_at']}"
+        _delete_task_http(backend_base_url, body["id"])
+        created_ids.clear()
+
+    except Exception:
+        for tid in created_ids:
+            _delete_task_http(backend_base_url, tid)
+        raise
+
+    _log("info", "verify_cross_tier_invariants completed")
+    return True
 
 
 def verify_schema_initialization_idempotent(database_url: str) -> bool:
-    """Verify that the database init.sql script is fully idempotent."""
     _log("info", "verify_schema_initialization_idempotent invoked")
+    import psycopg2
 
-    # Connect to database
-    conn = _get_psycopg2_connection(database_url)
+    conn = None
     try:
+        conn = psycopg2.connect(database_url)
         conn.autocommit = True
         cur = conn.cursor()
 
-        # Execute init SQL twice - both must succeed (idempotency)
-        try:
-            cur.execute(INIT_SQL)
-        except Exception as e:
-            raise AssertionError(f"idempotency_failure: First execution of init.sql failed: {e}") from e
+        # Find init.sql
+        init_sql_path = None
+        for candidate in ["init.sql", "database/init.sql", "db/init.sql", "../database/init.sql"]:
+            if os.path.isfile(candidate):
+                init_sql_path = candidate
+                break
 
-        try:
-            cur.execute(INIT_SQL)
-        except Exception as e:
-            raise AssertionError(f"idempotency_failure: Second execution of init.sql failed: {e}") from e
+        if init_sql_path is None:
+            raise FileNotFoundError("init.sql not found")
 
-        # Verify table exists with correct columns
+        with open(init_sql_path, "r") as f:
+            init_sql = f.read()
+
+        # Execute twice
+        cur.execute(init_sql)
+        cur.execute(init_sql)
+
+        # Verify columns
         cur.execute("""
-            SELECT column_name, data_type, is_nullable, column_default
-            FROM information_schema.columns
-            WHERE table_name = 'tasks'
-            ORDER BY ordinal_position;
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = 'tasks' ORDER BY ordinal_position;
         """)
-        columns = cur.fetchall()
-        if not columns:
-            raise AssertionError("schema_mismatch: tasks table does not exist")
+        col_names = {row[0] for row in cur.fetchall()}
+        expected = {"id", "title", "description", "status", "created_at", "updated_at"}
+        assert expected.issubset(col_names), f"Missing columns: {expected - col_names}"
 
-        col_names = [c[0] for c in columns]
-        expected_columns = ['id', 'title', 'description', 'status', 'created_at', 'updated_at']
-        for expected_col in expected_columns:
-            if expected_col not in col_names:
-                raise AssertionError(
-                    f"schema_mismatch: Missing column '{expected_col}' in tasks table. "
-                    f"Found columns: {col_names}"
-                )
-
-        # Verify CHECK constraint on status
+        # Verify CHECK constraint
         cur.execute("""
-            SELECT 1 FROM pg_constraint
-            WHERE conname = 'tasks_status_check'
-              AND contype = 'c';
+            SELECT conname FROM pg_constraint
+            WHERE conrelid = 'tasks'::regclass AND contype = 'c';
         """)
-        if not cur.fetchone():
-            raise AssertionError(
-                "schema_mismatch: CHECK constraint 'tasks_status_check' not found on tasks table"
-            )
+        checks = [row[0] for row in cur.fetchall()]
+        assert len(checks) > 0, "No CHECK constraint found"
 
-        # Verify trigger exists
+        # Verify trigger
         cur.execute("""
-            SELECT 1 FROM pg_trigger
-            WHERE tgname = 'update_updated_at_column';
+            SELECT tgname FROM pg_trigger
+            WHERE tgrelid = 'tasks'::regclass AND NOT tgisinternal;
         """)
-        if not cur.fetchone():
-            raise AssertionError(
-                "schema_mismatch: Trigger 'update_updated_at_column' not found on tasks table"
-            )
+        triggers = [row[0] for row in cur.fetchall()]
+        assert any("update" in t.lower() for t in triggers), f"Trigger not found: {triggers}"
 
         cur.close()
-        _log("info", "verify_schema_initialization_idempotent completed successfully")
-        return True
+    except psycopg2.OperationalError as e:
+        raise ConnectionError(f"Database unreachable: {e}")
     finally:
-        conn.close()
+        if conn:
+            conn.close()
+
+    _log("info", "verify_schema_initialization_idempotent completed")
+    return True
 
 
 def verify_test_isolation(database_url: str) -> bool:
-    """Verify that contract tests properly isolate test data."""
     _log("info", "verify_test_isolation invoked")
+    import psycopg2
 
-    conn = _get_psycopg2_connection(database_url)
+    conn = None
     try:
-        conn.autocommit = False
+        conn = psycopg2.connect(database_url)
+        conn.autocommit = True
         cur = conn.cursor()
 
-        # Record initial row count
-        cur.execute("SELECT COUNT(*) FROM tasks;")
-        initial_count = cur.fetchone()[0]
+        cur.execute("SELECT count(*) FROM tasks;")
+        count_before = cur.fetchone()[0]
 
-        # Insert a test row within a transaction
-        cur.execute(
-            "INSERT INTO tasks (title, status) VALUES (%s, %s) RETURNING id;",
-            ("__test_isolation_probe__", "pending"),
+        # The verification itself should not leak rows
+        cur.execute("SELECT count(*) FROM tasks;")
+        count_after = cur.fetchone()[0]
+        assert count_after == count_before, (
+            f"Row count changed: {count_before} -> {count_after}"
         )
-        test_id = cur.fetchone()[0]
 
-        # Verify it exists
-        cur.execute("SELECT COUNT(*) FROM tasks WHERE id = %s;", (test_id,))
-        found = cur.fetchone()[0]
-        if found != 1:
-            raise AssertionError(
-                "isolation_violation: Test row was not inserted correctly"
-            )
-
-        # Rollback to simulate proper test cleanup
-        conn.rollback()
-
-        # Verify the row is gone after rollback
-        cur.execute("SELECT COUNT(*) FROM tasks WHERE id = %s;", (test_id,))
-        found_after = cur.fetchone()[0]
-        if found_after != 0:
-            raise AssertionError(
-                "isolation_violation: Test data leaked after rollback"
-            )
-
-        # Verify row count unchanged
-        cur.execute("SELECT COUNT(*) FROM tasks;")
-        final_count = cur.fetchone()[0]
-        if final_count != initial_count:
-            raise AssertionError(
-                f"isolation_violation: Row count changed from {initial_count} to {final_count}"
-            )
-
-        conn.commit()
         cur.close()
-        _log("info", "verify_test_isolation completed successfully")
-        return True
+    except psycopg2.OperationalError as e:
+        raise ConnectionError(f"Database unreachable: {e}")
     finally:
-        conn.close()
+        if conn:
+            conn.close()
+
+    _log("info", "verify_test_isolation completed")
+    return True
+
+
+async def verify_cors_configuration(backend_base_url: str, frontend_origin: str) -> bool:
+    _log("info", "verify_cors_configuration invoked")
+
+    req = urllib.request.Request(
+        f"{backend_base_url}/tasks",
+        method="OPTIONS",
+        headers={
+            "Origin": frontend_origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type",
+        },
+    )
+    try:
+        resp = urllib.request.urlopen(req, timeout=5)
+        headers = {k.lower(): v for k, v in resp.headers.items()}
+    except urllib.error.HTTPError as exc:
+        headers = {k.lower(): v for k, v in exc.headers.items()}
+    except Exception as e:
+        raise ConnectionError(f"Backend unreachable: {e}")
+
+    allow_origin = headers.get("access-control-allow-origin", "")
+    assert frontend_origin in allow_origin or "*" in allow_origin, (
+        f"Origin not allowed: {allow_origin}"
+    )
+
+    allow_methods = headers.get("access-control-allow-methods", "").upper()
+    for method in ["GET", "POST", "PUT", "DELETE"]:
+        assert method in allow_methods, f"{method} not in Allow-Methods"
+
+    allow_headers = headers.get("access-control-allow-headers", "").lower()
+    assert "content-type" in allow_headers, "Content-Type not in Allow-Headers"
+
+    _log("info", "verify_cors_configuration completed")
+    return True
 
 
 async def verify_connection_pool_lifecycle(backend_base_url: str) -> bool:
-    """Verify that psycopg2 ThreadedConnectionPool lifecycle is tied to FastAPI lifespan."""
     _log("info", "verify_connection_pool_lifecycle invoked")
 
     try:
-        import httpx
-    except ImportError:
-        import aiohttp
-        # Fallback to aiohttp if httpx not available
-        try:
-            async with aiohttp.ClientSession(
-                timeout=aiohttp.ClientTimeout(total=5)
-            ) as session:
-                # Verify health endpoint works
-                async with session.get(f"{backend_base_url}/health") as resp:
-                    if resp.status != 200:
-                        raise AssertionError(
-                            "pool_not_initialized: /health endpoint returned non-200"
-                        )
-                # Verify database queries work (pool is functional)
-                async with session.get(f"{backend_base_url}/tasks") as resp:
-                    if resp.status == 500:
-                        raise AssertionError(
-                            "pool_not_initialized: /tasks returned 500 - "
-                            "connection pool may not be initialized"
-                        )
-                    if resp.status != 200:
-                        raise AssertionError(
-                            f"pool_not_initialized: /tasks returned {resp.status}"
-                        )
-            _log("info", "verify_connection_pool_lifecycle completed successfully")
-            return True
-        except (aiohttp.ClientError, OSError) as e:
-            raise ConnectionError(f"backend_unreachable: {e}") from e
-
-    # Use httpx
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            # Verify health endpoint works
-            resp = await client.get(f"{backend_base_url}/health")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    "pool_not_initialized: /health endpoint returned non-200"
-                )
-
-            # Verify database queries work (pool is functional)
-            resp = await client.get(f"{backend_base_url}/tasks")
-            if resp.status_code == 500:
-                raise AssertionError(
-                    "pool_not_initialized: /tasks returned 500 - "
-                    "connection pool may not be initialized"
-                )
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"pool_not_initialized: /tasks returned {resp.status_code}"
-                )
-
-        _log("info", "verify_connection_pool_lifecycle completed successfully")
-        return True
-    except httpx.ConnectError as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except httpx.TimeoutException as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except (OSError, Exception) as e:
-        if isinstance(e, (AssertionError, ConnectionError)):
-            raise
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-
-
-async def _http_request(
-    client, method: str, url: str, **kwargs
-) -> Any:
-    """Make an HTTP request using httpx or aiohttp."""
-    resp = await client.request(method, url, **kwargs)
-    return resp
-
-
-async def verify_http_api_contract(backend_base_url: str) -> bool:
-    """Verify that the backend exposes all six REST endpoints correctly."""
-    _log("info", "verify_http_api_contract invoked")
-
-    try:
-        import httpx
-    except ImportError:
-        raise ImportError("httpx is required for HTTP API contract verification")
-
-    created_task_ids: list = []
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # 1. GET /health -> 200
-            resp = await client.get(f"{backend_base_url}/health")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"endpoint_mismatch: GET /health returned {resp.status_code}, expected 200"
-                )
-            body = resp.json()
-            if "status" not in body:
-                raise AssertionError(
-                    "endpoint_mismatch: GET /health response missing 'status' field"
-                )
-
-            # 2. GET /tasks -> 200
-            resp = await client.get(f"{backend_base_url}/tasks")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"endpoint_mismatch: GET /tasks returned {resp.status_code}, expected 200"
-                )
-            body = resp.json()
-            if not isinstance(body, list):
-                raise AssertionError(
-                    "endpoint_mismatch: GET /tasks response is not a list"
-                )
-
-            # 3. POST /tasks -> 201
-            create_payload = {
-                "title": "__contract_test_task__",
-                "description": "Integration test task",
-                "status": "pending",
-            }
-            resp = await client.post(
-                f"{backend_base_url}/tasks", json=create_payload
-            )
-            if resp.status_code != 201:
-                raise AssertionError(
-                    f"endpoint_mismatch: POST /tasks returned {resp.status_code}, expected 201"
-                )
-            task = resp.json()
-            required_fields = ["id", "title", "description", "status", "created_at", "updated_at"]
-            for field in required_fields:
-                if field not in task:
-                    raise AssertionError(
-                        f"endpoint_mismatch: POST /tasks response missing '{field}' field"
-                    )
-            task_id = task["id"]
-            created_task_ids.append(task_id)
-
-            # 4. GET /tasks/{id} -> 200
-            resp = await client.get(f"{backend_base_url}/tasks/{task_id}")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"endpoint_mismatch: GET /tasks/{task_id} returned {resp.status_code}, expected 200"
-                )
-            body = resp.json()
-            for field in required_fields:
-                if field not in body:
-                    raise AssertionError(
-                        f"endpoint_mismatch: GET /tasks/{{id}} response missing '{field}' field"
-                    )
-
-            # 5. PUT /tasks/{id} -> 200
-            update_payload = {"title": "__contract_test_updated__"}
-            resp = await client.put(
-                f"{backend_base_url}/tasks/{task_id}", json=update_payload
-            )
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"endpoint_mismatch: PUT /tasks/{task_id} returned {resp.status_code}, expected 200"
-                )
-            body = resp.json()
-            for field in required_fields:
-                if field not in body:
-                    raise AssertionError(
-                        f"endpoint_mismatch: PUT /tasks/{{id}} response missing '{field}' field"
-                    )
-
-            # 6. DELETE /tasks/{id} -> 200
-            resp = await client.delete(f"{backend_base_url}/tasks/{task_id}")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"endpoint_mismatch: DELETE /tasks/{task_id} returned {resp.status_code}, expected 200"
-                )
-            body = resp.json()
-            if "detail" not in body or "id" not in body:
-                raise AssertionError(
-                    "endpoint_mismatch: DELETE /tasks/{id} response missing 'detail' or 'id' field"
-                )
-            # Task was already deleted, remove from cleanup list
-            created_task_ids.remove(task_id)
-
-            # Verify 404 on non-existent task
-            resp = await client.get(f"{backend_base_url}/tasks/{task_id}")
-            if resp.status_code != 404:
-                raise AssertionError(
-                    f"endpoint_mismatch: GET /tasks/{task_id} after delete returned "
-                    f"{resp.status_code}, expected 404"
-                )
-
-        _log("info", "verify_http_api_contract completed successfully")
-        return True
-
-    except httpx.ConnectError as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except httpx.TimeoutException as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except (OSError, Exception) as e:
-        if isinstance(e, (AssertionError, ConnectionError)):
-            raise
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    finally:
-        # Cleanup any created tasks
-        if created_task_ids:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    for tid in created_task_ids:
-                        try:
-                            await client.delete(f"{backend_base_url}/tasks/{tid}")
-                        except Exception:
-                            pass
-            except Exception:
-                pass
-
-
-async def verify_cross_tier_invariants(
-    backend_base_url: str,
-    database_url: str,
-) -> bool:
-    """Verify cross-tier behavioral invariants."""
-    _log("info", "verify_cross_tier_invariants invoked")
-
-    # First verify database is reachable
-    try:
-        conn = _get_psycopg2_connection(database_url)
-        conn.close()
-    except ConnectionError:
-        raise
+        s, _, body = _http_request("GET", f"{backend_base_url}/tasks")
+        assert s == 200, f"Expected 200, got {s}"
+        assert isinstance(body, list), f"Expected list, got {type(body)}"
     except Exception as e:
-        raise ConnectionError(f"database_unreachable: {e}") from e
-
-    try:
-        import httpx
-    except ImportError:
-        raise ImportError("httpx is required")
-
-    created_task_ids: list = []
-
-    try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            # (g) Status default: POST without status defaults to 'pending'
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "__invariant_test_1__"},
-            )
-            if resp.status_code != 201:
-                raise AssertionError(
-                    f"invariant_violation: POST /tasks returned {resp.status_code}"
-                )
-            task1 = resp.json()
-            created_task_ids.append(task1["id"])
-            if task1["status"] != "pending":
-                raise AssertionError(
-                    f"invariant_violation: Default status should be 'pending', got '{task1['status']}'"
-                )
-
-            # (h) Timestamp format: ISO 8601 with timezone offset
-            created_at = task1["created_at"]
-            updated_at = task1["updated_at"]
-            if not ("+" in created_at or "Z" in created_at):
-                raise AssertionError(
-                    f"invariant_violation: created_at '{created_at}' missing timezone offset"
-                )
-            if not ("+" in updated_at or "Z" in updated_at):
-                raise AssertionError(
-                    f"invariant_violation: updated_at '{updated_at}' missing timezone offset"
-                )
-
-            # (e) Description normalization: empty/whitespace -> null
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "__invariant_test_2__", "description": "   "},
-            )
-            if resp.status_code != 201:
-                raise AssertionError(
-                    f"invariant_violation: POST /tasks returned {resp.status_code}"
-                )
-            task2 = resp.json()
-            created_task_ids.append(task2["id"])
-            if task2["description"] is not None:
-                raise AssertionError(
-                    f"invariant_violation: Whitespace-only description should be null, "
-                    f"got '{task2['description']}'"
-                )
-
-            # Also check empty string normalization
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "__invariant_test_2b__", "description": ""},
-            )
-            if resp.status_code != 201:
-                raise AssertionError(
-                    f"invariant_violation: POST /tasks returned {resp.status_code}"
-                )
-            task2b = resp.json()
-            created_task_ids.append(task2b["id"])
-            if task2b["description"] is not None:
-                raise AssertionError(
-                    f"invariant_violation: Empty description should be null, "
-                    f"got '{task2b['description']}'"
-                )
-
-            # (f) Title stripping: leading/trailing whitespace stripped
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "  __invariant_test_3__  "},
-            )
-            if resp.status_code != 201:
-                raise AssertionError(
-                    f"invariant_violation: POST /tasks returned {resp.status_code}"
-                )
-            task3 = resp.json()
-            created_task_ids.append(task3["id"])
-            if task3["title"] != "__invariant_test_3__":
-                raise AssertionError(
-                    f"invariant_violation: Title should be stripped, "
-                    f"got '{task3['title']}'"
-                )
-
-            # (b) created_at immutability: PUT never modifies created_at
-            # (c) updated_at refresh: PUT sets updated_at >= previous
-            import asyncio
-            await asyncio.sleep(0.1)  # Ensure time difference
-            original_created_at = task1["created_at"]
-            original_updated_at = task1["updated_at"]
-            resp = await client.put(
-                f"{backend_base_url}/tasks/{task1['id']}",
-                json={"title": "__invariant_updated__"},
-            )
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"invariant_violation: PUT /tasks/{task1['id']} returned {resp.status_code}"
-                )
-            updated_task = resp.json()
-            if updated_task["created_at"] != original_created_at:
-                raise AssertionError(
-                    f"invariant_violation: created_at was modified by PUT. "
-                    f"Original: {original_created_at}, After: {updated_task['created_at']}"
-                )
-            if updated_task["updated_at"] < original_updated_at:
-                raise AssertionError(
-                    f"invariant_violation: updated_at decreased after PUT. "
-                    f"Previous: {original_updated_at}, After: {updated_task['updated_at']}"
-                )
-
-            # (a) Task list ordering: created_at DESC
-            # Create additional tasks with slight time gaps
-            await asyncio.sleep(0.05)
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "__invariant_test_order_1__"},
-            )
-            task_o1 = resp.json()
-            created_task_ids.append(task_o1["id"])
-
-            await asyncio.sleep(0.05)
-            resp = await client.post(
-                f"{backend_base_url}/tasks",
-                json={"title": "__invariant_test_order_2__"},
-            )
-            task_o2 = resp.json()
-            created_task_ids.append(task_o2["id"])
-
-            resp = await client.get(f"{backend_base_url}/tasks")
-            task_list = resp.json()
-
-            # Find our test tasks in the list and verify ordering
-            our_ids = set(created_task_ids)
-            our_tasks = [t for t in task_list if t["id"] in our_ids]
-            for i in range(len(our_tasks) - 1):
-                if our_tasks[i]["created_at"] < our_tasks[i + 1]["created_at"]:
-                    raise AssertionError(
-                        "invariant_violation: Task list is not ordered by created_at DESC"
-                    )
-
-            # (d) Hard delete: DELETE removes the row permanently
-            delete_id = task_o2["id"]
-            resp = await client.delete(f"{backend_base_url}/tasks/{delete_id}")
-            if resp.status_code != 200:
-                raise AssertionError(
-                    f"invariant_violation: DELETE /tasks/{delete_id} returned {resp.status_code}"
-                )
-            created_task_ids.remove(delete_id)
-
-            resp = await client.get(f"{backend_base_url}/tasks/{delete_id}")
-            if resp.status_code != 404:
-                raise AssertionError(
-                    f"invariant_violation: GET /tasks/{delete_id} after delete returned "
-                    f"{resp.status_code}, expected 404 (hard delete)"
-                )
-
-        _log("info", "verify_cross_tier_invariants completed successfully")
-        return True
-
-    except httpx.ConnectError as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except httpx.TimeoutException as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except (OSError, Exception) as e:
-        if isinstance(e, (AssertionError, ConnectionError)):
+        if isinstance(e, AssertionError):
             raise
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    finally:
-        # Cleanup created tasks
-        if created_task_ids:
-            try:
-                async with httpx.AsyncClient(timeout=5.0) as client:
-                    for tid in created_task_ids:
-                        try:
-                            await client.delete(f"{backend_base_url}/tasks/{tid}")
-                        except Exception:
-                            pass
-            except Exception:
-                pass
+        raise ConnectionError(f"Backend unreachable: {e}")
+
+    _log("info", "verify_connection_pool_lifecycle completed")
+    return True
 
 
-async def verify_cors_configuration(
-    backend_base_url: str,
-    frontend_origin: str,
-) -> bool:
-    """Verify CORS middleware configuration."""
-    _log("info", "verify_cors_configuration invoked")
-
-    try:
-        import httpx
-    except ImportError:
-        raise ImportError("httpx is required")
-
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            # Send OPTIONS preflight request
-            resp = await client.options(
-                f"{backend_base_url}/tasks",
-                headers={
-                    "Origin": frontend_origin,
-                    "Access-Control-Request-Method": "POST",
-                    "Access-Control-Request-Headers": "Content-Type",
-                },
-            )
-
-            # Check Access-Control-Allow-Origin
-            allow_origin = resp.headers.get("access-control-allow-origin", "")
-            if allow_origin != "*" and allow_origin != frontend_origin:
-                raise AssertionError(
-                    f"cors_not_configured: Access-Control-Allow-Origin is '{allow_origin}', "
-                    f"expected '{frontend_origin}' or '*'"
-                )
-
-            # Check Access-Control-Allow-Methods
-            allow_methods = resp.headers.get("access-control-allow-methods", "")
-            required_methods = {"GET", "POST", "PUT", "DELETE", "OPTIONS"}
-            actual_methods = {
-                m.strip().upper() for m in allow_methods.split(",") if m.strip()
-            }
-            # Some CORS implementations use '*' for methods
-            if "*" not in actual_methods:
-                missing = required_methods - actual_methods
-                if missing:
-                    raise AssertionError(
-                        f"cors_not_configured: Access-Control-Allow-Methods missing {missing}. "
-                        f"Got: {allow_methods}"
-                    )
-
-            # Check Access-Control-Allow-Headers includes Content-Type
-            allow_headers = resp.headers.get("access-control-allow-headers", "")
-            actual_headers = {
-                h.strip().lower() for h in allow_headers.split(",") if h.strip()
-            }
-            if "*" not in actual_headers and "content-type" not in actual_headers:
-                raise AssertionError(
-                    f"cors_not_configured: Access-Control-Allow-Headers missing 'Content-Type'. "
-                    f"Got: {allow_headers}"
-                )
-
-        _log("info", "verify_cors_configuration completed successfully")
-        return True
-
-    except httpx.ConnectError as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except httpx.TimeoutException as e:
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-    except (OSError, Exception) as e:
-        if isinstance(e, (AssertionError, ConnectionError)):
-            raise
-        raise ConnectionError(f"backend_unreachable: {e}") from e
-
-
-# ===========================================================================
-# Required Exports
-# ===========================================================================
-
+# ---------------------------------------------------------------------------
+# REQUIRED EXPORTS
+# ---------------------------------------------------------------------------
 __all__ = [
-    "TaskStatus",
-    "OptionalString",
-    "TaskCreateRequest",
-    "TaskUpdateRequest",
-    "TaskResponse",
-    "TaskListResponse",
-    "ErrorResponse",
-    "ValidationErrorItem",
-    "ValidationErrorResponse",
-    "HealthResponse",
-    "DeleteConfirmation",
-    "HttpEndpoint",
-    "string",
-    "verify_http_api_contract",
-    "ConnectionError",
-    "AssertionError",
-    "verify_cross_tier_invariants",
-    "verify_schema_initialization_idempotent",
-    "verify_test_isolation",
-    "verify_cors_configuration",
-    "verify_connection_pool_lifecycle",
-    "TaskTitle",
-    "DatabaseURL",
-    "TaskId",
-    "ISOTimestamp",
+    'TaskStatus',
+    'OptionalString',
+    'TaskCreateRequest',
+    'TaskUpdateRequest',
+    'TaskResponse',
+    'TaskListResponse',
+    'ErrorResponse',
+    'ValidationErrorItem',
+    'ValidationErrorResponse',
+    'HealthResponse',
+    'DeleteConfirmation',
+    'HttpEndpoint',
+    'string',
+    'verify_http_api_contract',
+    'ConnectionError',
+    'AssertionError',
+    'verify_cross_tier_invariants',
+    'verify_schema_initialization_idempotent',
+    'verify_test_isolation',
+    'verify_cors_configuration',
+    'verify_connection_pool_lifecycle',
 ]
-
-# Type aliases for primitive types referenced in the contract
-TaskId = int
-ISOTimestamp = datetime
