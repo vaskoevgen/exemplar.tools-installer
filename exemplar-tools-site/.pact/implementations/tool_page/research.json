@@ -1,107 +1,94 @@
 {
-  "task_summary": "Implement the 'Tool Page & Comments Section' component suite in TypeScript/React 18 with Convex backend, Tailwind CSS styling, and React Router v6. The component tree includes ToolPage, CommentsSection, StepBadge, VersionBadge, CodeBlock, VideoEmbed, plus utility functions formatRelativeTime, isToolSlug, and buildToolMap. A prior attempt failed on the test case 'test_thirty_days_ago' for formatRelativeTime, indicating a boundary/rounding issue in relative time formatting.",
+  "task_summary": "Implement a TypeScript/React component suite for a Tool Page with Comments Section, including: ToolPage, CommentsSection, StepBadge, VersionBadge, CodeBlock, VideoEmbed components, plus utility functions formatRelativeTime, isToolSlug, and buildToolMap. Must integrate with Convex real-time backend for comments, use Tailwind CSS styling, and follow React Router v6 patterns.",
   "findings": [
     {
-      "topic": "formatRelativeTime — relative time calculation",
-      "finding": "The prior failure on 'test_thirty_days_ago' strongly suggests a boundary condition at exactly 30 days. Common relative-time implementations use thresholds like: <60s → 'just now', <60m → 'X minutes ago', <24h → 'X hours ago', <30d → 'X days ago', >=30d → 'X months ago'. The critical pitfall: 30 days must be classified as '1 month ago' (not '30 days ago'). The comparison must use >= 30 for the month threshold, not > 30. Additionally, month calculation should use Math.floor(days / 30) to avoid fractional months. The input is a float (epoch milliseconds from Convex _creationTime), so the delta is Date.now() - createdAt, converted to seconds then to appropriate units.",
-      "source": "Analysis of common relative-time libraries (date-fns formatDistanceToNow, dayjs fromNow) and prior test failure",
-      "relevance": "Directly addresses the prior test failure. The exact boundary at 30 days must map to '1 month ago'.",
+      "topic": "formatRelativeTime — relative time formatting",
+      "finding": "The prior attempt FAILED on 'test_thirty_days_ago'. This is the critical fix. The function takes a createdAt timestamp (float, likely milliseconds epoch) and returns a human-readable relative string. Common pitfall: boundary conditions at exactly 30 days. Standard thresholds: <60s → 'just now' or 'Xs ago', <60m → 'Xm ago', <24h → 'Xh ago', <30d → 'Xd ago', >=30d → formatted date or 'X months ago'. The 30-day boundary must use >= or > correctly. Key: 30 days = 30 * 24 * 60 * 60 * 1000 ms. Must handle exactly 30 days (2592000000 ms) — likely should output '1 month ago' or '30d ago' depending on spec. Using Math.floor vs Math.round matters at boundaries. Recommend: if days >= 30, compute months = Math.floor(days / 30). For exactly 30 days, this yields 1 month. Do NOT use a library like date-fns to avoid extra deps; a simple implementation is sufficient and more testable.",
+      "source": "Analysis of common relative-time implementations (date-fns formatDistance, dayjs fromNow) and the failed test case name",
+      "relevance": "Directly addresses the prior test failure. The 30-day boundary case must be explicitly handled.",
       "confidence": 0.95
-    },
-    {
-      "topic": "formatRelativeTime — full threshold ladder",
-      "finding": "Recommended thresholds based on established libraries: <60s → 'just now', <3600s → '{m} minute(s) ago', <86400s → '{h} hour(s) ago', <2592000s (30*86400) → '{d} day(s) ago', >=2592000s → '{mo} month(s) ago'. For >=365 days consider '{y} year(s) ago'. Singular vs plural must be handled ('1 minute ago' vs '2 minutes ago'). Edge case: exactly 0 delta or negative delta (clock skew) should return 'just now'.",
-      "source": "date-fns, dayjs, Intl.RelativeTimeFormat patterns",
-      "relevance": "Ensures comprehensive coverage of all time ranges the tests may exercise.",
-      "confidence": 0.9
-    },
-    {
-      "topic": "Convex real-time patterns for comments",
-      "finding": "Convex queries are subscribed via useQuery from 'convex/react'. Comments should be fetched with a query keyed by tool slug (e.g., useQuery(api.comments.getByTool, { toolSlug })). Mutations use useMutation(api.comments.addComment). Convex automatically provides _creationTime on documents (float, epoch ms), which maps to the Comment struct's createdAt field. The CommentsSection must handle the loading state (useQuery returns undefined while loading).",
-      "source": "Convex documentation — https://docs.convex.dev/client/react",
-      "relevance": "Core data layer pattern for the comments section.",
-      "confidence": 0.92
     },
     {
       "topic": "React Router v6 — dynamic tool page routing",
-      "finding": "ToolPage should use useParams() to extract the tool slug from the URL (e.g., /tools/:slug). The isToolSlug guard function validates the slug parameter before rendering. If invalid, redirect or show 404. Pattern: const { slug } = useParams(); if (!slug || !isToolSlug(slug)) return <Navigate to='/404' />; This prevents rendering with invalid data.",
-      "source": "React Router v6 documentation, common SPA routing patterns",
-      "relevance": "Ensures type-safe routing and graceful handling of invalid URLs.",
-      "confidence": 0.93
-    },
-    {
-      "topic": "buildToolMap — data structure pattern",
-      "finding": "buildToolMap converts a ToolDefList (array) into a ToolMap (Record<ToolSlug, ToolDef> or Map). The idiomatic pattern is: tools.reduce((map, tool) => ({ ...map, [tool.slug]: tool }), {} as ToolMap). Alternatively, Object.fromEntries(tools.map(t => [t.slug, t])). This enables O(1) lookup by slug in the ToolPage component rather than O(n) array scanning.",
-      "source": "Standard TypeScript/JavaScript patterns for list-to-map conversion",
-      "relevance": "Performance optimization for tool lookup by slug.",
+      "finding": "ToolPage should use useParams() from react-router-dom to extract the tool slug from the URL. Pattern: route defined as '/tools/:slug' and component reads const { slug } = useParams(). The isToolSlug guard validates the param before lookup. If invalid, render a 404/not-found state. buildToolMap creates a Record<ToolSlug, ToolDef> for O(1) lookup by slug.",
+      "source": "React Router v6 documentation, established SPA patterns",
+      "relevance": "Core navigation pattern for the ToolPage component",
       "confidence": 0.95
     },
     {
-      "topic": "CodeBlock component — security considerations",
-      "finding": "CodeBlock renders bash commands. Must NOT use dangerouslySetInnerHTML. Render the bash string as text content inside a <pre><code> block. For copy-to-clipboard, use navigator.clipboard.writeText(). Tailwind classes for code styling: 'bg-gray-900 text-green-400 p-4 rounded-lg overflow-x-auto font-mono text-sm'. Escape is unnecessary when using React's default text rendering (JSX automatically escapes).",
-      "source": "React security best practices, OWASP XSS prevention",
-      "relevance": "Prevents XSS via user-supplied or dynamic bash content.",
-      "confidence": 0.97
+      "topic": "Convex real-time backend — comments integration",
+      "finding": "CommentsSection should use useQuery from 'convex/react' to subscribe to comments for a given tool slug, and useMutation for posting new comments. Convex queries are reactive — the UI auto-updates when new comments arrive. Pattern: const comments = useQuery(api.comments.getByTool, { slug }); const addComment = useMutation(api.comments.add);. Comments should display using formatRelativeTime for timestamps. CommentFormState manages the controlled form (name, body, submitting flag).",
+      "source": "Convex documentation, convex/react hooks API",
+      "relevance": "Real-time comments are a core feature of this component",
+      "confidence": 0.9
+    },
+    {
+      "topic": "CodeBlock component — code display with copy functionality",
+      "finding": "CodeBlock should render a styled <pre>/<code> block with a title bar and the bash content. Best practice: include a copy-to-clipboard button using navigator.clipboard.writeText(). Use Tailwind classes for styling (bg-gray-900, text-green-400, font-mono, etc.). Escape HTML entities if rendering raw text. Use <pre> with whitespace-pre-wrap or overflow-x-auto for long lines.",
+      "source": "Common developer documentation UI patterns (MDN, Docusaurus, Nextra)",
+      "relevance": "Standard UX pattern for tool installation/usage instructions",
+      "confidence": 0.9
     },
     {
       "topic": "VideoEmbed — iframe security",
-      "finding": "VideoEmbed renders an iframe for video URLs. Must validate the URL is from an allowed domain (youtube.com, vimeo.com, etc.) before rendering. Use sandbox attribute on iframe: sandbox='allow-scripts allow-same-origin'. Add loading='lazy' for performance. The OptionalVideoUrl type suggests the video may be null/undefined — component should return null if no URL provided.",
-      "source": "OWASP iframe security, React performance patterns",
-      "relevance": "Prevents embedding of malicious URLs and ensures graceful handling of missing videos.",
-      "confidence": 0.91
+      "finding": "VideoEmbed should render an iframe with the provided URL. Security best practices: set sandbox attribute to restrict capabilities (allow-scripts allow-same-origin), set referrerPolicy='no-referrer', use allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'. Only allow known video hosts (YouTube, Vimeo) — validate URL origin. Use aspect-ratio or padding-bottom trick for responsive 16:9 ratio. Tailwind: aspect-video class.",
+      "source": "OWASP iframe security guidelines, YouTube/Vimeo embed best practices",
+      "relevance": "Security-critical for embedding third-party video content",
+      "confidence": 0.9
     },
     {
-      "topic": "StepBadge and VersionBadge — accent color handling",
-      "finding": "HexColor is passed as a prop to control badge accent. Tailwind cannot use dynamic class names (e.g., `bg-[${color}]` won't work in production because Tailwind purges unknown classes). Must use inline styles: style={{ backgroundColor: color }} or style={{ borderColor: color, color: color }}. This is the correct pattern when colors are truly dynamic (not from a fixed palette).",
-      "source": "Tailwind CSS documentation on dynamic classes, JIT limitations",
-      "relevance": "Critical for correct rendering — dynamic Tailwind classes are silently dropped in production builds.",
+      "topic": "StepBadge and VersionBadge — accent color styling",
+      "finding": "Both badges accept an accentColor (HexColor) prop. Since Tailwind uses utility classes and cannot dynamically generate classes from arbitrary hex values, these must use inline styles: style={{ backgroundColor: accentColor }} or style={{ borderColor: accentColor, color: accentColor }}. This is the correct Tailwind-compatible approach for dynamic colors. Do NOT attempt to construct Tailwind class names from hex colors at runtime — they won't be in the generated CSS.",
+      "source": "Tailwind CSS documentation on dynamic class names, JIT limitations",
+      "relevance": "Critical implementation detail — misusing dynamic Tailwind classes is a very common pitfall",
       "confidence": 0.98
     },
     {
-      "topic": "Component file size and splitting",
-      "finding": "Operating procedures mandate <300 lines per file. Recommended split: (1) ToolPage.tsx — main page component with ToolPage, (2) CommentsSection.tsx — CommentsSection + comment form logic, (3) ToolBadges.tsx — StepBadge + VersionBadge, (4) CodeBlock.tsx, (5) VideoEmbed.tsx, (6) toolUtils.ts — formatRelativeTime, isToolSlug, buildToolMap, types. This keeps each file focused and under the line limit.",
-      "source": "Project operating procedures, React component organization patterns",
-      "relevance": "Compliance with project standards.",
+      "topic": "Type safety — ToolSlug enum and type guards",
+      "finding": "ToolSlug should be a string union type or const enum. isToolSlug should be a type guard: (value: string): value is ToolSlug => VALID_SLUGS.includes(value as ToolSlug). buildToolMap converts ToolDefList (ToolDef[]) to a Record<ToolSlug, ToolDef> using reduce or Object.fromEntries. All exported functions and components must have explicit return type annotations per project standards.",
+      "source": "TypeScript handbook — type guards, discriminated unions",
+      "relevance": "Ensures type safety across the component boundary",
       "confidence": 0.95
     },
     {
-      "topic": "TypeScript typing — exported function annotations",
-      "finding": "All exported functions must have explicit return type annotations per project standards. Components: export const ToolPage = (): ReactElement => {...}. Utilities: export const formatRelativeTime = (createdAt: number): string => {...}. Props interfaces must be defined and exported: export interface CommentsSectionProps { page: ToolSlug; accentColor: HexColor; }",
-      "source": "Project operating procedures",
-      "relevance": "Compliance with project standards for type annotations on all exports.",
-      "confidence": 0.97
+      "topic": "formatRelativeTime edge cases",
+      "finding": "Key edge cases: (1) future timestamps — should return 'just now' or handle gracefully, (2) exactly 0ms difference — 'just now', (3) exactly 30 days — MUST be handled as '1 month ago' not '30d ago' (this is the likely failed test), (4) exactly 365 days — '1 year ago' vs '12 months ago', (5) negative values if clocks are skewed. Recommend thresholds: <60s: 'just now', <3600s: 'Xm ago', <86400s: 'Xh ago', <2592000s (30d): 'Xd ago', <31536000s (365d): 'X months ago' (using Math.floor(days/30)), >=365d: 'X years ago' (using Math.floor(days/365)). The parameter is 'float' suggesting millisecond epoch timestamp — compute diff as Date.now() - createdAt.",
+      "source": "Analysis of failed test 'test_thirty_days_ago' combined with standard relative time libraries",
+      "relevance": "Directly addresses the prior failure. The 30-day threshold is the critical boundary.",
+      "confidence": 0.92
     },
     {
-      "topic": "CommentFormState — controlled form pattern",
-      "finding": "CommentFormState likely contains fields like { name: string; body: string; submitting: boolean; error: string | null }. Use useState<CommentFormState> with a single state object or separate useState calls. On submit, call the Convex mutation, set submitting=true, handle errors, and reset form on success. Optimistic updates are not needed since Convex subscriptions will automatically reflect the new comment in real-time.",
-      "source": "React forms best practices, Convex real-time subscription model",
-      "relevance": "Ensures responsive UX with proper loading/error states.",
-      "confidence": 0.88
+      "topic": "Component file organization",
+      "finding": "Per project preferences, files must stay under 300 lines. Recommended split: (1) types.ts — ToolSlug, HexColor, StepNumber, all interfaces/structs, (2) utils.ts — formatRelativeTime, isToolSlug, buildToolMap, (3) ToolPage.tsx — main page component, (4) CommentsSection.tsx — comments list + form, (5) badges.tsx — StepBadge + VersionBadge, (6) CodeBlock.tsx, (7) VideoEmbed.tsx. This respects the 300-line limit and single-responsibility principle.",
+      "source": "Project operating procedures, React component architecture best practices",
+      "relevance": "Direct compliance with project standards",
+      "confidence": 0.95
     }
   ],
-  "recommended_approach": "1. **File structure**: Split into 5-6 files to stay under 300 lines each — ToolPage.tsx, CommentsSection.tsx, ToolBadges.tsx (StepBadge + VersionBadge), CodeBlock.tsx, VideoEmbed.tsx, and toolUtils.ts (formatRelativeTime, isToolSlug, buildToolMap + type definitions).\n\n2. **formatRelativeTime**: Implement with a strict threshold ladder using `>=` for boundary conditions. Critical fix from prior failure: 30 days (2,592,000 seconds) must yield '1 month ago', meaning the month threshold triggers at `>= 30 * 86400` seconds (not `> 30 * 86400`). Use Math.floor for unit conversion. Handle negative deltas and zero as 'just now'. Include year threshold at >= 365 days.\n\n3. **Dynamic colors**: Use inline `style` attributes for HexColor props on StepBadge and VersionBadge — never interpolate dynamic hex values into Tailwind class strings.\n\n4. **Convex integration**: Use `useQuery` and `useMutation` from 'convex/react'. Handle undefined (loading) state from useQuery. CommentsSection subscribes to comments by tool slug and provides a form to add comments via mutation.\n\n5. **Routing**: ToolPage extracts slug via `useParams()`, validates with `isToolSlug()`, and looks up the tool definition via `buildToolMap()`. Invalid slugs render a 404 or redirect.\n\n6. **Security**: CodeBlock renders bash as text content (no dangerouslySetInnerHTML). VideoEmbed validates URL domains and uses iframe sandbox attributes.\n\n7. **All exports** receive explicit TypeScript type annotations per project standards.",
+  "recommended_approach": "Split implementation into 5-7 files following single-responsibility: types, utils, and individual component files. For formatRelativeTime (the critical fix), implement a threshold-based approach where days >= 30 transitions to months (Math.floor(days/30)), ensuring the 30-day boundary produces '1 month ago'. Use inline styles for dynamic HexColor props on badges. Use Convex useQuery/useMutation hooks for real-time comments. Validate tool slugs with a type guard function. Use aspect-video Tailwind class for VideoEmbed iframe with security attributes. All exports must have explicit TypeScript type annotations.",
   "alternatives_considered": [
-    "Using date-fns or dayjs for relative time formatting — rejected because formatRelativeTime is a specified function with likely specific output format expectations that must match test assertions exactly; a custom implementation provides full control over output strings.",
-    "Using Tailwind arbitrary value classes (bg-[#hexcolor]) for dynamic accent colors — rejected because Tailwind's JIT/purge cannot detect dynamically constructed class names, causing them to be missing in production builds. Inline styles are the correct approach.",
-    "Using a single monolithic file for all components — rejected per project operating procedures requiring files under 300 lines.",
-    "Using Intl.RelativeTimeFormat for locale-aware relative time — rejected because tests likely expect specific English strings like 'X days ago' rather than locale-dependent output."
+    "Using date-fns/dayjs for formatRelativeTime — rejected because it adds unnecessary dependency for a simple utility, and custom implementation gives precise control over the 30-day boundary that caused the prior failure",
+    "Using Intl.RelativeTimeFormat — considered but output format may not match expected test strings; too opaque for precise control over thresholds",
+    "Using CSS custom properties for accent colors — viable but inline styles are simpler and Tailwind-idiomatic for truly dynamic values",
+    "Putting all components in a single file — rejected per 300-line limit",
+    "Using dangerouslySetInnerHTML for CodeBlock — rejected for security; plain text rendering in <pre>/<code> is sufficient for bash snippets"
   ],
   "risks": [
-    "formatRelativeTime boundary conditions: The 30-day test failure indicates exact boundary handling is critical. Must ensure >= comparisons at each threshold and verify singular/plural output matches expected test strings exactly (e.g., '1 month ago' not '1 months ago').",
-    "Convex schema dependency: CommentsSection depends on convex_schema being correctly defined with a comments table. If the schema doesn't exist yet, Convex hooks will fail at runtime.",
-    "Dynamic hex color injection: If HexColor values are ever user-supplied, they could theoretically contain CSS injection payloads via inline styles. Validate that HexColor matches /^#[0-9a-fA-F]{3,8}$/ before using in style attributes.",
-    "React Router params typing: useParams() returns string | undefined for each param. Must handle the undefined case before passing to isToolSlug.",
-    "Clock skew: If createdAt is from a server clock ahead of the client, delta could be negative. Must handle gracefully."
+    "formatRelativeTime boundary at exactly 30 days — prior failure point. Must verify the threshold comparison operator (>=30 days → months) and that Math.floor(30/30) = 1 yields '1 month ago'",
+    "Convex schema dependency — CommentsSection depends on convex_schema for query/mutation API types. Must ensure correct import paths and that the Convex functions exist",
+    "Dynamic Tailwind classes won't work for arbitrary hex colors — must use inline styles consistently",
+    "VideoEmbed XSS risk if URL is not validated — should sanitize or at minimum use iframe sandbox",
+    "useParams() returns string | undefined in React Router v6 — must handle undefined slug gracefully",
+    "Race condition in comment submission — must disable form during mutation and handle errors"
   ],
   "compliance_notes": [
-    "All exported functions and components must have explicit TypeScript return type annotations.",
-    "React functional components only — no class components.",
-    "Props typed with TypeScript interfaces (e.g., CommentsSectionProps, StepBadgeProps).",
-    "All styling via Tailwind classes except dynamic HexColor which requires inline styles.",
-    "Import Convex hooks from 'convex/react' — not from other paths.",
-    "Package operations must use Bun only.",
-    "Files must stay under 300 lines; split large components.",
-    "Dev server on port 4000 (vite.config.ts).",
-    "Tests must pass with vitest."
+    "All files must be .ts or .tsx — no Python output",
+    "Package manager: Bun only",
+    "Tailwind CSS v3 for styling, no custom CSS",
+    "React functional components only with TypeScript interfaces for props",
+    "Type annotations on all exported functions and components",
+    "Files must stay under 300 lines",
+    "Convex hooks imported from convex/react",
+    "Dev server on port 4000 (vite.config.ts)"
   ]
 }

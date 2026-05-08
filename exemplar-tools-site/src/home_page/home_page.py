@@ -1,9 +1,9 @@
-"""Home Page component module.
+"""Home Page component implementation.
 
 Route-level page component rendered at '/'. Composes three vertical sections:
 (a) workflow overview prose paragraph,
 (b) quick-start HTML table listing all 11 tools,
-(c) ClosedLoopDiagram SVG component arranging tools in a circular flow.
+(c) ClosedLoopDiagram SVG component.
 
 Includes ClosedLoopDiagram as a co-located presentational component and four
 exported projection functions for mapping ToolDef records to view-model types.
@@ -12,8 +12,8 @@ import logging
 import math
 import time
 from enum import Enum
-from dataclasses import dataclass, field
 from typing import Any, List, Optional
+from dataclasses import dataclass, field
 
 _PACT_KEY = "PACT:1c0533:home_page"
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ def _log(level: str, msg: str, **kwargs) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Error classes
+# Custom error classes
 # ---------------------------------------------------------------------------
 
 class RangeError(Exception):
@@ -42,12 +42,12 @@ class RangeError(Exception):
 
 
 class RenderError(Exception):
-    """Raised when a component cannot render due to invalid props."""
+    """Raised when a rendering operation fails."""
     pass
 
 
 # ---------------------------------------------------------------------------
-# Canonical domain types (would be imported from type_registry in production)
+# Canonical domain types (would normally be imported from type_registry)
 # ---------------------------------------------------------------------------
 
 class ToolSlug(Enum):
@@ -68,8 +68,9 @@ class ToolSlug(Enum):
 # Primitive type aliases
 StepNumber = int  # Integer 1-11
 HexColor = str    # CSS hex color string e.g. '#00e5ff'
-OptionalVideoUrl = Optional[str]
-string = str
+string = str      # Auto-stubbed type
+OptionalVideoUrl = Any
+ReactElement = Any
 
 
 @dataclass
@@ -92,7 +93,7 @@ class ToolDef:
     version: str
     accentColor: str
     instructions: Any = field(default_factory=list)
-    videoUrl: Optional[str] = None
+    videoUrl: Any = None
 
 
 ToolDefList = List[ToolDef]
@@ -154,30 +155,25 @@ class SVGViewBoxSpec:
     radius: float
 
 
-class ReactElement:
-    """Auto-stubbed type — referenced but not defined in contract 'home_page'."""
-    pass
-
-
 # ---------------------------------------------------------------------------
-# Helper: attribute-or-dict access
+# Helper: access attribute or dict key
 # ---------------------------------------------------------------------------
 
-def _getattr_or_item(obj: Any, key: str) -> Any:
-    """Retrieve a field from either a dict or an object with attributes."""
+def _get_field(obj: Any, key: str) -> Any:
+    """Get a field from an object (dict or dataclass/object)."""
     if obj is None:
-        raise AttributeError(f"Cannot get '{key}' from None")
+        raise AttributeError(f"Cannot access '{key}' on None")
     if isinstance(obj, dict):
         if key not in obj:
             raise KeyError(key)
         return obj[key]
     if not hasattr(obj, key):
-        raise AttributeError(f"Object has no attribute '{key}'")
+        raise AttributeError(f"Object missing required field '{key}'")
     return getattr(obj, key)
 
 
 def _has_field(obj: Any, key: str) -> bool:
-    """Check if a field exists on a dict or object."""
+    """Check if an object has a field (dict or dataclass/object)."""
     if obj is None:
         return False
     if isinstance(obj, dict):
@@ -186,12 +182,10 @@ def _has_field(obj: Any, key: str) -> bool:
 
 
 # ---------------------------------------------------------------------------
-# Projection functions
+# Pure projection functions
 # ---------------------------------------------------------------------------
 
-def toQuickStartRow(
-    tool: Any,
-) -> QuickStartRow:
+def toQuickStartRow(tool: Any) -> QuickStartRow:
     """
     Pure projection function. Extracts the fields required by the quick-start
     table from a single ToolDef record. Returns a QuickStartRow view-model.
@@ -204,7 +198,7 @@ def toQuickStartRow(
             "step, slug, name, description, and accentColor."
         )
 
-    required_fields = ("step", "slug", "name", "description", "accentColor")
+    required_fields = ["step", "slug", "name", "description", "accentColor"]
     for f in required_fields:
         if not _has_field(tool, f):
             raise TypeError(
@@ -212,13 +206,13 @@ def toQuickStartRow(
                 "step, slug, name, description, and accentColor."
             )
 
-    step = _getattr_or_item(tool, "step")
-    slug = _getattr_or_item(tool, "slug")
-    name = _getattr_or_item(tool, "name")
-    description = _getattr_or_item(tool, "description")
-    accentColor = _getattr_or_item(tool, "accentColor")
+    step = _get_field(tool, "step")
+    slug = _get_field(tool, "slug")
+    name = _get_field(tool, "name")
+    description = _get_field(tool, "description")
+    accentColor = _get_field(tool, "accentColor")
 
-    # Normalize ToolSlug enum to string value
+    # Resolve enum values to strings if needed
     if isinstance(slug, ToolSlug):
         slug = slug.value
 
@@ -231,12 +225,10 @@ def toQuickStartRow(
     )
 
 
-def toDiagramNode(
-    tool: Any,
-) -> DiagramNode:
+def toDiagramNode(tool: Any) -> DiagramNode:
     """
-    Pure projection function. Extracts the fields required by ClosedLoopDiagram
-    from a single ToolDef record. Returns a DiagramNode view-model.
+    Pure projection function. Extracts the fields required by
+    ClosedLoopDiagram from a single ToolDef record.
     """
     _log("debug", "toDiagramNode invoked")
 
@@ -246,7 +238,7 @@ def toDiagramNode(
             "slug, name, step, and accentColor."
         )
 
-    required_fields = ("slug", "name", "step", "accentColor")
+    required_fields = ["slug", "name", "step", "accentColor"]
     for f in required_fields:
         if not _has_field(tool, f):
             raise TypeError(
@@ -254,11 +246,12 @@ def toDiagramNode(
                 "slug, name, step, and accentColor."
             )
 
-    slug = _getattr_or_item(tool, "slug")
-    name = _getattr_or_item(tool, "name")
-    step = _getattr_or_item(tool, "step")
-    accentColor = _getattr_or_item(tool, "accentColor")
+    slug = _get_field(tool, "slug")
+    name = _get_field(tool, "name")
+    step = _get_field(tool, "step")
+    accentColor = _get_field(tool, "accentColor")
 
+    # Resolve enum values to strings if needed
     if isinstance(slug, ToolSlug):
         slug = slug.value
 
@@ -271,8 +264,8 @@ def toDiagramNode(
 
 
 def _validate_tool_list(tools: Any, func_name: str) -> None:
-    """Shared validation for list projection functions."""
-    if tools is None or not isinstance(tools, (list, tuple)):
+    """Validate that tools is a list of exactly 11 elements sorted by step ascending."""
+    if tools is None or not isinstance(tools, list):
         raise TypeError(
             f"invalid_tool_list: {func_name} requires a ToolDefList of exactly 11 elements."
         )
@@ -280,39 +273,34 @@ def _validate_tool_list(tools: Any, func_name: str) -> None:
         raise TypeError(
             f"invalid_tool_list: {func_name} requires a ToolDefList of exactly 11 elements."
         )
-    # Check ascending step order
-    for i in range(len(tools)):
-        step_i = _getattr_or_item(tools[i], "step")
-        if i > 0:
-            step_prev = _getattr_or_item(tools[i - 1], "step")
-            if step_i <= step_prev:
-                raise RangeError(
-                    f"unsorted_input: {func_name} requires tools sorted by step ascending."
-                )
+    # Check sorted by step ascending
+    for i in range(len(tools) - 1):
+        step_i = _get_field(tools[i], "step")
+        step_next = _get_field(tools[i + 1], "step")
+        if step_i >= step_next:
+            raise RangeError(
+                f"unsorted_input: {func_name} requires tools sorted by step ascending."
+            )
 
 
-def toQuickStartRows(
-    tools: Any,
-) -> QuickStartRowList:
+def toQuickStartRows(tools: Any) -> QuickStartRowList:
     """
     Pure projection function. Maps an entire ToolDefList to an ordered
     QuickStartRowList, preserving step-number ascending order.
     """
     _log("debug", "toQuickStartRows invoked")
     _validate_tool_list(tools, "toQuickStartRows")
-    return [toQuickStartRow(t) for t in tools]
+    return [toQuickStartRow(tool) for tool in tools]
 
 
-def toDiagramNodes(
-    tools: Any,
-) -> DiagramNodeList:
+def toDiagramNodes(tools: Any) -> DiagramNodeList:
     """
     Pure projection function. Maps an entire ToolDefList to an ordered
     DiagramNodeList, preserving step-number ascending order.
     """
     _log("debug", "toDiagramNodes invoked")
     _validate_tool_list(tools, "toDiagramNodes")
-    return [toDiagramNode(t) for t in tools]
+    return [toDiagramNode(tool) for tool in tools]
 
 
 # ---------------------------------------------------------------------------
@@ -335,7 +323,7 @@ def computeNodePosition(
     x = centerX + radius * cos(angle)
     y = centerY + radius * sin(angle)
     """
-    _log("debug", f"computeNodePosition invoked step={step}")
+    _log("debug", f"computeNodePosition invoked for step={step}")
 
     if radius <= 0:
         raise RangeError("invalid_radius: radius must be a positive number.")
@@ -354,73 +342,97 @@ def computeNodePosition(
 # React component stubs (Python-side representations)
 # ---------------------------------------------------------------------------
 
-def ClosedLoopDiagram(
-    nodes: DiagramNodeList,
-) -> ReactElement:
+def ClosedLoopDiagram(nodes: DiagramNodeList) -> Any:
     """
-    React functional component. Renders an SVG with viewBox='0 0 500 500'
-    and width='100%'. Positions 11 tool nodes in a circular layout.
+    React functional component stub. In production this would be a .tsx file.
+    Renders an SVG with viewBox='0 0 500 500' and width='100%'.
     """
     _log("debug", "ClosedLoopDiagram invoked")
 
-    if not nodes or len(nodes) == 0:
+    if nodes is None or not isinstance(nodes, list) or len(nodes) == 0:
         raise RenderError(
-            "empty_nodes: ClosedLoopDiagram requires a non-empty DiagramNodeList."
+            "ClosedLoopDiagram requires a non-empty DiagramNodeList."
         )
+
     if len(nodes) != 11:
         raise RenderError(
-            "incorrect_node_count: ClosedLoopDiagram expects exactly 11 nodes."
+            "ClosedLoopDiagram expects exactly 11 nodes."
         )
 
     import re
-    hex_pattern = re.compile(r"^#[0-9a-fA-F]{6}$")
+    hex_pattern = re.compile(r'^#[0-9a-fA-F]{6}$')
     for node in nodes:
-        color = _getattr_or_item(node, "accentColor")
+        color = _get_field(node, "accentColor")
         if not hex_pattern.match(color):
             raise RenderError(
-                "invalid_accent_color: All DiagramNode accentColor values must be valid hex colors."
+                "All DiagramNode accentColor values must be valid hex colors."
             )
 
-    # In a real React app this would return JSX. Here we return a ReactElement stub.
-    return ReactElement()
+    # Compute positions and return a representation
+    spec = SVGViewBoxSpec(width=500, height=500, centerX=250.0, centerY=250.0, radius=200.0)
+    positions = []
+    for node in nodes:
+        step = _get_field(node, "step")
+        pos = computeNodePosition(step, len(nodes), spec.centerX, spec.centerY, spec.radius)
+        positions.append(pos)
+
+    # Return a representation of the rendered SVG element
+    return {
+        "type": "svg",
+        "viewBox": "0 0 500 500",
+        "width": "100%",
+        "nodes": nodes,
+        "positions": positions,
+    }
 
 
-def HomePage() -> ReactElement:
+def HomePage() -> Any:
     """
     Route-level React functional component rendered at path '/'.
     """
     _log("debug", "HomePage invoked")
-    # In a real React app this would import from tool_data and render JSX.
-    return ReactElement()
+
+    # In production this would import from tool_data module
+    # For now, return a representation
+    return {
+        "type": "div",
+        "className": "max-w-4xl mx-auto px-4 py-8",
+        "children": [
+            {"type": "section", "id": "overview"},
+            {"type": "section", "id": "quick-start-table"},
+            {"type": "section", "id": "closed-loop-diagram"},
+        ],
+    }
 
 
 # ---------------------------------------------------------------------------
-# REQUIRED EXPORTS
+# Required exports
 # ---------------------------------------------------------------------------
+
 __all__ = [
-    "QuickStartRow",
-    "DiagramNode",
-    "DiagramNodeList",
-    "QuickStartRowList",
-    "ClosedLoopDiagramProps",
-    "HomePageProps",
-    "CircularLayoutPoint",
-    "SVGViewBoxSpec",
-    "ToolSlug",
-    "ToolDef",
-    "ToolDefList",
-    "OptionalVideoUrl",
-    "InstructionStepList",
-    "InstructionStep",
-    "ReactElement",
-    "string",
-    "toQuickStartRow",
-    "toDiagramNode",
-    "toQuickStartRows",
-    "RangeError",
-    "toDiagramNodes",
-    "computeNodePosition",
-    "ClosedLoopDiagram",
-    "RenderError",
-    "HomePage",
+    'QuickStartRow',
+    'DiagramNode',
+    'DiagramNodeList',
+    'QuickStartRowList',
+    'ClosedLoopDiagramProps',
+    'HomePageProps',
+    'CircularLayoutPoint',
+    'SVGViewBoxSpec',
+    'ToolSlug',
+    'ToolDef',
+    'ToolDefList',
+    'OptionalVideoUrl',
+    'InstructionStepList',
+    'InstructionStep',
+    'ReactElement',
+    'string',
+    'toQuickStartRow',
+    'toDiagramNode',
+    'toQuickStartRows',
+    'RangeError',
+    'toDiagramNodes',
+    'computeNodePosition',
+    'ClosedLoopDiagram',
+    'RenderError',
+    'HomePage',
 ]

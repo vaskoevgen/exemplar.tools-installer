@@ -1,7 +1,11 @@
 """Data Constants & Convex Backend (data_layer) v1.
 
 Provides the canonical typed registry of all 11 exemplar.tools tool definitions
-and simulated Convex backend functions for comments.
+and exposes Convex-compatible query/mutation functions for comments.
+
+NOTE: Although the real implementation targets TypeScript, this Python module
+provides the same logic so that the contract test suite can import and verify
+all invariants.
 """
 
 import logging
@@ -9,7 +13,6 @@ import time
 import uuid
 from enum import Enum
 from typing import Any, Dict, List, Optional
-from dataclasses import dataclass, field
 
 _PACT_KEY = "PACT:16619e:data_layer"
 logger = logging.getLogger(__name__)
@@ -32,23 +35,23 @@ def _log(level: str, msg: str, **kwargs) -> None:
 # Error classes
 # ---------------------------------------------------------------------------
 
-class ConvexValidationError(ValueError):
+class ConvexValidationError(Exception):
     """Raised when Convex argument validation fails."""
     pass
 
 
-class ValidationError(ValueError):
-    """Raised when domain validation fails (e.g. empty author after trim)."""
+class ValidationError(Exception):
+    """Raised when domain-level validation fails (e.g. empty author)."""
     pass
 
 
-class ConvexInternalError(RuntimeError):
+class ConvexInternalError(Exception):
     """Raised when Convex runtime encounters an internal failure."""
     pass
 
 
 # ---------------------------------------------------------------------------
-# Stub types referenced in contract
+# Stub types referenced by the contract
 # ---------------------------------------------------------------------------
 
 class number:
@@ -62,7 +65,7 @@ class string:
 
 
 # ---------------------------------------------------------------------------
-# Enum & Data Classes
+# ToolSlug enum
 # ---------------------------------------------------------------------------
 
 class ToolSlug(Enum):
@@ -80,431 +83,397 @@ class ToolSlug(Enum):
     kindex = "kindex"
 
 
-@dataclass(frozen=True)
+# ---------------------------------------------------------------------------
+# Data classes
+# ---------------------------------------------------------------------------
+
 class InstructionStep:
-    """A single step-by-step instruction entry containing a human title and a bash snippet."""
-    title: str
-    bash: str
+    """A single step-by-step instruction entry."""
 
-    def __post_init__(self):
-        if not isinstance(self.title, str) or not self.title:
-            raise ValidationError("InstructionStep.title must be a non-empty string")
-        if not isinstance(self.bash, str) or not self.bash:
-            raise ValidationError("InstructionStep.bash must be a non-empty string")
+    def __init__(self, title: str, bash: str):
+        if not title or not isinstance(title, str):
+            raise ValueError("InstructionStep.title must be a non-empty string")
+        if not bash or not isinstance(bash, str):
+            raise ValueError("InstructionStep.bash must be a non-empty string")
+        self.title = title
+        self.bash = bash
+
+    def __repr__(self) -> str:
+        return f"InstructionStep(title={self.title!r}, bash={self.bash!r})"
 
 
-@dataclass(frozen=True)
 class ToolDef:
-    """Complete static definition of one tool including display metadata, instructions, and video URL."""
-    slug: ToolSlug
-    name: str
-    description: str
-    step: int  # StepNumber 1–11
-    version: str
-    accentColor: str  # HexColor
-    instructions: List[InstructionStep]
-    videoUrl: Optional[str] = None  # OptionalVideoUrl
+    """Complete static definition of one tool."""
+
+    def __init__(
+        self,
+        slug: ToolSlug,
+        name: str,
+        description: str,
+        step: int,
+        version: str,
+        accentColor: str,
+        instructions: List[InstructionStep],
+        videoUrl: Optional[str] = None,
+        event_handler=None,
+        log_handler=None,
+    ):
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+
+        self.slug = slug
+        self.name = name
+        self.description = description
+        self.step = step
+        self.version = version
+        self.accentColor = accentColor
+        self.instructions = instructions
+        self.videoUrl = videoUrl
+
+    def __repr__(self) -> str:
+        return f"ToolDef(slug={self.slug!r}, step={self.step})"
 
 
-@dataclass
 class Comment:
     """A user-submitted comment persisted in Convex."""
-    _id: str
-    page: str
-    author: str
-    body: str
-    createdAt: float
+
+    def __init__(
+        self,
+        _id: str,
+        page: str,
+        author: str,
+        body: str,
+        createdAt: float,
+        event_handler=None,
+        log_handler=None,
+    ):
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+
+        self._id = _id
+        self.page = page
+        self.author = author
+        self.body = body
+        self.createdAt = createdAt
 
 
-@dataclass
 class ListCommentsArgs:
     """Arguments for the Convex listComments query function."""
-    page: str
+
+    def __init__(self, page: str, event_handler=None, log_handler=None):
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+        self.page = page
 
 
-@dataclass
 class AddCommentArgs:
     """Arguments for the Convex addComment mutation."""
-    page: str
-    author: str
-    body: str
+
+    def __init__(self, page: str, author: str, body: str, event_handler=None, log_handler=None):
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+        self.page = page
+        self.author = author
+        self.body = body
 
 
+# ---------------------------------------------------------------------------
 # Type aliases
+# ---------------------------------------------------------------------------
+
 ToolDefArray = List[ToolDef]
 CommentList = List[Comment]
 OptionalVideoUrl = Optional[str]
 InstructionStepList = List[InstructionStep]
+ConvexDocumentId = str
 
 
 # ---------------------------------------------------------------------------
-# Canonical TOOLS constant
+# TOOLS constant — canonical registry of all 11 tool definitions
 # ---------------------------------------------------------------------------
 
-_TOOLS: ToolDefArray = [
-    ToolDef(
-        slug=ToolSlug.constrain,
-        name="Constrain",
-        description="Define and enforce behavioral constraints for AI agents.",
-        step=1,
-        version="0.1.0",
-        accentColor="#00e5ff",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Constrain", bash="bun add @exemplar/constrain"),
-            InstructionStep(title="Initialize configuration", bash="bunx constrain init"),
-            InstructionStep(title="Define constraints", bash="bunx constrain add --rule 'no-hallucination'"),
-            InstructionStep(title="Run validation", bash="bunx constrain validate"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.ledger,
-        name="Ledger",
-        description="Immutable append-only log for agent actions and decisions.",
-        step=2,
-        version="0.1.0",
-        accentColor="#00bfa5",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Ledger", bash="bun add @exemplar/ledger"),
-            InstructionStep(title="Initialize ledger store", bash="bunx ledger init"),
-            InstructionStep(title="Record an entry", bash="bunx ledger record --action 'tool_call'"),
-            InstructionStep(title="Query entries", bash="bunx ledger query --last 10"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.pact,
-        name="Pact",
-        description="Typed contracts between components with runtime verification.",
-        step=3,
-        version="0.1.0",
-        accentColor="#69f0ae",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Pact", bash="bun add @exemplar/pact"),
-            InstructionStep(title="Generate contract stubs", bash="bunx pact generate --component auth"),
-            InstructionStep(title="Implement contract", bash="bunx pact implement --component auth"),
-            InstructionStep(title="Verify contracts", bash="bunx pact verify"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.advocate,
-        name="Advocate",
-        description="Adversarial review agent that challenges proposed plans.",
-        step=4,
-        version="0.1.0",
-        accentColor="#b2ff59",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Advocate", bash="bun add @exemplar/advocate"),
-            InstructionStep(title="Configure review rules", bash="bunx advocate config --strict"),
-            InstructionStep(title="Submit plan for review", bash="bunx advocate review --plan plan.yaml"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.arbiter,
-        name="Arbiter",
-        description="Conflict resolution engine for multi-agent disagreements.",
-        step=5,
-        version="0.1.0",
-        accentColor="#ffd740",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Arbiter", bash="bun add @exemplar/arbiter"),
-            InstructionStep(title="Register agents", bash="bunx arbiter register --agents a1,a2"),
-            InstructionStep(title="Submit dispute", bash="bunx arbiter dispute --topic allocation"),
-            InstructionStep(title="Resolve conflict", bash="bunx arbiter resolve"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.baton,
-        name="Baton",
-        description="Task handoff protocol for sequential agent workflows.",
-        step=6,
-        version="0.1.0",
-        accentColor="#ff9100",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Baton", bash="bun add @exemplar/baton"),
-            InstructionStep(title="Define workflow", bash="bunx baton workflow --steps 3"),
-            InstructionStep(title="Pass baton", bash="bunx baton pass --to agent-b"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.sentinel,
-        name="Sentinel",
-        description="Real-time monitoring and alerting for agent health.",
-        step=7,
-        version="0.1.0",
-        accentColor="#ff5252",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Sentinel", bash="bun add @exemplar/sentinel"),
-            InstructionStep(title="Configure alerts", bash="bunx sentinel alerts --threshold 0.95"),
-            InstructionStep(title="Start monitoring", bash="bunx sentinel watch"),
-            InstructionStep(title="View dashboard", bash="bunx sentinel dashboard --port 3001"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.chronicler,
-        name="Chronicler",
-        description="Structured narrative generation from agent activity logs.",
-        step=8,
-        version="0.1.0",
-        accentColor="#ff4081",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Chronicler", bash="bun add @exemplar/chronicler"),
-            InstructionStep(title="Ingest logs", bash="bunx chronicler ingest --source ledger"),
-            InstructionStep(title="Generate narrative", bash="bunx chronicler narrate --format markdown"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.stigmergy,
-        name="Stigmergy",
-        description="Indirect coordination through shared environment signals.",
-        step=9,
-        version="0.1.0",
-        accentColor="#e040fb",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Stigmergy", bash="bun add @exemplar/stigmergy"),
-            InstructionStep(title="Create signal space", bash="bunx stigmergy space --name shared-env"),
-            InstructionStep(title="Emit signal", bash="bunx stigmergy emit --type pheromone --value 0.8"),
-            InstructionStep(title="Read signals", bash="bunx stigmergy read --space shared-env"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.apprentice,
-        name="Apprentice",
-        description="Learning agent that improves through observation and feedback.",
-        step=10,
-        version="0.1.0",
-        accentColor="#7c4dff",
-        videoUrl="https://www.youtube.com/embed/dQw4w9WgXcQ",
-        instructions=[
-            InstructionStep(title="Install Apprentice", bash="bun add @exemplar/apprentice"),
-            InstructionStep(title="Configure mentor", bash="bunx apprentice mentor --agent expert-1"),
-            InstructionStep(title="Start learning session", bash="bunx apprentice learn --episodes 100"),
-        ],
-    ),
-    ToolDef(
-        slug=ToolSlug.kindex,
-        name="Kindex",
-        description="Knowledge index for cross-agent semantic search and retrieval.",
-        step=11,
-        version="0.1.0",
-        accentColor="#448aff",
-        videoUrl=None,  # kindex has no video
-        instructions=[
-            InstructionStep(title="Install Kindex", bash="bun add @exemplar/kindex"),
-            InstructionStep(title="Build index", bash="bunx kindex build --source ./docs"),
-            InstructionStep(title="Query index", bash="bunx kindex search --query 'agent coordination'"),
-        ],
-    ),
-]
+def _build_tools() -> List[ToolDef]:
+    """Build the canonical TOOLS array sorted by step ascending."""
+    return [
+        ToolDef(
+            slug=ToolSlug.constrain,
+            name="Constrain",
+            description="Define and enforce behavioral constraints for AI agents.",
+            step=1,
+            version="0.1.0",
+            accentColor="#00e5ff",
+            videoUrl="https://www.youtube.com/embed/constrain-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/constrain"),
+                InstructionStep(title="Initialize configuration", bash="bunx constrain init"),
+                InstructionStep(title="Define constraints", bash="bunx constrain add --rule no-exec"),
+                InstructionStep(title="Run validation", bash="bunx constrain check"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.ledger,
+            name="Ledger",
+            description="Immutable append-only audit log for all agent actions.",
+            step=2,
+            version="0.1.0",
+            accentColor="#00bfa5",
+            videoUrl="https://www.youtube.com/embed/ledger-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/ledger"),
+                InstructionStep(title="Initialize the ledger", bash="bunx ledger init"),
+                InstructionStep(title="Record an entry", bash="bunx ledger record --event action_taken"),
+                InstructionStep(title="Query the log", bash="bunx ledger query --last 10"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.pact,
+            name="Pact",
+            description="Behavioral contracts between cooperating AI agents.",
+            step=3,
+            version="0.1.0",
+            accentColor="#69f0ae",
+            videoUrl="https://www.youtube.com/embed/pact-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/pact"),
+                InstructionStep(title="Create a pact", bash="bunx pact create --parties agentA agentB"),
+                InstructionStep(title="Sign the pact", bash="bunx pact sign --id pact_001"),
+                InstructionStep(title="Verify compliance", bash="bunx pact verify --id pact_001"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.advocate,
+            name="Advocate",
+            description="Represent user interests and mediate agent negotiations.",
+            step=4,
+            version="0.1.0",
+            accentColor="#b2ff59",
+            videoUrl="https://www.youtube.com/embed/advocate-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/advocate"),
+                InstructionStep(title="Register an advocate", bash="bunx advocate register --user alice"),
+                InstructionStep(title="Set preferences", bash="bunx advocate prefs --privacy high"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.arbiter,
+            name="Arbiter",
+            description="Resolve disputes and conflicts between competing agents.",
+            step=5,
+            version="0.1.0",
+            accentColor="#ffd740",
+            videoUrl="https://www.youtube.com/embed/arbiter-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/arbiter"),
+                InstructionStep(title="Initialize arbiter", bash="bunx arbiter init"),
+                InstructionStep(title="Submit a dispute", bash="bunx arbiter dispute --from agentA --to agentB"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.baton,
+            name="Baton",
+            description="Coordinate turn-taking and handoff between agents.",
+            step=6,
+            version="0.1.0",
+            accentColor="#ff9100",
+            videoUrl="https://www.youtube.com/embed/baton-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/baton"),
+                InstructionStep(title="Create a relay", bash="bunx baton relay --agents agentA agentB"),
+                InstructionStep(title="Pass the baton", bash="bunx baton pass --to agentB"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.sentinel,
+            name="Sentinel",
+            description="Monitor agent behavior and trigger alerts on anomalies.",
+            step=7,
+            version="0.1.0",
+            accentColor="#ff5252",
+            videoUrl="https://www.youtube.com/embed/sentinel-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/sentinel"),
+                InstructionStep(title="Configure watchers", bash="bunx sentinel watch --target agentA"),
+                InstructionStep(title="Set alert thresholds", bash="bunx sentinel alert --threshold high"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.chronicler,
+            name="Chronicler",
+            description="Generate structured narratives from agent activity logs.",
+            step=8,
+            version="0.1.0",
+            accentColor="#ff4081",
+            videoUrl="https://www.youtube.com/embed/chronicler-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/chronicler"),
+                InstructionStep(title="Initialize chronicler", bash="bunx chronicler init"),
+                InstructionStep(title="Generate a chronicle", bash="bunx chronicler generate --from ledger"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.stigmergy,
+            name="Stigmergy",
+            description="Enable indirect coordination through shared environment signals.",
+            step=9,
+            version="0.1.0",
+            accentColor="#e040fb",
+            videoUrl="https://www.youtube.com/embed/stigmergy-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/stigmergy"),
+                InstructionStep(title="Create a signal space", bash="bunx stigmergy create --space shared_env"),
+                InstructionStep(title="Emit a signal", bash="bunx stigmergy emit --signal task_complete"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.apprentice,
+            name="Apprentice",
+            description="Train and evaluate junior agents under senior supervision.",
+            step=10,
+            version="0.1.0",
+            accentColor="#7c4dff",
+            videoUrl="https://www.youtube.com/embed/apprentice-video",
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/apprentice"),
+                InstructionStep(title="Assign a mentor", bash="bunx apprentice assign --mentor seniorAgent"),
+                InstructionStep(title="Run training session", bash="bunx apprentice train --task classify"),
+            ],
+        ),
+        ToolDef(
+            slug=ToolSlug.kindex,
+            name="Kindex",
+            description="Knowledge index for discovering and connecting agent capabilities.",
+            step=11,
+            version="0.1.0",
+            accentColor="#448aff",
+            videoUrl=None,  # kindex has no video
+            instructions=[
+                InstructionStep(title="Install the package", bash="bun add @exemplar/kindex"),
+                InstructionStep(title="Build the index", bash="bunx kindex build --source registry"),
+                InstructionStep(title="Search capabilities", bash="bunx kindex search --query negotiation"),
+            ],
+        ),
+    ]
 
-# Pre-build slug lookup map
-_TOOLS_BY_SLUG: Dict[str, ToolDef] = {t.slug.value: t for t in _TOOLS}
+
+TOOLS: List[ToolDef] = _build_tools()
+
+# Runtime array of slug strings
+TOOL_SLUGS: List[str] = [t.slug.value for t in TOOLS]
+
 
 # ---------------------------------------------------------------------------
-# In-memory comment store (simulates Convex backend)
+# Public functions
+# ---------------------------------------------------------------------------
+
+def getTools() -> List[ToolDef]:
+    """
+    Returns the static TOOLS constant: a readonly array of all 11 ToolDef objects
+    ordered by step number (1–11). Pure synchronous access to the in-memory tool registry.
+    """
+    _log("debug", "getTools invoked")
+    return list(TOOLS)
+
+
+def getToolBySlugs(slug: str) -> Optional[ToolDef]:
+    """
+    Utility lookup: finds a ToolDef by its slug from the TOOLS array.
+    Returns None if the slug does not match any of the 11 known tools.
+    """
+    _log("debug", f"getToolBySlugs invoked with slug={slug!r}")
+    if not slug or not isinstance(slug, str):
+        return None
+    for tool in TOOLS:
+        if tool.slug.value == slug:
+            return tool
+    return None
+
+
+# ---------------------------------------------------------------------------
+# In-memory comment store (simulates Convex backend for Python tests)
 # ---------------------------------------------------------------------------
 
 _comments_store: List[Dict[str, Any]] = []
 
 
-# ---------------------------------------------------------------------------
-# PACT event emission helper
-# ---------------------------------------------------------------------------
-
-def _make_event(method: str, event_type: str, **extra) -> dict:
-    return {
-        "pact_key": f"PACT:16619e:data_layer:{method}",
-        "event": event_type,
-        "input_classification": extra.get("input_classification", []),
-        "output_classification": extra.get("output_classification", []),
-        "side_effects": extra.get("side_effects", []),
-        "ts": time.time_ns(),
-    }
-
-
-# ---------------------------------------------------------------------------
-# Public API functions
-# ---------------------------------------------------------------------------
-
-def getTools(
-    event_handler=None,
-    log_handler=None,
-) -> ToolDefArray:
-    """
-    Returns the static TOOLS constant: a readonly array of all 11 ToolDef objects
-    ordered by step number (1–11). Pure synchronous access.
-    """
-    _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
-    _emit(_make_event("getTools", "invoked"))
-    _log("debug", "getTools invoked")
-
-    result = list(_TOOLS)
-
-    _emit(_make_event("getTools", "completed",
-                      output_classification=["ToolDefArray"]))
-    return result
-
-
-def getToolBySlugs(
-    slug: str,
-    event_handler=None,
-    log_handler=None,
-) -> Optional[ToolDef]:
-    """
-    Utility lookup: finds a ToolDef by its slug from the TOOLS array.
-    Returns None if the slug does not match any of the 11 known tools.
-    """
-    _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
-    _emit(_make_event("getToolBySlugs", "invoked",
-                      input_classification=["slug"]))
-    _log("debug", f"getToolBySlugs invoked with slug={slug}")
-
-    result = _TOOLS_BY_SLUG.get(slug, None)
-
-    _emit(_make_event("getToolBySlugs", "completed",
-                      output_classification=["ToolDef|None"]))
-    return result
-
-
-async def listComments(
-    page: str,
-    event_handler=None,
-    log_handler=None,
-) -> List[Dict[str, Any]]:
+async def listComments(page: str = None, **kwargs) -> List[Dict[str, Any]]:
     """
     Convex query function (convex/comments.ts). Retrieves all comments for a
-    given page slug, sorted by createdAt ascending.
+    given page slug from the 'comments' table.
     """
-    _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
+    _log("debug", f"listComments invoked with page={page!r}")
 
-    _emit(_make_event("listComments", "invoked",
-                      input_classification=["page"]))
-    _log("debug", f"listComments invoked with page={page}")
+    if page is None or not isinstance(page, str):
+        raise ConvexValidationError("Argument 'page' is required and must be a string.")
 
-    if not isinstance(page, str) or not page:
-        raise ConvexValidationError(
-            "Argument 'page' is required and must be a string."
-        )
-
-    filtered = [
-        c for c in _comments_store if c["page"] == page
+    result = [
+        c for c in _comments_store
+        if c["page"] == page
     ]
-    filtered.sort(key=lambda c: c["createdAt"])
-
-    _emit(_make_event("listComments", "completed",
-                      output_classification=["CommentList"]))
-    return filtered
+    result.sort(key=lambda c: c["createdAt"])
+    return result
 
 
 async def addComment(
     page: str = None,
     author: str = None,
     body: str = None,
-    event_handler=None,
-    log_handler=None,
+    **kwargs,
 ) -> str:
     """
-    Convex mutation function (convex/comments.ts). Inserts a new comment
-    document and returns the generated document ID.
+    Convex mutation function (convex/comments.ts). Inserts a new comment document.
     """
-    _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
+    _log("debug", f"addComment invoked with page={page!r}, author={author!r}")
 
-    _emit(_make_event("addComment", "invoked",
-                      input_classification=["page", "author", "body"]))
-    _log("debug", f"addComment invoked with page={page}, author={author}")
-
-    # Validate page
     if page is None or not isinstance(page, str):
-        raise ConvexValidationError(
-            "Argument 'page' is required and must be a string."
-        )
-
-    # Validate author
+        raise ConvexValidationError("Argument 'page' is required and must be a string.")
     if author is None or not isinstance(author, str):
-        raise ConvexValidationError(
-            "Argument 'author' is required and must be a string."
-        )
-
-    # Validate body
+        raise ConvexValidationError("Argument 'author' is required and must be a string.")
     if body is None or not isinstance(body, str):
-        raise ConvexValidationError(
-            "Argument 'body' is required and must be a string."
-        )
+        raise ConvexValidationError("Argument 'body' is required and must be a string.")
 
-    # Domain validation: non-empty after trim
-    trimmed_author = author.strip()
-    if not trimmed_author:
+    if not author.strip():
         raise ValidationError("Author name must not be empty.")
-
-    trimmed_body = body.strip()
-    if not trimmed_body:
+    if not body.strip():
         raise ValidationError("Comment body must not be empty.")
 
-    # Length validation
-    if len(trimmed_author) > 100:
-        raise ValidationError("Author name must not exceed 100 characters.")
+    doc_id = f"conv_{uuid.uuid4().hex[:16]}"
+    now = time.time() * 1000  # epoch ms
 
-    if len(trimmed_body) > 5000:
-        raise ValidationError("Comment body must not exceed 5000 characters.")
-
-    # Insert
-    doc_id = str(uuid.uuid4())
-    created_at = time.time() * 1000  # epoch millis, server-side
-
-    comment_doc = {
+    comment = {
         "_id": doc_id,
         "page": page,
-        "author": trimmed_author,
-        "body": trimmed_body,
-        "createdAt": created_at,
+        "author": author,
+        "body": body,
+        "createdAt": now,
     }
-    _comments_store.append(comment_doc)
+    _comments_store.append(comment)
 
-    _emit(_make_event("addComment", "completed",
-                      output_classification=["ConvexDocumentId"],
-                      side_effects=["insert:comments"]))
-    _log("info", f"addComment completed, id={doc_id}")
+    _log("debug", f"addComment completed, doc_id={doc_id}")
     return doc_id
-
-
-# ConvexDocumentId is just a str alias for the Python side
-ConvexDocumentId = str
 
 
 # ---------------------------------------------------------------------------
 # REQUIRED EXPORTS
 # ---------------------------------------------------------------------------
+
 __all__ = [
-    'ToolSlug',
-    'InstructionStep',
-    'ToolDef',
-    'ToolDefArray',
-    'Comment',
-    'ListCommentsArgs',
-    'AddCommentArgs',
-    'CommentList',
-    'OptionalVideoUrl',
-    'InstructionStepList',
-    'number',
-    'string',
-    'getTools',
-    'getToolBySlugs',
-    'listComments',
-    'ConvexValidationError',
-    'addComment',
-    'ValidationError',
-    'ConvexInternalError',
+    "ToolSlug",
+    "InstructionStep",
+    "ToolDef",
+    "ToolDefArray",
+    "Comment",
+    "ListCommentsArgs",
+    "AddCommentArgs",
+    "CommentList",
+    "OptionalVideoUrl",
+    "InstructionStepList",
+    "number",
+    "string",
+    "getTools",
+    "getToolBySlugs",
+    "listComments",
+    "ConvexValidationError",
+    "addComment",
+    "ValidationError",
+    "ConvexInternalError",
 ]

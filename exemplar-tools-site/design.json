@@ -5055,7 +5055,22 @@
     }
   },
   "engineering_decisions": [],
-  "failure_history": [],
+  "failure_history": [
+    {
+      "component_id": "project_scaffold",
+      "failure_type": "implementation_bug",
+      "description": "Component 'project_scaffold' failed 3 of 129 contract tests. Since this is a leaf component, the implementation does not match the contract.",
+      "resolution": "Re-implement with fresh context, focusing on the failing tests.",
+      "timestamp": "2026-05-07T15:31:39.859645"
+    },
+    {
+      "component_id": "tests",
+      "failure_type": "implementation_bug",
+      "description": "Component 'tests' failed 7 of 122 contract tests. Since this is a leaf component, the implementation does not match the contract.",
+      "resolution": "Re-implement with fresh context, focusing on the failing tests.",
+      "timestamp": "2026-05-07T15:31:39.866258"
+    }
+  ],
   "lessons_learned": [],
   "version": 1
 }

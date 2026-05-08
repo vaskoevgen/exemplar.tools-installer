@@ -1,42 +1,42 @@
 {
   "id": "17d52688cce3",
   "project_dir": "/Users/yevhenvasko/source/exemplar.tools-installer/exemplar-tools-site",
-  "status": "budget_exceeded",
+  "status": "active",
   "phase": "implement",
   "component_tasks": [
     {
       "component_id": "app_shell",
-      "status": "contracting",
+      "status": "completed",
       "attempts": 0,
       "last_error": ""
     },
     {
       "component_id": "data_layer",
-      "status": "pending",
+      "status": "completed",
       "attempts": 0,
       "last_error": ""
     },
     {
       "component_id": "home_page",
-      "status": "pending",
+      "status": "completed",
       "attempts": 0,
       "last_error": ""
     },
     {
       "component_id": "project_scaffold",
-      "status": "contracting",
+      "status": "pending",
       "attempts": 0,
       "last_error": ""
     },
     {
       "component_id": "tests",
-      "status": "contracting",
+      "status": "pending",
       "attempts": 0,
       "last_error": ""
     },
     {
       "component_id": "tool_page",
-      "status": "contracting",
+      "status": "completed",
       "attempts": 0,
       "last_error": ""
     },
@@ -128,28 +128,31 @@
     "audited_answers": [],
     "processing_register": "systematic-implementation"
   },
-  "total_cost_usd": 10.021020000000002,
-  "total_tokens": 557732,
-  "last_check_in": "2026-05-06T13:49:11.619186",
+  "total_cost_usd": 10.107150000000003,
+  "total_tokens": 539926,
+  "last_check_in": "2026-05-07T16:19:40.799104",
   "created_at": "2026-05-06T11:50:30.767767",
-  "completed_at": "2026-05-06T13:49:11.618517",
-  "pause_reason": "Budget cap reached",
-  "phase_cycles": 0,
+  "completed_at": "2026-05-07T16:19:40.798056",
+  "pause_reason": "",
+  "phase_cycles": 1,
   "health_snapshot": {
     "planning_tokens": 340752,
-    "generation_tokens": 0,
+    "generation_tokens": 244786,
     "planning_calls": 2,
-    "generation_calls": 0,
+    "generation_calls": 1,
     "plan_revisions": 0,
-    "implementation_attempts": 0,
-    "implementation_failures": 0,
-    "test_failures": 0,
-    "test_passes": 0,
+    "implementation_attempts": 6,
+    "implementation_failures": 2,
+    "test_failures": 10,
+    "test_passes": 639,
     "contracts_produced": 7,
     "tests_produced": 7,
-    "implementations_produced": 0,
-    "component_failures": {},
-    "cascade_events": 0,
+    "implementations_produced": 4,
+    "component_failures": {
+      "project_scaffold": 1,
+      "tests": 1
+    },
+    "cascade_events": 1,
     "register_drift_events": 0,
     "register_checks": 0,
     "phase_tokens": {
@@ -162,9 +165,14 @@
         "input_tokens": 125564,
         "output_tokens": 208860,
         "calls": 1
+      },
+      "implement": {
+        "input_tokens": 77624,
+        "output_tokens": 167162,
+        "calls": 1
       }
     },
-    "total_spend": 5.8493200000000005,
+    "total_spend": 4.567170000000001,
     "budget_cap": 10.0,
     "_overall_status": "healthy",
     "_critical_findings": []

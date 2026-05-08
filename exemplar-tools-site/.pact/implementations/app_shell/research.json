@@ -1,117 +1,109 @@
 {
-  "task_summary": "Implement the App Shell, Routing & Layout component for a TypeScript/React 18 application using Vite + Bun, React Router v6, Convex real-time backend, and Tailwind CSS v3. The component encompasses Convex client initialization, route configuration, a sidebar-based layout with navigation, and utility functions for slug validation and path generation.",
+  "task_summary": "Implement the App Shell, Routing & Layout component for a Vite + React 18 + Convex application in TypeScript. This includes: Convex client initialization, React Router v6 route configuration, a sidebar-based layout with navigation, slug validation/path generation utilities, and fade-in animation keyframes. The component must integrate with a data layer dependency and follow strict TypeScript/Tailwind/Bun conventions.",
   "findings": [
     {
-      "topic": "Convex Client Initialization in React 18",
-      "finding": "Convex provides a `ConvexReactClient` that must be instantiated once at the top level and passed to a `ConvexProvider` wrapping the app. The client constructor takes a single `url` string (the deployment URL). In React 18 with StrictMode, the provider is safe against double-mounting. The canonical pattern is: `const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL)` declared outside the component tree, then `<ConvexProvider client={convex}>`. The `createConvexClient()` function should follow this pattern, reading the URL from environment and returning the singleton client.",
-      "source": "Convex documentation (docs.convex.dev/client/react)",
-      "relevance": "Directly implements createConvexClient(). Must ensure the client is created once, not inside a component render cycle.",
-      "confidence": 0.95
+      "topic": "Convex Client Initialization (React 18)",
+      "finding": "Convex provides `ConvexReactClient` from 'convex/react' which should be instantiated once at the module level (outside React tree), then passed to `<ConvexProvider client={client}>` wrapping the app. The URL comes from `VITE_CONVEX_URL` env var. The client must NOT be created inside a component to avoid re-instantiation on re-renders. Type the return as `ConvexReactClient`.",
+      "source": "Convex docs: https://docs.convex.dev/client/react",
+      "relevance": "Directly implements createConvexClient(). Must use ConvexProvider, not ConvexProviderWithClerk or similar auth wrappers unless auth is specified.",
+      "confidence": 0.97
     },
     {
-      "topic": "React Router v6 Layout Routes Pattern",
-      "finding": "React Router v6 supports layout routes via `<Outlet />`. The idiomatic pattern is a root route with a layout component that renders `<Outlet />` for child content. For this app shell: a `<Route element={<Layout />}>` wrapping child `<Route>` elements for each tool page. `createBrowserRouter` + `RouterProvider` is the recommended v6.4+ approach, but `BrowserRouter` + `Routes` composition remains valid and simpler for apps without data loaders. Given Convex handles data fetching, the simpler `BrowserRouter` approach avoids unnecessary complexity.",
-      "source": "React Router v6 documentation (reactrouter.com/en/main)",
-      "relevance": "Directly implements renderApp(), renderLayout(), and the RoutesObject type. Layout route with Outlet is the correct pattern for sidebar + content area.",
-      "confidence": 0.95
+      "topic": "React Router v6 Layout Pattern",
+      "finding": "Use `<Outlet />` inside a layout route component. Define routes with `createBrowserRouter` or nested `<Route>` elements where the layout route wraps child routes. The layout component renders persistent UI (sidebar, header) plus `<Outlet />` for page content. This is the canonical v6 pattern replacing v5's render props.",
+      "source": "React Router v6 docs: https://reactrouter.com/en/main/start/concepts#layout-routes",
+      "relevance": "Directly implements renderLayout() and the RoutesObject. The sidebar persists across route changes while Outlet swaps page content.",
+      "confidence": 0.98
     },
     {
       "topic": "Sidebar Navigation with React Router v6",
-      "finding": "Use `useNavigate()` or `<NavLink>` for sidebar navigation. `<NavLink>` provides automatic `active` class/style support via its `className` callback `({isActive}) => ...`, which is ideal for highlighting the current tool in the sidebar. The `onNavigate` callback in renderSidebar should use `useNavigate()` hook internally. `useLocation()` or `useParams()` can derive `currentSlug`. Prefer `<NavLink>` over manual active-state tracking to avoid synchronization bugs.",
+      "finding": "Use `useNavigate()` or `<NavLink>` for sidebar items. `<NavLink>` provides automatic `isActive` styling via className callback: `className={({isActive}) => ...}`. For programmatic navigation (onNavigate callback), `useNavigate()` returns a function. Use `useLocation()` or `useParams()` to derive currentSlug for active state highlighting.",
       "source": "React Router v6 API reference",
-      "relevance": "Implements renderSidebar() and navigation behavior. NavLink's isActive eliminates the need for manual currentSlug state tracking in many cases.",
-      "confidence": 0.9
-    },
-    {
-      "topic": "Slug Validation and Path Generation",
-      "finding": "For `isValidToolSlug()`, validate against the ToolSlug enum values using a Set or `Object.values()` check. For `toolPath()`, use a simple template: `/${slug}` or `/tools/${slug}`. Both should be pure functions with no side effects. Using a const assertion (`as const`) on the enum/union values and deriving the Set from it ensures compile-time and runtime alignment. Guard against prototype pollution by not using `in` operator on arbitrary objects for validation.",
-      "source": "TypeScript handbook, OWASP input validation guidelines",
-      "relevance": "Directly implements isValidToolSlug() and toolPath(). Runtime validation must stay in sync with the TypeScript ToolSlug type.",
-      "confidence": 0.92
-    },
-    {
-      "topic": "Convex Environment Variable Handling in Vite",
-      "finding": "Vite exposes env vars prefixed with `VITE_` via `import.meta.env`. The Convex deployment URL must be stored as `VITE_CONVEX_URL` in `.env.local`. Convex's `npx convex dev` (or `bunx convex dev`) writes this automatically. The ConvexUrl primitive type should validate the URL format. Failing to guard against a missing/undefined URL at startup leads to a cryptic WebSocket error; add an explicit runtime check with a clear error message.",
-      "source": "Vite documentation (vitejs.dev/guide/env-and-mode), Convex quickstart",
-      "relevance": "Critical for createConvexClient(). Missing env var is the #1 onboarding issue with Convex + Vite projects.",
+      "relevance": "Implements renderSidebar() with currentSlug tracking and onNavigate callback. NavLink is preferred for accessibility (renders <a> tags) but onNavigate prop suggests programmatic control.",
       "confidence": 0.95
     },
     {
-      "topic": "React 18 StrictMode Double-Render Implications",
-      "finding": "React 18 StrictMode double-invokes component functions, effects, and state initializers in development. Convex's hooks are designed to handle this. However, if createConvexClient() is called inside a component or a lazy initializer, it would create two clients. The client MUST be instantiated at module scope (outside any component). Similarly, any subscription setup in useEffect must have proper cleanup to avoid leaks on the second mount/unmount cycle.",
-      "source": "React 18 release notes, Convex React integration docs",
-      "relevance": "Directly affects createConvexClient() placement and any useEffect-based side effects in the layout.",
-      "confidence": 0.93
+      "topic": "ToolSlug Enum Pattern in TypeScript",
+      "finding": "Use a string literal union type or `as const` object for ToolSlug rather than a TypeScript `enum` to maintain tree-shakeability and better type inference. Validation function `isValidToolSlug` should use a type guard: `(value: string): value is ToolSlug`. Path generation `toolPath` should return a template literal like `/tools/${slug}`.",
+      "source": "TypeScript handbook + community best practices (Matt Pocock, Total TypeScript)",
+      "relevance": "Directly implements ToolSlug type, isValidToolSlug(), and toolPath(). Type guard pattern enables narrowing in consuming code.",
+      "confidence": 0.95
     },
     {
-      "topic": "Tailwind CSS Layout Patterns for App Shells",
-      "finding": "The standard Tailwind app shell pattern: a flex container (`flex h-screen`) with a fixed-width sidebar (`w-64 flex-shrink-0`) and a flexible content area (`flex-1 overflow-auto`). For responsive behavior, the sidebar can be hidden on small screens with `hidden md:flex`. The `overflow-auto` on the content area prevents the sidebar from scrolling with the page. Use `sticky top-0` if the sidebar needs to stay fixed during content scroll.",
-      "source": "Tailwind CSS documentation, Tailwind UI app shell examples",
-      "relevance": "Directly implements renderLayout() and renderSidebar() styling. Using standard utility patterns avoids custom CSS per project standards.",
-      "confidence": 0.94
+      "topic": "Vite Environment Variable Typing",
+      "finding": "Vite exposes env vars prefixed with `VITE_` via `import.meta.env`. For TypeScript, extend `ImportMetaEnv` in a `vite-env.d.ts` file to type `VITE_CONVEX_URL: string`. Without this, `import.meta.env.VITE_CONVEX_URL` is `string | undefined` and requires runtime assertion.",
+      "source": "Vite docs: https://vitejs.dev/guide/env-and-mode.html#intellisense-for-typescript",
+      "relevance": "Required for createConvexClient() to safely read the Convex deployment URL. Missing type declaration is a common pitfall causing TS errors.",
+      "confidence": 0.96
     },
     {
-      "topic": "FadeIn Animation with Tailwind",
-      "finding": "Tailwind v3 supports custom keyframes and animations via `tailwind.config.js` under `theme.extend.keyframes` and `theme.extend.animation`. The FadeInKeyframes type suggests defining a `fadeIn` keyframe (opacity 0 → 1, optionally translateY) and referencing it as `animate-fadeIn` in components. This keeps animation in Tailwind config rather than custom CSS, complying with the no-custom-CSS preference.",
-      "source": "Tailwind CSS v3 animation customization docs",
-      "relevance": "Implements FadeInKeyframes type and the animation configuration in tailwind.config.",
-      "confidence": 0.9
+      "topic": "Tailwind CSS Fade-In Animation",
+      "finding": "Define custom keyframes in `tailwind.config.ts` under `theme.extend.keyframes` and reference them in `theme.extend.animation`. Pattern: `keyframes: { fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } } }, animation: { 'fade-in': 'fadeIn 300ms ease-in-out' }`. Then use `animate-fade-in` class in JSX.",
+      "source": "Tailwind CSS docs: https://tailwindcss.com/docs/animation#customizing-your-theme",
+      "relevance": "Directly implements FadeInKeyframes type and the Tailwind animation config. Avoids custom CSS per project standards.",
+      "confidence": 0.97
     },
     {
-      "topic": "Google Fonts Integration in Vite/React",
-      "finding": "Google Fonts can be loaded via a `<link>` tag in `index.html` or via `@import` in CSS. For performance, use `<link rel='preconnect' href='https://fonts.googleapis.com'>` followed by the font stylesheet link with `display=swap`. The GoogleFontLink type likely models this. The TailwindFontConfig type extends Tailwind's `fontFamily` in config. Avoid FOIT (Flash of Invisible Text) by always specifying `display=swap` in the Google Fonts URL.",
-      "source": "Google Fonts API docs, web.dev font loading best practices",
-      "relevance": "Implements GoogleFontLink and TailwindFontConfig types. Font loading strategy affects LCP.",
-      "confidence": 0.88
-    },
-    {
-      "topic": "projectToolDefToSidebarItem Mapping Pattern",
-      "finding": "This is a standard data transformation function mapping a domain object (tool definition from the data layer) to a view model (SidebarItem). Should be a pure function. The SidebarItem struct likely contains `label`, `slug`, `icon`, and possibly `color` (given HexColorString type). Keep the mapping explicit rather than using spread to avoid leaking domain internals into the view layer. Type both input and output explicitly per project standards.",
-      "source": "React component architecture best practices, domain-driven design patterns",
-      "relevance": "Implements projectToolDefToSidebarItem(). Clean separation between data layer and presentation layer.",
-      "confidence": 0.88
-    },
-    {
-      "topic": "404/Catch-All Route Handling",
-      "finding": "React Router v6 supports a catch-all route via `<Route path='*' element={<NotFound />} />`. This should be the last route in the Routes block. For this app, invalid slugs should show a 404 or redirect to a default tool. The isValidToolSlug() function can be used in a route guard or redirect component. Common pitfall: forgetting the catch-all leads to a blank page on invalid URLs.",
-      "source": "React Router v6 documentation",
-      "relevance": "Edge case that must be handled in the routing configuration. Directly uses isValidToolSlug() for validation.",
+      "topic": "Google Fonts Integration in Vite",
+      "finding": "Add `<link>` tags in `index.html` for Google Fonts, then reference the font family in `tailwind.config.ts` under `theme.extend.fontFamily`. Alternatively use `@fontsource` packages for self-hosted fonts. The GoogleFontLink type suggests the index.html approach with preconnect to fonts.googleapis.com and fonts.gstatic.com.",
+      "source": "Google Fonts API docs + Vite static HTML conventions",
+      "relevance": "Implements GoogleFontLink and TailwindFontConfig types. Preconnect links improve font loading performance.",
       "confidence": 0.92
     },
     {
-      "topic": "Vite Dev Server Port Configuration",
-      "finding": "In `vite.config.ts`, set `server: { port: 4000 }` to comply with the project requirement. Additionally, set `strictPort: true` to fail rather than silently use the next available port if 4000 is occupied. This prevents confusion during development.",
-      "source": "Vite configuration reference (vitejs.dev/config/server-options)",
-      "relevance": "Required by project build standards. strictPort is a commonly missed hardening option.",
-      "confidence": 0.97
+      "topic": "Common Pitfalls: Convex + React Router",
+      "finding": "1) ConvexProvider must wrap RouterProvider/BrowserRouter, not vice versa, so Convex hooks work in all route components. 2) Do not use `React.lazy()` for the layout component itself—only for page-level components—to avoid layout flash. 3) Convex subscriptions auto-reconnect but initial load shows undefined; handle loading states. 4) StrictMode double-invokes effects; ensure ConvexReactClient is created outside the component tree.",
+      "source": "Convex community patterns, React 18 StrictMode docs",
+      "relevance": "Critical architectural ordering for renderApp(). Wrong provider nesting is the #1 integration bug.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "File Organization for App Shell",
+      "finding": "Recommended structure: `src/main.tsx` (entry, createConvexClient, renderApp), `src/App.tsx` (router setup), `src/components/Layout.tsx` (renderLayout with Outlet), `src/components/Sidebar.tsx` (renderSidebar), `src/lib/routes.ts` (ToolSlug, isValidToolSlug, toolPath, RoutesObject), `src/lib/convex.ts` (client creation). Keep each file under 300 lines per project standards.",
+      "source": "Vite + React community conventions",
+      "relevance": "Satisfies the 300-line file limit and separation of concerns. Each function maps cleanly to a file.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Accessibility in Sidebar Navigation",
+      "finding": "Sidebar should use `<nav>` landmark with `aria-label='Tool navigation'`. Active item should have `aria-current='page'`. Use semantic `<a>` or `<NavLink>` elements, not `<div onClick>`. Keyboard navigation (Tab, Enter) works automatically with anchor elements. Color contrast for active vs inactive items must meet WCAG 2.1 AA (4.5:1 ratio).",
+      "source": "WAI-ARIA Authoring Practices, WCAG 2.1",
+      "relevance": "Sidebar rendering must be accessible. HexColorString type suggests custom colors—must verify contrast ratios.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Performance: Code Splitting with React Router v6",
+      "finding": "Use `React.lazy()` + `<Suspense>` for route-level code splitting. In React Router v6, this is done by lazy-loading the component prop of each `<Route>`. Alternatively, use the `lazy` property on route objects with `createBrowserRouter`. This keeps the app shell bundle small while loading tool pages on demand.",
+      "source": "React Router v6 lazy loading docs",
+      "relevance": "Important for scalability as more tools are added. The ToolSlug enum implies multiple tool pages that benefit from code splitting.",
+      "confidence": 0.94
     }
   ],
-  "recommended_approach": "**Architecture:**\n\n1. **`createConvexClient()`**: Module-scope singleton. Instantiate `ConvexReactClient` with `import.meta.env.VITE_CONVEX_URL`, guarded by a runtime assertion. Cache and return the instance. Export the function for testability but call it once at module scope in `main.tsx`.\n\n2. **`renderApp()` (main.tsx)**: `<React.StrictMode> → <ConvexProvider client={convex}> → <BrowserRouter> → <Routes> → Layout route with children`. Mount via `createRoot(document.getElementById('root')!).render(renderApp())`.\n\n3. **`renderLayout()`**: A functional component rendering the app shell: `flex h-screen` container with `renderSidebar()` on the left and `<Outlet />` on the right in a `flex-1 overflow-auto` container. Derive `currentSlug` from `useParams()` or `useLocation()`.\n\n4. **`renderSidebar()`**: Accepts `SidebarProps` (items, currentSlug, onNavigate). Maps items to styled `<button>` or `<NavLink>` elements. Highlights active item by comparing slug to currentSlug. Container: `w-64 flex-shrink-0 bg-gray-900 text-white overflow-y-auto`.\n\n5. **`isValidToolSlug()` / `toolPath()`**: Pure utility functions. `isValidToolSlug` checks membership in a `Set` derived from ToolSlug enum values. `toolPath` returns `/${slug}` (or `/tool/${slug}` depending on route structure).\n\n6. **`projectToolDefToSidebarItem()`**: Pure mapping function extracting label, slug, icon, and color from the data layer's tool definition into a SidebarItem view model.\n\n7. **Route config**: Define routes for each ToolSlug value plus a catch-all `*` route redirecting to a default tool or showing a 404.\n\n8. **Tailwind config**: Extend with FadeIn keyframes, Google Font family in fontFamily, custom colors from HexColor types.\n\n9. **vite.config.ts**: Set `server.port: 4000`, `server.strictPort: true`, `build.outDir: 'dist'`.\n\n**File structure** (all under 300 lines):\n- `src/main.tsx` — createConvexClient, renderApp, mount\n- `src/components/Layout.tsx` — renderLayout\n- `src/components/Sidebar.tsx` — renderSidebar, projectToolDefToSidebarItem\n- `src/lib/routing.ts` — isValidToolSlug, toolPath, route definitions\n- `src/lib/types.ts` — ToolSlug, SidebarItem, SidebarProps, etc.\n- `tailwind.config.ts` — font, keyframes, color extensions\n- `vite.config.ts` — port, output config",
+  "recommended_approach": "**Architecture:**\n\n1. **`src/lib/convex.ts`** — `createConvexClient()` as a singleton factory reading `import.meta.env.VITE_CONVEX_URL`. Returns `ConvexReactClient`. Guard against missing env var with a runtime assertion.\n\n2. **`src/lib/routes.ts`** — Define `ToolSlug` as a `const` object with derived union type. Implement `isValidToolSlug()` as a type guard checking against the known slug set. Implement `toolPath()` returning `/tools/${slug}`. Export `RoutesObject` type and route configuration.\n\n3. **`src/main.tsx`** — `renderApp()`: Create the Convex client, wrap `<React.StrictMode><ConvexProvider><BrowserRouter><App /></BrowserRouter></ConvexProvider></React.StrictMode>`, call `createRoot().render()`.\n\n4. **`src/components/Layout.tsx`** — `renderLayout()`: Flex container with `<Sidebar>` on the left and `<Outlet />` on the right. Apply `animate-fade-in` to the outlet wrapper for page transitions.\n\n5. **`src/components/Sidebar.tsx`** — `renderSidebar()`: `<nav>` element with mapped `SidebarItem[]`. Use `NavLink` for each item, derive active state from React Router. `projectToolDefToSidebarItem()` maps data layer tool definitions to `SidebarItem` shape.\n\n6. **`tailwind.config.ts`** — Extend with `fadeIn` keyframes, custom font family, and any HexColor tokens.\n\n7. **`index.html`** — Google Font `<link>` tags with preconnect.\n\n**Key decisions:**\n- ConvexProvider wraps BrowserRouter (outer position) so all routed components access Convex.\n- Derive currentSlug from `useParams()` rather than prop-drilling, reducing state sync bugs.\n- Singleton pattern for Convex client to support both app and test contexts.\n- Type guard `isValidToolSlug` enables safe slug validation at route boundaries (e.g., a catch-all route param).",
   "alternatives_considered": [
-    "createBrowserRouter + RouterProvider (v6.4+ data router) vs BrowserRouter + Routes: Data router adds loader/action support, but Convex hooks handle data fetching, making this unnecessary complexity. Recommend BrowserRouter + Routes for simplicity.",
-    "Module-scope Convex client singleton vs factory function: Factory allows testing/mocking but risks multiple instantiation. Recommend module-scope singleton with the factory function returning the cached instance.",
-    "NavLink-based sidebar vs manual useLocation tracking: NavLink provides built-in active state. However, renderSidebar receives currentSlug as a prop, suggesting the parent controls active state. Support both: derive from useParams in layout, pass down as prop.",
-    "CSS-in-JS animations vs Tailwind config keyframes: Project mandates Tailwind-only styling. Use tailwind.config.js keyframes extension.",
-    "Lazy loading routes with React.lazy vs eager imports: For a tool-based app with a sidebar, lazy loading each tool page improves initial bundle size. However, if the tool count is small, eager loading is simpler. Recommend lazy loading with Suspense if >5 tools."
+    "createBrowserRouter (data router) vs <BrowserRouter> (JSX router): Data router supports v6.4+ features (loaders, actions, deferred data) but adds complexity. Since Convex handles data fetching reactively via hooks, the simpler <BrowserRouter> + <Routes> JSX approach is sufficient and more idiomatic with Convex. Recommend <BrowserRouter> unless loader-based data fetching is needed.",
+    "Module-level Convex client vs context-based factory: Module-level singleton is simpler and recommended by Convex docs. A factory function (createConvexClient) allows testing/mocking. Recommend: factory function that caches the instance (singleton pattern) so tests can reset it.",
+    "String union vs TypeScript enum for ToolSlug: String union is more idiomatic modern TS, tree-shakeable, and works better with type guards. However, the spec says 'enum'. Recommend: const object with `as const` + derived union type, which gives enum-like namespacing while remaining a string union at the type level.",
+    "Sidebar state management: Could use React Router's location as single source of truth (derived state) vs maintaining separate currentSlug state. Recommend deriving from useLocation/useParams to avoid state synchronization bugs."
   ],
   "risks": [
-    "Missing VITE_CONVEX_URL env var causes opaque WebSocket connection failure — must add explicit validation with actionable error message in createConvexClient().",
-    "React 18 StrictMode double-mounting could instantiate multiple Convex clients if createConvexClient() is called inside a component — must instantiate at module scope.",
-    "ToolSlug enum drift: if new tools are added to the data layer but not reflected in ToolSlug, isValidToolSlug() silently rejects valid tools. Must derive validation set from a single source of truth.",
-    "Sidebar scroll behavior: if the tool list exceeds viewport height, the sidebar must scroll independently. Missing overflow-y-auto on the sidebar nav container is a common oversight.",
-    "Port 4000 conflict: without strictPort: true, Vite silently falls back to another port, breaking developer assumptions and proxy configurations.",
-    "Font loading FOIT: omitting display=swap in Google Fonts URL causes invisible text during font load, degrading perceived performance."
+    "VITE_CONVEX_URL not set in environment — createConvexClient() will fail silently or throw. Must add runtime validation with a clear error message.",
+    "ToolSlug enum drift — if data_layer adds new tools but ToolSlug is not updated, routes will 404. Consider deriving ToolSlug from the data layer's tool definitions if possible, or add a build-time check.",
+    "Sidebar re-renders on every navigation if not memoized. Use React.memo on Sidebar and ensure SidebarItem[] reference stability (useMemo on the mapping).",
+    "Google Fonts blocking render — <link> tags in <head> are render-blocking. Use `font-display: swap` (default for Google Fonts API v2) and add `preconnect` to mitigate.",
+    "React Router v6 nested route matching — trailing slashes and case sensitivity can cause route mismatches. Normalize slugs to lowercase and configure consistent trailing slash behavior.",
+    "Convex client WebSocket connection in development with StrictMode — double effect invocation may cause brief double-connection. ConvexReactClient handles this gracefully but worth noting."
   ],
   "compliance_notes": [
-    "TypeScript type annotations required on all exported functions and components — every function in the spec must have explicit parameter and return types.",
-    "React functional components only — Layout, Sidebar, and App must all be function components or render functions returning JSX.",
-    "Props typed with TypeScript interfaces — SidebarProps, LayoutProps (if any) must be interfaces, not type aliases.",
-    "All Tailwind classes, no custom CSS — animations must be defined in tailwind.config.ts, not in .css files.",
-    "Bun only for package management — use 'bun add', 'bun run', 'bunx' for all commands. Never npm/yarn/npx.",
-    "Dev server on port 4000 — set in vite.config.ts server.port with strictPort: true.",
-    "Build output to dist/ — default Vite behavior, confirm in vite.config.ts.",
-    "Convex hooks imported from 'convex/react' — useQuery, useMutation, ConvexProvider.",
-    "Files under 300 lines — split Layout and Sidebar into separate files.",
-    "vitest for testing — any unit tests for isValidToolSlug, toolPath, projectToolDefToSidebarItem should use vitest."
+    "All files must be .ts or .tsx — no .js, .jsx, or .py files",
+    "Package manager is Bun only — all install commands use `bun add`, scripts use `bun run`",
+    "Dev server must run on port 4000 — configure in vite.config.ts: server: { port: 4000 }",
+    "Tailwind CSS v3 for all styling — no custom CSS unless absolutely necessary (fade-in keyframes go in tailwind.config.ts, not a CSS file)",
+    "React functional components only with TypeScript interfaces for props",
+    "Type annotations required on all exported functions and components",
+    "Files must stay under 300 lines — split Layout and Sidebar into separate files",
+    "Import Convex hooks from 'convex/react' specifically",
+    "React Router v6 for all routing — no other router libraries",
+    "Tests must be runnable with vitest"
   ]
 }

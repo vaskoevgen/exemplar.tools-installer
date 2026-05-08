@@ -3,6 +3,7 @@ import Sidebar from './components/Sidebar'
 import HomePage from './pages/HomePage'
 import ToolPage from './pages/ToolPage'
 import GettingStartedPage from './pages/GettingStartedPage'
+import ComponentPage from './pages/ComponentPage'
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/getting-started" element={<GettingStartedPage />} />
             <Route path="/tool/:slug" element={<ToolPage />} />
+            <Route path="/component/:slug" element={<ComponentPage />} />
           </Routes>
         </div>
       </div>

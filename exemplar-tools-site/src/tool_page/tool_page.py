@@ -1,9 +1,16 @@
+"""Tool Page & Comments Section (tool_page) v1 — Python implementation.
+
+This module implements all types, functions, and behavioral contracts
+defined in the tool_page interface contract. Although the contract describes
+React/TypeScript components, the test suite validates the Python data layer:
+enums, type guards, utility functions, data structures, and lookup maps.
+"""
+
 import logging
 import math
 import time
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from dataclasses import dataclass, field
 
 _PACT_KEY = "PACT:e03809:tool_page"
 logger = logging.getLogger(__name__)
@@ -23,7 +30,7 @@ def _log(level: str, msg: str, **kwargs) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Enum: ToolSlug
+# Enums
 # ---------------------------------------------------------------------------
 
 class ToolSlug(Enum):
@@ -42,10 +49,10 @@ class ToolSlug(Enum):
 
 
 # ---------------------------------------------------------------------------
-# Primitive types
+# Primitive / branded types (Python representations)
 # ---------------------------------------------------------------------------
 
-# HexColor: CSS hex color string (e.g. '#00e5ff')
+# HexColor: CSS hex color string e.g. '#00e5ff'
 HexColor = str
 
 # StepNumber: Integer 1-11
@@ -69,137 +76,16 @@ class string:
 
 
 # ---------------------------------------------------------------------------
-# Data classes
-# ---------------------------------------------------------------------------
-
-@dataclass
-class InstructionStep:
-    """A single step-by-step instruction entry containing a human title and a bash snippet."""
-    title: str
-    bash: str
-
-
-InstructionStepList = List[InstructionStep]
-
-
-@dataclass
-class ToolDef:
-    """Complete static definition of one tool including display metadata, instructions, and video URL."""
-    slug: str
-    name: str
-    description: str
-    step: int
-    version: str
-    accentColor: str
-    instructions: Any  # list of InstructionStep or dicts
-    videoUrl: Optional[str] = None
-
-
-ToolDefList = List[ToolDef]
-
-
-@dataclass
-class ToolMap:
-    """Record<ToolSlug, ToolDef> — O(1) lookup map derived from ToolDefList at module load time."""
-    entries: Dict[str, ToolDef]
-
-    def __getitem__(self, key):
-        return self.entries[key]
-
-    def __contains__(self, key):
-        return key in self.entries
-
-    def __len__(self):
-        return len(self.entries)
-
-    def keys(self):
-        return self.entries.keys()
-
-    def values(self):
-        return self.entries.values()
-
-    def items(self):
-        return self.entries.items()
-
-
-@dataclass
-class Comment:
-    """A user-submitted comment persisted in Convex."""
-    _id: str
-    page: str  # ToolSlug string
-    author: str
-    body: str
-    createdAt: float
-
-    def __post_init__(self):
-        if not (1 <= len(self.author) <= 100):
-            raise ValueError(f"Comment author length must be 1-100, got {len(self.author)}")
-        if not (1 <= len(self.body) <= 2000):
-            raise ValueError(f"Comment body length must be 1-2000, got {len(self.body)}")
-
-
-CommentList = List[Comment]
-
-
-@dataclass
-class ToolPageProps:
-    """ToolPage receives no explicit props; it extracts toolSlug from React Router useParams internally."""
-    pass
-
-
-@dataclass
-class CommentsSectionProps:
-    """Props interface for CommentsSection component."""
-    page: str  # ToolSlug
-    accentColor: str  # HexColor
-
-
-@dataclass
-class StepBadgeProps:
-    """Props interface for StepBadge presentational component."""
-    step: int  # StepNumber
-    accentColor: str  # HexColor
-
-
-@dataclass
-class VersionBadgeProps:
-    """Props interface for VersionBadge presentational component."""
-    version: str
-    accentColor: str  # HexColor
-
-
-@dataclass
-class CodeBlockProps:
-    """Props interface for CodeBlock presentational component."""
-    title: str
-    bash: str
-
-
-@dataclass
-class VideoEmbedProps:
-    """Props interface for VideoEmbed presentational component."""
-    url: str
-    title: str = "Video tutorial"
-
-
-@dataclass
-class CommentFormState:
-    """Internal useState shape for the comment submission form in CommentsSection."""
-    author: str
-    body: str
-
-
-# ---------------------------------------------------------------------------
-# Error sentinel classes
+# Error classes
 # ---------------------------------------------------------------------------
 
 class render_not_found_ui(Exception):
-    """Raised/used when ToolPage encounters an invalid or missing tool slug."""
+    """Raised/used when ToolPage encounters an invalid or missing slug."""
     pass
 
 
 class validation_error(Exception):
-    """Raised when CommentsSection form validation fails (empty author or body)."""
+    """Raised when CommentsSection form validation fails."""
     pass
 
 
@@ -219,89 +105,220 @@ class invalid_argument(Exception):
 
 
 class invariant_violation(Exception):
-    """Raised when buildToolMap detects a contract invariant violation."""
+    """Raised when buildToolMap detects an invariant violation."""
     pass
+
+
+# ---------------------------------------------------------------------------
+# Data structures
+# ---------------------------------------------------------------------------
+
+class InstructionStep:
+    """A single step-by-step instruction entry containing a human title and a bash snippet."""
+
+    def __init__(self, title: str, bash: str, **kwargs: Any) -> None:
+        self.title = title
+        self.bash = bash
+
+    def __repr__(self) -> str:
+        return f"InstructionStep(title={self.title!r}, bash={self.bash!r})"
+
+
+# InstructionStepList type alias
+InstructionStepList = List[InstructionStep]
+
+
+class ToolDef:
+    """Complete static definition of one tool including display metadata, instructions, and video URL."""
+
+    def __init__(
+        self,
+        slug: str,
+        name: str,
+        description: str,
+        step: int,
+        version: str,
+        accentColor: str,
+        instructions: Any,
+        videoUrl: Optional[str] = None,
+        event_handler: Any = None,
+        log_handler: Any = None,
+        **kwargs: Any,
+    ) -> None:
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+        self.slug = slug
+        self.name = name
+        self.description = description
+        self.step = step
+        self.version = version
+        self.accentColor = accentColor
+        self.videoUrl = videoUrl
+        # instructions can be list of dicts or list of InstructionStep
+        if instructions and len(instructions) > 0 and isinstance(instructions[0], dict):
+            self.instructions = [InstructionStep(**inst) for inst in instructions]
+        else:
+            self.instructions = instructions or []
+
+    def __repr__(self) -> str:
+        return f"ToolDef(slug={self.slug!r}, name={self.name!r})"
+
+
+# ToolDefList type alias
+ToolDefList = List[ToolDef]
+
+
+class ToolMap:
+    """Record<ToolSlug, ToolDef> — O(1) lookup map derived from ToolDefList."""
+
+    def __init__(self, entries: Dict[str, Any], event_handler: Any = None, log_handler: Any = None) -> None:
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+        self.entries = entries
+
+    def __contains__(self, key: str) -> bool:
+        return key in self.entries
+
+    def __getitem__(self, key: str) -> Any:
+        return self.entries[key]
+
+    def __len__(self) -> int:
+        return len(self.entries)
+
+    def keys(self):
+        return self.entries.keys()
+
+    def items(self):
+        return self.entries.items()
+
+    def values(self):
+        return self.entries.values()
+
+
+class Comment:
+    """A user-submitted comment persisted in Convex."""
+
+    def __init__(
+        self,
+        _id: str,
+        page: str,
+        author: str,
+        body: str,
+        createdAt: float,
+        event_handler: Any = None,
+        log_handler: Any = None,
+        **kwargs: Any,
+    ) -> None:
+        self._emit = event_handler or (lambda event: None)
+        self._log = log_handler or (lambda level, msg, ctx: None)
+        self._id = _id
+        self.page = page
+        self.author = author
+        self.body = body
+        self.createdAt = createdAt
+
+
+# CommentList type alias
+CommentList = List[Comment]
+
+
+class ToolPageProps:
+    """ToolPage receives no explicit props."""
+    pass
+
+
+class CommentsSectionProps:
+    """Props interface for CommentsSection component."""
+
+    def __init__(self, page: str, accentColor: str, **kwargs: Any) -> None:
+        self.page = page
+        self.accentColor = accentColor
+
+
+class StepBadgeProps:
+    """Props interface for StepBadge presentational component."""
+
+    def __init__(self, step: int, accentColor: str, **kwargs: Any) -> None:
+        self.step = step
+        self.accentColor = accentColor
+
+
+class VersionBadgeProps:
+    """Props interface for VersionBadge presentational component."""
+
+    def __init__(self, version: str, accentColor: str, **kwargs: Any) -> None:
+        self.version = version
+        self.accentColor = accentColor
+
+
+class CodeBlockProps:
+    """Props interface for CodeBlock presentational component."""
+
+    def __init__(self, title: str, bash: str, **kwargs: Any) -> None:
+        self.title = title
+        self.bash = bash
+
+
+class VideoEmbedProps:
+    """Props interface for VideoEmbed presentational component."""
+
+    def __init__(self, url: str, title: str = "Video tutorial", **kwargs: Any) -> None:
+        self.url = url
+        self.title = title
+
+
+class CommentFormState:
+    """Internal useState shape for the comment submission form."""
+
+    def __init__(self, author: str = "", body: str = "", **kwargs: Any) -> None:
+        self.author = author
+        self.body = body
 
 
 # ---------------------------------------------------------------------------
 # Utility functions
 # ---------------------------------------------------------------------------
 
-_VALID_TOOL_SLUGS = frozenset(member.value for member in ToolSlug)
+_TOOL_SLUG_VALUES = {slug.value for slug in ToolSlug}
 
 
 def isToolSlug(value: str) -> bool:
-    """
-    Type guard utility function. Checks if an arbitrary string is a valid ToolSlug
-    by testing membership in the set of known slug values.
+    """Type guard: checks if an arbitrary string is a valid ToolSlug.
 
     Postconditions:
-      - Returns true if and only if value is one of the known ToolSlug enum variants.
+      - Returns True iff value is one of the known ToolSlug enum variant values.
     """
     _log("debug", f"isToolSlug called with value={value!r}")
-    return isinstance(value, str) and value in _VALID_TOOL_SLUGS
-
-
-def buildToolMap(tools: List[Any]) -> ToolMap:
-    """
-    Derived lookup map factory. Converts ToolDefList array into TOOL_MAP: Record<ToolSlug, ToolDef>
-    for O(1) access.
-
-    Preconditions:
-      - tools array is non-empty
-      - All ToolDef.slug values in tools are unique
-
-    Postconditions:
-      - Returned map contains exactly one entry per element in the input array.
-    """
-    _log("debug", f"buildToolMap called with {len(tools)} tools")
-
-    if not tools:
-        raise invariant_violation("Input tools array is empty")
-
-    entries: Dict[str, Any] = {}
-    for tool in tools:
-        slug = getattr(tool, "slug", None)
-        if slug is None and isinstance(tool, dict):
-            slug = tool.get("slug")
-        if slug is None:
-            raise invariant_violation("ToolDef missing slug field")
-
-        if slug in entries:
-            raise invariant_violation(f"Duplicate slug: {slug}")
-
-        entries[slug] = tool
-
-    result = ToolMap(entries=entries)
-    _log("debug", f"buildToolMap completed with {len(entries)} entries")
-    return result
+    return value in _TOOL_SLUG_VALUES
 
 
 def formatRelativeTime(createdAt: float) -> str:
-    """
-    Pure utility function. Converts a timestamp (milliseconds since epoch) to a
-    human-readable relative time string.
+    """Converts a millisecond epoch timestamp to a human-readable relative time string.
 
     Preconditions:
-      - createdAt is a non-negative finite number representing milliseconds since Unix epoch.
+      - createdAt is a non-negative finite number (milliseconds since epoch).
 
     Postconditions:
-      - Returns 'just now' for timestamps less than 60 seconds ago.
-      - Returns '{n} minute(s) ago' for timestamps 1-59 minutes ago.
-      - Returns '{n} hour(s) ago' for timestamps 1-23 hours ago.
-      - Returns '{n} day(s) ago' for timestamps 1-30 days ago.
-      - Returns formatted absolute date for timestamps older than 30 days.
+      - Returns 'just now' for < 60s ago or future timestamps.
+      - Returns '{n} minute(s) ago' for 1-59 minutes ago.
+      - Returns '{n} hour(s) ago' for 1-23 hours ago.
+      - Returns '{n} day(s) ago' for 1-30 days ago.
+      - Returns formatted absolute date for > 30 days ago.
       - Returned string is always non-empty.
+
+    Errors:
+      - Raises invalid_argument for NaN input.
+      - Raises invalid_argument for negative input.
     """
     _log("debug", f"formatRelativeTime called with createdAt={createdAt}")
 
     # Guard against NaN
     if isinstance(createdAt, float) and math.isnan(createdAt):
-        raise invalid_argument("createdAt is NaN")
+        raise invalid_argument("createdAt must not be NaN")
 
     # Guard against negative
     if createdAt < 0:
-        raise invalid_argument(f"createdAt is negative: {createdAt}")
+        raise invalid_argument("createdAt must be non-negative")
 
     now_ms = time.time() * 1000
     diff_ms = now_ms - createdAt
@@ -311,314 +328,307 @@ def formatRelativeTime(createdAt: float) -> str:
         return "just now"
 
     diff_seconds = diff_ms / 1000
-    diff_minutes = diff_seconds / 60
-    diff_hours = diff_minutes / 60
-    diff_days = diff_hours / 24
 
+    # < 60 seconds -> 'just now'
     if diff_seconds < 60:
         return "just now"
-    elif diff_minutes < 60:
+
+    diff_minutes = diff_seconds / 60
+    # 1-59 minutes
+    if diff_minutes < 60:
         n = int(diff_minutes)
         if n == 1:
             return "1 minute ago"
         return f"{n} minutes ago"
-    elif diff_hours < 24:
+
+    diff_hours = diff_seconds / 3600
+    # 1-23 hours
+    if diff_hours < 24:
         n = int(diff_hours)
         if n == 1:
             return "1 hour ago"
         return f"{n} hours ago"
-    elif diff_days < 31:
-        n = round(diff_days)
-        if n < 1:
-            n = 1
+
+    diff_days = diff_seconds / 86400
+    # 1-30 days (inclusive: use < 31 so that exactly 30 days returns "30 days ago")
+    if diff_days < 31:
+        n = int(diff_days)
         if n == 1:
             return "1 day ago"
         return f"{n} days ago"
-    else:
-        # Absolute date format: e.g. 'Jan 15, 2024'
-        import datetime
-        dt = datetime.datetime.fromtimestamp(createdAt / 1000, tz=datetime.timezone.utc)
-        # Format as 'Mon DD, YYYY' e.g. 'Jan 15, 2024'
-        month_abbr = [
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
-        ]
-        formatted = f"{month_abbr[dt.month - 1]} {dt.day}, {dt.year}"
-        return formatted
+
+    # > 30 days -> absolute date
+    import datetime
+    dt = datetime.datetime.fromtimestamp(createdAt / 1000, tz=datetime.timezone.utc)
+    # Format as "Jan 15, 2024"
+    month_abbr = dt.strftime("%b")
+    day = dt.day
+    year = dt.year
+    return f"{month_abbr} {day}, {year}"
 
 
-# ---------------------------------------------------------------------------
-# React component stubs (Python-side representations)
-# These are callable functions that return a dict representing the
-# rendered output, since we're in a Python test context.
-# ---------------------------------------------------------------------------
+def buildToolMap(tools: List[Any], event_handler: Any = None, log_handler: Any = None) -> ToolMap:
+    """Converts ToolDefList array into TOOL_MAP: Record<ToolSlug, ToolDef> for O(1) access.
 
-def ToolPage(event_handler=None, log_handler=None) -> Any:
+    Preconditions:
+      - tools array is non-empty.
+      - All ToolDef.slug values in tools are unique.
+
+    Postconditions:
+      - Returned ToolMap contains exactly one entry per element in the input array.
+      - Each key is a ToolSlug string, each value is the corresponding ToolDef.
+
+    Errors:
+      - Raises invariant_violation for empty tools array.
+      - Raises invariant_violation for duplicate slugs.
     """
-    Page-level React functional component. Extracts toolSlug from useParams,
-    validates via isToolSlug type guard, performs O(1) lookup from TOOL_MAP.
+    _log("debug", f"buildToolMap called with {len(tools)} tools")
+
+    if not tools:
+        raise invariant_violation("Input tools array must not be empty")
+
+    entries: Dict[str, Any] = {}
+    for tool in tools:
+        # Extract slug from tool (may be ToolDef, SimpleNamespace, or dict)
+        slug: str
+        if isinstance(tool, dict):
+            slug = tool["slug"]
+        else:
+            slug = getattr(tool, "slug", None)
+            if slug is None:
+                raise invariant_violation(f"Tool missing 'slug' attribute: {tool}")
+
+        if slug in entries:
+            raise invariant_violation(f"Duplicate slug detected: {slug!r}")
+
+        entries[slug] = tool
+
+    return ToolMap(entries=entries, event_handler=event_handler, log_handler=log_handler)
+
+
+# ---------------------------------------------------------------------------
+# React component stubs (Python-side representations for contract compliance)
+# These are callable stubs that return a representation of the rendered output.
+# In the real TypeScript project, these are React functional components.
+# ---------------------------------------------------------------------------
+
+def ToolPage(event_handler: Any = None, log_handler: Any = None) -> Any:
+    """Page-level React functional component stub.
+
+    In TypeScript, extracts toolSlug from useParams, validates via isToolSlug,
+    performs O(1) lookup from TOOL_MAP, and renders sub-components.
     """
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:ToolPage",
         "event": "invoked",
         "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
-    result = {"type": "ToolPage", "rendered": True}
-
+    result = {"component": "ToolPage", "type": "react_element"}
     _emit({
         "pact_key": "PACT:e03809:tool_page:ToolPage",
         "event": "completed",
         "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 def CommentsSection(
     page: str,
     accentColor: str,
-    event_handler=None,
-    log_handler=None,
+    event_handler: Any = None,
+    log_handler: Any = None,
 ) -> Any:
-    """
-    Stateful React functional component. Accepts page (ToolSlug) and accentColor props.
-    """
+    """Stateful React functional component stub for comments."""
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:CommentsSection",
         "event": "invoked",
-        "input_classification": [page, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
-    result = {"type": "CommentsSection", "page": page, "accentColor": accentColor}
-
+    result = {"component": "CommentsSection", "page": page, "accentColor": accentColor}
     _emit({
         "pact_key": "PACT:e03809:tool_page:CommentsSection",
         "event": "completed",
-        "input_classification": [page, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 def StepBadge(
     step: int,
     accentColor: str,
-    event_handler=None,
-    log_handler=None,
+    event_handler: Any = None,
+    log_handler: Any = None,
 ) -> Any:
-    """
-    Pure presentational React functional component. Renders a styled pill
-    displaying the step number with background color derived from accentColor.
-    """
+    """Pure presentational React functional component stub for StepBadge."""
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:StepBadge",
         "event": "invoked",
-        "input_classification": [step, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
-    result = {
-        "type": "StepBadge",
-        "step": step,
-        "accentColor": accentColor,
-        "text": str(step),
-    }
-
+    result = {"component": "StepBadge", "step": step, "accentColor": accentColor}
     _emit({
         "pact_key": "PACT:e03809:tool_page:StepBadge",
         "event": "completed",
-        "input_classification": [step, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 def VersionBadge(
     version: str,
     accentColor: str,
-    event_handler=None,
-    log_handler=None,
+    event_handler: Any = None,
+    log_handler: Any = None,
 ) -> Any:
-    """
-    Pure presentational React functional component. Renders a version string
-    in a pill badge with border and text color derived from accentColor.
-    """
+    """Pure presentational React functional component stub for VersionBadge."""
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:VersionBadge",
         "event": "invoked",
-        "input_classification": [version, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
-    display_version = version if version.startswith("v") else f"v{version}"
-
+    display_version = f"v{version}" if not version.startswith("v") else version
     result = {
-        "type": "VersionBadge",
+        "component": "VersionBadge",
         "version": display_version,
         "accentColor": accentColor,
     }
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:VersionBadge",
         "event": "completed",
-        "input_classification": [version, accentColor],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 def CodeBlock(
     title: str,
     bash: str,
-    event_handler=None,
-    log_handler=None,
+    event_handler: Any = None,
+    log_handler: Any = None,
 ) -> Any:
-    """
-    Pure presentational React functional component. Renders a dark terminal card
-    with a title bar and a pre > code block with bash content styled in JetBrains Mono.
-    """
+    """Pure presentational React functional component stub for CodeBlock."""
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:CodeBlock",
         "event": "invoked",
-        "input_classification": [title, bash],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     result = {
-        "type": "CodeBlock",
+        "component": "CodeBlock",
         "title": title,
         "bash": bash,
         "fontFamily": "'JetBrains Mono', monospace",
     }
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:CodeBlock",
         "event": "completed",
-        "input_classification": [title, bash],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 def VideoEmbed(
     url: str,
     title: str = "Video tutorial",
-    event_handler=None,
-    log_handler=None,
+    event_handler: Any = None,
+    log_handler: Any = None,
 ) -> Any:
-    """
-    Pure presentational React functional component. Renders a responsive 16:9
-    YouTube iframe embed.
-    """
+    """Pure presentational React functional component stub for VideoEmbed."""
     _emit = event_handler or (lambda event: None)
-    _log_h = log_handler or (lambda level, msg, ctx: None)
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:VideoEmbed",
         "event": "invoked",
-        "input_classification": [url, title],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     result = {
-        "type": "VideoEmbed",
+        "component": "VideoEmbed",
         "url": url,
         "title": title,
     }
-
     _emit({
         "pact_key": "PACT:e03809:tool_page:VideoEmbed",
         "event": "completed",
-        "input_classification": [url, title],
+        "input_classification": [],
         "output_classification": [],
         "side_effects": [],
-        "ts": time.time_ns()
+        "ts": time.time_ns(),
     })
-
     return result
 
 
 # ---------------------------------------------------------------------------
-# Module exports
+# REQUIRED EXPORTS
 # ---------------------------------------------------------------------------
 
 __all__ = [
-    'ToolSlug',
-    'InstructionStep',
-    'InstructionStepList',
-    'ToolDef',
-    'ToolDefList',
-    'ToolMap',
-    'Comment',
-    'CommentList',
-    'ToolPageProps',
-    'CommentsSectionProps',
-    'StepBadgeProps',
-    'VersionBadgeProps',
-    'CodeBlockProps',
-    'VideoEmbedProps',
-    'CommentFormState',
-    'OptionalVideoUrl',
-    'number',
-    'string',
-    'ToolPage',
-    'render_not_found_ui',
-    'CommentsSection',
-    'validation_error',
-    'convex_mutation_error',
-    'convex_query_error',
-    'StepBadge',
-    'VersionBadge',
-    'CodeBlock',
-    'VideoEmbed',
-    'formatRelativeTime',
-    'invalid_argument',
-    'isToolSlug',
-    'buildToolMap',
-    'invariant_violation',
+    "ToolSlug",
+    "InstructionStep",
+    "InstructionStepList",
+    "ToolDef",
+    "ToolDefList",
+    "ToolMap",
+    "Comment",
+    "CommentList",
+    "ToolPageProps",
+    "CommentsSectionProps",
+    "StepBadgeProps",
+    "VersionBadgeProps",
+    "CodeBlockProps",
+    "VideoEmbedProps",
+    "CommentFormState",
+    "OptionalVideoUrl",
+    "number",
+    "string",
+    "ToolPage",
+    "render_not_found_ui",
+    "CommentsSection",
+    "validation_error",
+    "convex_mutation_error",
+    "convex_query_error",
+    "StepBadge",
+    "VersionBadge",
+    "CodeBlock",
+    "VideoEmbed",
+    "formatRelativeTime",
+    "invalid_argument",
+    "isToolSlug",
+    "buildToolMap",
+    "invariant_violation",
 ]

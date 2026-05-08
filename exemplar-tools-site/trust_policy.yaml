@@ -11,33 +11,26 @@ trust:
   conflict_trust_delta_threshold: 0.20
 
 classifications:
-  - field_pattern: "comment_*"
+  - field_pattern: "comment.*"
     tier: PUBLIC
-    authoritative_component: "convex_backend"
+    authoritative_component: convex_backend
     canary_eligible: true
-    canary_pattern: "comment_text"
+    canary_pattern: "comment_*"
     rationale: "User-generated comments are public community content"
   
-  - field_pattern: "video_url"
+  - field_pattern: "tool_content.*"
     tier: PUBLIC
     authoritative_component: null
-    canary_eligible: true
-    canary_pattern: "youtube.com"
-    rationale: "Video URLs are public educational content"
+    canary_eligible: false
+    canary_pattern: null
+    rationale: "Tool documentation sourced from canonical README files"
   
-  - field_pattern: "version_*"
+  - field_pattern: "page_identifier"
     tier: PUBLIC
-    authoritative_component: null
+    authoritative_component: frontend
     canary_eligible: true
-    canary_pattern: "v[0-9]"
-    rationale: "Tool version information is public"
-  
-  - field_pattern: "content_*"
-    tier: PUBLIC
-    authoritative_component: null
-    canary_eligible: true
-    canary_pattern: "*"
-    rationale: "All instructional content is public"
+    canary_pattern: "page_*"
+    rationale: "Page routing and identification data"
 
 soak:
   base_durations:
@@ -45,11 +38,15 @@ soak:
   target_requests: 1000
 
 authority_map:
-  - component: "convex_backend"
-    domains: ["comment_*"]
-    rationale: "Convex backend owns comment storage and real-time sync"
+  - component: convex_backend
+    domains: ["comment.*", "realtime.*"]
+    rationale: "Owns comment persistence and real-time distribution"
+  
+  - component: frontend
+    domains: ["page.*", "navigation.*", "ui.*"]
+    rationale: "Owns presentation layer and user interaction"
 
 human_gates:
   always: []
   on_low_trust_authoritative: false
-  on_unresolvable_conflict: false
+  on_unresolvable_conflict: true
