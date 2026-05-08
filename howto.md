@@ -428,112 +428,13 @@ deactivate
 
 ### 1c — Database setup (required before Pact if your app uses a database)
 
-If your project connects to a database, spin it up **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks. Set `DATABASE_URL` and `TEST_DATABASE_URL` in the shell before starting the daemon.
+If your project connects to a database, spin it up **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks.
 
-#### macOS (Docker Desktop) — port 5432 is mandatory
+1. Start your database using whatever method fits your stack (Docker, a local install, a cloud service, etc.)
+2. Set `DATABASE_URL` and `TEST_DATABASE_URL` in the shell before starting the Pact daemon — both should point to your test database
+3. Install your project dependencies into a venv and prepend it to `PATH` so Pact's test runner can find them
 
-Docker Desktop on macOS only proxies PostgreSQL SCRAM-SHA-256 authentication correctly through the **standard port 5432**. Other ports (5433, 5434, etc.) fail with `fe_sendauth: no password supplied` or `FATAL: password authentication failed` regardless of pg_hba.conf settings.
-
-```bash
-# Check if port 5432 is already in use
-lsof -i :5432 | grep LISTEN
-
-# If free, start a postgres container on 5432
-docker run -d \
-  --name pact-test-pg \
-  -e POSTGRES_USER=pact \
-  -e POSTGRES_PASSWORD=pact \
-  -e POSTGRES_DB=<yourapp>_test \
-  -p 5432:5432 \
-  arm64v8/postgres:17-alpine
-
-# Wait for it to be ready (usually < 5 seconds)
-# bash / zsh
-until docker exec pact-test-pg pg_isready -U pact; do sleep 1; done
-
-# fish
-while not docker exec pact-test-pg pg_isready -U pact; sleep 1; end
-```
-
-> Use `arm64v8/postgres:17-alpine` on Apple Silicon. The plain `postgres:17-alpine` image may silently pull the wrong architecture and misbehave.
-
-#### Create the schema
-
-**Option A — interactive psql session (recommended):**
-
-```bash
-docker exec -it pact-test-pg psql -U pact -d <yourapp>_test
-```
-
-You'll get a `<yourapp>_test=#` prompt. Paste your `CREATE TABLE` statements, then verify with `\dt` and exit with `\q`.
-
-**Option B — heredoc (non-interactive):**
-
-```bash
-docker exec -i pact-test-pg psql -U pact -d <yourapp>_test << 'SQL'
--- paste your CREATE TABLE statements here
-SQL
-```
-
-#### Set DATABASE_URL and TEST_DATABASE_URL
-
-Both variables must be set in the shell that starts the Pact daemon:
-
-```bash
-# bash / zsh
-export DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
-export TEST_DATABASE_URL=postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
-
-# fish
-set -x DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
-set -x TEST_DATABASE_URL postgresql://pact:pact@127.0.0.1:5432/<yourapp>_test
-```
-
-> Pact passes these to the test harness as-is. Both should point to the same test database — Pact does not use a separate application database during testing.
-
-#### Create a project venv and install dependencies
-
-Pact's test runner calls `python3` from the system PATH. Your project dependencies (FastAPI, psycopg2, etc.) must be installed in a venv that is on PATH before the daemon starts.
-
-Create the venv and install dependencies:
-
-```bash
-# bash / zsh
-python3 -m venv .venv
-source .venv/bin/activate
-pip install fastapi psycopg2-binary uvicorn pytest httpx
-deactivate
-
-# fish
-python3 -m venv .venv
-source .venv/bin/activate.fish
-pip install fastapi psycopg2-binary uvicorn pytest httpx
-deactivate
-```
-
-Then prepend the venv to PATH **in the same shell** before starting the daemon:
-
-```fish
-# fish — run from your project directory
-fish_add_path --prepend (pwd)/.venv/bin
-```
-
-Then start the daemon (API key must also be set):
-
-```fish
-source /path/to/.env   # or use a universal variable — see API key section above
-pact daemon .
-```
-
-> **Why prepend the venv?** Pact runs `python3 -m pytest` as a subprocess using the shell PATH. If the system `python3` doesn't have your project's dependencies (psycopg2, fastapi, etc.), all tests will silently collect 0 items and report `failed 0/0 tests`. Prepending the venv fixes this.
-
-Then activate Pact and start the daemon:
-
-```bash
-source ../exemplar.tools/pact/.venv/bin/activate  # (or .fish)
-```
-
-It is ready for `pact` stage
+> **Why prepend the venv?** Pact runs `python3 -m pytest` as a subprocess using the shell PATH. If the system `python3` doesn't have your project's dependencies, all tests will silently collect 0 items and report `failed 0/0 tests`. Prepending the venv fixes this.
 
 </details>
 
