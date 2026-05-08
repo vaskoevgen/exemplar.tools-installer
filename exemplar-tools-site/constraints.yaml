@@ -1,89 +1,89 @@
 - id: C001
-  boundary: Page Structure
-  condition: Exactly 12 pages must exist (home + 11 tools in order)
-  violation: Missing pages or wrong tool order breaks learning workflow
+  boundary: Development Server Configuration
+  condition: Development server must run exclusively on port 4000
+  violation: Server starts on different port or fails to bind to 4000
   severity: must
-  rationale: Prescribed learning sequence is core to user experience
+  rationale: Ensures consistent development environment and avoids conflicts with other exemplar.tools
   classification_tier: null
-  affected_components: [web_frontend, build_system]
+  affected_components: [frontend]
 
 - id: C002
-  boundary: Development Server
-  condition: Dev server must run on port 4000 only
-  violation: Wrong port prevents local development setup
+  boundary: Package Manager Usage
+  condition: Only Bun package manager may be used, never npm or yarn
+  violation: npm or yarn commands executed or lockfiles created
   severity: must
-  rationale: Port standardization for development team
+  rationale: Maintains consistency with exemplar.tools ecosystem tooling choices
   classification_tier: null
-  affected_components: [build_system]
+  affected_components: [frontend]
 
 - id: C003
-  boundary: Package Manager
-  condition: Only Bun commands allowed, never npm or yarn
-  violation: Using npm/yarn breaks build reproducibility
+  boundary: Page Structure
+  condition: Exactly 12 pages must exist (home + 11 tools in workflow order)
+  violation: Missing pages or extra pages beyond the defined set
   severity: must
-  rationale: Bun-only constraint for consistency and performance
+  rationale: Complete coverage of exemplar.tools workflow without scope creep
   classification_tier: null
-  affected_components: [build_system]
+  affected_components: [frontend]
 
 - id: C004
-  boundary: Content Source
-  condition: Content must come only from howto.md and tool README files
-  violation: Hardcoded content becomes stale and unmaintainable
+  boundary: Content Source Authority
+  condition: All tool content must derive exclusively from README files and howto.md
+  violation: Tool descriptions or instructions sourced from other materials
   severity: must
-  rationale: Single source of truth for content accuracy
+  rationale: Ensures accuracy and prevents documentation drift from canonical sources
   classification_tier: PUBLIC
-  affected_components: [web_frontend, build_system]
+  affected_components: [frontend]
 
 - id: C005
-  boundary: Styling Framework
-  condition: All styling must use Tailwind CSS classes only
-  violation: Custom CSS creates maintenance burden and inconsistency
+  boundary: Comment Data Model
+  condition: Comments limited to page identifier, author name, body text, and timestamp fields only
+  violation: Additional user data, metadata, or complex comment structures
   severity: must
-  rationale: Styling consistency and maintainability
-  classification_tier: null
-  affected_components: [web_frontend]
+  rationale: Keeps system simple and avoids PII collection concerns
+  classification_tier: PUBLIC
+  affected_components: [convex_backend, frontend]
 
 - id: C006
-  boundary: Navigation
-  condition: Must use React Router v6 for client-side routing
-  violation: Server-side routing or wrong router version breaks SPA behavior
+  boundary: Real-time Comment Functionality
+  condition: Comments must appear live on all connected clients without page refresh
+  violation: Comments require manual refresh or fail to sync across sessions
   severity: must
-  rationale: Specified routing solution for SPA architecture
-  classification_tier: null
-  affected_components: [web_frontend]
+  rationale: Core value proposition for community learning and engagement
+  classification_tier: PUBLIC
+  affected_components: [convex_backend, frontend]
 
 - id: C007
   boundary: Video Embedding
-  condition: YouTube videos must embed using URLs from howto.md only
-  violation: Broken or missing videos eliminate primary instructional content
+  condition: YouTube videos must embed using URLs specified in howto.md only
+  violation: Videos from other sources or hardcoded YouTube URLs
   severity: must
-  rationale: Video content is critical for learning experience
+  rationale: Maintains content authority and prevents unauthorized media inclusion
   classification_tier: PUBLIC
-  affected_components: [web_frontend]
+  affected_components: [frontend]
 
 - id: C008
-  boundary: Version Badges
-  condition: Version badges must show current versions from tool README files
-  violation: Stale version info leads to tool compatibility issues
-  severity: must
-  rationale: Accurate version info prevents user confusion and bugs
+  boundary: Version Badge Display
+  condition: Tool version badges must reflect current versions from respective README files
+  violation: Hardcoded versions or versions from other sources
+  severity: should
+  rationale: Helps developers ensure tool compatibility in their workflows
   classification_tier: PUBLIC
-  affected_components: [web_frontend]
+  affected_components: [frontend]
 
 - id: C009
-  boundary: Real-time Comments
-  condition: Comments must persist and sync in real-time on all pages
-  violation: Lost comments damage community engagement and user trust
-  severity: must
-  rationale: Real-time collaboration is core feature
-  classification_tier: PUBLIC
-  affected_components: [web_frontend, convex_backend]
+  boundary: Visual Design Consistency
+  condition: Dark industrial terminal aesthetic with near-black background and electric cyan accent
+  violation: Light themes, different color schemes, or non-terminal styling
+  severity: should
+  rationale: Brand consistency with exemplar.tools identity and user expectations
+  classification_tier: null
+  affected_components: [frontend]
 
 - id: C010
-  boundary: Comment Persistence
-  condition: Comments must survive page refreshes and browser sessions
-  violation: Temporary comments provide no lasting value to community
-  severity: must
-  rationale: Persistent community knowledge base
-  classification_tier: PUBLIC
-  affected_components: [convex_backend]
+  boundary: Typography Requirements
+  condition: Instrument Serif for headings, JetBrains Mono for code blocks
+  violation: Different font families or fallback fonts in production
+  severity: should
+  rationale: Professional presentation matching exemplar.tools documentation standards
+  classification_tier: null
+  affected_components: [frontend]

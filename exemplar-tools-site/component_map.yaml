@@ -3,37 +3,22 @@ generated_by: constrain
 session_id: docs_website_001
 
 components:
-  - name: "web_frontend"
-    description: "React SPA with 12 pages, Tailwind styling, and real-time comments"
+  - name: frontend
+    description: "React SPA handling routing, content display, and comment UI"
     type: service
     port: 4000
     protocol: http
     data_access:
       reads: [PUBLIC]
       writes: [PUBLIC]
-      rationale: "Renders all public content and submits comments"
+      rationale: "Presents all content and collects comment data"
     authority:
-      domains: []
-      rationale: null
-    dependencies: ["convex_backend", "build_system"]
-    constraints: ["C001", "C004", "C005", "C006", "C007", "C008", "C009"]
+      domains: ["page.*", "navigation.*", "ui.*"]
+      rationale: "Owns presentation layer and user interaction"
+    dependencies: [convex_backend, youtube_service, font_cdn]
+    constraints: [C001, C002, C003, C004, C005, C006, C007, C008, C009, C010]
 
-  - name: "build_system"
-    description: "Vite + Bun build pipeline for React TypeScript compilation"
-    type: service
-    port: null
-    protocol: http
-    data_access:
-      reads: [PUBLIC]
-      writes: [PUBLIC]
-      rationale: "Processes source files and content into deployable assets"
-    authority:
-      domains: []
-      rationale: null
-    dependencies: []
-    constraints: ["C001", "C002", "C003", "C004", "C005"]
-
-  - name: "convex_backend"
+  - name: convex_backend
     description: "Real-time database and sync service for comments"
     type: service
     port: null
@@ -41,60 +26,75 @@ components:
     data_access:
       reads: [PUBLIC]
       writes: [PUBLIC]
-      rationale: "Stores and synchronizes comment data in real-time"
+      rationale: "Manages comment persistence and real-time distribution"
     authority:
-      domains: ["comment_*"]
-      rationale: "Authoritative source for all comment operations"
+      domains: ["comment.*", "realtime.*"]
+      rationale: "Owns comment persistence and real-time distribution"
     dependencies: []
-    constraints: ["C009", "C010"]
+    constraints: [C005, C006]
 
-  - name: "youtube_embed"
-    description: "External YouTube video embedding service"
+  - name: content_sources
+    description: "Static markdown files providing canonical documentation"
     type: egress
     port: null
     protocol: http
     data_access:
       reads: [PUBLIC]
       writes: []
-      rationale: "Provides video content for embedding"
+      rationale: "Source of truth for tool documentation content"
     authority:
       domains: []
       rationale: null
     dependencies: []
-    constraints: ["C007"]
+    constraints: [C004, C008]
 
-  - name: "tool_repositories"
-    description: "External tool repos providing version badge data"
+  - name: youtube_service
+    description: "Video hosting service for embedded instructional content"
     type: egress
     port: null
     protocol: http
     data_access:
       reads: [PUBLIC]
       writes: []
-      rationale: "Source of truth for tool version information"
+      rationale: "Provides embedded video content"
     authority:
       domains: []
       rationale: null
     dependencies: []
-    constraints: ["C008"]
+    constraints: [C007]
+
+  - name: font_cdn
+    description: "Content delivery network for Instrument Serif and JetBrains Mono fonts"
+    type: egress
+    port: null
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Delivers typography assets"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: [C010]
 
 edges:
-  - from: "web_frontend"
-    to: "convex_backend"
+  - from: frontend
+    to: convex_backend
     protocol: http
-    description: "Real-time comment sync and storage"
+    description: "Comment CRUD operations and real-time subscriptions"
   
-  - from: "web_frontend"
-    to: "build_system"
+  - from: frontend
+    to: youtube_service
     protocol: http
-    description: "Development server and hot reload"
+    description: "Embedded video iframe requests"
   
-  - from: "web_frontend"
-    to: "youtube_embed"
+  - from: frontend
+    to: font_cdn
     protocol: http
-    description: "Video embed requests"
+    description: "Font file downloads for typography"
   
-  - from: "web_frontend"
-    to: "tool_repositories"
+  - from: frontend
+    to: content_sources
     protocol: http
-    description: "Version badge data fetching"
+    description: "Build-time content ingestion from markdown files"

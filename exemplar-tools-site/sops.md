@@ -1,7 +1,10 @@
+CRITICAL: implementation language is TypeScript. Never generate Python. All output files must be .ts or .tsx.
+
 # Operating Procedures
 
 ## Tech Stack
-- Language: TypeScript with React 18
+- Language: TypeScript — this is the implementation language. Never use Python. All source files must be .ts or .tsx.
+- Runtime: React 18
 - Framework: Vite + React, initialized with bun create vite
 - Package manager: Bun only — never use npm or yarn or npx
 - Styling: Tailwind CSS v3

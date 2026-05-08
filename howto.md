@@ -428,7 +428,13 @@ deactivate
 
 ### 1c — Database setup (required before Pact if your app uses a database)
 
-If your project connects to a database, spin it up **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks. Set `DATABASE_URL` and `TEST_DATABASE_URL` in the shell before starting the daemon.
+If your project connects to a database, spin it up **before** starting the Pact daemon. Pact runs contract tests against a real database — there are no mocks.
+
+1. Start your database using whatever method fits your stack (Docker, a local install, a cloud service, etc.)
+2. Set `DATABASE_URL` and `TEST_DATABASE_URL` in the shell before starting the Pact daemon — both should point to your test database
+3. Install your project dependencies into a venv and prepend it to `PATH` so Pact's test runner can find them
+
+> **Why prepend the venv?** Pact runs `python3 -m pytest` as a subprocess using the shell PATH. If the system `python3` doesn't have your project's dependencies, all tests will silently collect 0 items and report `failed 0/0 tests`. Prepending the venv fixes this.
 
 </details>
 
@@ -530,6 +536,17 @@ role_backends:
 ```
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
+
+> **Language and test framework** — by default pact generates Python code and uses pytest. If your project is TypeScript, JavaScript, or Rust, add these two lines to `pact.yaml` **before** running `pact daemon .` (changing them mid-build has no effect — contracts and test files are already generated in the original language):
+>
+> ```yaml
+> language: typescript   # supported: python (default), typescript, javascript, rust
+> test_framework: vitest # auto-detected if omitted: pytest for python, vitest for typescript/javascript
+> ```
+>
+> Supported values for `language`: `python`, `typescript`, `javascript`, `rust`. Check `exemplar.tools/pact/src/pact/config.py` for the current list.
+>
+> Setting `language: typescript` also updates the critical first line of `sops.md` — verify that `sops.md` says `CRITICAL: implementation language is TypeScript` (not Python) before starting the daemon.
 
 > **`build_mode`** accepts `unary`, `auto`, or `hierarchy`. Use `auto` (the default) — Pact decides whether to decompose into multiple components or implement as a single unit. Use `unary` only if you want to force a single component (collapses all tiers into one, uses in-memory storage instead of a real database). Use `hierarchy` to always force multi-component decomposition.
 

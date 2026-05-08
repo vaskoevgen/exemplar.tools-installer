@@ -49,7 +49,7 @@ export const TOOLS: Tool[] = [
     accent: '#f59e0b',
     accentBg: 'rgba(245,158,11,0.08)',
     videoUrl: 'https://www.youtube.com/embed/wkQeCPhlQD0',
-    version: '0.1.0',
+    version: '0.5.0',
     description:
       'Constrain runs an interactive AI interview about your problem. It asks clarifying questions and resolves ambiguities before producing structured artifacts. Expect 5–15 minutes of back-and-forth. Answer the questions directly — Constrain will stop when it has enough to proceed.',
     activateCmd:
@@ -98,7 +98,7 @@ export const TOOLS: Tool[] = [
     accent: '#10b981',
     accentBg: 'rgba(16,185,129,0.08)',
     videoUrl: 'https://www.youtube.com/embed/yZn64yO87VM',
-    version: '0.1.0',
+    version: '0.2.1',
     description:
       'Ledger registers your storage schemas and data rules, then exports obligations into Pact contracts, Arbiter, Baton, and Sentinel. Skip this step if your project has no database schemas.',
     activateCmd:
@@ -146,7 +146,7 @@ export const TOOLS: Tool[] = [
     accent: '#3b82f6',
     accentBg: 'rgba(59,130,246,0.08)',
     videoUrl: 'https://www.youtube.com/embed/vwHyrU13Cds',
-    version: '0.1.0',
+    version: '0.14.1',
     description:
       'Pact builds the software using the artifacts produced by Constrain. It decomposes your task into components, writes contracts and tests, then implements each component via the Anthropic API. A typical run costs $1–3 and takes 10–30 minutes.',
     activateCmd:
@@ -287,7 +287,7 @@ export const TOOLS: Tool[] = [
     accent: '#ef4444',
     accentBg: 'rgba(239,68,68,0.08)',
     videoUrl: 'https://www.youtube.com/embed/4f5uqWGs2ws',
-    version: '0.1.0',
+    version: '0.2.1',
     description:
       'Arbiter enforces authority exclusivity, computes trust scores (0.1–1.0) from audit events, and classifies blast radius for every proposed change. Trust is computed from evidence — never declared. Six multiplicative factors: base_weight × age × consistency × taint × review × decay.',
     activateCmd:
@@ -333,7 +333,7 @@ export const TOOLS: Tool[] = [
     accent: '#f97316',
     accentBg: 'rgba(249,115,22,0.08)',
     videoUrl: 'https://www.youtube.com/embed/XGu3XTfvG1c',
-    version: '0.1.0',
+    version: '0.3.2',
     description:
       'Baton orchestrates deployment as a self-healing circuit topology. It manages service ports, routes traffic between nodes, and runs canary analyses against error-rate (<5%) and latency (<500ms p95) thresholds. OTLP spans flow to Arbiter for consistency checks.',
     activateCmd:
@@ -394,7 +394,7 @@ export const TOOLS: Tool[] = [
     accent: '#06b6d4',
     accentBg: 'rgba(6,182,212,0.08)',
     videoUrl: 'https://www.youtube.com/embed/k8RVrSnEw6I',
-    version: '0.1.0',
+    version: '0.2.2',
     description:
       'Sentinel watches production logs, attributes errors to Pact components via embedded PACT keys, and tightens contracts so each bug class becomes non-recurring. It can trigger LLM-generated fixes within a configurable budget.',
     activateCmd:
@@ -449,7 +449,7 @@ export const TOOLS: Tool[] = [
     accent: '#ec4899',
     accentBg: 'rgba(236,72,153,0.08)',
     videoUrl: 'https://www.youtube.com/embed/a94Kpf0bYVg',
-    version: '0.1.0',
+    version: '0.3.0',
     description:
       'Chronicler collects events (OTLP spans, webhooks, Sentinel incidents, log files), groups them into stories at three granularities, and forwards completed stories to Stigmergy and Apprentice.',
     activateCmd:
@@ -497,7 +497,7 @@ export const TOOLS: Tool[] = [
     accent: '#84cc16',
     accentBg: 'rgba(132,204,22,0.08)',
     videoUrl: 'https://www.youtube.com/embed/4z7--TKIvQ4',
-    version: '0.1.0',
+    version: '0.1.2',
     description:
       'Stigmergy ingests signals from GitHub, Linear, Slack, and Grafana, routes them through a self-organizing agent mesh, and surfaces structural patterns: coordination gaps, knowledge silos, and parallel activity that could become conflicts. Runs without an LLM key — the default stub provider uses deterministic heuristics at zero cost.',
     activateCmd:
@@ -558,7 +558,7 @@ export const TOOLS: Tool[] = [
     accent: '#a855f7',
     accentBg: 'rgba(168,85,247,0.08)',
     videoUrl: 'https://www.youtube.com/embed/BhltpaigLTo',
-    version: '0.1.0',
+    version: '0.3.2',
     description:
       'Apprentice routes every request to the frontier API (Claude, GPT, etc.), collects the responses as training examples, fine-tunes a local model, then progressively shifts traffic to it — while continuously verifying quality. The goal: replace expensive API calls with a $0 local model that produces equivalent results for your specific tasks.',
     activateCmd:
@@ -626,7 +626,7 @@ export const TOOLS: Tool[] = [
     tagline: 'Persistent knowledge graph that surfaces context across all sessions and tools',
     accent: '#14b8a6',
     accentBg: 'rgba(20,184,166,0.08)',
-    version: '0.1.0',
+    version: '0.17.0',
     description:
       'Kindex maintains a typed knowledge graph (concepts, decisions, questions, tasks, watches) that persists across Claude Code sessions. It surfaces relevant context automatically via MCP and provides a searchable memory for the entire exemplar.tools stack.',
     activateCmd:

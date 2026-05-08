@@ -3,25 +3,31 @@ generated_by: constrain
 session_id: docs_website_001
 
 storage_backends:
-  - owner_component: "convex_backend"
+  - owner_component: convex_backend
     type: unknown
-    description: "Convex real-time database storing user comments and metadata"
+    description: "Convex managed database for comment storage and real-time sync"
 
 field_hints:
-  - backend_owner: "convex_backend"
-    field_description: "User comment text content"
+  - backend_owner: convex_backend
+    field_description: "Comment page identifier linking to specific documentation pages"
     likely_classification: PUBLIC
     likely_annotations: []
-    rationale: "Public community comments require no special protection"
+    rationale: "Page routing information is public and non-sensitive"
   
-  - backend_owner: "convex_backend"
-    field_description: "Comment timestamp and page association"
-    likely_classification: PUBLIC
-    likely_annotations: [immutable, audit_field]
-    rationale: "Audit trail for comment history and page context"
-  
-  - backend_owner: "convex_backend"
-    field_description: "Comment author identifier"
+  - backend_owner: convex_backend
+    field_description: "Comment author name provided by users"
     likely_classification: PUBLIC
     likely_annotations: []
-    rationale: "Public attribution for community discussions"
+    rationale: "Publicly displayed username with no authentication requirement"
+  
+  - backend_owner: convex_backend
+    field_description: "Comment body text content"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Public community discussion content visible to all users"
+  
+  - backend_owner: convex_backend
+    field_description: "Comment timestamp for chronological ordering"
+    likely_classification: PUBLIC
+    likely_annotations: []
+    rationale: "Public metadata for comment display and ordering"
