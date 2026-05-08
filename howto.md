@@ -636,6 +636,17 @@ role_backends:
 
 > Without `role_backends`, pact defaults to `claude_code` for implementation which requires Claude Code CLI. Set all roles to `anthropic` to use the direct API.
 
+> **Language and test framework** — by default pact generates Python code and uses pytest. If your project is TypeScript, JavaScript, or Rust, add these two lines to `pact.yaml` **before** running `pact daemon .` (changing them mid-build has no effect — contracts and test files are already generated in the original language):
+>
+> ```yaml
+> language: typescript   # supported: python (default), typescript, javascript, rust
+> test_framework: vitest # auto-detected if omitted: pytest for python, vitest for typescript/javascript
+> ```
+>
+> Supported values for `language`: `python`, `typescript`, `javascript`, `rust`. Check `exemplar.tools/pact/src/pact/config.py` for the current list.
+>
+> Setting `language: typescript` also updates the critical first line of `sops.md` — verify that `sops.md` says `CRITICAL: implementation language is TypeScript` (not Python) before starting the daemon.
+
 > **`build_mode`** accepts `unary`, `auto`, or `hierarchy`. Use `auto` (the default) — Pact decides whether to decompose into multiple components or implement as a single unit. Use `unary` only if you want to force a single component (collapses all tiers into one, uses in-memory storage instead of a real database). Use `hierarchy` to always force multi-component decomposition.
 
 > **`sops.md`** — the default says "Tests must be runnable without external services". If your app uses PostgreSQL, change this line to allow database connections via `DATABASE_URL`. Pact respects `sops.md` literally and will generate mock-only tests if this line is left unchanged.
