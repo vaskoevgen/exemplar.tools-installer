@@ -1,0 +1,133 @@
+{
+  "component_id": "root",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "initApp_happy_path",
+      "description": "initApp calls createAppRouter exactly once, then mountApp exactly once with the resulting router, mounting the app into #root",
+      "function": "initApp",
+      "category": "happy_path",
+      "setup_description": "DOM element #root exists. createAppRouter and mountApp mocks are set up to succeed.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No arguments",
+      "expected_output_description": "void — createAppRouter called once, mountApp called once after createAppRouter, in that order",
+      "expected_error": "",
+      "assertions": [
+        "createAppRouter is called exactly once",
+        "mountApp is called exactly once",
+        "createAppRouter is called before mountApp (call order)"
+      ]
+    },
+    {
+      "id": "initApp_missing_root_element",
+      "description": "initApp throws missing_root_element error when DOM element #root does not exist",
+      "function": "initApp",
+      "category": "error_case",
+      "setup_description": "DOM body is empty — no #root element exists",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No arguments",
+      "expected_output_description": "",
+      "expected_error": "missing_root_element",
+      "assertions": [
+        "initApp throws or mountApp propagates an error related to missing root element"
+      ]
+    },
+    {
+      "id": "initApp_router_creation_failure",
+      "description": "initApp propagates error when createAppRouter throws because a page component import is missing",
+      "function": "initApp",
+      "category": "error_case",
+      "setup_description": "DOM element #root exists. createAppRouter mock throws an error.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No arguments",
+      "expected_output_description": "",
+      "expected_error": "router_creation_failure",
+      "assertions": [
+        "initApp throws/rejects with the router creation error",
+        "mountApp is never called when router creation fails"
+      ]
+    },
+    {
+      "id": "initApp_mount_failure",
+      "description": "initApp propagates error when mountApp throws because React root creation fails",
+      "function": "initApp",
+      "category": "error_case",
+      "setup_description": "DOM element #root exists. createAppRouter succeeds but mountApp throws.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No arguments",
+      "expected_output_description": "",
+      "expected_error": "mount_failure",
+      "assertions": [
+        "initApp throws/rejects with the mount failure error",
+        "createAppRouter was still called exactly once before the failure"
+      ]
+    },
+    {
+      "id": "initApp_calls_createAppRouter_before_mountApp",
+      "description": "initApp always calls createAppRouter before mountApp — order invariant",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "DOM element #root exists. Both mocks succeed and record call order.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "No arguments",
+      "expected_output_description": "createAppRouter invocation order index < mountApp invocation order index",
+      "expected_error": "",
+      "assertions": [
+        "createAppRouter call order is strictly before mountApp call order"
+      ]
+    },
+    {
+      "id": "root_module_exports_only_initApp",
+      "description": "src/root.ts exports exactly one named runtime export: initApp",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "Import all exports from root module",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Module introspection",
+      "expected_output_description": "Module has exactly one named export: initApp, which is a function",
+      "expected_error": "",
+      "assertions": [
+        "initApp is a function",
+        "Module has exactly one named export key: 'initApp'"
+      ]
+    },
+    {
+      "id": "main_happy_path",
+      "description": "main.tsx module side-effect calls initApp exactly once and imports CSS",
+      "function": "main",
+      "category": "happy_path",
+      "setup_description": "Mock initApp from root module and CSS import. Dynamically import main.tsx.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Module loaded as side-effect",
+      "expected_output_description": "initApp called exactly once, CSS import resolved",
+      "expected_error": "",
+      "assertions": [
+        "initApp is called exactly once upon module load"
+      ]
+    },
+    {
+      "id": "main_has_zero_named_exports",
+      "description": "main.tsx has zero named exports — it is a side-effect-only entry point",
+      "function": "main",
+      "category": "invariant",
+      "setup_description": "Mock initApp and CSS. Dynamically import main.tsx and inspect exports.",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Module introspection",
+      "expected_output_description": "The module object has no named export keys (possibly only default undefined or empty)",
+      "expected_error": "",
+      "assertions": [
+        "Module export keys (excluding __esModule and default) is empty"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\n\n// ─── Module-level mock fns declared before vi.mock() calls ───\n\nconst mockCreateAppRouter = vi.fn();\nconst mockMountApp = vi.fn();\nconst mockInitApp = vi.fn();\n\n// ─── vi.mock() factories ───\n\n// Mock routing_and_layout\nvi.mock('../../src/routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n  ensureLeadingSlash: vi.fn((s: string) => (s.startsWith('/') ? s : `/${s}`)),\n  Sidebar: vi.fn(),\n  Layout: vi.fn(),\n  getNavLinkClassName: vi.fn(),\n}));\n\n// Mock project_scaffold\nvi.mock('../../src/project_scaffold', () => ({\n  mountApp: mockMountApp,\n  App: vi.fn(),\n}));\n\n// Mock page_content — every named runtime export\nvi.mock('../../src/page_content', () => ({\n  StepPage: vi.fn(),\n  HomePage: vi.fn(),\n  CartographerPage: vi.fn(),\n  ConstrainPage: vi.fn(),\n  LedgerPage: vi.fn(),\n  PactPage: vi.fn(),\n  AdvocatePage: vi.fn(),\n  ArbiterPage: vi.fn(),\n  BatonPage: vi.fn(),\n  SentinelPage: vi.fn(),\n  ChroniclerPage: vi.fn(),\n  StigmergyPage: vi.fn(),\n  ApprenticePage: vi.fn(),\n  KindexPage: vi.fn(),\n  getStepContent: vi.fn(),\n}));\n\n// Mock pipeline_diagram\nvi.mock('../../src/pipeline_diagram', () => ({\n  PipelineDiagram: vi.fn(),\n  guardSlug: vi.fn(),\n  PIPELINE_NODES: vi.fn(() => []),\n  PIPELINE_EDGES: vi.fn(() => []),\n}));\n\n// Mock shared_ui\nvi.mock('../../src/shared_ui', () => ({\n  CodeBlock: vi.fn(),\n  VersionBadge: vi.fn(),\n  YouTubeEmbed: vi.fn(),\n  CalloutBox: vi.fn(),\n  extractYouTubeVideoId: vi.fn(),\n}));\n\n// ─── Import the module under test ───\n// Note: we import AFTER vi.mock() declarations (which are hoisted anyway)\nimport * as rootModule from '../../src/root';\n\n// ─── Test Suite ───\n\ndescribe('root – initApp()', () => {\n  const callOrder: string[] = [];\n\n  beforeEach(() => {\n    // Set up the DOM with a #root element\n    document.body.innerHTML = '<div id=\"root\"></div>';\n\n    // Reset call tracking\n    callOrder.length = 0;\n\n    // Set up mock implementations that track call order\n    const fakeRouter = { routes: 'fake-router-instance' };\n    mockCreateAppRouter.mockImplementation(() => {\n      callOrder.push('createAppRouter');\n      return fakeRouter;\n    });\n    mockMountApp.mockImplementation(() => {\n      callOrder.push('mountApp');\n    });\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n    vi.restoreAllMocks();\n  });\n\n  it('happy path: calls createAppRouter once then mountApp once, mounting the app into #root', () => {\n    const { initApp } = rootModule;\n\n    initApp();\n\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n    expect(mockMountApp).toHaveBeenCalledTimes(1);\n\n    // Verify ordering: createAppRouter before mountApp\n    expect(callOrder).toEqual(['createAppRouter', 'mountApp']);\n  });\n\n  it('invariant: createAppRouter is called strictly before mountApp', () => {\n    const { initApp } = rootModule;\n\n    initApp();\n\n    const createIndex = callOrder.indexOf('createAppRouter');\n    const mountIndex = callOrder.indexOf('mountApp');\n\n    expect(createIndex).toBeGreaterThanOrEqual(0);\n    expect(mountIndex).toBeGreaterThanOrEqual(0);\n    expect(createIndex).toBeLessThan(mountIndex);\n  });\n\n  it('error: missing_root_element — propagates error when #root DOM element does not exist', () => {\n    // Remove the #root element\n    document.body.innerHTML = '';\n\n    const { initApp } = rootModule;\n\n    // mountApp should be configured to throw when root is missing\n    mockMountApp.mockImplementation(() => {\n      const el = document.getElementById('root');\n      if (!el) {\n        throw new Error('missing_root_element: DOM element with id=\"root\" not found');\n      }\n    });\n\n    expect(() => initApp()).toThrow();\n\n    // createAppRouter should still have been called (it runs first)\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n  });\n\n  it('error: router_creation_failure — propagates error when createAppRouter throws', () => {\n    const routerError = new Error('router_creation_failure: Missing page component import');\n    mockCreateAppRouter.mockImplementation(() => {\n      throw routerError;\n    });\n\n    const { initApp } = rootModule;\n\n    expect(() => initApp()).toThrow(routerError);\n\n    // mountApp must NOT be called if createAppRouter fails\n    expect(mockMountApp).not.toHaveBeenCalled();\n  });\n\n  it('error: mount_failure — propagates error when mountApp throws', () => {\n    const mountError = new Error('mount_failure: createRoot is unavailable');\n    mockMountApp.mockImplementation(() => {\n      throw mountError;\n    });\n\n    const { initApp } = rootModule;\n\n    expect(() => initApp()).toThrow(mountError);\n\n    // createAppRouter should have been called before the mount failure\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n  });\n\n  it('invariant: root module exports exactly one named runtime export: initApp', () => {\n    // Filter out potential __esModule or default keys\n    const exportKeys = Object.keys(rootModule).filter(\n      (k) => k !== '__esModule' && k !== 'default'\n    );\n\n    expect(exportKeys).toEqual(['initApp']);\n    expect(typeof rootModule.initApp).toBe('function');\n  });\n});\n\ndescribe('root – main.tsx (side-effect entry point)', () => {\n  beforeEach(() => {\n    document.body.innerHTML = '<div id=\"root\"></div>';\n    vi.resetModules();\n\n    // Reset mock state\n    mockInitApp.mockReset();\n    mockCreateAppRouter.mockReset();\n    mockMountApp.mockReset();\n\n    mockCreateAppRouter.mockReturnValue({ routes: 'fake-router' });\n    mockMountApp.mockImplementation(() => {});\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n    vi.restoreAllMocks();\n  });\n\n  it('happy path: importing main.tsx calls initApp exactly once', async () => {\n    // We need to dynamically mock and import main.tsx to test its side effect\n    // Mock the root module so we can track initApp calls\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    // Mock CSS import (side-effect only)\n    vi.doMock('../../src/index.css', () => ({}));\n\n    // Dynamically import main.tsx — this triggers the side effect\n    await import('../../src/main');\n\n    expect(mockInitApp).toHaveBeenCalledTimes(1);\n  });\n\n  it('invariant: main.tsx has zero named exports', async () => {\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    vi.doMock('../../src/index.css', () => ({}));\n\n    const mainModule = await import('../../src/main');\n\n    // Filter out meta keys like __esModule and default\n    const namedExports = Object.keys(mainModule).filter(\n      (k) => k !== '__esModule' && k !== 'default'\n    );\n\n    expect(namedExports).toEqual([]);\n  });\n\n  it('error: init_app_import_failure — fails when initApp cannot be resolved from root', async () => {\n    // Mock root module to not export initApp at all\n    vi.doMock('../../src/root', () => {\n      throw new Error('init_app_import_failure: Named export initApp cannot be resolved');\n    });\n\n    vi.doMock('../../src/index.css', () => ({}));\n\n    await expect(async () => {\n      await import('../../src/main');\n    }).rejects.toThrow();\n  });\n\n  it('error: css_import_failure — fails when index.css cannot be resolved', async () => {\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    vi.doMock('../../src/index.css', () => {\n      throw new Error('css_import_failure: src/index.css cannot be resolved');\n    });\n\n    await expect(async () => {\n      await import('../../src/main');\n    }).rejects.toThrow();\n  });\n});\n"
+}

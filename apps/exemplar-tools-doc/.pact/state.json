@@ -1,0 +1,171 @@
+{
+  "id": "50e92f7c1d1a",
+  "project_dir": "/Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc",
+  "status": "paused",
+  "phase": "decompose",
+  "component_tasks": [
+    {
+      "component_id": "page_content",
+      "status": "pending",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "pipeline_diagram",
+      "status": "pending",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "project_scaffold",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "routing_and_layout",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "shared_ui",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    },
+    {
+      "component_id": "root",
+      "status": "contracting",
+      "attempts": 0,
+      "last_error": ""
+    }
+  ],
+  "interview_result": {
+    "risks": [
+      "CRITICAL: howto.md is referenced as the single source of truth for ALL content (commands, gotchas, warnings, tips, examples, YouTube links, version badges, pipeline diagram) but is NOT provided in the task specification. Without it, implementation is impossible — any content would be fabricated, directly violating the 'verbatim accuracy' requirement.",
+      "The pipeline diagram for the Home page is mentioned but no format is specified (SVG? ASCII art from howto.md? Mermaid? Image file?). Different engineers will produce incompatible implementations.",
+      "YouTube video embedding requires specific video IDs/URLs from howto.md. If howto.md links are missing, malformed, or use non-embeddable formats, the feature silently fails.",
+      "Version badges require a data source for component versions. If howto.md doesn't contain explicit version numbers, there's no specification for where to pull them from — hardcoded? fetched from npm? from a config file?",
+      "SPA routing (React Router assumed but not specified) deployed to Vercel requires a vercel.json rewrite rule to handle client-side routes. Without it, direct navigation to any page other than '/' will 404 in production.",
+      "The SOPs mandate 'All functions must have at least one test' and 'No task is done until its contract tests pass' — but the task is a documentation website with mostly static content. Testing every component/function for a 13-page static site is significant scope that's easy to underestimate.",
+      "Slug handling SOP references ROUTE_SLUG_MAP as a specific data structure. If implementation doesn't use this exact naming convention, tests using vi.mock() will break per the mock rules SOP.",
+      "Tailwind CSS v3 vs v4 is unspecified — v4 has a completely different configuration model (CSS-based vs tailwind.config.js). This could cause styling failures if the wrong version is assumed.",
+      "No accessibility requirements specified — a documentation site that fails basic a11y is a liability.",
+      "No mobile/responsive design requirements specified — Tailwind makes this easy but without requirements, implementations will vary wildly."
+    ],
+    "ambiguities": [
+      "howto.md is never provided — where does implementation source this file? Is it in the repo? Fetched at build time? Bundled as a static asset? Parsed at compile time?",
+      "Navigation between pages: is this React Router (hash or browser history mode)? A sidebar? Top nav? Breadcrumbs? Prev/Next buttons? All of the above?",
+      "Single-page application with 'pages' — does 'one page per tool' mean separate routes within the SPA, or collapsible sections on a single scrollable page?",
+      "Content format: are commands rendered in code blocks with syntax highlighting? Is there a copy-to-clipboard button? The spec says 'developers copy-paste' which implies easy copying UX.",
+      "Pipeline diagram: is this a specific image/SVG from howto.md, or should it be generated as a React component? What does it look like?",
+      "Version badges: static text badges? shields.io images? What versions — npm package versions? CLI versions? Where is the source data?",
+      "The 13 pages map to Steps 0–7 (with sub-steps a/b/c) plus Home. The step numbering has gaps (no Step 3 standalone, Steps 5a/5b/5c). Are these all the steps in howto.md or could there be more?",
+      "Deployment: 'Vercel (npx vercel)' — is this a one-time manual deploy, or should there be CI/CD configuration? Is a vercel.json required in the output?",
+      "No mention of search functionality — for a developer reference site, this is a significant UX gap. Is it intentionally omitted?",
+      "Port 4000 for Vite dev server — this requires explicit vite.config.ts configuration. Is this a hard requirement or a preference?"
+    ],
+    "questions": [
+      "Where is howto.md? Can you provide its full contents? Without it, zero content can be implemented accurately.",
+      "What routing library should be used — React Router v6? And should it use browser history or hash-based routing?",
+      "For the pipeline diagram on the Home page, is there a specific diagram format in howto.md (ASCII, Mermaid, image URL), or should we create a visual component?",
+      "Should code blocks have a 'copy to clipboard' button since developers will copy-paste commands?",
+      "What are the version badge data sources — are versions hardcoded from howto.md or dynamically resolved?",
+      "Is a vercel.json with SPA rewrite rules part of the deliverable?",
+      "What navigation pattern is expected — sidebar, top nav bar, or both? Should there be prev/next step navigation?",
+      "Is there a design system, color scheme, or brand guidelines for exemplar.tools, or is visual design at the implementer's discretion?",
+      "Should the content from howto.md be hardcoded into React components, or parsed from the markdown file at build time (e.g., using a Vite plugin)?",
+      "Are there any pages beyond what's listed (e.g., installation/setup, troubleshooting, FAQ) or is the list exhaustive?"
+    ],
+    "assumptions": [
+      "howto.md exists in the project context and will be provided before implementation begins.",
+      "Navigation will use React Router v6 with browser history mode and a persistent sidebar for step navigation.",
+      "Content will be hardcoded into TypeScript/TSX files rather than parsed from markdown at runtime, since the spec says 'static' and accuracy is paramount.",
+      "Tailwind CSS v3 with a standard tailwind.config.js will be used since v4 is not yet universally stable.",
+      "A vercel.json with SPA rewrites ({ 'rewrites': [{ 'source': '/(.*)', 'destination': '/index.html' }] }) will be included.",
+      "Code blocks will include a copy-to-clipboard button since the spec emphasizes developers copy-pasting commands.",
+      "Port 4000 is a hard requirement and will be configured in vite.config.ts.",
+      "Version badges are static text/visual elements with versions sourced from howto.md content.",
+      "The pipeline diagram is a custom React/SVG component showing the step flow, since no image asset is provided.",
+      "React Router v6 will be used with named exports per SOP (no default exports).",
+      "vitest and @testing-library/react will be used for component testing."
+    ],
+    "acceptance_criteria": [
+      "howto.md is provided and all CLI commands on the site are character-for-character identical to those in howto.md.",
+      "Project bootstraps with `npm install` and `npm run dev` starts Vite dev server on port 4000 without errors.",
+      "All source files are .ts or .tsx — zero .py, .js, or .jsx files in the source directory.",
+      "The site has exactly 14 navigable routes: Home + 13 step pages as listed in the spec.",
+      "Each step page displays all commands, gotchas, warnings, tips, and examples from the corresponding section of howto.md.",
+      "YouTube videos from howto.md are embedded as iframes on their respective step pages and load correctly.",
+      "Version badges are visible on relevant pages showing component versions.",
+      "The Home page displays the pipeline diagram.",
+      "Navigation allows moving between all pages without full page reloads (SPA behavior).",
+      "All named exports follow SOP — no default exports anywhere in the codebase.",
+      "ROUTE_SLUG_MAP values include leading slashes; no double-slash bugs in navigation.",
+      "`npm run build` produces a production bundle without errors or TypeScript type errors.",
+      "`npx vitest run` passes — every exported function/component has at least one test.",
+      "vi.mock() calls in tests mock every named runtime export of the target module.",
+      "Deployed to Vercel via `npx vercel`, all routes resolve correctly (no 404 on direct navigation).",
+      "TypeScript strict mode is enabled in tsconfig.json.",
+      "All public functions have explicit type annotations.",
+      "Tailwind CSS is functional — utility classes render correct styles."
+    ],
+    "user_answers": {},
+    "approved": false,
+    "audited_answers": [],
+    "processing_register": "systematic-verification"
+  },
+  "total_cost_usd": 0.734675,
+  "total_tokens": 49015,
+  "last_check_in": "2026-05-19T11:57:45.153647",
+  "created_at": "2026-05-18T21:51:45.603877",
+  "completed_at": "",
+  "pause_reason": "Plan-only mode: decomposition and contracts complete. Use 'pact build <project> <component_id>' to implement specific components, or disable plan_only to implement all. [DAEMON TIMED OUT — manual resume required] [DAEMON TIMED OUT — manual resume required] [DAEMON TIMED OUT — manual resume required] [DAEMON TIMED OUT — manual resume required]",
+  "sops_autofix_count": 0,
+  "phase_cycles": 0,
+  "health_snapshot": {
+    "planning_tokens": 282605,
+    "generation_tokens": 121035,
+    "planning_calls": 2,
+    "generation_calls": 3,
+    "plan_revisions": 0,
+    "implementation_attempts": 3,
+    "implementation_failures": 2,
+    "test_failures": 8,
+    "test_passes": 100,
+    "contracts_produced": 6,
+    "tests_produced": 6,
+    "implementations_produced": 1,
+    "component_failures": {
+      "project_scaffold": 1,
+      "pipeline_diagram": 1
+    },
+    "cascade_events": 0,
+    "register_drift_events": 0,
+    "register_checks": 0,
+    "phase_tokens": {
+      "interview": {
+        "input_tokens": 3214,
+        "output_tokens": 2136,
+        "calls": 1
+      },
+      "decompose": {
+        "input_tokens": 134329,
+        "output_tokens": 142926,
+        "calls": 1
+      },
+      "implement": {
+        "input_tokens": 64814,
+        "output_tokens": 56221,
+        "calls": 3
+      }
+    },
+    "total_spend": 0.734675,
+    "budget_cap": 25.0
+  },
+  "processing_register": "systematic-verification",
+  "audit_commit": "",
+  "arbiter_response": {},
+  "constrain_context": {}
+}

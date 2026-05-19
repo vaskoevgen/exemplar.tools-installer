@@ -1,0 +1,97 @@
+{
+  "task_summary": "Implement the 'Project Scaffold & Configuration' component for a React 18 + Vite + TypeScript + Tailwind CSS project. The component includes: App() function returning a ReactElementNode, mountApp() as a side-effect-only entry point, and all supporting configuration files (vite.config.ts, vitest config, tsconfig, tailwind config, index.css, test-setup.ts, package.json). Prior attempts failed because two critical files were missing from disk: `src/index.css` and `src/test-setup.ts`. The tests read these files from the filesystem, so they MUST physically exist.",
+  "findings": [
+    {
+      "topic": "Root Cause of Prior Failures",
+      "finding": "Every single test failure traces back to the same two ENOENT errors: `src/project_scaffold/src/index.css` and `src/project_scaffold/src/test-setup.ts` do not exist on disk. The tests (or the vitest setup file referenced in config) attempt to read/import these files at module load time, causing all tests to abort before any assertions run. The fix is simple: these files must be created as actual files on disk before tests execute.",
+      "source": "Error log analysis — all 16 failures share identical ENOENT stack traces",
+      "relevance": "This is THE critical blocker. No other code changes matter until these files exist.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "File: src/index.css",
+      "finding": "For a Tailwind CSS v3 project, index.css must contain the three Tailwind directives: `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`. The test explicitly checks for these directives ('contains @tailwind base, components, and utilities directives'). The file must be at the exact path: `src/project_scaffold/src/index.css` relative to the project root.",
+      "source": "Tailwind CSS v3 installation docs; test name analysis",
+      "relevance": "Direct requirement from the contract test suite",
+      "confidence": 0.98
+    },
+    {
+      "topic": "File: src/test-setup.ts",
+      "finding": "The test-setup.ts file must import `@testing-library/jest-dom` to register global matchers (toBeInTheDocument, toHaveTextContent, etc.). The test explicitly checks: 'imports @testing-library/jest-dom for global matchers'. The vitest config's setupFiles must point to `./src/test-setup.ts`. The file path must be `src/project_scaffold/src/test-setup.ts`.",
+      "source": "Testing Library jest-dom docs; test name analysis",
+      "relevance": "Direct requirement from the contract test suite",
+      "confidence": 0.98
+    },
+    {
+      "topic": "mountApp() Pattern — Side-Effect-Only Module",
+      "finding": "The test 'invariant: mountApp module has no named exports (side-effect only)' means main.tsx should NOT use `export` statements. It should import App, import createRoot from react-dom/client, find `document.getElementById('root')`, call `createRoot(el).render(<App />)`. The module executes as a side-effect on import. The test likely does `import * as mod from '...'` and asserts `Object.keys(mod).length === 0`.",
+      "source": "Vite React template conventions; test name analysis",
+      "relevance": "Critical for the mountApp bootstrap tests to pass",
+      "confidence": 0.95
+    },
+    {
+      "topic": "App() Component",
+      "finding": "App must be a named export (`export function App()`) per project standards (named exports only, no default exports). It returns a ReactElementNode (JSX). The mountApp module (main.tsx) imports App and renders it. The test mocks react-dom/client to verify createRoot is called with the #root element and render is called with <App />.",
+      "source": "Operating procedures — 'Named exports only — no default exports'",
+      "relevance": "Compliance with project coding standards",
+      "confidence": 0.97
+    },
+    {
+      "topic": "ViteServerConfig",
+      "finding": "The vite.config.ts must configure `server.port` to exactly 4000 per the operating procedures. The test explicitly checks 'port must be exactly 4000'. The config should use `defineConfig` from vite with the react plugin.",
+      "source": "Operating procedures — 'Vite (dev server on port 4000)'; test name",
+      "relevance": "Direct contract test requirement",
+      "confidence": 0.99
+    },
+    {
+      "topic": "VitestConfig",
+      "finding": "The vitest configuration (likely in vite.config.ts under `test` key) must have: `environment: 'jsdom'`, `globals: true`, and `setupFiles: './src/test-setup.ts'`. All three are explicitly tested. The setupFiles path is relative to the config file location.",
+      "source": "Vitest configuration docs; test names for VitestConfig",
+      "relevance": "Direct contract test requirements",
+      "confidence": 0.99
+    },
+    {
+      "topic": "CSS Import in main.tsx Causes ENOENT",
+      "finding": "The main.tsx (mountApp) likely has `import './index.css'` which vitest tries to resolve. If index.css doesn't exist on disk, the import fails with ENOENT at module resolution time, crashing the entire test file. Even if the test mocks react-dom/client, CSS imports need to either: (a) exist on disk, or (b) be handled by vitest's CSS configuration (css: true/false). The safest approach is ensuring the file exists.",
+      "source": "Vitest CSS handling documentation; error trace analysis",
+      "relevance": "Root cause — this is why ALL tests fail, not just CSS-related ones",
+      "confidence": 0.97
+    },
+    {
+      "topic": "File Structure Convention",
+      "finding": "Based on the error paths, the project structure is: `src/project_scaffold/src/` contains the source files (App.tsx, main.tsx, index.css, test-setup.ts), and config files (vite.config.ts, tsconfig.json, tailwind.config.ts/js) live at `src/project_scaffold/`. Tests are at `tests/project_scaffold/contract_test.test.ts`. The tests import/read from relative paths based on this layout.",
+      "source": "Error path analysis: /apps/exemplar-tools-doc/src/project_scaffold/src/",
+      "relevance": "Getting the file paths exactly right is critical — prior failure was entirely about wrong/missing paths",
+      "confidence": 0.93
+    },
+    {
+      "topic": "vi.mock() for CSS Imports",
+      "finding": "If the test file imports main.tsx which imports index.css, vitest may need CSS handling configured. Options: (1) vitest config `css: false` to skip CSS processing, (2) the test uses `vi.mock('./index.css', () => ({}))`, or (3) the actual CSS file exists and vitest handles it. Given the ENOENT error happens before test code runs, the file simply must exist on disk. Vitest by default can handle .css imports if the file exists (it returns an empty module).",
+      "source": "Vitest documentation on CSS handling",
+      "relevance": "Understanding why CSS file absence crashes everything",
+      "confidence": 0.92
+    }
+  ],
+  "recommended_approach": "The implementation must create ALL physical files that are expected on disk. The prior attempt failed solely because `src/index.css` and `src/test-setup.ts` were missing. Here is the complete file manifest:\n\n1. **`src/project_scaffold/src/index.css`** — Must contain `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`\n\n2. **`src/project_scaffold/src/test-setup.ts`** — Must contain `import '@testing-library/jest-dom';`\n\n3. **`src/project_scaffold/src/App.tsx`** — Named export `App` function component returning JSX. No default export.\n\n4. **`src/project_scaffold/src/main.tsx`** — Side-effect-only module (no exports). Imports `./index.css`, imports `App` from `./App`, uses `createRoot(document.getElementById('root')!).render(<App />)`.\n\n5. **`src/project_scaffold/vite.config.ts`** — Uses `defineConfig` with react plugin, `server: { port: 4000 }`, and `test: { environment: 'jsdom', globals: true, setupFiles: './src/test-setup.ts' }`.\n\n6. **Config type exports** — Create a types file exporting `ReactElementNode`, `ViteServerConfig`, `VitestConfig`, `TsCompilerOptions`, `TailwindContentGlob`, `VercelRewriteRule`, `PackageDependencyMap`, `PackageDevDependencyMap` using `export type { }` syntax.\n\nKey principle: **Every file that any test reads from disk (via `fs.readFileSync` or `import`) must exist before tests run.** Do not assume vitest will mock away filesystem reads for CSS or setup files.",
+  "alternatives_considered": [
+    "Mock CSS imports in vitest config with `css: false` instead of creating index.css — rejected because the test explicitly reads the file content to check for @tailwind directives, so the file must physically exist",
+    "Use vi.mock() in tests to mock the CSS import — rejected because the ENOENT occurs at vitest setup/module resolution time before any vi.mock() can intercept, and we don't control the test file",
+    "Place files at different paths (e.g., src/ instead of src/project_scaffold/src/) — rejected because error paths clearly show the expected location",
+    "Use default exports for App — rejected because operating procedures explicitly prohibit default exports"
+  ],
+  "risks": [
+    "If the test reads config files by importing them (e.g., `import config from '../vite.config'`), the vite.config.ts must be parseable in a test context — ensure no side effects that break in vitest",
+    "The exact relative path in setupFiles ('./src/test-setup.ts') must match what the test asserts — if the test checks for a different string form this will fail",
+    "The test for mountApp being side-effect-only may check `Object.keys(module)` — if any named export leaks (even a type re-export at runtime), it could fail",
+    "The index.css content test may do exact string matching — ensure no extra whitespace or content beyond the three @tailwind directives and minimal formatting"
+  ],
+  "compliance_notes": [
+    "All source files must be .ts or .tsx — no .js, .jsx, or .py files",
+    "TypeScript strict mode must be enabled in tsconfig",
+    "Named exports only — no default exports anywhere",
+    "Use `export type { }` for interfaces and type aliases",
+    "Type annotations on all public functions",
+    "Vite dev server port must be exactly 4000",
+    "Vitest config: environment='jsdom', globals=true, setupFiles='./src/test-setup.ts'"
+  ]
+}

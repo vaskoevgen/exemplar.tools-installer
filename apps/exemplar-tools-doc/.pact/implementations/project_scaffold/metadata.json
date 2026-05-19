@@ -1,0 +1,21 @@
+{
+  "attempt": 3,
+  "timestamp": "2026-05-19T11:07:28.158938",
+  "files": [
+    "index.ts",
+    "types.ts",
+    "errors.ts",
+    "App.tsx",
+    "mountApp.ts",
+    "main.tsx",
+    "src/index.css",
+    "src/test-setup.ts",
+    "vite.config.ts",
+    "tsconfig.json",
+    "tailwind.config.js",
+    "postcss.config.js",
+    "index.html",
+    "vercel.json",
+    "package.json"
+  ]
+}

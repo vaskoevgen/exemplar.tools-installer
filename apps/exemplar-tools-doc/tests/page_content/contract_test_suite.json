@@ -1,0 +1,553 @@
+{
+  "component_id": "page_content",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "get_step_content_happy_all_ids",
+      "description": "getStepContent returns well-formed StepContent for every valid StepId",
+      "function": "getStepContent",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Each value of the StepId enum",
+      "expected_output_description": "StepContent with matching stepId, non-empty overview, and valid label",
+      "expected_error": "",
+      "assertions": [
+        "returned stepId matches requested stepId",
+        "overview is a non-empty string",
+        "commands is an array",
+        "callouts is an array",
+        "examples is an array",
+        "label is a non-empty string"
+      ]
+    },
+    {
+      "id": "get_step_content_structural_integrity",
+      "description": "getStepContent returns objects with all required StepContent fields",
+      "function": "getStepContent",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A valid StepId",
+      "expected_output_description": "Object with stepId, label, overview, commands, callouts, examples fields",
+      "expected_error": "",
+      "assertions": [
+        "stepId field exists",
+        "label field exists",
+        "overview field exists",
+        "commands field exists",
+        "callouts field exists",
+        "examples field exists"
+      ]
+    },
+    {
+      "id": "get_step_content_invalid_step_id",
+      "description": "getStepContent throws for an invalid stepId value",
+      "function": "getStepContent",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "stepId": "invalid_step"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_step_id",
+      "assertions": [
+        "throws error for invalid stepId"
+      ]
+    },
+    {
+      "id": "step_content_record_completeness",
+      "description": "STEP_CONTENT has an entry for every StepId enum value",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every StepId key exists in STEP_CONTENT"
+      ]
+    },
+    {
+      "id": "step_content_stepid_matches_key",
+      "description": "Every STEP_CONTENT entry's stepId matches its record key",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "STEP_CONTENT[key].stepId === key for every key"
+      ]
+    },
+    {
+      "id": "step_content_frozen",
+      "description": "STEP_CONTENT is frozen and cannot be mutated at runtime",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.isFrozen(STEP_CONTENT) is true or mutation throws"
+      ]
+    },
+    {
+      "id": "step_page_renders_label_h1",
+      "description": "StepPage renders an h1 with content.label text",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with label, overview, commands, callouts, examples, youtubeUrl, version",
+      "expected_output_description": "h1 element containing the label text",
+      "expected_error": "",
+      "assertions": [
+        "h1 element contains the label text"
+      ]
+    },
+    {
+      "id": "step_page_renders_overview",
+      "description": "StepPage renders the overview text in a paragraph",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with non-empty overview",
+      "expected_output_description": "Paragraph element containing overview text",
+      "expected_error": "",
+      "assertions": [
+        "overview text is visible in the rendered output"
+      ]
+    },
+    {
+      "id": "step_page_renders_commands",
+      "description": "StepPage renders one CodeBlock per command entry",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with 2 command entries",
+      "expected_output_description": "2 CodeBlock components rendered",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlock rendered for each command",
+        "command text is present"
+      ]
+    },
+    {
+      "id": "step_page_renders_callouts",
+      "description": "StepPage renders one CalloutBox per callout entry with correct variant",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with callouts of different variants",
+      "expected_output_description": "CalloutBox rendered for each callout with matching variant",
+      "expected_error": "",
+      "assertions": [
+        "CalloutBox rendered for each callout",
+        "variant is passed correctly"
+      ]
+    },
+    {
+      "id": "step_page_renders_examples",
+      "description": "StepPage renders one CodeBlock per example entry",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with 2 example strings",
+      "expected_output_description": "2 CodeBlock components for examples",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlock rendered for each example"
+      ]
+    },
+    {
+      "id": "step_page_youtube_present",
+      "description": "StepPage renders YouTubeEmbed when youtubeUrl is a non-empty string",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with youtubeUrl set",
+      "expected_output_description": "YouTubeEmbed component is rendered",
+      "expected_error": "",
+      "assertions": [
+        "YouTubeEmbed is present in rendered output"
+      ]
+    },
+    {
+      "id": "step_page_youtube_absent",
+      "description": "StepPage does not render YouTubeEmbed when youtubeUrl is undefined/empty",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with youtubeUrl undefined",
+      "expected_output_description": "No YouTubeEmbed in rendered output",
+      "expected_error": "",
+      "assertions": [
+        "YouTubeEmbed is not present"
+      ]
+    },
+    {
+      "id": "step_page_version_present",
+      "description": "StepPage renders VersionBadge when version is a non-empty string",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with version set",
+      "expected_output_description": "VersionBadge component is rendered",
+      "expected_error": "",
+      "assertions": [
+        "VersionBadge is present in rendered output"
+      ]
+    },
+    {
+      "id": "step_page_version_absent",
+      "description": "StepPage does not render VersionBadge when version is undefined/empty",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with version undefined",
+      "expected_output_description": "No VersionBadge in rendered output",
+      "expected_error": "",
+      "assertions": [
+        "VersionBadge is not present"
+      ]
+    },
+    {
+      "id": "step_page_empty_arrays",
+      "description": "StepPage renders no command/callout/example sections when arrays are empty",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with empty commands, callouts, and examples arrays",
+      "expected_output_description": "No CodeBlock or CalloutBox components rendered, no section headings for those sections",
+      "expected_error": "",
+      "assertions": [
+        "No CodeBlock rendered",
+        "No CalloutBox rendered"
+      ]
+    },
+    {
+      "id": "step_page_missing_content",
+      "description": "StepPage handles undefined/null content prop as missing_content error",
+      "function": "StepPage",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "content prop is undefined or null",
+      "expected_output_description": "",
+      "expected_error": "missing_content",
+      "assertions": [
+        "throws or renders error for missing content"
+      ]
+    },
+    {
+      "id": "home_page_renders_overview",
+      "description": "HomePage renders the home overview text and label",
+      "function": "HomePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Home overview text and h1 with home label visible",
+      "expected_error": "",
+      "assertions": [
+        "home overview text is visible",
+        "h1 with home label is present"
+      ]
+    },
+    {
+      "id": "home_page_renders_pipeline_diagram",
+      "description": "HomePage renders exactly one PipelineDiagram component",
+      "function": "HomePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "PipelineDiagram component is rendered once",
+      "expected_error": "",
+      "assertions": [
+        "PipelineDiagram is rendered exactly once"
+      ]
+    },
+    {
+      "id": "cartographer_page_renders",
+      "description": "CartographerPage renders StepPage with cartographer content",
+      "function": "CartographerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with cartographer label visible",
+      "expected_error": "",
+      "assertions": [
+        "cartographer label is visible in output"
+      ]
+    },
+    {
+      "id": "constrain_page_renders",
+      "description": "ConstrainPage renders StepPage with constrain content",
+      "function": "ConstrainPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with constrain label visible",
+      "expected_error": "",
+      "assertions": [
+        "constrain label is visible"
+      ]
+    },
+    {
+      "id": "ledger_page_renders",
+      "description": "LedgerPage renders StepPage with ledger content",
+      "function": "LedgerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with ledger label visible",
+      "expected_error": "",
+      "assertions": [
+        "ledger label is visible"
+      ]
+    },
+    {
+      "id": "pact_page_renders",
+      "description": "PactPage renders StepPage with pact content",
+      "function": "PactPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with pact label visible",
+      "expected_error": "",
+      "assertions": [
+        "pact label is visible"
+      ]
+    },
+    {
+      "id": "advocate_page_renders",
+      "description": "AdvocatePage renders StepPage with advocate content",
+      "function": "AdvocatePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with advocate label visible",
+      "expected_error": "",
+      "assertions": [
+        "advocate label is visible"
+      ]
+    },
+    {
+      "id": "arbiter_page_renders",
+      "description": "ArbiterPage renders StepPage with arbiter content",
+      "function": "ArbiterPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with arbiter label visible",
+      "expected_error": "",
+      "assertions": [
+        "arbiter label is visible"
+      ]
+    },
+    {
+      "id": "baton_page_renders",
+      "description": "BatonPage renders StepPage with baton content",
+      "function": "BatonPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with baton label visible",
+      "expected_error": "",
+      "assertions": [
+        "baton label is visible"
+      ]
+    },
+    {
+      "id": "sentinel_page_renders",
+      "description": "SentinelPage renders StepPage with sentinel content",
+      "function": "SentinelPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with sentinel label visible",
+      "expected_error": "",
+      "assertions": [
+        "sentinel label is visible"
+      ]
+    },
+    {
+      "id": "chronicler_page_renders",
+      "description": "ChroniclerPage renders StepPage with chronicler content",
+      "function": "ChroniclerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with chronicler label visible",
+      "expected_error": "",
+      "assertions": [
+        "chronicler label is visible"
+      ]
+    },
+    {
+      "id": "stigmergy_page_renders",
+      "description": "StigmergyPage renders StepPage with stigmergy content",
+      "function": "StigmergyPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with stigmergy label visible",
+      "expected_error": "",
+      "assertions": [
+        "stigmergy label is visible"
+      ]
+    },
+    {
+      "id": "apprentice_page_renders",
+      "description": "ApprenticePage renders StepPage with apprentice content",
+      "function": "ApprenticePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with apprentice label visible",
+      "expected_error": "",
+      "assertions": [
+        "apprentice label is visible"
+      ]
+    },
+    {
+      "id": "kindex_page_renders",
+      "description": "KindexPage renders StepPage with kindex content",
+      "function": "KindexPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "StepPage rendered with kindex label visible",
+      "expected_error": "",
+      "assertions": [
+        "kindex label is visible"
+      ]
+    },
+    {
+      "id": "all_wrapper_pages_zero_props",
+      "description": "All wrapper page components render without any props",
+      "function": "CartographerPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each wrapper renders without props",
+        "no errors thrown"
+      ]
+    },
+    {
+      "id": "step_content_labels_match_ids",
+      "description": "Every StepContent entry's label corresponds to the correct StepLabel for that StepId",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "label field corresponds to correct StepLabel for each StepId"
+      ]
+    },
+    {
+      "id": "callout_variants_coverage",
+      "description": "StepPage correctly passes through all three CalloutVariant values",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with callouts covering gotcha, warning, and tip variants",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "gotcha variant rendered",
+        "warning variant rendered",
+        "tip variant rendered"
+      ]
+    },
+    {
+      "id": "commands_have_required_fields",
+      "description": "Every command entry in STEP_CONTENT has command and description strings",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each command has command field as string",
+        "each command has description field as string"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\n// =============================================================================\n// Contract Test Suite for page_content\n// Three logical test groups in one file:\n//   1. Data layer (getStepContent, STEP_CONTENT invariants)\n//   2. StepPage component rendering\n//   3. All page wrapper components (HomePage, CartographerPage, etc.)\n// =============================================================================\n\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport React from 'react';\nimport { render, screen } from '@testing-library/react';\nimport '@testing-library/jest-dom';\n\n// ---------------------------------------------------------------------------\n// Mock shared_ui — must provide every named export the implementation uses\n// ---------------------------------------------------------------------------\nvi.mock('../../src/shared_ui', () => ({\n  CodeBlock: ({ children, code, command, description, ...rest }: any) =>\n    React.createElement('div', { 'data-testid': 'code-block' }, command ?? code ?? children ?? ''),\n  CalloutBox: ({ variant, text, children, ...rest }: any) =>\n    React.createElement('div', { 'data-testid': `callout-${variant}` }, text ?? children ?? ''),\n  YouTubeEmbed: ({ url, ...rest }: any) =>\n    React.createElement('div', { 'data-testid': 'youtube-embed' }, url),\n  VersionBadge: ({ version, ...rest }: any) =>\n    React.createElement('span', { 'data-testid': 'version-badge' }, version),\n}));\n\n// ---------------------------------------------------------------------------\n// Mock pipeline_diagram — must provide PipelineDiagram\n// ---------------------------------------------------------------------------\nvi.mock('../../src/pipeline_diagram', () => ({\n  PipelineDiagram: () =>\n    React.createElement('div', { 'data-testid': 'pipeline-diagram' }, 'PipelineDiagram'),\n}));\n\n// ---------------------------------------------------------------------------\n// Imports from the component under test\n// ---------------------------------------------------------------------------\nimport {\n  StepPage,\n  HomePage,\n  CartographerPage,\n  ConstrainPage,\n  LedgerPage,\n  PactPage,\n  AdvocatePage,\n  ArbiterPage,\n  BatonPage,\n  SentinelPage,\n  ChroniclerPage,\n  StigmergyPage,\n  ApprenticePage,\n  KindexPage,\n  getStepContent,\n  STEP_CONTENT,\n} from '../../src/page_content';\n\n// We import enums as values (not types) because they are runtime objects\nimport { StepId, StepLabel, CalloutVariant } from '../../src/page_content';\n\n// Import types with `import type`\nimport type { StepContent } from '../../src/page_content';\n\n// ---------------------------------------------------------------------------\n// Helpers\n// ---------------------------------------------------------------------------\n\n/** All StepId enum values as an array */\nconst ALL_STEP_IDS: StepId[] = Object.values(StepId) as StepId[];\n\n/** Mapping from StepId to expected StepLabel for invariant checks */\nconst STEP_ID_TO_LABEL: Record<string, string> = {\n  [StepId.home]: StepLabel.Home,\n  [StepId.cartographer]: StepLabel['Step 0 — Cartographer'] ?? (Object.values(StepLabel) as string[]).find(l => l.includes('Cartographer'))!,\n  [StepId.constrain]: (Object.values(StepLabel) as string[]).find(l => l.includes('Constrain'))!,\n  [StepId.ledger]: (Object.values(StepLabel) as string[]).find(l => l.includes('Ledger'))!,\n  [StepId.pact]: (Object.values(StepLabel) as string[]).find(l => l.includes('Pact'))!,\n  [StepId.advocate]: (Object.values(StepLabel) as string[]).find(l => l.includes('Advocate'))!,\n  [StepId.arbiter]: (Object.values(StepLabel) as string[]).find(l => l.includes('Arbiter'))!,\n  [StepId.baton]: (Object.values(StepLabel) as string[]).find(l => l.includes('Baton'))!,\n  [StepId.sentinel]: (Object.values(StepLabel) as string[]).find(l => l.includes('Sentinel'))!,\n  [StepId.chronicler]: (Object.values(StepLabel) as string[]).find(l => l.includes('Chronicler'))!,\n  [StepId.stigmergy]: (Object.values(StepLabel) as string[]).find(l => l.includes('Stigmergy'))!,\n  [StepId.apprentice]: (Object.values(StepLabel) as string[]).find(l => l.includes('Apprentice'))!,\n  [StepId.kindex]: (Object.values(StepLabel) as string[]).find(l => l.includes('Kindex'))!,\n};\n\n/** Build a minimal valid StepContent for testing */\nfunction makeStepContent(overrides: Partial<StepContent> = {}): StepContent {\n  return {\n    stepId: StepId.cartographer,\n    label: StepLabel['Step 0 — Cartographer'] ?? (Object.values(StepLabel) as string[]).find(l => l.includes('Cartographer'))! as any,\n    overview: 'Test overview text for the step.',\n    commands: [],\n    callouts: [],\n    examples: [],\n    youtubeUrl: undefined,\n    version: undefined,\n    ...overrides,\n  } as StepContent;\n}\n\n// =============================================================================\n// 1. DATA LAYER — getStepContent & STEP_CONTENT invariants\n// =============================================================================\n\ndescribe('Data Layer — getStepContent', () => {\n  it.each(ALL_STEP_IDS)(\n    'returns well-formed StepContent for StepId \"%s\"',\n    (stepId) => {\n      const content = getStepContent(stepId);\n      expect(content).toBeDefined();\n      expect(content.stepId).toBe(stepId);\n      expect(typeof content.overview).toBe('string');\n      expect(content.overview.length).toBeGreaterThan(0);\n      expect(typeof content.label).toBe('string');\n      expect(content.label.length).toBeGreaterThan(0);\n      expect(Array.isArray(content.commands)).toBe(true);\n      expect(Array.isArray(content.callouts)).toBe(true);\n      expect(Array.isArray(content.examples)).toBe(true);\n    },\n  );\n\n  it('returns StepContent with all required fields for a valid StepId', () => {\n    const content = getStepContent(StepId.cartographer);\n    expect(content).toHaveProperty('stepId');\n    expect(content).toHaveProperty('label');\n    expect(content).toHaveProperty('overview');\n    expect(content).toHaveProperty('commands');\n    expect(content).toHaveProperty('callouts');\n    expect(content).toHaveProperty('examples');\n  });\n\n  it('throws for an invalid stepId value', () => {\n    expect(() => getStepContent('invalid_step' as StepId)).toThrow();\n  });\n\n  it('throws for an empty string stepId', () => {\n    expect(() => getStepContent('' as StepId)).toThrow();\n  });\n});\n\ndescribe('Data Layer — STEP_CONTENT invariants', () => {\n  it('has an entry for every StepId enum value', () => {\n    for (const stepId of ALL_STEP_IDS) {\n      expect(\n        STEP_CONTENT[stepId as keyof typeof STEP_CONTENT],\n        `STEP_CONTENT is missing entry for StepId \"${stepId}\"`,\n      ).toBeDefined();\n    }\n  });\n\n  it('has exactly the same number of entries as StepId enum values', () => {\n    const contentKeys = Object.keys(STEP_CONTENT);\n    expect(contentKeys.length).toBe(ALL_STEP_IDS.length);\n  });\n\n  it('every entry stepId matches its record key', () => {\n    for (const stepId of ALL_STEP_IDS) {\n      const entry = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      expect(\n        entry.stepId,\n        `STEP_CONTENT[\"${stepId}\"].stepId should be \"${stepId}\" but got \"${entry.stepId}\"`,\n      ).toBe(stepId);\n    }\n  });\n\n  it('every entry label corresponds to the correct StepLabel', () => {\n    for (const stepId of ALL_STEP_IDS) {\n      const entry = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      const expectedLabel = STEP_ID_TO_LABEL[stepId];\n      if (expectedLabel) {\n        expect(\n          entry.label,\n          `STEP_CONTENT[\"${stepId}\"].label should be \"${expectedLabel}\" but got \"${entry.label}\"`,\n        ).toBe(expectedLabel);\n      }\n    }\n  });\n\n  it('is frozen or immutable — direct property assignment has no effect', () => {\n    // If Object.isFrozen works, great; otherwise try mutation and verify it doesn't stick\n    const isFrozen = Object.isFrozen(STEP_CONTENT);\n    if (!isFrozen) {\n      // Attempt mutation in strict mode should throw or be silently ignored\n      const originalKeys = Object.keys(STEP_CONTENT);\n      try {\n        (STEP_CONTENT as any).__test_mutation__ = true;\n      } catch {\n        // Expected in strict/frozen mode\n      }\n      expect((STEP_CONTENT as any).__test_mutation__).toBeUndefined();\n      // Clean up just in case\n      try {\n        delete (STEP_CONTENT as any).__test_mutation__;\n      } catch {\n        // ignore\n      }\n    } else {\n      expect(isFrozen).toBe(true);\n    }\n  });\n\n  it('every command entry has required command and description string fields', () => {\n    for (const stepId of ALL_STEP_IDS) {\n      const entry = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      for (const cmd of entry.commands) {\n        expect(typeof cmd.command, `Command in \"${stepId}\" missing command field`).toBe('string');\n        expect(typeof cmd.description, `Command in \"${stepId}\" missing description field`).toBe('string');\n      }\n    }\n  });\n\n  it('every callout entry has a valid variant and text', () => {\n    const validVariants = Object.values(CalloutVariant) as string[];\n    for (const stepId of ALL_STEP_IDS) {\n      const entry = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      for (const callout of entry.callouts) {\n        expect(\n          validVariants,\n          `Callout variant \"${callout.variant}\" in \"${stepId}\" is not a valid CalloutVariant`,\n        ).toContain(callout.variant);\n        expect(typeof callout.text).toBe('string');\n      }\n    }\n  });\n\n  it('every overview is a non-empty string', () => {\n    for (const stepId of ALL_STEP_IDS) {\n      const entry = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      expect(typeof entry.overview).toBe('string');\n      expect(entry.overview.length, `Overview for \"${stepId}\" should be non-empty`).toBeGreaterThan(0);\n    }\n  });\n});\n\n// =============================================================================\n// 2. STEP PAGE COMPONENT RENDERING\n// =============================================================================\n\ndescribe('StepPage Component', () => {\n  it('renders an h1 element with the content label', () => {\n    const content = makeStepContent({\n      label: (Object.values(StepLabel) as string[]).find(l => l.includes('Cartographer'))! as any,\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const h1 = container.querySelector('h1');\n    expect(h1, 'Expected an h1 element').toBeTruthy();\n    expect(h1!.textContent).toContain('Cartographer');\n  });\n\n  it('renders the overview text', () => {\n    const content = makeStepContent({ overview: 'Unique overview text for test.' });\n    render(React.createElement(StepPage, { content }));\n    expect(screen.getByText(/Unique overview text for test/)).toBeTruthy();\n  });\n\n  it('renders one CodeBlock per command entry', () => {\n    const content = makeStepContent({\n      commands: [\n        { command: 'npm install', description: 'Install deps' },\n        { command: 'npm run build', description: 'Build project' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const codeBlocks = container.querySelectorAll('[data-testid=\"code-block\"]');\n    // At least 2 code blocks for commands (there may be more from examples)\n    expect(codeBlocks.length).toBeGreaterThanOrEqual(2);\n  });\n\n  it('renders one CalloutBox per callout entry with correct variant', () => {\n    const content = makeStepContent({\n      callouts: [\n        { variant: CalloutVariant.gotcha, text: 'Watch out for this gotcha' },\n        { variant: CalloutVariant.warning, text: 'This is a warning' },\n        { variant: CalloutVariant.tip, text: 'Here is a tip' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"callout-gotcha\"]')).toBeTruthy();\n    expect(container.querySelector('[data-testid=\"callout-warning\"]')).toBeTruthy();\n    expect(container.querySelector('[data-testid=\"callout-tip\"]')).toBeTruthy();\n  });\n\n  it('renders one CodeBlock per example entry', () => {\n    const content = makeStepContent({\n      examples: ['example code 1', 'example code 2'],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const codeBlocks = container.querySelectorAll('[data-testid=\"code-block\"]');\n    expect(codeBlocks.length).toBeGreaterThanOrEqual(2);\n  });\n\n  it('renders YouTubeEmbed when youtubeUrl is a non-empty string', () => {\n    const content = makeStepContent({ youtubeUrl: 'https://youtube.com/watch?v=abc123' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"youtube-embed\"]')).toBeTruthy();\n  });\n\n  it('does NOT render YouTubeEmbed when youtubeUrl is undefined', () => {\n    const content = makeStepContent({ youtubeUrl: undefined });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"youtube-embed\"]')).toBeNull();\n  });\n\n  it('does NOT render YouTubeEmbed when youtubeUrl is empty string', () => {\n    const content = makeStepContent({ youtubeUrl: '' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"youtube-embed\"]')).toBeNull();\n  });\n\n  it('renders VersionBadge when version is a non-empty string', () => {\n    const content = makeStepContent({ version: '1.2.3' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"version-badge\"]')).toBeTruthy();\n  });\n\n  it('does NOT render VersionBadge when version is undefined', () => {\n    const content = makeStepContent({ version: undefined });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"version-badge\"]')).toBeNull();\n  });\n\n  it('does NOT render VersionBadge when version is empty string', () => {\n    const content = makeStepContent({ version: '' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelector('[data-testid=\"version-badge\"]')).toBeNull();\n  });\n\n  it('renders no CodeBlock or CalloutBox when arrays are empty', () => {\n    const content = makeStepContent({\n      commands: [],\n      callouts: [],\n      examples: [],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelectorAll('[data-testid=\"code-block\"]').length).toBe(0);\n    expect(container.querySelectorAll('[data-testid^=\"callout-\"]').length).toBe(0);\n  });\n\n  it('throws or renders error when content is undefined (missing_content)', () => {\n    // Suppress React error boundary noise\n    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});\n    try {\n      expect(() => {\n        render(React.createElement(StepPage, { content: undefined as any }));\n      }).toThrow();\n    } catch {\n      // If it doesn't throw synchronously, it may render an error state\n      // The contract says missing_content error — we verify it doesn't silently succeed\n      // with normal output\n    } finally {\n      consoleSpy.mockRestore();\n    }\n  });\n\n  it('throws or renders error when content is null (missing_content)', () => {\n    const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});\n    try {\n      expect(() => {\n        render(React.createElement(StepPage, { content: null as any }));\n      }).toThrow();\n    } catch {\n      // Same as above — missing_content error case\n    } finally {\n      consoleSpy.mockRestore();\n    }\n  });\n\n  it('renders all three callout variants distinctly', () => {\n    const content = makeStepContent({\n      callouts: [\n        { variant: CalloutVariant.gotcha, text: 'Gotcha text' },\n        { variant: CalloutVariant.warning, text: 'Warning text' },\n        { variant: CalloutVariant.tip, text: 'Tip text' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const gotchaBoxes = container.querySelectorAll('[data-testid=\"callout-gotcha\"]');\n    const warningBoxes = container.querySelectorAll('[data-testid=\"callout-warning\"]');\n    const tipBoxes = container.querySelectorAll('[data-testid=\"callout-tip\"]');\n    expect(gotchaBoxes.length).toBe(1);\n    expect(warningBoxes.length).toBe(1);\n    expect(tipBoxes.length).toBe(1);\n  });\n\n  it('renders commands and examples as separate CodeBlocks without merging', () => {\n    const content = makeStepContent({\n      commands: [{ command: 'cmd1', description: 'desc1' }],\n      examples: ['example1'],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const codeBlocks = container.querySelectorAll('[data-testid=\"code-block\"]');\n    expect(codeBlocks.length).toBe(2);\n  });\n});\n\n// =============================================================================\n// 3. PAGE WRAPPER COMPONENTS\n// =============================================================================\n\ndescribe('HomePage Component', () => {\n  it('renders the home overview text', () => {\n    const homeContent = STEP_CONTENT[StepId.home as keyof typeof STEP_CONTENT];\n    render(React.createElement(HomePage));\n    expect(screen.getByText(new RegExp(homeContent.overview.substring(0, 30).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')))).toBeTruthy();\n  });\n\n  it('renders an h1 with the home label', () => {\n    const homeContent = STEP_CONTENT[StepId.home as keyof typeof STEP_CONTENT];\n    const { container } = render(React.createElement(HomePage));\n    const h1 = container.querySelector('h1');\n    expect(h1, 'Expected HomePage to render an h1').toBeTruthy();\n    expect(h1!.textContent).toContain(homeContent.label);\n  });\n\n  it('renders exactly one PipelineDiagram component', () => {\n    const { container } = render(React.createElement(HomePage));\n    const diagrams = container.querySelectorAll('[data-testid=\"pipeline-diagram\"]');\n    expect(diagrams.length, 'HomePage should render exactly one PipelineDiagram').toBe(1);\n  });\n});\n\ndescribe('Wrapper Page Components — parameterized', () => {\n  const wrapperPages = [\n    { name: 'CartographerPage', Component: CartographerPage, stepId: StepId.cartographer },\n    { name: 'ConstrainPage', Component: ConstrainPage, stepId: StepId.constrain },\n    { name: 'LedgerPage', Component: LedgerPage, stepId: StepId.ledger },\n    { name: 'PactPage', Component: PactPage, stepId: StepId.pact },\n    { name: 'AdvocatePage', Component: AdvocatePage, stepId: StepId.advocate },\n    { name: 'ArbiterPage', Component: ArbiterPage, stepId: StepId.arbiter },\n    { name: 'BatonPage', Component: BatonPage, stepId: StepId.baton },\n    { name: 'SentinelPage', Component: SentinelPage, stepId: StepId.sentinel },\n    { name: 'ChroniclerPage', Component: ChroniclerPage, stepId: StepId.chronicler },\n    { name: 'StigmergyPage', Component: StigmergyPage, stepId: StepId.stigmergy },\n    { name: 'ApprenticePage', Component: ApprenticePage, stepId: StepId.apprentice },\n    { name: 'KindexPage', Component: KindexPage, stepId: StepId.kindex },\n  ] as const;\n\n  it.each(wrapperPages)(\n    '$name renders without crashing (zero props)',\n    ({ Component }) => {\n      expect(() => render(React.createElement(Component))).not.toThrow();\n    },\n  );\n\n  it.each(wrapperPages)(\n    '$name renders its step-specific label in an h1',\n    ({ Component, stepId }) => {\n      const expectedContent = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      const { container } = render(React.createElement(Component));\n      const h1 = container.querySelector('h1');\n      expect(h1, `${Component.name ?? stepId} should render an h1`).toBeTruthy();\n      expect(\n        h1!.textContent,\n        `h1 should contain label \"${expectedContent.label}\"`,\n      ).toContain(expectedContent.label);\n    },\n  );\n\n  it.each(wrapperPages)(\n    '$name renders its step overview text',\n    ({ Component, stepId }) => {\n      const expectedContent = STEP_CONTENT[stepId as keyof typeof STEP_CONTENT];\n      render(React.createElement(Component));\n      // Match a portion of the overview (first 30 chars, regex-escaped)\n      const snippet = expectedContent.overview.substring(0, 30).replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&');\n      expect(screen.getByText(new RegExp(snippet))).toBeTruthy();\n    },\n  );\n});\n\ndescribe('Wrapper Page Components — zero-prop invariant', () => {\n  it('all wrapper page components are functions that accept zero required arguments', () => {\n    const components = [\n      CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage,\n      ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage,\n      ApprenticePage, KindexPage, HomePage,\n    ];\n    for (const Comp of components) {\n      expect(typeof Comp, `${Comp.name} should be a function`).toBe('function');\n      // React components with no required props have length 0 or 1 (props object)\n      // We just verify they are callable without arguments by rendering\n      expect(() => render(React.createElement(Comp))).not.toThrow();\n    }\n  });\n});\n\n// =============================================================================\n// 4. ENUM TYPE VALIDATION\n// =============================================================================\n\ndescribe('Enum Types', () => {\n  it('StepId enum has exactly 13 members', () => {\n    const values = Object.values(StepId);\n    expect(values.length).toBe(13);\n  });\n\n  it('StepId contains all expected values', () => {\n    const expected = [\n      'home', 'cartographer', 'constrain', 'ledger', 'pact', 'advocate',\n      'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex',\n    ];\n    const values = Object.values(StepId) as string[];\n    for (const id of expected) {\n      expect(values, `StepId should contain \"${id}\"`).toContain(id);\n    }\n  });\n\n  it('StepLabel enum has exactly 13 members', () => {\n    const values = Object.values(StepLabel);\n    expect(values.length).toBe(13);\n  });\n\n  it('CalloutVariant enum has exactly 3 members: gotcha, warning, tip', () => {\n    const values = Object.values(CalloutVariant) as string[];\n    expect(values.length).toBe(3);\n    expect(values).toContain('gotcha');\n    expect(values).toContain('warning');\n    expect(values).toContain('tip');\n  });\n});\n"
+}

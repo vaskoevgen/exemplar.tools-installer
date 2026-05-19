@@ -1,0 +1,97 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_site_001
+
+components:
+  - name: docs_site
+    description: "React application serving CLI documentation with embedded videos"
+    type: service
+    port: 4000
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Serves public documentation content, no write operations"
+    authority:
+      domains: ["documentation/*", "commands/*", "content/*"]
+      rationale: "Owns all documentation content and presentation"
+    dependencies: ["build_system"]
+    constraints: ["C001", "C002", "C003", "C004", "C006", "C007", "C009"]
+
+  - name: build_system
+    description: "Vite build system processing TypeScript and React components"
+    type: worker
+    port: null
+    protocol: tcp
+    data_access:
+      reads: [PUBLIC]
+      writes: [PUBLIC]
+      rationale: "Processes source files and outputs built assets"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: ["content_source"]
+    constraints: ["C001", "C005", "C008"]
+
+  - name: deployment_system
+    description: "Vercel hosting platform serving static built files"
+    type: egress
+    port: 443
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "Serves built static files to end users"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: ["docs_site"]
+    constraints: ["C006"]
+
+  - name: content_source
+    description: "howto.md file containing authoritative CLI documentation"
+    type: ingress
+    port: null
+    protocol: tcp
+    data_access:
+      reads: []
+      writes: [PUBLIC]
+      rationale: "Source of truth for all CLI commands and documentation"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: ["C002"]
+
+  - name: video_service
+    description: "YouTube platform hosting instructional videos"
+    type: egress
+    port: 443
+    protocol: http
+    data_access:
+      reads: [PUBLIC]
+      writes: []
+      rationale: "External video content referenced by documentation"
+    authority:
+      domains: []
+      rationale: null
+    dependencies: []
+    constraints: ["C004"]
+
+edges:
+  - from: docs_site
+    to: build_system
+    protocol: tcp
+    description: "Source files and build configuration"
+  - from: build_system
+    to: content_source
+    protocol: tcp
+    description: "CLI documentation and commands"
+  - from: deployment_system
+    to: docs_site
+    protocol: http
+    description: "Built static assets for serving"
+  - from: docs_site
+    to: video_service
+    protocol: http
+    description: "YouTube video embed requests"

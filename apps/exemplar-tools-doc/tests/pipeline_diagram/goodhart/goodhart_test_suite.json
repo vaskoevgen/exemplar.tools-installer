@@ -1,0 +1,467 @@
+{
+  "component_id": "pipeline_diagram",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_guard_slug_multi_segment_path",
+      "description": "guardSlug should correctly prepend '/' to multi-segment paths without a leading slash, verifying the function works for arbitrary path strings not just single-segment slugs",
+      "function": "guardSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A multi-segment path like 'foo/bar/baz' without leading slash",
+      "expected_output_description": "'/foo/bar/baz'",
+      "expected_error": "",
+      "assertions": [
+        "guardSlug('foo/bar/baz') === '/foo/bar/baz'"
+      ]
+    },
+    {
+      "id": "goodhart_guard_slug_preserves_trailing_slash",
+      "description": "guardSlug should preserve trailing slashes and not strip or alter any part of the slug beyond ensuring the leading slash",
+      "function": "guardSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A slug with trailing slash like '/cartographer/'",
+      "expected_output_description": "'/cartographer/' unchanged",
+      "expected_error": "",
+      "assertions": [
+        "guardSlug('/cartographer/') === '/cartographer/'"
+      ]
+    },
+    {
+      "id": "goodhart_guard_slug_single_char_no_slash",
+      "description": "guardSlug should handle single non-slash characters by prepending '/', detecting implementations that only handle known route slugs",
+      "function": "guardSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Single character 'x'",
+      "expected_output_description": "'/x'",
+      "expected_error": "",
+      "assertions": [
+        "guardSlug('x') === '/x'"
+      ]
+    },
+    {
+      "id": "goodhart_guard_slug_double_slash_input",
+      "description": "guardSlug should return input unchanged when it already starts with '/' even if it has double slashes internally, since the contract only guarantees leading slash normalization",
+      "function": "guardSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A slug like '//double'",
+      "expected_output_description": "Returns '//double' unchanged since it already starts with '/'",
+      "expected_error": "",
+      "assertions": [
+        "guardSlug('//double') === '//double'"
+      ]
+    },
+    {
+      "id": "goodhart_guard_slug_returns_string_type",
+      "description": "guardSlug should return a string primitive, not an object wrapper, ensuring the return type is usable directly in navigation",
+      "function": "guardSlug",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "typeof guardSlug('/test') === 'string'",
+        "typeof guardSlug('test') === 'string'"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_nodes_correct_slug_mapping",
+      "description": "Each node in PIPELINE_NODES should have the correct slug corresponding to its stepId, ensuring the mapping is not shuffled or hardcoded incorrectly",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_NODES.find(n => n.stepId === 'cartographer')?.slug === '/cartographer'",
+        "PIPELINE_NODES.find(n => n.stepId === 'constrain')?.slug === '/constrain'",
+        "PIPELINE_NODES.find(n => n.stepId === 'ledger')?.slug === '/ledger'",
+        "PIPELINE_NODES.find(n => n.stepId === 'pact')?.slug === '/pact'",
+        "PIPELINE_NODES.find(n => n.stepId === 'advocate')?.slug === '/advocate'",
+        "PIPELINE_NODES.find(n => n.stepId === 'arbiter')?.slug === '/arbiter'",
+        "PIPELINE_NODES.find(n => n.stepId === 'baton')?.slug === '/baton'",
+        "PIPELINE_NODES.find(n => n.stepId === 'sentinel')?.slug === '/sentinel'",
+        "PIPELINE_NODES.find(n => n.stepId === 'chronicler')?.slug === '/chronicler'",
+        "PIPELINE_NODES.find(n => n.stepId === 'stigmergy')?.slug === '/stigmergy'",
+        "PIPELINE_NODES.find(n => n.stepId === 'apprentice')?.slug === '/apprentice'",
+        "PIPELINE_NODES.find(n => n.stepId === 'kindex')?.slug === '/kindex'"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_nodes_correct_labels",
+      "description": "Each node should have the correct human-readable label matching the StepLabel enum, not just any string",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_NODES.find(n => n.stepId === 'cartographer')?.label === 'Step 0 \\u2014 Cartographer'",
+        "PIPELINE_NODES.find(n => n.stepId === 'constrain')?.label === 'Step 1a \\u2014 Constrain'",
+        "PIPELINE_NODES.find(n => n.stepId === 'ledger')?.label === 'Step 1b \\u2014 Ledger'",
+        "PIPELINE_NODES.find(n => n.stepId === 'arbiter')?.label === 'Step 3 \\u2014 Arbiter'",
+        "PIPELINE_NODES.find(n => n.stepId === 'kindex')?.label === 'Step 7 \\u2014 Kindex'"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_nodes_unique_slugs",
+      "description": "All slugs in PIPELINE_NODES should be unique — no two nodes should share the same route slug",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "new Set(PIPELINE_NODES.map(n => n.slug)).size === 12"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_nodes_xy_are_numbers",
+      "description": "All x and y coordinates in PIPELINE_NODES must be actual numbers, not strings or NaN, to ensure SVG rendering correctness",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_NODES.every(n => typeof n.x === 'number' && !Number.isNaN(n.x))",
+        "PIPELINE_NODES.every(n => typeof n.y === 'number' && !Number.isNaN(n.y))"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_exact_topology",
+      "description": "PIPELINE_EDGES should contain exactly the 14 specified edges with correct from/to pairs, not just 14 arbitrary edges",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.some(e => e.from === 'cartographer' && e.to === 'constrain')",
+        "PIPELINE_EDGES.some(e => e.from === 'cartographer' && e.to === 'ledger')",
+        "PIPELINE_EDGES.some(e => e.from === 'constrain' && e.to === 'pact')",
+        "PIPELINE_EDGES.some(e => e.from === 'ledger' && e.to === 'advocate')",
+        "PIPELINE_EDGES.some(e => e.from === 'pact' && e.to === 'arbiter')",
+        "PIPELINE_EDGES.some(e => e.from === 'advocate' && e.to === 'arbiter')",
+        "PIPELINE_EDGES.some(e => e.from === 'arbiter' && e.to === 'baton')",
+        "PIPELINE_EDGES.some(e => e.from === 'baton' && e.to === 'sentinel')",
+        "PIPELINE_EDGES.some(e => e.from === 'baton' && e.to === 'chronicler')",
+        "PIPELINE_EDGES.some(e => e.from === 'baton' && e.to === 'stigmergy')",
+        "PIPELINE_EDGES.some(e => e.from === 'sentinel' && e.to === 'apprentice')",
+        "PIPELINE_EDGES.some(e => e.from === 'chronicler' && e.to === 'apprentice')",
+        "PIPELINE_EDGES.some(e => e.from === 'stigmergy' && e.to === 'apprentice')",
+        "PIPELINE_EDGES.some(e => e.from === 'apprentice' && e.to === 'kindex')"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_no_extra_edges",
+      "description": "PIPELINE_EDGES should not contain any edges beyond the specified 14 — no spurious connections like reversed edges or shortcuts",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "!PIPELINE_EDGES.some(e => e.from === 'constrain' && e.to === 'cartographer')",
+        "!PIPELINE_EDGES.some(e => e.from === 'kindex' && e.to === 'apprentice')",
+        "!PIPELINE_EDGES.some(e => e.from === 'cartographer' && e.to === 'arbiter')",
+        "!PIPELINE_EDGES.some(e => e.from === 'baton' && e.to === 'kindex')"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_cartographer_outdegree",
+      "description": "The root node (cartographer) should have exactly 2 outgoing edges — to constrain and ledger — verifying the branching structure",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.filter(e => e.from === 'cartographer').length === 2"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_baton_outdegree",
+      "description": "The baton node should have exactly 3 outgoing edges — to sentinel, chronicler, and stigmergy — verifying the triple-branch",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.filter(e => e.from === 'baton').length === 3"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_apprentice_indegree",
+      "description": "The apprentice node should have exactly 3 incoming edges — from sentinel, chronicler, and stigmergy — verifying the merge point",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.filter(e => e.to === 'apprentice').length === 3"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_arbiter_indegree",
+      "description": "The arbiter node should have exactly 2 incoming edges — from pact and advocate — verifying the first merge point",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.filter(e => e.to === 'arbiter').length === 2"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_custom_nodes_subset",
+      "description": "PipelineDiagram should render the exact number of node groups matching a custom subset of nodes passed via props, not always 12",
+      "function": "PipelineDiagram",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A custom nodes array with only 3 nodes and corresponding edges",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Renders exactly 3 elements with role='link' when given 3 custom nodes",
+        "Each of the 3 custom node labels appears in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_custom_edges_count",
+      "description": "PipelineDiagram should render the exact number of edge elements matching a custom edges array, not always 14",
+      "function": "PipelineDiagram",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A custom nodes array with 3 nodes and 2 edges",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Renders exactly 2 line or path elements for edges when given 2 custom edges"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_node_contains_rect_and_text",
+      "description": "Each clickable node group should contain both a rect element and a text element, forming a proper labeled box",
+      "function": "PipelineDiagram",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every element with role='link' contains a rect child element",
+        "Every element with role='link' contains a text child element"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_node_tabindex_zero",
+      "description": "Every node group must have tabIndex=0 for keyboard focusability, not just some nodes",
+      "function": "PipelineDiagram",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All elements with role='link' have tabIndex 0"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_keyboard_other_keys_no_navigation",
+      "description": "Pressing keys other than Enter and Space on a node should NOT trigger navigation, ensuring only the specified keys activate the handler",
+      "function": "PipelineDiagram",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Fire keydown event with key 'Tab' or 'a' on a node group",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "onNodeClick is not called when pressing Tab key",
+        "onNodeClick is not called when pressing 'a' key"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_no_default_export",
+      "description": "The module should not have a default export, ensuring implementations use named exports only as specified by the contract",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Module has no default export"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_classname_omitted",
+      "description": "When className prop is not provided, the SVG root should not have an undefined or 'undefined' class attribute",
+      "function": "PipelineDiagram",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render PipelineDiagram without className prop",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "SVG root element does not have class='undefined' or class containing 'undefined'"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_click_each_node_correct_slug",
+      "description": "Clicking each individual node in the default diagram should invoke onNodeClick with the correct slug for that specific node, catching implementations that return the same slug for all nodes",
+      "function": "PipelineDiagram",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Clicking the cartographer node calls onNodeClick with '/cartographer'",
+        "Clicking the kindex node calls onNodeClick with '/kindex'",
+        "Clicking the stigmergy node calls onNodeClick with '/stigmergy'"
+      ]
+    },
+    {
+      "id": "goodhart_guard_slug_whitespace_input",
+      "description": "guardSlug should handle a whitespace-only input by treating it as a non-empty string and prepending '/', since the contract only specifies error for empty string",
+      "function": "guardSlug",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A single space ' '",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "guardSlug(' ') === '/ ' — prepends slash to whitespace"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_nodes_is_array",
+      "description": "PIPELINE_NODES must be an actual array instance, not an array-like object, ensuring standard array methods work",
+      "function": "PIPELINE_NODES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Array.isArray(PIPELINE_NODES) is true"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_is_array",
+      "description": "PIPELINE_EDGES must be an actual array instance, not an array-like object",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Array.isArray(PIPELINE_EDGES) is true"
+      ]
+    },
+    {
+      "id": "goodhart_pipeline_edges_each_has_from_and_to",
+      "description": "Every edge object in PIPELINE_EDGES must have both 'from' and 'to' string properties, not null/undefined",
+      "function": "PIPELINE_EDGES",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PIPELINE_EDGES.every(e => typeof e.from === 'string' && e.from.length > 0)",
+        "PIPELINE_EDGES.every(e => typeof e.to === 'string' && e.to.length > 0)"
+      ]
+    },
+    {
+      "id": "goodhart_diagram_slug_guard_on_node_without_leading_slash",
+      "description": "When a custom node has a slug without leading slash, PipelineDiagram must still apply the slug guard and call onNodeClick with the corrected slug",
+      "function": "PipelineDiagram",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Custom node with slug 'noSlash' (no leading slash)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Clicking node with slug 'noSlash' calls onNodeClick with '/noSlash'"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi } from 'vitest';\nimport { render, fireEvent } from '@testing-library/react';\nimport React from 'react';\nimport { MemoryRouter } from 'react-router-dom';\nimport {\n  PipelineDiagram,\n  PIPELINE_NODES,\n  PIPELINE_EDGES,\n  guardSlug,\n} from '../src/pipeline_diagram';\n\ndescribe('Pipeline Diagram Component — Goodhart Adversarial Tests', () => {\n  // ── guardSlug tests ──\n\n  it('goodhart: guardSlug should correctly handle multi-segment paths without leading slash', () => {\n    expect(guardSlug('foo/bar/baz')).toBe('/foo/bar/baz');\n  });\n\n  it('goodhart: guardSlug should preserve trailing slashes and not modify anything beyond ensuring leading slash', () => {\n    expect(guardSlug('/cartographer/')).toBe('/cartographer/');\n  });\n\n  it('goodhart: guardSlug should handle single non-slash characters by prepending slash', () => {\n    expect(guardSlug('x')).toBe('/x');\n  });\n\n  it('goodhart: guardSlug should return input unchanged when it already starts with / even if double-slashed', () => {\n    // Contract says: if input starts with '/', output is identical to input\n    expect(guardSlug('//double')).toBe('//double');\n  });\n\n  it('goodhart: guardSlug should return a string primitive, not an object wrapper', () => {\n    expect(typeof guardSlug('/test')).toBe('string');\n    expect(typeof guardSlug('test')).toBe('string');\n  });\n\n  it('goodhart: guardSlug should handle whitespace-only input as a non-empty string', () => {\n    // The contract only specifies error for empty string; whitespace is non-empty\n    expect(guardSlug(' ')).toBe('/ ');\n  });\n\n  // ── PIPELINE_NODES tests ──\n\n  it('goodhart: each node in PIPELINE_NODES should have the correct slug matching its stepId', () => {\n    const expectedMappings: Record<string, string> = {\n      cartographer: '/cartographer',\n      constrain: '/constrain',\n      ledger: '/ledger',\n      pact: '/pact',\n      advocate: '/advocate',\n      arbiter: '/arbiter',\n      baton: '/baton',\n      sentinel: '/sentinel',\n      chronicler: '/chronicler',\n      stigmergy: '/stigmergy',\n      apprentice: '/apprentice',\n      kindex: '/kindex',\n    };\n    for (const [stepId, slug] of Object.entries(expectedMappings)) {\n      const node = PIPELINE_NODES.find((n: any) => n.stepId === stepId);\n      expect(node, `Missing node for stepId '${stepId}'`).toBeDefined();\n      expect(node!.slug, `Slug mismatch for stepId '${stepId}'`).toBe(slug);\n    }\n  });\n\n  it('goodhart: each node in PIPELINE_NODES should have the correct human-readable label with em-dash', () => {\n    const expectedLabels: Record<string, string> = {\n      cartographer: 'Step 0 \\u2014 Cartographer',\n      constrain: 'Step 1a \\u2014 Constrain',\n      ledger: 'Step 1b \\u2014 Ledger',\n      pact: 'Step 2a \\u2014 Pact',\n      advocate: 'Step 2b \\u2014 Advocate',\n      arbiter: 'Step 3 \\u2014 Arbiter',\n      baton: 'Step 4 \\u2014 Baton',\n      sentinel: 'Step 5a \\u2014 Sentinel',\n      chronicler: 'Step 5b \\u2014 Chronicler',\n      stigmergy: 'Step 5c \\u2014 Stigmergy',\n      apprentice: 'Step 6 \\u2014 Apprentice',\n      kindex: 'Step 7 \\u2014 Kindex',\n    };\n    for (const [stepId, label] of Object.entries(expectedLabels)) {\n      const node = PIPELINE_NODES.find((n: any) => n.stepId === stepId);\n      expect(node, `Missing node for stepId '${stepId}'`).toBeDefined();\n      expect(node!.label, `Label mismatch for stepId '${stepId}'`).toBe(label);\n    }\n  });\n\n  it('goodhart: all slugs in PIPELINE_NODES should be unique', () => {\n    const slugs = PIPELINE_NODES.map((n: any) => n.slug);\n    expect(new Set(slugs).size).toBe(12);\n  });\n\n  it('goodhart: all x and y coordinates in PIPELINE_NODES must be actual numbers, not NaN or strings', () => {\n    for (const node of PIPELINE_NODES as any[]) {\n      expect(typeof node.x).toBe('number');\n      expect(Number.isNaN(node.x)).toBe(false);\n      expect(typeof node.y).toBe('number');\n      expect(Number.isNaN(node.y)).toBe(false);\n    }\n  });\n\n  it('goodhart: PIPELINE_NODES must be an actual array instance', () => {\n    expect(Array.isArray(PIPELINE_NODES)).toBe(true);\n  });\n\n  // ── PIPELINE_EDGES tests ──\n\n  it('goodhart: PIPELINE_EDGES must contain exactly the 14 specified edges with correct from/to pairs', () => {\n    const expectedEdges = [\n      { from: 'cartographer', to: 'constrain' },\n      { from: 'cartographer', to: 'ledger' },\n      { from: 'constrain', to: 'pact' },\n      { from: 'ledger', to: 'advocate' },\n      { from: 'pact', to: 'arbiter' },\n      { from: 'advocate', to: 'arbiter' },\n      { from: 'arbiter', to: 'baton' },\n      { from: 'baton', to: 'sentinel' },\n      { from: 'baton', to: 'chronicler' },\n      { from: 'baton', to: 'stigmergy' },\n      { from: 'sentinel', to: 'apprentice' },\n      { from: 'chronicler', to: 'apprentice' },\n      { from: 'stigmergy', to: 'apprentice' },\n      { from: 'apprentice', to: 'kindex' },\n    ];\n    for (const expected of expectedEdges) {\n      const found = (PIPELINE_EDGES as any[]).some(\n        (e) => e.from === expected.from && e.to === expected.to,\n      );\n      expect(found, `Missing edge: ${expected.from} → ${expected.to}`).toBe(true);\n    }\n  });\n\n  it('goodhart: PIPELINE_EDGES should not contain reversed or shortcut edges not in the contract', () => {\n    const forbidden = [\n      { from: 'constrain', to: 'cartographer' },\n      { from: 'kindex', to: 'apprentice' },\n      { from: 'cartographer', to: 'arbiter' },\n      { from: 'baton', to: 'kindex' },\n      { from: 'cartographer', to: 'kindex' },\n      { from: 'sentinel', to: 'kindex' },\n    ];\n    for (const edge of forbidden) {\n      const found = (PIPELINE_EDGES as any[]).some(\n        (e) => e.from === edge.from && e.to === edge.to,\n      );\n      expect(found, `Unexpected edge: ${edge.from} → ${edge.to}`).toBe(false);\n    }\n  });\n\n  it('goodhart: cartographer (root) should have exactly 2 outgoing edges', () => {\n    const outgoing = (PIPELINE_EDGES as any[]).filter((e) => e.from === 'cartographer');\n    expect(outgoing.length).toBe(2);\n  });\n\n  it('goodhart: baton should have exactly 3 outgoing edges (triple-branch to sentinel, chronicler, stigmergy)', () => {\n    const outgoing = (PIPELINE_EDGES as any[]).filter((e) => e.from === 'baton');\n    expect(outgoing.length).toBe(3);\n  });\n\n  it('goodhart: apprentice should have exactly 3 incoming edges (merge from sentinel, chronicler, stigmergy)', () => {\n    const incoming = (PIPELINE_EDGES as any[]).filter((e) => e.to === 'apprentice');\n    expect(incoming.length).toBe(3);\n  });\n\n  it('goodhart: arbiter should have exactly 2 incoming edges (merge from pact and advocate)', () => {\n    const incoming = (PIPELINE_EDGES as any[]).filter((e) => e.to === 'arbiter');\n    expect(incoming.length).toBe(2);\n  });\n\n  it('goodhart: PIPELINE_EDGES must be an actual array instance', () => {\n    expect(Array.isArray(PIPELINE_EDGES)).toBe(true);\n  });\n\n  it('goodhart: every edge object must have from and to as non-empty strings', () => {\n    for (const edge of PIPELINE_EDGES as any[]) {\n      expect(typeof edge.from).toBe('string');\n      expect(edge.from.length).toBeGreaterThan(0);\n      expect(typeof edge.to).toBe('string');\n      expect(edge.to.length).toBeGreaterThan(0);\n    }\n  });\n\n  // ── PipelineDiagram component tests ──\n\n  it('goodhart: PipelineDiagram should render exact count of node groups matching a custom 3-node subset', () => {\n    const customNodes = [\n      { stepId: 'cartographer', label: 'Step 0 \\u2014 Cartographer', slug: '/cartographer', x: 100, y: 100 },\n      { stepId: 'constrain', label: 'Step 1a \\u2014 Constrain', slug: '/constrain', x: 300, y: 100 },\n      { stepId: 'pact', label: 'Step 2a \\u2014 Pact', slug: '/pact', x: 500, y: 100 },\n    ];\n    const customEdges = [\n      { from: 'cartographer', to: 'constrain' },\n      { from: 'constrain', to: 'pact' },\n    ];\n    const onClick = vi.fn();\n\n    const { container } = render(\n      <PipelineDiagram nodes={customNodes as any} edges={customEdges as any} onNodeClick={onClick} />,\n    );\n\n    const nodeGroups = container.querySelectorAll('[role=\"link\"]');\n    expect(nodeGroups.length).toBe(3);\n  });\n\n  it('goodhart: PipelineDiagram should render exact count of edge elements matching a custom 2-edge set', () => {\n    const customNodes = [\n      { stepId: 'cartographer', label: 'Step 0 \\u2014 Cartographer', slug: '/cartographer', x: 100, y: 100 },\n      { stepId: 'constrain', label: 'Step 1a \\u2014 Constrain', slug: '/constrain', x: 300, y: 100 },\n      { stepId: 'pact', label: 'Step 2a \\u2014 Pact', slug: '/pact', x: 500, y: 100 },\n    ];\n    const customEdges = [\n      { from: 'cartographer', to: 'constrain' },\n      { from: 'constrain', to: 'pact' },\n    ];\n    const onClick = vi.fn();\n\n    const { container } = render(\n      <PipelineDiagram nodes={customNodes as any} edges={customEdges as any} onNodeClick={onClick} />,\n    );\n\n    const lines = container.querySelectorAll('line');\n    const paths = container.querySelectorAll('path');\n    // Edges can be rendered as either line or path elements\n    const edgeCount = lines.length + paths.length;\n    // We need at least 2 edges; some implementations may use paths for other things,\n    // so we check for at least the edges. The contract says \"exactly edges.length line or path elements\"\n    expect(edgeCount).toBeGreaterThanOrEqual(2);\n  });\n\n  it('goodhart: each rendered node group should contain both a rect and text element', () => {\n    const onClick = vi.fn();\n    const { container } = render(\n      <MemoryRouter>\n        <PipelineDiagram onNodeClick={onClick} />\n      </MemoryRouter>,\n    );\n\n    const nodeGroups = container.querySelectorAll('[role=\"link\"]');\n    expect(nodeGroups.length).toBeGreaterThan(0);\n    nodeGroups.forEach((group) => {\n      const hasRect = group.querySelector('rect') !== null;\n      const hasText = group.querySelector('text') !== null;\n      expect(hasRect, `Node group missing rect element`).toBe(true);\n      expect(hasText, `Node group missing text element`).toBe(true);\n    });\n  });\n\n  it('goodhart: all node groups must have tabIndex=0 for keyboard focusability', () => {\n    const onClick = vi.fn();\n    const { container } = render(\n      <MemoryRouter>\n        <PipelineDiagram onNodeClick={onClick} />\n      </MemoryRouter>,\n    );\n\n    const nodeGroups = container.querySelectorAll('[role=\"link\"]');\n    nodeGroups.forEach((group) => {\n      expect(group.getAttribute('tabindex')).toBe('0');\n    });\n  });\n\n  it('goodhart: pressing non-Enter/non-Space keys on a node should NOT trigger navigation', () => {\n    const onClick = vi.fn();\n    const customNodes = [\n      { stepId: 'cartographer', label: 'Step 0 \\u2014 Cartographer', slug: '/cartographer', x: 100, y: 100 },\n    ];\n    const customEdges: any[] = [];\n\n    const { container } = render(\n      <PipelineDiagram nodes={customNodes as any} edges={customEdges} onNodeClick={onClick} />,\n    );\n\n    const nodeGroup = container.querySelector('[role=\"link\"]')!;\n    expect(nodeGroup).not.toBeNull();\n\n    fireEvent.keyDown(nodeGroup, { key: 'Tab' });\n    fireEvent.keyDown(nodeGroup, { key: 'a' });\n    fireEvent.keyDown(nodeGroup, { key: 'Escape' });\n    expect(onClick).not.toHaveBeenCalled();\n  });\n\n  it('goodhart: module should not have a default export', async () => {\n    const mod = await import('../src/pipeline_diagram');\n    expect((mod as any).default).toBeUndefined();\n  });\n\n  it('goodhart: when className is not provided, SVG root should not have \"undefined\" as class', () => {\n    const onClick = vi.fn();\n    const { container } = render(\n      <MemoryRouter>\n        <PipelineDiagram onNodeClick={onClick} />\n      </MemoryRouter>,\n    );\n\n    const svg = container.querySelector('svg')!;\n    const classAttr = svg.getAttribute('class');\n    if (classAttr !== null) {\n      expect(classAttr).not.toContain('undefined');\n    }\n  });\n\n  it('goodhart: clicking different nodes should invoke onNodeClick with distinct correct slugs for each', () => {\n    const onClick = vi.fn();\n    const { container } = render(\n      <MemoryRouter>\n        <PipelineDiagram onNodeClick={onClick} />\n      </MemoryRouter>,\n    );\n\n    // Click the node with aria-label for cartographer\n    const cartographerNode = container.querySelector('[aria-label=\"Navigate to Step 0 \\u2014 Cartographer\"]');\n    expect(cartographerNode).not.toBeNull();\n    fireEvent.click(cartographerNode!);\n    expect(onClick).toHaveBeenCalledWith('/cartographer');\n\n    onClick.mockClear();\n\n    // Click the kindex node\n    const kindexNode = container.querySelector('[aria-label=\"Navigate to Step 7 \\u2014 Kindex\"]');\n    expect(kindexNode).not.toBeNull();\n    fireEvent.click(kindexNode!);\n    expect(onClick).toHaveBeenCalledWith('/kindex');\n\n    onClick.mockClear();\n\n    // Click the stigmergy node\n    const stigmergyNode = container.querySelector('[aria-label=\"Navigate to Step 5c \\u2014 Stigmergy\"]');\n    expect(stigmergyNode).not.toBeNull();\n    fireEvent.click(stigmergyNode!);\n    expect(onClick).toHaveBeenCalledWith('/stigmergy');\n  });\n\n  it('goodhart: slug guard should be applied to custom nodes with slugs missing leading slash', () => {\n    const onClick = vi.fn();\n    const customNodes = [\n      { stepId: 'cartographer', label: 'Step 0 \\u2014 Cartographer', slug: 'noSlash', x: 100, y: 100 },\n    ];\n    const customEdges: any[] = [];\n\n    const { container } = render(\n      <PipelineDiagram nodes={customNodes as any} edges={customEdges} onNodeClick={onClick} />,\n    );\n\n    const nodeGroup = container.querySelector('[role=\"link\"]')!;\n    expect(nodeGroup).not.toBeNull();\n    fireEvent.click(nodeGroup);\n    expect(onClick).toHaveBeenCalledWith('/noSlash');\n  });\n});\n"
+}

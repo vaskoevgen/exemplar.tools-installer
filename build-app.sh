@@ -362,131 +362,6 @@ except Exception:
 " 2>/dev/null
 }
 
-# Helper: call Claude API to generate a targeted sops.md rule from a pact failure.
-# Extracts recent error context from the pact log, asks Claude what rule would prevent it,
-# and returns a one-line rule string. Falls back to empty string on any failure.
-# Helper: call Claude to investigate a recurring pact failure and produce a human-readable
-# manual intervention report — what failed, root cause, and exact steps to fix it.
-generate_intervention_report() {
-    local PAUSE_REASON="$1"
-    local LOG="$PACT_LOG"
-    [[ -z "${ANTHROPIC_API_KEY:-}" ]] && { echo "Auto-fix failed. Check $LOG for details."; return; }
-
-    local ERROR_CONTEXT
-    ERROR_CONTEXT=$(grep -v "HTTP Request\|Research complete\|Plan evaluation\|Code authored" "$LOG" 2>/dev/null | tail -60)
-
-    local SOPS_CONTENT
-    SOPS_CONTENT=$(cat "$APP_DIR/sops.md" 2>/dev/null)
-
-    python3 - <<PYEOF
-import json, urllib.request
-
-api_key = """${ANTHROPIC_API_KEY}"""
-pause_reason = """${PAUSE_REASON}"""
-error_context = """${ERROR_CONTEXT}"""
-sops_content = """${SOPS_CONTENT}"""
-lang = """${DETECTED_LANG:-unknown}"""
-test_fw = """${DETECTED_TEST:-unknown}"""
-
-prompt = f"""A pact build pipeline ({lang}/{test_fw} project) auto-fix was attempted but the same failure keeps recurring.
-
-FAILURE: {pause_reason}
-
-RECENT LOG (last 60 lines):
-{error_context}
-
-CURRENT sops.md:
-{sops_content}
-
-Investigate and write a SHORT manual intervention report for a developer.
-Include:
-1. Root cause (1-2 sentences — be specific about what file/function/config is broken)
-2. Exact manual steps to fix it (numbered list, concrete commands if applicable)
-3. What to update in sops.md to prevent it next time
-
-Be concise and specific. No generic advice."""
-
-payload = json.dumps({
-    "model": "claude-haiku-4-5-20251001",
-    "max_tokens": 400,
-    "messages": [{"role": "user", "content": prompt}]
-}).encode()
-
-req = urllib.request.Request(
-    "https://api.anthropic.com/v1/messages",
-    data=payload,
-    headers={
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-)
-try:
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read())
-        print(data["content"][0]["text"].strip())
-except Exception as e:
-    print(f"Could not generate report: {e}")
-PYEOF
-}
-
-generate_sops_rule() {
-    local PAUSE_REASON="$1"
-    local LOG="$PACT_LOG"
-    [[ -z "${ANTHROPIC_API_KEY:-}" ]] && { echo ""; return; }
-
-    # Extract last 40 relevant log lines as error context (skip HTTP request noise)
-    local ERROR_CONTEXT
-    ERROR_CONTEXT=$(grep -v "HTTP Request\|Research complete\|Plan evaluation\|Code authored" "$LOG" 2>/dev/null | tail -40)
-
-    local RULE
-    RULE=$(python3 - <<PYEOF
-import json, urllib.request, urllib.error, sys
-
-api_key = """${ANTHROPIC_API_KEY}"""
-pause_reason = """${PAUSE_REASON}"""
-error_context = """${ERROR_CONTEXT}"""
-lang = """${DETECTED_LANG:-unknown}"""
-test_fw = """${DETECTED_TEST:-unknown}"""
-
-prompt = f"""A pact build pipeline ({lang}/{test_fw} project) paused with this failure:
-
-PAUSE REASON: {pause_reason}
-
-RECENT LOG (last 40 lines):
-{error_context}
-
-Write ONE short rule (1-2 sentences, imperative tone) to add to sops.md that would prevent this failure in future builds.
-The rule must be {lang}-specific and must not reference other languages or their conventions.
-The rule should be concrete and actionable for an AI code generator.
-Reply with ONLY the rule text, no explanation, no markdown, no quotes."""
-
-payload = json.dumps({
-    "model": "claude-haiku-4-5-20251001",
-    "max_tokens": 150,
-    "messages": [{"role": "user", "content": prompt}]
-}).encode()
-
-req = urllib.request.Request(
-    "https://api.anthropic.com/v1/messages",
-    data=payload,
-    headers={
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "content-type": "application/json"
-    }
-)
-try:
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = json.loads(resp.read())
-        print(data["content"][0]["text"].strip())
-except Exception as e:
-    print("")
-PYEOF
-)
-    echo "$RULE"
-}
-
 # Helper: estimate cost from token counts logged by pact (pact doesn't write cost to state.json)
 # Token counts appear in log as "(N tokens)"; uses claude-opus-4 pricing ($15/M input, $75/M output)
 # Returns a range like "$1.23~$6.15 (82,000 tokens)" or "?" on failure
@@ -617,6 +492,31 @@ SOPS_CONTENT
             info "sops.md created for ${DETECTED_LANG}"
         fi
         ok "sops.md configured for $DETECTED_LANG"
+        # Proactively add TypeScript/React export rules to prevent import_error failures
+        if [[ "$DETECTED_LANG" == "typescript" ]] && ! grep -q "Named exports" sops.md 2>/dev/null; then
+            cat >> sops.md << 'TYPESCRIPT_RULES'
+
+## TypeScript / React Rules — CRITICAL
+- Named exports: every type, interface, function, and constant MUST be a named export
+- React components: export BOTH as named AND default (e.g. `export function Foo() {}` + `export default Foo`)
+- Every .tsx file must include `import React from 'react'` at the top
+- Tests run with vitest + @testing-library/react in jsdom environment
+- Do NOT use `export default` as the only export — always pair with a named export
+
+## String Keys in Maps and Registries — CRITICAL
+When implementing any component that builds a map keyed by string values (slug maps, route registries, component lookups):
+- NEVER infer key strings from component names or natural language — they may differ from the contract value
+- ALWAYS read the key strings from: (1) the TypeScript interface definition for the map, (2) the contract test's test data, or (3) the dependency component's exported manifest/enum
+- A key that "looks right" by name may not match the contract — always verify against the source of truth
+
+## import.meta.env in Vite/Vitest — CRITICAL
+- ALWAYS use `import.meta.env.VITE_X` directly — never `(import.meta as any).env?.VITE_X`
+- The `as any` cast bypasses vitest's vi.stubEnv: stubs return undefined instead of the stubbed value
+- Correct: `const url = import.meta.env.VITE_CONVEX_URL;`
+- Wrong: `const url = (import.meta as any).env?.VITE_CONVEX_URL;`
+TYPESCRIPT_RULES
+            info "TypeScript/React named-export rules appended to sops.md"
+        fi
     else
         info "sops.md kept as Python (default)"
     fi
@@ -683,7 +583,6 @@ RESET_PACT
     PACT_MAX_RETRIES=5      # max times to auto-retry after API failure
     PACT_RETRY_COUNT=0
     PACT_BUDGET_BUMPS=0     # max 3 budget bumps ($10 each, $40 total cap)
-    PACT_AUTOFIX_COUNT=0    # auto-fix attempts this run (resets each restart, max 2)
     PACT_START=$(date +%s)
     PACT_RESUME_COUNT=0
     PACT_APPROVED=false
@@ -831,58 +730,20 @@ BUMP_BUDGET
                     ensure_daemon PACT_PID
                     run_logged "$PACT_LOG" "$PACT" resume . || true
                 elif echo "${PAUSE_REASON}" | grep -qi "systemic\|import_error\|missing dependencies\|cascade\|rejection_rate"; then
-                    # Systemic failure — auto-fix disabled; manual intervention required
-                    warn "Systemic failure: ${PAUSE_REASON:-unknown} — auto-fix disabled, see intervention report below"
-                    # GENERATED_RULE="$(generate_sops_rule "${PAUSE_REASON}")"  # disabled — edit sops.md manually
-                    GENERATED_RULE=""
-                    PACT_AUTOFIX_COUNT=$(( PACT_AUTOFIX_COUNT + 1 ))
-                    if [[ -n "$GENERATED_RULE" ]] && [[ "$PACT_AUTOFIX_COUNT" -le 2 ]]; then
-                        echo "" >> "$APP_DIR/sops.md"
-                        echo "## Auto-fix ($(date -u '+%Y-%m-%dT%H:%M:%SZ'))" >> "$APP_DIR/sops.md"
-                        echo "$GENERATED_RULE" >> "$APP_DIR/sops.md"
-                        warn "sops.md patched: $GENERATED_RULE"
-                        echo "# [$(date -u '+%Y-%m-%dT%H:%M:%SZ')] Auto-patched sops.md: $GENERATED_RULE" >> "$PACT_LOG"
-                        # Kill daemon and reset implement phase so pact re-reads sops.md from component 1
-                        warn "Restarting fresh implement cycle so new rule applies from the start..."
-                        kill "$PACT_PID" 2>/dev/null || true
-                        sleep 3
-                        python3 << FRESH_CYCLE
-import json, pathlib
-sf = pathlib.Path('$PACT_STATE_FILE')
-d = json.loads(sf.read_text())
-d['status'] = 'active'
-d['phase'] = 'implement'
-d['pause_reason'] = ''
-d['completed_at'] = ''
-sf.write_text(json.dumps(d, indent=2))
-print("Reset: restarting implement phase with updated sops.md")
-FRESH_CYCLE
-                        echo "# [$(date -u '+%Y-%m-%dT%H:%M:%SZ')] Fresh implement cycle started after sops.md patch" >> "$PACT_LOG"
-                        ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}" "$PACT" daemon . >> "$PACT_LOG" 2>&1 &
-                        PACT_PID=$!
-                        info "Daemon restarted (PID: $PACT_PID) — fresh cycle with updated sops.md"
-                        sleep 8
-                    else
-                        # sops.md already patched but same failure recurs — auto-fix didn't work.
-                        # Ask Claude to investigate and produce a specific manual intervention report.
-                        kill "$PACT_PID" 2>/dev/null || true
-                        echo ""
-                        echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-                        echo -e "${RED}${BOLD}  MANUAL INTERVENTION REQUIRED${RESET}"
-                        echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-                        echo -e "  ${BOLD}Failure:${RESET} ${PAUSE_REASON}"
-                        echo -e "  ${DIM}Investigating with Claude...${RESET}"
-                        echo ""
-                        REPORT="$(generate_intervention_report "${PAUSE_REASON}")"
-                        echo "$REPORT" | sed "s/^/  /"
-                        echo ""
-                        echo -e "  ${BOLD}Logs:${RESET} $PACT_LOG"
-                        echo -e "  ${BOLD}Resume:${RESET} ./build-app.sh $PRIME_FILE $APP_NAME"
-                        echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
-                        echo ""
-                        record "2a-pact" "fail"
-                        break
-                    fi
+                    # Systemic failure — pact has already attempted auto-fix natively (scheduler.py)
+                    # and generated an intervention report in the pact log.
+                    kill "$PACT_PID" 2>/dev/null || true
+                    echo ""
+                    echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+                    echo -e "${RED}${BOLD}  MANUAL INTERVENTION REQUIRED${RESET}"
+                    echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+                    echo -e "  ${BOLD}Failure:${RESET} ${PAUSE_REASON}"
+                    echo -e "  ${BOLD}Details:${RESET} See $PACT_LOG for the intervention report."
+                    echo -e "  ${BOLD}Resume:${RESET} ./build-app.sh $PRIME_FILE $APP_NAME"
+                    echo -e "${RED}${BOLD}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${RESET}"
+                    echo ""
+                    record "2a-pact" "fail"
+                    break
                 else
                     # Health gate pause
                     PACT_RESUME_COUNT=$(( PACT_RESUME_COUNT + 1 ))
@@ -1137,11 +998,10 @@ fi
 banner "Step 5b — Chronicler"
 CHRONICLER_LOG="$LOG_DIR/5b-chronicler.log"
 
-if is_done "5b-chronicler"; then
-    resumed "Chronicler already done — skipping"
-elif ! require_ok "2a-pact"; then
+if ! require_ok "2a-pact"; then
     record "5b-chronicler" "fail"
-    record "5b-chronicler" "ok"
+elif is_done "5b-chronicler"; then
+    resumed "Chronicler already done — skipping"
 elif [[ ! -x "$CHRONICLER_PY" ]]; then
     err "Chronicler Python not found"
     record "5b-chronicler" "fail"

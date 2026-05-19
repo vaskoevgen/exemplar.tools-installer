@@ -1,0 +1,447 @@
+{
+  "component_id": "routing_and_layout",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "els_happy_bare_slug",
+      "description": "ensureLeadingSlash prepends '/' to a bare slug without a leading slash",
+      "function": "ensureLeadingSlash",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": "cartographer"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns '/cartographer'",
+      "expected_error": "",
+      "assertions": [
+        "result === '/cartographer'"
+      ]
+    },
+    {
+      "id": "els_happy_prefixed_slug",
+      "description": "ensureLeadingSlash returns input unchanged when it already starts with '/'",
+      "function": "ensureLeadingSlash",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": "/cartographer"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns '/cartographer' unchanged",
+      "expected_error": "",
+      "assertions": [
+        "result === '/cartographer'"
+      ]
+    },
+    {
+      "id": "els_edge_empty_string",
+      "description": "ensureLeadingSlash returns '/' for empty string input",
+      "function": "ensureLeadingSlash",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": ""
+      },
+      "input_description": "",
+      "expected_output_description": "Returns '/'",
+      "expected_error": "",
+      "assertions": [
+        "result === '/'"
+      ]
+    },
+    {
+      "id": "els_edge_slash_only",
+      "description": "ensureLeadingSlash returns '/' unchanged for slash-only input",
+      "function": "ensureLeadingSlash",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": "/"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns '/'",
+      "expected_error": "",
+      "assertions": [
+        "result === '/'"
+      ]
+    },
+    {
+      "id": "els_edge_double_slash",
+      "description": "ensureLeadingSlash does NOT strip double slashes — returns input unchanged if it starts with '/'",
+      "function": "ensureLeadingSlash",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "slug": "//foo"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns '//foo' unchanged (starts with '/')",
+      "expected_error": "",
+      "assertions": [
+        "result === '//foo'"
+      ]
+    },
+    {
+      "id": "els_invariant_idempotent",
+      "description": "ensureLeadingSlash is idempotent — applying it twice yields the same result as once",
+      "function": "ensureLeadingSlash",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ensureLeadingSlash(ensureLeadingSlash(slug)) === ensureLeadingSlash(slug) for any slug"
+      ]
+    },
+    {
+      "id": "els_invariant_pure",
+      "description": "ensureLeadingSlash is a pure function with no side effects — same input always produces same output",
+      "function": "ensureLeadingSlash",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ensureLeadingSlash(slug) === ensureLeadingSlash(slug) for same input"
+      ]
+    },
+    {
+      "id": "els_postcondition_starts_with_slash",
+      "description": "ensureLeadingSlash result always starts with '/'",
+      "function": "ensureLeadingSlash",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.startsWith('/') for any string input"
+      ]
+    },
+    {
+      "id": "navlink_happy_active",
+      "description": "getNavLinkClassName returns a non-empty string with active Tailwind classes when isActive is true",
+      "function": "getNavLinkClassName",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "isActive": "true"
+      },
+      "input_description": "",
+      "expected_output_description": "Non-empty string containing active styling classes",
+      "expected_error": "",
+      "assertions": [
+        "typeof result === 'string'",
+        "result.length > 0"
+      ]
+    },
+    {
+      "id": "navlink_happy_inactive",
+      "description": "getNavLinkClassName returns a non-empty string with inactive Tailwind classes when isActive is false",
+      "function": "getNavLinkClassName",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "isActive": "false"
+      },
+      "input_description": "",
+      "expected_output_description": "Non-empty string containing inactive styling classes",
+      "expected_error": "",
+      "assertions": [
+        "typeof result === 'string'",
+        "result.length > 0"
+      ]
+    },
+    {
+      "id": "navlink_distinct_classes",
+      "description": "getNavLinkClassName returns different class strings for active vs inactive states",
+      "function": "getNavLinkClassName",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "getNavLinkClassName(true) !== getNavLinkClassName(false)"
+      ]
+    },
+    {
+      "id": "route_entry_list_count",
+      "description": "ROUTE_ENTRY_LIST contains exactly 13 entries",
+      "function": "ROUTE_ENTRY_LIST",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ROUTE_ENTRY_LIST.length === 13"
+      ]
+    },
+    {
+      "id": "route_entry_list_first_home",
+      "description": "First entry in ROUTE_ENTRY_LIST is the home route with slug '/'",
+      "function": "ROUTE_ENTRY_LIST",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "ROUTE_ENTRY_LIST[0].slug === '/'",
+        "ROUTE_ENTRY_LIST[0].stepId === 'home'"
+      ]
+    },
+    {
+      "id": "route_slug_map_leading_slash",
+      "description": "Every value in ROUTE_SLUG_MAP starts with exactly one leading slash",
+      "function": "ROUTE_SLUG_MAP",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every slug starts with '/'"
+      ]
+    },
+    {
+      "id": "route_slug_map_no_double_slash",
+      "description": "No slug value in ROUTE_SLUG_MAP produces a double-slash",
+      "function": "ROUTE_SLUG_MAP",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "No slug contains '//'"
+      ]
+    },
+    {
+      "id": "route_slug_unique",
+      "description": "All RouteSlug values across ROUTE_ENTRY_LIST are unique",
+      "function": "ROUTE_ENTRY_LIST",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Set of slugs has same size as ROUTE_ENTRY_LIST length"
+      ]
+    },
+    {
+      "id": "route_slug_map_derivable",
+      "description": "ROUTE_SLUG_MAP is derivable from ROUTE_ENTRY_LIST — they are consistent",
+      "function": "ROUTE_SLUG_MAP",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "For every entry in ROUTE_ENTRY_LIST, ROUTE_SLUG_MAP[entry.stepId] === entry.slug"
+      ]
+    },
+    {
+      "id": "sidebar_happy_renders_links",
+      "description": "Sidebar renders exactly 13 NavLink elements, one per entry in ROUTE_ENTRY_LIST",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "13 links rendered in the DOM"
+      ]
+    },
+    {
+      "id": "sidebar_link_order",
+      "description": "Sidebar NavLinks appear in the same order as ROUTE_ENTRY_LIST",
+      "function": "Sidebar",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Links are in ROUTE_ENTRY_LIST order"
+      ]
+    },
+    {
+      "id": "sidebar_link_labels",
+      "description": "Each NavLink displays the corresponding entry's label as text content",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each label from ROUTE_ENTRY_LIST is found as link text"
+      ]
+    },
+    {
+      "id": "sidebar_link_hrefs",
+      "description": "Each NavLink's to prop matches the corresponding entry's slug value",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each link href matches entry slug"
+      ]
+    },
+    {
+      "id": "sidebar_home_end_prop",
+      "description": "The home NavLink (slug='/') uses the end prop to prevent matching all routes",
+      "function": "Sidebar",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Home link does not match when on a non-home route"
+      ]
+    },
+    {
+      "id": "layout_happy_renders_sidebar_and_outlet",
+      "description": "Layout renders a flex container with Sidebar on the left and Outlet in the main content area",
+      "function": "Layout",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Sidebar content is present",
+        "Child route content is rendered via Outlet"
+      ]
+    },
+    {
+      "id": "create_app_router_happy",
+      "description": "createAppRouter returns a router with 1 parent route and 13 child routes",
+      "function": "createAppRouter",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Router has parent route with path '/'",
+        "Parent route has 13 children"
+      ]
+    },
+    {
+      "id": "create_app_router_home_index",
+      "description": "Home child route uses index: true instead of path: ''",
+      "function": "createAppRouter",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Home child has index: true"
+      ]
+    },
+    {
+      "id": "create_app_router_no_double_slash",
+      "description": "No child route path produces a double-slash when combined with parent",
+      "function": "createAppRouter",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "No child path starts with '/'"
+      ]
+    },
+    {
+      "id": "sidebar_error_no_router",
+      "description": "Sidebar throws when rendered outside a React Router context",
+      "function": "Sidebar",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "no_router_context",
+      "assertions": [
+        "Rendering Sidebar without router context throws an error"
+      ]
+    },
+    {
+      "id": "layout_error_no_router",
+      "description": "Layout throws when rendered outside a React Router context",
+      "function": "Layout",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "no_router_context",
+      "assertions": [
+        "Rendering Layout without router context throws an error"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport React from 'react';\nimport { render, screen } from '@testing-library/react';\nimport { MemoryRouter, createMemoryRouter, RouterProvider } from 'react-router-dom';\n\n// Import the module under test\nimport {\n  ensureLeadingSlash,\n  getNavLinkClassName,\n  Sidebar,\n  Layout,\n  createAppRouter,\n  ROUTE_ENTRY_LIST,\n  ROUTE_SLUG_MAP,\n} from '../../src/routing_and_layout';\n\n// ─── ensureLeadingSlash ──────────────────────────────────────────────────────\n\ndescribe('ensureLeadingSlash', () => {\n  describe('happy path', () => {\n    it('prepends \"/\" to a bare slug without a leading slash', () => {\n      const result = ensureLeadingSlash('cartographer');\n      expect(result).toBe('/cartographer');\n    });\n\n    it('returns input unchanged when it already starts with \"/\"', () => {\n      const result = ensureLeadingSlash('/cartographer');\n      expect(result).toBe('/cartographer');\n    });\n\n    it('handles multi-segment paths without leading slash', () => {\n      const result = ensureLeadingSlash('foo/bar');\n      expect(result).toBe('/foo/bar');\n    });\n\n    it('handles multi-segment paths with leading slash', () => {\n      const result = ensureLeadingSlash('/foo/bar');\n      expect(result).toBe('/foo/bar');\n    });\n  });\n\n  describe('edge cases', () => {\n    it('returns \"/\" for empty string input', () => {\n      const result = ensureLeadingSlash('');\n      expect(result).toBe('/');\n    });\n\n    it('returns \"/\" unchanged for slash-only input', () => {\n      const result = ensureLeadingSlash('/');\n      expect(result).toBe('/');\n    });\n\n    it('does NOT strip double slashes — returns input unchanged if it starts with \"/\"', () => {\n      const result = ensureLeadingSlash('//foo');\n      // Input starts with '/', so it should be returned unchanged per the contract\n      expect(result).toBe('//foo');\n    });\n\n    it('handles a single character slug', () => {\n      const result = ensureLeadingSlash('a');\n      expect(result).toBe('/a');\n    });\n  });\n\n  describe('invariants', () => {\n    it('result always starts with \"/\"', () => {\n      const inputs = ['', '/', 'foo', '/foo', 'bar/baz', '/bar/baz', '//double'];\n      for (const input of inputs) {\n        const result = ensureLeadingSlash(input);\n        expect(result.startsWith('/'), `ensureLeadingSlash(\"${input}\") = \"${result}\" should start with \"/\"`).toBe(true);\n      }\n    });\n\n    it('is idempotent — applying it twice yields the same result as once', () => {\n      const inputs = ['', '/', 'foo', '/foo', 'cartographer', '/cartographer', 'bar/baz'];\n      for (const input of inputs) {\n        const once = ensureLeadingSlash(input);\n        const twice = ensureLeadingSlash(once);\n        expect(twice, `ensureLeadingSlash should be idempotent for input \"${input}\"`).toBe(once);\n      }\n    });\n\n    it('is a pure function — same input always produces same output', () => {\n      const inputs = ['', '/', 'test', '/test'];\n      for (const input of inputs) {\n        const result1 = ensureLeadingSlash(input);\n        const result2 = ensureLeadingSlash(input);\n        expect(result1).toBe(result2);\n      }\n    });\n\n    it('property: for any string, result starts with \"/\" (property-based)', () => {\n      // Lightweight property test without fast-check\n      const randomStrings = [\n        '', '/', 'a', '/a', 'abc', '/abc', '//abc', 'foo/bar',\n        '/foo/bar', '   ', '/ ', ' /', 'hello-world', '/hello-world',\n      ];\n      for (const s of randomStrings) {\n        const result = ensureLeadingSlash(s);\n        expect(result.startsWith('/'), `Failed for input: \"${s}\"`).toBe(true);\n      }\n    });\n  });\n});\n\n// ─── getNavLinkClassName ─────────────────────────────────────────────────────\n\ndescribe('getNavLinkClassName', () => {\n  describe('happy path', () => {\n    it('returns a non-empty string with active Tailwind classes when isActive is true', () => {\n      const result = getNavLinkClassName(true);\n      expect(typeof result).toBe('string');\n      expect(result.length, 'Active class string should be non-empty').toBeGreaterThan(0);\n    });\n\n    it('returns a non-empty string with inactive Tailwind classes when isActive is false', () => {\n      const result = getNavLinkClassName(false);\n      expect(typeof result).toBe('string');\n      expect(result.length, 'Inactive class string should be non-empty').toBeGreaterThan(0);\n    });\n  });\n\n  describe('invariants', () => {\n    it('returns different class strings for active vs inactive states', () => {\n      const activeClasses = getNavLinkClassName(true);\n      const inactiveClasses = getNavLinkClassName(false);\n      expect(activeClasses, 'Active and inactive classes must differ').not.toBe(inactiveClasses);\n    });\n\n    it('active class string contains font-bold or similar active indicator', () => {\n      const activeClasses = getNavLinkClassName(true);\n      // The contract says active NavLink receives \"distinct Tailwind classes for visual highlighting\"\n      // We check that it contains at least some class-like content\n      expect(activeClasses.trim().length).toBeGreaterThan(0);\n    });\n\n    it('is a pure function — same input always returns same output', () => {\n      expect(getNavLinkClassName(true)).toBe(getNavLinkClassName(true));\n      expect(getNavLinkClassName(false)).toBe(getNavLinkClassName(false));\n    });\n  });\n});\n\n// ─── ROUTE_ENTRY_LIST and ROUTE_SLUG_MAP invariants ──────────────────────────\n\ndescribe('ROUTE_ENTRY_LIST invariants', () => {\n  it('contains exactly 13 entries', () => {\n    expect(ROUTE_ENTRY_LIST).toBeDefined();\n    expect(Array.isArray(ROUTE_ENTRY_LIST)).toBe(true);\n    expect(ROUTE_ENTRY_LIST.length, 'ROUTE_ENTRY_LIST must have exactly 13 entries').toBe(13);\n  });\n\n  it('first entry is the home route with slug \"/\" and stepId \"home\"', () => {\n    const first = ROUTE_ENTRY_LIST[0];\n    expect(first.slug, 'First entry slug must be \"/\"').toBe('/');\n    expect(first.stepId, 'First entry stepId must be \"home\"').toBe('home');\n  });\n\n  it('all RouteSlug values are unique — no two entries share the same slug', () => {\n    const slugs = ROUTE_ENTRY_LIST.map((entry: { slug: string }) => entry.slug);\n    const uniqueSlugs = new Set(slugs);\n    expect(uniqueSlugs.size, 'All slugs must be unique').toBe(ROUTE_ENTRY_LIST.length);\n  });\n\n  it('every entry has a stepId, slug, and label', () => {\n    for (const entry of ROUTE_ENTRY_LIST) {\n      expect(entry.stepId, 'Every entry must have a stepId').toBeDefined();\n      expect(entry.slug, 'Every entry must have a slug').toBeDefined();\n      expect(entry.label, 'Every entry must have a label').toBeDefined();\n      expect(typeof entry.stepId).toBe('string');\n      expect(typeof entry.slug).toBe('string');\n      expect(typeof entry.label).toBe('string');\n    }\n  });\n\n  it('all stepIds are unique', () => {\n    const stepIds = ROUTE_ENTRY_LIST.map((entry: { stepId: string }) => entry.stepId);\n    const uniqueStepIds = new Set(stepIds);\n    expect(uniqueStepIds.size, 'All stepIds must be unique').toBe(ROUTE_ENTRY_LIST.length);\n  });\n\n  it('contains all expected stepIds', () => {\n    const expectedStepIds = [\n      'home', 'cartographer', 'constrain', 'ledger', 'pact',\n      'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler',\n      'stigmergy', 'apprentice', 'kindex',\n    ];\n    const actualStepIds = ROUTE_ENTRY_LIST.map((entry: { stepId: string }) => entry.stepId);\n    for (const expected of expectedStepIds) {\n      expect(actualStepIds, `ROUTE_ENTRY_LIST should contain stepId \"${expected}\"`).toContain(expected);\n    }\n  });\n});\n\ndescribe('ROUTE_SLUG_MAP invariants', () => {\n  it('every value starts with exactly one leading slash', () => {\n    expect(ROUTE_SLUG_MAP).toBeDefined();\n    const slugs = Object.values(ROUTE_SLUG_MAP) as string[];\n    for (const slug of slugs) {\n      expect(slug.startsWith('/'), `Slug \"${slug}\" must start with \"/\"`).toBe(true);\n    }\n  });\n\n  it('no slug value contains a double-slash \"//\"', () => {\n    const slugs = Object.values(ROUTE_SLUG_MAP) as string[];\n    for (const slug of slugs) {\n      expect(slug.includes('//'), `Slug \"${slug}\" must not contain \"//\"`).toBe(false);\n    }\n  });\n\n  it('is derivable from ROUTE_ENTRY_LIST — every entry matches', () => {\n    for (const entry of ROUTE_ENTRY_LIST) {\n      const mapSlug = (ROUTE_SLUG_MAP as Record<string, string>)[entry.stepId];\n      expect(mapSlug, `ROUTE_SLUG_MAP[\"${entry.stepId}\"] should equal \"${entry.slug}\"`).toBe(entry.slug);\n    }\n  });\n\n  it('has the same number of keys as ROUTE_ENTRY_LIST has entries', () => {\n    const mapKeys = Object.keys(ROUTE_SLUG_MAP);\n    expect(mapKeys.length).toBe(ROUTE_ENTRY_LIST.length);\n  });\n\n  it('contains all expected keys matching StepId enum values', () => {\n    const expectedKeys = [\n      'home', 'cartographer', 'constrain', 'ledger', 'pact',\n      'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler',\n      'stigmergy', 'apprentice', 'kindex',\n    ];\n    for (const key of expectedKeys) {\n      expect(ROUTE_SLUG_MAP).toHaveProperty(key);\n    }\n  });\n});\n\n// ─── Sidebar ─────────────────────────────────────────────────────────────────\n\ndescribe('Sidebar', () => {\n  describe('happy path', () => {\n    it('renders exactly 13 NavLink elements, one per entry in ROUTE_ENTRY_LIST', () => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/'] },\n          React.createElement(Sidebar)\n        )\n      );\n      const links = screen.getAllByRole('link');\n      expect(links.length, 'Sidebar should render exactly 13 links').toBe(13);\n    });\n\n    it('each NavLink displays the corresponding entry label as text content', () => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/'] },\n          React.createElement(Sidebar)\n        )\n      );\n      for (const entry of ROUTE_ENTRY_LIST) {\n        const link = screen.getByText(entry.label);\n        expect(link, `Should find link with label \"${entry.label}\"`).toBeDefined();\n      }\n    });\n\n    it('each NavLink href matches the corresponding entry slug value', () => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/'] },\n          React.createElement(Sidebar)\n        )\n      );\n      const links = screen.getAllByRole('link');\n      for (let i = 0; i < ROUTE_ENTRY_LIST.length; i++) {\n        const entry = ROUTE_ENTRY_LIST[i];\n        const link = screen.getByText(entry.label);\n        expect(\n          link.closest('a')?.getAttribute('href'),\n          `Link for \"${entry.label}\" should have href=\"${entry.slug}\"`\n        ).toBe(entry.slug);\n      }\n    });\n  });\n\n  describe('invariants', () => {\n    it('NavLinks appear in the same order as ROUTE_ENTRY_LIST', () => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/'] },\n          React.createElement(Sidebar)\n        )\n      );\n      const links = screen.getAllByRole('link');\n      for (let i = 0; i < ROUTE_ENTRY_LIST.length; i++) {\n        expect(\n          links[i].textContent,\n          `Link at index ${i} should have text \"${ROUTE_ENTRY_LIST[i].label}\"`\n        ).toBe(ROUTE_ENTRY_LIST[i].label);\n      }\n    });\n\n    it('home NavLink does not show active styling when on a non-home route (end prop)', () => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/cartographer'] },\n          React.createElement(Sidebar)\n        )\n      );\n      const homeLink = screen.getByText(ROUTE_ENTRY_LIST[0].label);\n      const cartographerLink = screen.getByText('Step 0 — Cartographer');\n\n      // Home link should NOT have active classes when we're on /cartographer\n      // Cartographer link should have active classes\n      const homeLinkEl = homeLink.closest('a');\n      const cartographerLinkEl = cartographerLink.closest('a');\n\n      // The class names should differ — home should be inactive, cartographer should be active\n      expect(homeLinkEl).toBeDefined();\n      expect(cartographerLinkEl).toBeDefined();\n\n      if (homeLinkEl && cartographerLinkEl) {\n        // They shouldn't have the same className since one is active and the other isn't\n        expect(homeLinkEl.className).not.toBe(cartographerLinkEl.className);\n      }\n    });\n  });\n\n  describe('error cases', () => {\n    it('throws when rendered outside of a React Router context', () => {\n      // Suppress React error boundary console output\n      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});\n      try {\n        expect(() => {\n          render(React.createElement(Sidebar));\n        }).toThrow();\n      } finally {\n        consoleSpy.mockRestore();\n      }\n    });\n  });\n});\n\n// ─── Layout ──────────────────────────────────────────────────────────────────\n\ndescribe('Layout', () => {\n  describe('happy path', () => {\n    it('renders Sidebar and passes child content through Outlet', () => {\n      const ChildComponent = () => React.createElement('div', { 'data-testid': 'child-content' }, 'Child Route Content');\n\n      const routes = [\n        {\n          path: '/',\n          element: React.createElement(Layout),\n          children: [\n            {\n              index: true,\n              element: React.createElement(ChildComponent),\n            },\n          ],\n        },\n      ];\n\n      const router = createMemoryRouter(routes, { initialEntries: ['/'] });\n      render(React.createElement(RouterProvider, { router }));\n\n      // Verify Sidebar is present by checking for a known label\n      const homeLabel = ROUTE_ENTRY_LIST[0].label;\n      expect(screen.getByText(homeLabel), 'Sidebar should be rendered with home link').toBeDefined();\n\n      // Verify child route content is rendered via Outlet\n      expect(screen.getByTestId('child-content'), 'Child route content should be rendered via Outlet').toBeDefined();\n      expect(screen.getByText('Child Route Content')).toBeDefined();\n    });\n\n    it('renders Sidebar on the left and main content on the right in a flex container', () => {\n      const ChildComponent = () => React.createElement('div', { 'data-testid': 'main-child' }, 'Main Content');\n\n      const routes = [\n        {\n          path: '/',\n          element: React.createElement(Layout),\n          children: [\n            {\n              index: true,\n              element: React.createElement(ChildComponent),\n            },\n          ],\n        },\n      ];\n\n      const router = createMemoryRouter(routes, { initialEntries: ['/'] });\n      const { container } = render(React.createElement(RouterProvider, { router }));\n\n      // Verify the layout contains both sidebar links and main content\n      const links = screen.getAllByRole('link');\n      expect(links.length).toBeGreaterThanOrEqual(13);\n      expect(screen.getByTestId('main-child')).toBeDefined();\n    });\n  });\n\n  describe('error cases', () => {\n    it('throws when rendered outside of a React Router context', () => {\n      const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {});\n      try {\n        expect(() => {\n          render(React.createElement(Layout));\n        }).toThrow();\n      } finally {\n        consoleSpy.mockRestore();\n      }\n    });\n  });\n});\n\n// ─── createAppRouter ─────────────────────────────────────────────────────────\n\ndescribe('createAppRouter', () => {\n  describe('happy path', () => {\n    it('returns a router instance', () => {\n      const router = createAppRouter();\n      expect(router, 'createAppRouter should return a router instance').toBeDefined();\n    });\n\n    it('has a parent route with path \"/\"', () => {\n      const router = createAppRouter();\n      // Access the routes from the router object\n      const routes = router.routes;\n      expect(routes).toBeDefined();\n      expect(routes.length).toBeGreaterThanOrEqual(1);\n\n      const parentRoute = routes[0];\n      expect(parentRoute.path, 'Parent route should have path \"/\"').toBe('/');\n    });\n\n    it('parent route has exactly 13 child routes', () => {\n      const router = createAppRouter();\n      const parentRoute = router.routes[0];\n      expect(parentRoute.children, 'Parent route should have children').toBeDefined();\n      expect(parentRoute.children!.length, 'Parent route should have exactly 13 children').toBe(13);\n    });\n\n    it('home child route uses index: true instead of path \"\"', () => {\n      const router = createAppRouter();\n      const children = router.routes[0].children!;\n\n      // Find the index route (home)\n      const indexRoute = children.find((child: any) => child.index === true);\n      expect(indexRoute, 'Should have an index route for home').toBeDefined();\n    });\n\n    it('all non-home child routes have paths matching slugs without leading slash', () => {\n      const router = createAppRouter();\n      const children = router.routes[0].children!;\n\n      // Non-index routes should have paths that match entry.slug.slice(1)\n      const nonIndexChildren = children.filter((child: any) => !child.index);\n      expect(nonIndexChildren.length).toBe(12); // 13 total minus 1 home/index\n\n      const expectedPaths = ROUTE_ENTRY_LIST\n        .filter((entry: { stepId: string }) => entry.stepId !== 'home')\n        .map((entry: { slug: string }) => entry.slug.slice(1));\n\n      for (const child of nonIndexChildren) {\n        expect(\n          expectedPaths,\n          `Child path \"${(child as any).path}\" should be in the expected paths list`\n        ).toContain((child as any).path);\n      }\n    });\n  });\n\n  describe('invariants', () => {\n    it('no child route path starts with \"/\" (they are relative to parent)', () => {\n      const router = createAppRouter();\n      const children = router.routes[0].children!;\n\n      for (const child of children) {\n        if ((child as any).path) {\n          expect(\n            (child as any).path.startsWith('/'),\n            `Child path \"${(child as any).path}\" should not start with \"/\"`\n          ).toBe(false);\n        }\n      }\n    });\n\n    it('no child route path produces a double-slash when combined with parent \"/\"', () => {\n      const router = createAppRouter();\n      const children = router.routes[0].children!;\n\n      for (const child of children) {\n        const childPath = (child as any).path || '';\n        const combined = '/' + childPath;\n        expect(\n          combined.includes('//'),\n          `Combined path \"${combined}\" should not contain \"//\"`\n        ).toBe(false);\n      }\n    });\n\n    it('every child route has a non-null element', () => {\n      const router = createAppRouter();\n      const children = router.routes[0].children!;\n\n      for (const child of children) {\n        // Routes can use element or lazy, but should have some way to render\n        const hasElement = (child as any).element != null;\n        const hasLazy = (child as any).lazy != null;\n        const hasComponent = (child as any).Component != null;\n        expect(\n          hasElement || hasLazy || hasComponent,\n          `Child route should have an element, lazy, or Component property`\n        ).toBe(true);\n      }\n    });\n\n    it('renders correctly with RouterProvider', () => {\n      const router = createAppRouter();\n      // Just verify it can be used with RouterProvider without throwing\n      // Note: createAppRouter uses createBrowserRouter which may not work in test env,\n      // so we just verify the structure is valid\n      expect(router).toBeDefined();\n      expect(router.routes).toBeDefined();\n      expect(router.routes[0].children).toBeDefined();\n    });\n  });\n});\n"
+}

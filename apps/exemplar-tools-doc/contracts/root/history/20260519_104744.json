@@ -1,0 +1,245 @@
+{
+  "component_id": "root",
+  "name": "Root",
+  "description": "Thin orchestration layer for the exemplar.tools documentation website. Composes child modules (project_scaffold, routing_and_layout, page_content) to wire all 13 page components into a router and mount the React application into the DOM. Owns no domain types — all canonical types are defined by child modules. Consists of two files: src/root.ts (exports initApp) and src/main.tsx (side-effect entry point that calls initApp, no exports).",
+  "version": 1,
+  "types": [
+    {
+      "name": "void",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "TypeScript void return type, indicating the function returns no value.",
+      "owner_component": ""
+    },
+    {
+      "name": "RouterInstance",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Opaque React Router browser router instance returned by createBrowserRouter / createAppRouter. Passed to RouterProvider for mounting.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactElement",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactElement / JSX.Element returned by React functional components.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "initApp",
+      "description": "Composition entry point that wires all child modules together and mounts the application. Imports createAppRouter from routing_and_layout (which internally references all 13 page components from page_content via ROUTE_ENTRY_LIST and the Layout/Sidebar shell). Calls createAppRouter() to build the complete route tree with all 13 routes (home + 12 steps). Then calls mountApp from project_scaffold, which creates a React root on the #root DOM element and renders the application with the router. This function is the single point of integration — it ensures that routing_and_layout's createAppRouter has already wired every page component to its route, so root merely invokes the composition. File: src/root.ts.",
+      "inputs": [],
+      "output_type": "void",
+      "error_cases": [
+        {
+          "name": "missing_root_element",
+          "condition": "DOM element with id='root' does not exist when mountApp is called",
+          "error_type": "DOMException",
+          "error_data": {
+            "message": "Cannot find DOM element with id='root'. Ensure index.html contains <div id=\"root\"></div>.",
+            "selector": "#root"
+          }
+        },
+        {
+          "name": "router_creation_failure",
+          "condition": "createAppRouter throws because a required page component import is missing or ROUTE_ENTRY_LIST is malformed",
+          "error_type": "ModuleNotFoundError",
+          "error_data": {
+            "message": "Failed to create app router. A page component or route entry could not be resolved."
+          }
+        },
+        {
+          "name": "mount_failure",
+          "condition": "mountApp throws because React root creation fails (e.g., createRoot is unavailable)",
+          "error_type": "RuntimeError",
+          "error_data": {
+            "message": "Failed to mount React application. Ensure react-dom/client is installed and createRoot is available."
+          }
+        }
+      ],
+      "preconditions": [
+        "DOM element with id='root' exists in the document (provided by index.html from project_scaffold)",
+        "All child module imports resolve successfully: project_scaffold.mountApp, routing_and_layout.createAppRouter",
+        "routing_and_layout.createAppRouter internally references all 13 page components from page_content",
+        "React 18 runtime and react-dom/client are available"
+      ],
+      "postconditions": [
+        "createAppRouter() from routing_and_layout has been called exactly once",
+        "mountApp() from project_scaffold has been called exactly once after createAppRouter completes",
+        "The React application is mounted into the #root DOM element with the complete router containing all 13 routes",
+        "All 13 page components (HomePage, CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage) are reachable via their registered routes"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [
+        "Mounts React application tree into DOM #root element",
+        "Triggers React Router initialization with browser history"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "DOM #root element",
+          "description": "Creates a React root and renders the full application tree (router + layout + pages) into the #root DOM element."
+        },
+        {
+          "kind": "mutates_state",
+          "target": "Browser history API",
+          "description": "React Router initializes browser history mode, registering popstate listeners for client-side navigation."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "main",
+      "description": "Side-effect entry point module at src/main.tsx. Imports initApp from src/root.ts and calls it immediately. Also imports src/index.css for Tailwind style injection. This module has zero named exports — it is referenced by index.html as <script type='module' src='/src/main.tsx'> and executes on load. This is not a callable function but a module-level side effect.",
+      "inputs": [],
+      "output_type": "void",
+      "error_cases": [
+        {
+          "name": "init_app_import_failure",
+          "condition": "Named export initApp cannot be resolved from src/root.ts",
+          "error_type": "ImportError",
+          "error_data": {
+            "message": "Cannot import { initApp } from './root'. Ensure root.ts exports initApp as a named export.",
+            "module": "./root",
+            "export": "initApp"
+          }
+        },
+        {
+          "name": "css_import_failure",
+          "condition": "src/index.css cannot be resolved or is malformed",
+          "error_type": "ImportError",
+          "error_data": {
+            "message": "Cannot import './index.css'. Ensure the file exists and contains valid CSS.",
+            "module": "./index.css"
+          }
+        }
+      ],
+      "preconditions": [
+        "src/root.ts exports initApp as a named export",
+        "src/index.css exists and contains valid Tailwind @tailwind directives",
+        "The module is loaded by the browser via the script tag in index.html"
+      ],
+      "postconditions": [
+        "initApp() has been called exactly once",
+        "Tailwind base/components/utilities styles are injected into the document via the CSS import side effect",
+        "No named exports exist on this module"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [
+        "Calls initApp() which mounts the React application",
+        "Imports CSS which injects Tailwind styles into the document"
+      ],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "DOM #root element",
+          "description": "Delegates to initApp() which mounts the React tree into the DOM."
+        },
+        {
+          "kind": "mutates_state",
+          "target": "Document stylesheets",
+          "description": "Importing index.css causes Vite/PostCSS to inject compiled Tailwind styles into the document's style sheets."
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "page_content",
+    "pipeline_diagram",
+    "project_scaffold",
+    "routing_and_layout",
+    "shared_ui"
+  ],
+  "dependency_contracts": {
+    "project_scaffold": [
+      "App",
+      "mountApp"
+    ],
+    "routing_and_layout": [
+      "createAppRouter",
+      "ROUTE_ENTRY_LIST",
+      "ROUTE_SLUG_MAP",
+      "ensureLeadingSlash",
+      "Layout",
+      "Sidebar"
+    ],
+    "page_content": [
+      "HomePage",
+      "CartographerPage",
+      "ConstrainPage",
+      "LedgerPage",
+      "PactPage",
+      "AdvocatePage",
+      "ArbiterPage",
+      "BatonPage",
+      "SentinelPage",
+      "ChroniclerPage",
+      "StigmergyPage",
+      "ApprenticePage",
+      "KindexPage",
+      "STEP_CONTENT",
+      "StepId"
+    ],
+    "pipeline_diagram": [
+      "PipelineDiagram",
+      "PIPELINE_NODES",
+      "PIPELINE_EDGES"
+    ],
+    "shared_ui": [
+      "CodeBlock",
+      "VersionBadge",
+      "YouTubeEmbed",
+      "CalloutBox"
+    ]
+  },
+  "invariants": [
+    "Root owns zero domain types — all types (StepId, StepLabel, RouteSlug, StepContent, RouteEntry, etc.) are defined by and imported from child modules.",
+    "Root does not re-export any child module types or constants — consumers import directly from the owning child module.",
+    "The total number of registered routes is exactly 13: 1 home route + 12 step routes.",
+    "src/main.tsx has zero named exports — it is a side-effect-only entry point.",
+    "src/root.ts exports exactly one named runtime export: initApp.",
+    "initApp calls createAppRouter exactly once and mountApp exactly once, in that order.",
+    "Root has no direct runtime dependency on shared_ui or pipeline_diagram — those are consumed transitively through page_content and routing_and_layout.",
+    "All slug handling is delegated to ensureLeadingSlash from routing_and_layout — root never manipulates slug strings directly.",
+    "All source files use TypeScript strict mode, named exports only, and 'export type { }' for type-only exports per project standards."
+  ],
+  "requires": [
+    "project_scaffold",
+    "routing_and_layout",
+    "page_content"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [],
+    "writes": [],
+    "rationale": "Root is a pure orchestration layer that reads no persistent data and writes no persistent data. It composes child modules (routing configuration, page components, scaffold utilities) at application startup. All data access is transitive through child modules. The only state mutation is the one-time DOM mount of the React application tree into the #root element, which is an in-memory browser DOM operation with no data classification implications.",
+    "side_effects": [
+      {
+        "type": "dom_mount",
+        "classification": "PUBLIC",
+        "fields": [
+          "#root DOM element"
+        ],
+        "rationale": "Mounts the React application tree into the #root DOM element at startup. This is a public, client-side browser DOM operation with no sensitive data."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [],
+    "rationale": null
+  }
+}

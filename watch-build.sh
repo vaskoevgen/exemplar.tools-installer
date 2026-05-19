@@ -123,8 +123,21 @@ exit(0 if d.get('status') in ('complete','succeeded','done') else 1)
     esac
 }
 
-# Effective state: state file entry wins; artifact detection as fallback
+# Effective state: state file entry wins; artifact detection as fallback.
+# For pact-dependent steps, a cached 'ok' is overridden to 'fail' if pact itself failed.
+PACT_DEPENDENT=(2b-advocate 3-arbiter 4-baton 5a-sentinel 5b-chronicler 5c-stigmergy 6-apprentice)
+
+is_pact_dependent() {
+    local S; for S in "${PACT_DEPENDENT[@]}"; do [[ "$S" == "$1" ]] && return 0; done; return 1
+}
+
 effective_state() {
+    # Pact-dependent steps: if pact failed, report fail regardless of cached state
+    if is_pact_dependent "$1" && [[ "$(step_state "2a-pact")" == "fail" ]]; then
+        echo "fail"
+        return
+    fi
+
     local VAL
     VAL=$(step_state "$1")
     if [[ -n "$VAL" ]]; then

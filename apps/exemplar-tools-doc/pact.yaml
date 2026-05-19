@@ -1,0 +1,17 @@
+budget: 25.0
+shaping: false
+build_mode: auto
+plan_only: true
+backend: anthropic
+model: claude-sonnet-4-6
+language: typescript
+test_framework: vitest
+role_backends:
+  decomposer: anthropic
+  contract_author: anthropic
+  test_author: anthropic
+  code_author: anthropic
+role_timeouts:
+  contract_author: 120
+  test_author: 120
+  decomposer: 120

@@ -1,0 +1,14 @@
+{
+  "attempt": 3,
+  "timestamp": "2026-05-19T11:33:35.165247",
+  "files": [
+    "index.ts",
+    "types.ts",
+    "routes.ts",
+    "utils.ts",
+    "errors.ts",
+    "Sidebar.tsx",
+    "Layout.tsx",
+    "createAppRouter.tsx"
+  ]
+}

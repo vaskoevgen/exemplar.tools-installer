@@ -1,0 +1,544 @@
+{
+  "component_id": "routing_and_layout",
+  "name": "Routing, Layout & Navigation",
+  "description": "Implements the routing data model and layout shell for the exemplar.tools documentation website. Includes: (1) ROUTE_SLUG_MAP constant mapping all 13 routes (home + 12 steps) with leading-slash values as a Record<StepId, RouteSlug>, (2) ROUTE_ENTRY_LIST ordered array of 13 RouteEntry objects defining sidebar order and route registration sequence, (3) ensureLeadingSlash slug guard utility using the exact ternary from operating procedures, (4) a persistent Sidebar component with NavLinks to all pages highlighting the active route (home NavLink uses `end` prop), (5) a Layout component wrapping sidebar + content area with React Router <Outlet />, (6) route registration in App.tsx using createBrowserRouter with Layout as parent route element and all 13 pages as children. All use React Router v6 browser history mode. Tests verify all 13 routes exist, no double-slash bugs, slug guard edge cases, sidebar renders all links, and all slugs are unique.",
+  "version": 1,
+  "types": [
+    {
+      "name": "RouteSlug",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "/",
+        "/cartographer",
+        "/constrain",
+        "/ledger",
+        "/pact",
+        "/advocate",
+        "/arbiter",
+        "/baton",
+        "/sentinel",
+        "/chronicler",
+        "/stigmergy",
+        "/apprentice",
+        "/kindex"
+      ],
+      "inner_types": [],
+      "description": "All 14 valid route slugs (leading-slash paths) used for navigation and route registration across the app.",
+      "owner_component": "routing_and_layout"
+    },
+    {
+      "name": "StepId",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "home",
+        "cartographer",
+        "constrain",
+        "ledger",
+        "pact",
+        "advocate",
+        "arbiter",
+        "baton",
+        "sentinel",
+        "chronicler",
+        "stigmergy",
+        "apprentice",
+        "kindex"
+      ],
+      "inner_types": [],
+      "description": "Unique identifier for each step in the exemplar.tools pipeline, used as keys in content data and pipeline diagram nodes.",
+      "owner_component": "page_content"
+    },
+    {
+      "name": "StepLabel",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "Home",
+        "Step 0 — Cartographer",
+        "Step 1a — Constrain",
+        "Step 1b — Ledger",
+        "Step 2a — Pact",
+        "Step 2b — Advocate",
+        "Step 3 — Arbiter",
+        "Step 4 — Baton",
+        "Step 5a — Sentinel",
+        "Step 5b — Chronicler",
+        "Step 5c — Stigmergy",
+        "Step 6 — Apprentice",
+        "Step 7 — Kindex"
+      ],
+      "inner_types": [],
+      "description": "Human-readable display labels for each pipeline step, shown in sidebar navigation, diagram boxes, and page titles.",
+      "owner_component": "page_content"
+    },
+    {
+      "name": "RouteEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "stepId",
+          "type_ref": "StepId",
+          "required": true,
+          "default": "",
+          "description": "Unique pipeline step identifier.",
+          "validators": []
+        },
+        {
+          "name": "slug",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "URL path slug for this route (always starts with '/').",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "StepLabel",
+          "required": true,
+          "default": "",
+          "description": "Human-readable label displayed in navigation and page headers.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single entry in the route map linking a step to its slug and display label, consumed by sidebar nav and route registration.",
+      "owner_component": "routing_and_layout"
+    },
+    {
+      "name": "RouteEntryList",
+      "kind": "list",
+      "fields": [],
+      "item_type": "RouteEntry",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered list of all 14 RouteEntry items, defining sidebar order and route registration sequence.",
+      "owner_component": "routing_and_layout"
+    },
+    {
+      "name": "RouteSlugMap",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "home",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for home page: '/'",
+          "validators": []
+        },
+        {
+          "name": "cartographer",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for cartographer step: '/cartographer'",
+          "validators": []
+        },
+        {
+          "name": "constrain",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for constrain step: '/constrain'",
+          "validators": []
+        },
+        {
+          "name": "ledger",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for ledger step: '/ledger'",
+          "validators": []
+        },
+        {
+          "name": "pact",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for pact step: '/pact'",
+          "validators": []
+        },
+        {
+          "name": "advocate",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for advocate step: '/advocate'",
+          "validators": []
+        },
+        {
+          "name": "arbiter",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for arbiter step: '/arbiter'",
+          "validators": []
+        },
+        {
+          "name": "baton",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for baton step: '/baton'",
+          "validators": []
+        },
+        {
+          "name": "sentinel",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for sentinel step: '/sentinel'",
+          "validators": []
+        },
+        {
+          "name": "chronicler",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for chronicler step: '/chronicler'",
+          "validators": []
+        },
+        {
+          "name": "stigmergy",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for stigmergy step: '/stigmergy'",
+          "validators": []
+        },
+        {
+          "name": "apprentice",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for apprentice step: '/apprentice'",
+          "validators": []
+        },
+        {
+          "name": "kindex",
+          "type_ref": "RouteSlug",
+          "required": true,
+          "default": "",
+          "description": "Slug for kindex step: '/kindex'",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Record<StepId, RouteSlug> providing O(1) lookup from step ID to its URL slug. Derived from ROUTE_ENTRY_LIST via Array.reduce — never independently maintained.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactNode",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactNode — the return type of React functional components. Represents any renderable React content.",
+      "owner_component": ""
+    },
+    {
+      "name": "NavLinkClassName",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "The className callback signature for React Router NavLink: ({ isActive }: { isActive: boolean }) => string. Returns Tailwind classes for active/inactive states.",
+      "owner_component": ""
+    },
+    {
+      "name": "RouterConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Root path, always '/'",
+          "validators": []
+        },
+        {
+          "name": "element",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "The Layout component instance wrapping Sidebar + Outlet",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Array of child route objects, one per ROUTE_ENTRY_LIST entry, each with path and element props",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Configuration object returned by createBrowserRouter. Represents the complete route tree with Layout as the parent route and all 13 page routes as children.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "ensureLeadingSlash",
+      "description": "Pure utility function that guarantees a string has exactly one leading slash. Uses the exact ternary from operating procedures: `slug.startsWith('/') ? slug : '/' + slug`. Does NOT strip double slashes — that is a separate concern validated by invariants on ROUTE_SLUG_MAP values.",
+      "inputs": [
+        {
+          "name": "slug",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "A URL slug string that may or may not already have a leading slash.",
+          "validators": []
+        }
+      ],
+      "output_type": "str",
+      "error_cases": [],
+      "preconditions": [
+        "slug is a string (may be empty)"
+      ],
+      "postconditions": [
+        "Return value always starts with '/'",
+        "If input already starts with '/', return value equals input unchanged",
+        "If input does not start with '/', return value equals '/' + input",
+        "Empty string input returns '/'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects. Performs only string inspection and concatenation."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "Sidebar",
+      "description": "React functional component that renders a vertical navigation sidebar. Iterates over ROUTE_ENTRY_LIST and renders one React Router NavLink per entry, using entry.slug as the `to` prop and entry.label as the link text. Uses NavLink's className callback `({ isActive }) => string` to apply Tailwind active/inactive styles. The home NavLink (slug='/') uses the `end` prop to prevent it from matching all routes. Styled with Tailwind for fixed-width left sidebar positioning.",
+      "inputs": [],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "no_router_context",
+          "condition": "Sidebar is rendered outside of a React Router context",
+          "error_type": "React Router invariant error",
+          "error_data": {
+            "message": "useLocation() may be used only in the context of a <Router> component"
+          }
+        }
+      ],
+      "preconditions": [
+        "Component must be rendered within a React Router context (BrowserRouter, MemoryRouter, or RouterProvider)",
+        "ROUTE_ENTRY_LIST must be available as an import from the routing module"
+      ],
+      "postconditions": [
+        "Renders exactly 13 NavLink elements, one per entry in ROUTE_ENTRY_LIST",
+        "NavLinks appear in the same order as ROUTE_ENTRY_LIST",
+        "The home NavLink (slug='/') has the `end` prop set to true",
+        "Each NavLink's `to` prop matches the corresponding entry's slug value",
+        "Each NavLink displays the corresponding entry's label as text content",
+        "Active NavLink receives distinct Tailwind classes for visual highlighting"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function. NavLink click handlers are provided by React Router, not by this component."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "Layout",
+      "description": "React functional component that renders the top-level page layout shell. Uses a Tailwind flex container with Sidebar on the left and a main content area on the right containing React Router's <Outlet /> component. The Outlet renders the matched child route's component. Layout is used as the `element` of the root route in createBrowserRouter configuration.",
+      "inputs": [],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "no_router_context",
+          "condition": "Layout is rendered outside of a React Router context",
+          "error_type": "React Router invariant error",
+          "error_data": {
+            "message": "useOutlet() may be used only in the context of a <Router> component"
+          }
+        }
+      ],
+      "preconditions": [
+        "Component must be rendered within a React Router context",
+        "Sidebar component must be available as an import",
+        "React Router Outlet must be available"
+      ],
+      "postconditions": [
+        "Renders a flex container with exactly two children: Sidebar and a main content wrapper",
+        "The main content wrapper contains exactly one <Outlet /> component",
+        "Sidebar is positioned on the left side of the flex container",
+        "The main content area fills the remaining horizontal space"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function. Layout delegates routing behavior to React Router's Outlet."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "createAppRouter",
+      "description": "Factory function that creates and returns a React Router v6 browser router instance using createBrowserRouter. Constructs the route tree with Layout as the parent route element (path='/') and all 13 page routes as children. Child route paths are derived from ROUTE_ENTRY_LIST entries: home uses `index: true`, all others use `path: entry.slug.slice(1)` (removing the leading slash since they are relative to the parent). Each child route's element is the corresponding page component, lazy-loaded or directly imported.",
+      "inputs": [],
+      "output_type": "RouterConfig",
+      "error_cases": [
+        {
+          "name": "missing_page_component",
+          "condition": "A page component referenced in ROUTE_ENTRY_LIST cannot be resolved at import time",
+          "error_type": "ModuleNotFoundError",
+          "error_data": {
+            "message": "Cannot find module for route entry stepId"
+          }
+        }
+      ],
+      "preconditions": [
+        "ROUTE_ENTRY_LIST must contain exactly 13 entries",
+        "All page components referenced by route entries must be importable",
+        "React Router createBrowserRouter must be available"
+      ],
+      "postconditions": [
+        "Returns a valid router instance with exactly 1 parent route and 13 child routes",
+        "Parent route has path '/' and element <Layout />",
+        "Home child route uses `index: true` instead of `path: ''`",
+        "All non-home child routes have paths matching their slug without the leading slash",
+        "Router uses browser history mode (not hash or memory)"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Creates a router configuration object. Does not mount to DOM or trigger navigation. The router object is inert until passed to <RouterProvider>."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getNavLinkClassName",
+      "description": "Pure helper function that returns the className callback for NavLink components. Given an isActive boolean from React Router's NavLink render prop, returns the appropriate Tailwind CSS class string for active or inactive navigation link styling.",
+      "inputs": [
+        {
+          "name": "isActive",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether the NavLink's route matches the current URL, provided by React Router's NavLink className callback.",
+          "validators": []
+        }
+      ],
+      "output_type": "str",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "When isActive is true, returns a class string containing active state Tailwind classes (e.g., font-bold, specific background/text color)",
+        "When isActive is false, returns a class string containing inactive state Tailwind classes",
+        "Return value is always a non-empty string"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — returns a CSS class string based on boolean input."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 1,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    }
+  ],
+  "dependencies": [
+    "page_content"
+  ],
+  "dependency_contracts": {
+    "page_content": [
+      "StepId",
+      "StepLabel"
+    ]
+  },
+  "invariants": [
+    "ROUTE_ENTRY_LIST always contains exactly 13 entries",
+    "Every value in ROUTE_SLUG_MAP starts with exactly one leading slash character ('/')",
+    "No slug value in ROUTE_SLUG_MAP produces a double-slash ('//') when used as a path",
+    "All RouteSlug values across ROUTE_ENTRY_LIST are unique — no two entries share the same slug",
+    "ROUTE_SLUG_MAP is derivable from ROUTE_ENTRY_LIST — they are never independently maintained",
+    "The first entry in ROUTE_ENTRY_LIST is always the home route with slug '/'",
+    "Sidebar renders exactly one NavLink per entry in ROUTE_ENTRY_LIST, in the same order",
+    "The home NavLink always uses the `end` prop to prevent matching all routes",
+    "Layout always renders Sidebar on the left and Outlet in the main content area",
+    "ensureLeadingSlash is a pure function with no side effects"
+  ],
+  "requires": [
+    "react-router-dom@^6",
+    "react@^18",
+    "tailwindcss"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Reads only public, static routing configuration data (step IDs, labels, slugs) defined at build time. No user data, PII, or secrets are accessed. The component produces purely presentational output (navigation links, layout containers) with no server-side data fetching or persistence.",
+    "side_effects": [
+      {
+        "type": "browser_history_navigation",
+        "classification": "PUBLIC",
+        "fields": [
+          "window.location",
+          "history.state"
+        ],
+        "rationale": "React Router v6 manipulates browser history state and window.location when users click NavLinks in the Sidebar. This is a client-side-only side effect with no server interaction."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "route_slugs",
+      "route_entries",
+      "navigation_structure",
+      "layout_shell"
+    ],
+    "rationale": "This component is the single source of truth for all URL slugs, route-to-step mappings, navigation ordering, and the top-level layout structure. No other component may define or modify route paths or navigation order."
+  }
+}

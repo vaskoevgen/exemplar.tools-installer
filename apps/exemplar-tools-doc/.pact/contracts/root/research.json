@@ -1,0 +1,108 @@
+{
+  "task_summary": "Define the interface contract for the 'Root' component (id: root) of the exemplar.tools documentation website. This is the top-level component that orchestrates all child modules: page_content, pipeline_diagram, project_scaffold, routing_and_layout, and shared_ui. The contract must specify the types, functions, and integration points that the root owns, using TypeScript strict mode with the canonical type registry exactly as defined.",
+  "findings": [
+    {
+      "topic": "Root component responsibilities in React + React Router apps",
+      "finding": "The root component in a React SPA typically owns: (1) mounting the app to the DOM, (2) providing the router context, (3) composing the top-level layout. In this architecture, project_scaffold already owns `App` and `mountApp`, and routing_and_layout owns `createAppRouter` and `Layout`. The root's contract should therefore be a thin orchestration layer that wires these together — it should NOT re-export or duplicate functionality already owned by child modules.",
+      "source": "React Router v6 documentation, common SPA architecture patterns",
+      "relevance": "Directly defines what the root contract should and should not contain",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Named exports only — no default exports",
+      "finding": "The project standards mandate named exports exclusively. This means even the root entry point (typically `main.tsx`) must use named exports or simply call `mountApp()` as a side effect. Any types or functions the root defines must be `export const` / `export function` / `export type`.",
+      "source": "Project Operating Procedures — Standards section",
+      "relevance": "Hard constraint on all export signatures in the root contract",
+      "confidence": 1.0
+    },
+    {
+      "topic": "Type re-export patterns in TypeScript strict mode",
+      "finding": "When a root module needs to surface types from child modules, TypeScript strict mode with `isolatedModules` (common with Vite) requires `export type { X }` syntax for type-only re-exports. The root should re-export canonical types using `export type` and runtime values using `export`. Barrel files (index.ts) that re-export everything are a common pattern but can cause circular dependency issues — the root should only re-export what it genuinely owns or what consumers need from a single entry point.",
+      "source": "TypeScript 5.x handbook, Vite + isolatedModules best practices",
+      "relevance": "Governs how root exposes types to external consumers without violating strict mode",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Avoiding ownership conflicts with child module contracts",
+      "finding": "Every type in the canonical registry has a designated owner. The root component should NOT redefine StepId (owned by page_content), RouteSlug (owned by routing_and_layout), CalloutVariant (owned by shared_ui), etc. If root needs these types, it imports them. Root should only define types that represent cross-cutting integration concerns not covered by any child module — e.g., an AppConfig type or top-level error boundary props.",
+      "source": "Canonical Type Registry in the task specification",
+      "relevance": "Critical constraint — violating ownership would create conflicting type definitions",
+      "confidence": 0.98
+    },
+    {
+      "topic": "Root-level error boundaries in React 18",
+      "finding": "React 18 best practice is to wrap the entire app in an ErrorBoundary at the root level. This is a cross-cutting concern that no child module naturally owns. The root contract could define an `ErrorBoundary` component and its props (e.g., `ErrorBoundaryProps` with `fallback: ReactNode` and `children: ReactNode`). However, since no ErrorBoundary is mentioned in the dependency contracts, this may be out of scope.",
+      "source": "React 18 documentation, react-error-boundary library patterns",
+      "relevance": "Potential root-owned component, but should only be included if within scope",
+      "confidence": 0.7
+    },
+    {
+      "topic": "Entry point pattern for Vite + React apps",
+      "finding": "The standard Vite + React entry point is `src/main.tsx` which calls `ReactDOM.createRoot(document.getElementById('root')!).render(...)`. In this project, `project_scaffold` already exports `mountApp` which likely encapsulates this. The root's `main.tsx` would simply import and call `mountApp()`. The root contract should therefore focus on what `main.tsx` needs to orchestrate rather than reimplementing mount logic.",
+      "source": "Vite React template, project_scaffold contract (exports mountApp)",
+      "relevance": "Clarifies that root is an orchestrator, not an implementor of mount logic",
+      "confidence": 0.95
+    },
+    {
+      "topic": "vi.mock() completeness requirement for root tests",
+      "finding": "The operating procedures require vi.mock() factories to provide EVERY named runtime export of the mocked module. When testing the root component, mocks of child modules must enumerate all their exports. The root contract should be designed to minimize the number of direct imports so tests remain manageable — thin root = simpler mocks.",
+      "source": "Project Operating Procedures — vi.mock() Rules",
+      "relevance": "Design pressure to keep root's surface area minimal",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Slug handling guard at the root level",
+      "finding": "The operating procedures specify: 'Always guard: slug.startsWith('/') ? slug : '/' + slug'. The routing_and_layout module exports `ensureLeadingSlash` for this purpose. The root should import and delegate to this utility rather than implementing its own slug guard. ROUTE_SLUG_MAP values already include leading slashes.",
+      "source": "Project Operating Procedures — Slug Handling, routing_and_layout contract",
+      "relevance": "Root must not duplicate slug normalization logic that routing_and_layout owns",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Contract-first design for the root orchestrator",
+      "finding": "In contract-first architecture, the root component's contract defines: (1) what it exports to the outside world (likely nothing beyond the side-effect entry point), (2) what it imports from each child module, and (3) any integration types it uniquely owns. Since all 5 child modules have well-defined contracts, the root's job is pure composition. Its contract should document the composition wiring: App uses createAppRouter, which uses Layout, which uses Sidebar + page components.",
+      "source": "Component contract architecture patterns, dependency injection in React",
+      "relevance": "Defines the fundamental shape of the root contract",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Common pitfall: circular imports in barrel re-exports",
+      "finding": "A root barrel file that re-exports from all child modules can create circular dependencies when child modules import types from each other through the root. The safest pattern is for child modules to import directly from their peer dependencies, and for root to only import what it needs for orchestration — not act as a universal re-export barrel.",
+      "source": "TypeScript module resolution documentation, Vite circular dependency warnings",
+      "relevance": "Architectural constraint on how root should structure its imports/exports",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Vercel routing configuration at the root level",
+      "finding": "The project_scaffold contract includes `VercelRewriteRule` type, suggesting SPA deployment on Vercel with catch-all rewrites to index.html. This is a root-level concern (vercel.json lives at project root). The root contract should acknowledge this configuration dependency but the type itself is owned by project_scaffold.",
+      "source": "Vercel SPA deployment docs, project_scaffold contract",
+      "relevance": "Root deployment config depends on project_scaffold types",
+      "confidence": 0.85
+    }
+  ],
+  "recommended_approach": "The root component should be a **thin orchestration layer** with minimal owned types and functions. Specifically:\n\n1. **Entry point (`main.tsx`)**: A side-effect module that imports `mountApp` from project_scaffold and calls it. No exports needed from this file.\n\n2. **Root-owned exports**: The root should own at most:\n   - A `ROUTE_CONFIG` or similar constant that wires StepId → RouteSlug → page component (if not already covered by routing_and_layout's `createAppRouter`)\n   - Potentially an `initApp` function that composes `createAppRouter` with page components and passes the result to `mountApp`\n\n3. **No type redefinitions**: All canonical types are owned by child modules. Root imports them as needed but does not re-export or redefine them.\n\n4. **Testing**: Root tests should verify that `mountApp` is called, that the router is created with the correct route entries, and that all 14 routes are registered. Mocks should be minimal since root's surface area is small.\n\n5. **Slug handling**: Delegate entirely to `ensureLeadingSlash` from routing_and_layout.\n\nThe root contract should document:\n- Functions: The composition wiring (e.g., an `initApp` or inline composition in main.tsx)\n- Types: Only if root needs a unique integration type (likely none)\n- Dependencies: Explicit imports from each of the 5 child modules",
+  "alternatives_considered": [
+    "Root as a thick barrel module re-exporting all child types and functions — REJECTED because it creates circular dependency risks, violates type ownership, and makes vi.mock() tests unwieldy.",
+    "Root defining its own ErrorBoundary component and AppConfig type — CONSIDERED but likely out of scope since no error boundary is referenced in any child contract and the project_scaffold already owns App/mountApp.",
+    "Root owning the ROUTE_SLUG_MAP constant — REJECTED because routing_and_layout already exports RouteSlugMap type and likely owns the constant.",
+    "Root as a pure side-effect entry point with zero exports — VIABLE and the most minimal approach; root's main.tsx simply calls mountApp() which internally composes createAppRouter + Layout + pages.",
+    "Root defining a thin integration contract with only the wiring logic (composing router with page components) — RECOMMENDED as it documents how child modules connect without duplicating their contracts."
+  ],
+  "risks": [
+    "Risk of root becoming a god module if it starts owning types or logic that belong to child modules — mitigate by strictly respecting type ownership.",
+    "Circular dependency risk if root re-exports child module symbols that other child modules also import — mitigate by keeping root as a leaf consumer, not a barrel.",
+    "vi.mock() complexity: if root imports from all 5 child modules, tests need mocks for all 5 — mitigate by keeping root's import surface narrow (only import what's directly needed for wiring).",
+    "The project_scaffold already owns `App` and `mountApp`, which may already encapsulate the router creation — risk of root duplicating this logic. Need to clarify the boundary: does project_scaffold's App already call createAppRouter, or does root wire that?",
+    "Missing route registration: if root is responsible for mapping all 14 routes to page components, forgetting one route would result in a 404 — mitigate with a test that asserts all 13 step StepIds + home are registered.",
+    "Slug double-slash bug: if root constructs paths by concatenating strings instead of using ensureLeadingSlash, double slashes could appear — mitigate by always using the routing_and_layout utility."
+  ],
+  "compliance_notes": [
+    "All source files must be .ts or .tsx — root's main.tsx and any contract files must use these extensions.",
+    "Named exports only — no default exports anywhere in root's code.",
+    "Use `export type { }` for any type re-exports.",
+    "Type annotations required on all public functions.",
+    "vi.mock() factories must provide every named runtime export of mocked modules.",
+    "Slug values from ROUTE_SLUG_MAP already have leading slashes — never prepend an extra '/'.",
+    "Every function must have at least one test; tests must run without external services.",
+    "No task is done until contract tests pass."
+  ]
+}

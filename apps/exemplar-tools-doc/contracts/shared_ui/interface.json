@@ -1,0 +1,541 @@
+{
+  "component_id": "shared_ui",
+  "name": "Shared UI Components",
+  "description": "Reusable presentational React components used across all pages of the exemplar.tools documentation website. Barrel-exported collection of four components: CodeBlock (preformatted CLI commands with copy-to-clipboard), VersionBadge (inline component name + version badge), YouTubeEmbed (responsive YouTube iframe wrapper), and CalloutBox (variant-styled container for gotchas, warnings, and tips). All components use strict TypeScript annotations, named exports only (no defaults), and are tested with vitest + @testing-library/react. Mock surface: consumers mocking this module must provide exactly four runtime exports: { CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox }.",
+  "version": 1,
+  "types": [
+    {
+      "name": "CalloutVariant",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "gotcha",
+        "warning",
+        "tip"
+      ],
+      "inner_types": [],
+      "description": "Visual variant for CalloutBox components indicating the type of supplementary information.",
+      "owner_component": "shared_ui"
+    },
+    {
+      "name": "CodeBlockProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "code",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The preformatted CLI command text to display.",
+          "validators": []
+        },
+        {
+          "name": "description",
+          "type_ref": "OptionalString",
+          "required": false,
+          "default": "",
+          "description": "Optional caption/description shown above or below the code.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the CodeBlock shared component, used by page_content when rendering CLI commands.",
+      "owner_component": "shared_ui"
+    },
+    {
+      "name": "VersionBadgeProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "componentName",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The name of the tool/component to display on the badge.",
+          "validators": []
+        },
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The version string to display (e.g. 'v1.2.3').",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the VersionBadge shared component, used by page_content to display version info.",
+      "owner_component": "shared_ui"
+    },
+    {
+      "name": "YouTubeEmbedProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "url",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Full YouTube video URL to embed in a responsive iframe.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "OptionalString",
+          "required": false,
+          "default": "",
+          "description": "Accessible title for the iframe element.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the YouTubeEmbed shared component, used by page_content to embed tutorial videos.",
+      "owner_component": "shared_ui"
+    },
+    {
+      "name": "YouTubeUrl",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The raw URL string",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^https?:\\/\\/(www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)[a-zA-Z0-9_-]{11}",
+              "error_message": "url must be a valid YouTube watch URL (youtube.com/watch?v=...) or short URL (youtu.be/...)"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated YouTube video URL. Must be a youtube.com/watch or youtu.be short URL.",
+      "owner_component": ""
+    },
+    {
+      "name": "CalloutBoxProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "variant",
+          "type_ref": "CalloutVariant",
+          "required": true,
+          "default": "",
+          "description": "Visual style variant: gotcha, warning, or tip.",
+          "validators": []
+        },
+        {
+          "name": "text",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The callout body text to display.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the CalloutBox shared component, used by page_content to render gotchas, warnings, and tips.",
+      "owner_component": "shared_ui"
+    },
+    {
+      "name": "CalloutVariantClassMap",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "gotcha",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind classes for the 'gotcha' variant (e.g. red/orange border and background)",
+          "validators": []
+        },
+        {
+          "name": "warning",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind classes for the 'warning' variant (e.g. yellow/amber border and background)",
+          "validators": []
+        },
+        {
+          "name": "tip",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Tailwind classes for the 'tip' variant (e.g. green/teal border and background)",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Internal type representing the Record<CalloutVariant, string> mapping each variant to its Tailwind CSS class string. Not exported — used only within CalloutBox implementation.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactElement",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactElement — the return type of a React functional component. Represents a rendered JSX tree.",
+      "owner_component": ""
+    },
+    {
+      "name": "ClipboardWriteResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "success",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Whether the clipboard write succeeded",
+          "validators": []
+        },
+        {
+          "name": "error",
+          "type_ref": "str",
+          "required": false,
+          "default": "",
+          "description": "Error message if the clipboard write failed",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result of a navigator.clipboard.writeText call, used internally by CodeBlock's copy button handler.",
+      "owner_component": ""
+    },
+    {
+      "name": "string",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "TypeScript string primitive.",
+      "owner_component": ""
+    },
+    {
+      "name": "OptionalString",
+      "kind": "optional",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [
+        "string"
+      ],
+      "description": "A string value that may be undefined or empty.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "CodeBlock",
+      "description": "React functional component that renders a preformatted CLI command or code snippet inside <pre><code> with syntax styling via Tailwind CSS and a copy-to-clipboard button. The copy button invokes navigator.clipboard.writeText(code) on click. File: src/components/shared/CodeBlock.tsx. Named export only.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CodeBlockProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing the code string and optional description",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "clipboard_unavailable",
+          "condition": "navigator.clipboard is undefined (e.g. non-HTTPS context or older browser)",
+          "error_type": "ClipboardApiUnavailableError",
+          "error_data": {
+            "behavior": "Copy button should degrade gracefully — either hide the button or show a fallback tooltip. Must not throw an unhandled exception."
+          }
+        },
+        {
+          "name": "clipboard_write_rejected",
+          "condition": "navigator.clipboard.writeText rejects (e.g. permission denied)",
+          "error_type": "ClipboardWriteError",
+          "error_data": {
+            "behavior": "The promise rejection must be caught. Component may show a brief error state on the button but must not propagate the error to the React error boundary."
+          }
+        }
+      ],
+      "preconditions": [
+        "props.code is a non-empty string",
+        "Component is rendered within a React 18 tree"
+      ],
+      "postconditions": [
+        "Returns a <pre> element containing a <code> element with the code text",
+        "A copy button element is present as a sibling or child of the <pre>",
+        "If props.description is provided and non-empty, a descriptive label element is rendered above or within the block",
+        "If props.description is omitted or empty, no description element is rendered",
+        "Clicking the copy button calls navigator.clipboard.writeText with props.code"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "navigator.clipboard",
+          "description": "Writes props.code to system clipboard via navigator.clipboard.writeText when copy button is clicked"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 16,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "VersionBadge",
+      "description": "React functional component that renders a styled inline badge displaying a component name and version string. Uses Tailwind CSS for pill/badge styling. File: src/components/shared/VersionBadge.tsx. Named export only.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "VersionBadgeProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing componentName and version strings",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [
+        "props.componentName is a non-empty string",
+        "props.version matches semver-like pattern",
+        "Component is rendered within a React 18 tree"
+      ],
+      "postconditions": [
+        "Returns an inline element (e.g. <span>) with badge styling",
+        "The rendered text contains both props.componentName and props.version",
+        "The element uses Tailwind classes for pill/badge appearance (rounded, background color, padding)"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component with no side effects"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 8,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "YouTubeEmbed",
+      "description": "React functional component that renders a responsive iframe wrapper for YouTube videos. Converts standard YouTube watch URLs (youtube.com/watch?v=ID) and short URLs (youtu.be/ID) to embed format (youtube.com/embed/ID). Uses Tailwind 'aspect-video' class on a wrapper div for responsive sizing. File: src/components/shared/YouTubeEmbed.tsx. Named export only.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "YouTubeEmbedProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing the YouTube URL and optional title",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "invalid_youtube_url",
+          "condition": "props.url does not match expected YouTube URL patterns and video ID cannot be extracted",
+          "error_type": "InvalidYouTubeUrlError",
+          "error_data": {
+            "behavior": "Component renders a fallback element (e.g. a styled <div> with error text) instead of a broken iframe. Must not throw during render."
+          }
+        }
+      ],
+      "preconditions": [
+        "props.url is a valid YouTube watch URL or youtu.be short URL",
+        "Component is rendered within a React 18 tree"
+      ],
+      "postconditions": [
+        "Returns a wrapper <div> with Tailwind 'aspect-video' class for responsive sizing",
+        "Contains an <iframe> element whose src is 'https://www.youtube.com/embed/{videoId}' derived from props.url",
+        "The iframe has title attribute set to props.title (or 'YouTube video' if omitted)",
+        "The iframe has allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' and allowFullScreen",
+        "The iframe has frameBorder='0' and width='100%' height='100%'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "https://www.youtube.com/embed/{videoId}",
+          "description": "The rendered iframe triggers a network request to YouTube's embed endpoint when mounted in the browser. The component itself does not make the request — the browser does via the iframe src."
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 16,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "CalloutBox",
+      "description": "React functional component that renders a styled container for gotchas, warnings, and tips. Uses a variant prop (gotcha | warning | tip) to select from a Record<CalloutVariant, string> mapping of Tailwind CSS class strings, producing distinct visual styling per variant. File: src/components/shared/CalloutBox.tsx. Named export only.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CalloutBoxProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing the variant discriminator and text content",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactElement",
+      "error_cases": [],
+      "preconditions": [
+        "props.variant is one of 'gotcha' | 'warning' | 'tip'",
+        "props.text is a non-empty string",
+        "Component is rendered within a React 18 tree"
+      ],
+      "postconditions": [
+        "Returns a container <div> (or <aside>) with variant-specific Tailwind classes applied",
+        "The 'gotcha' variant renders with distinct border/background classes (e.g. red/orange tones)",
+        "The 'warning' variant renders with distinct border/background classes (e.g. yellow/amber tones)",
+        "The 'tip' variant renders with distinct border/background classes (e.g. green/teal tones)",
+        "All three variants produce visually distinguishable containers (different class strings)",
+        "props.text is rendered as visible text content within the container",
+        "The container includes a role='alert' or appropriate ARIA attribute for accessibility"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure presentational component with no side effects"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 8,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    },
+    {
+      "name": "extractYouTubeVideoId",
+      "description": "Internal utility function that extracts the 11-character YouTube video ID from a watch URL or short URL. Used by YouTubeEmbed to construct the embed src. Not exported from the barrel — internal to YouTubeEmbed.tsx or a shared utility.",
+      "inputs": [
+        {
+          "name": "url",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "A YouTube URL string to extract the video ID from",
+          "validators": []
+        }
+      ],
+      "output_type": "str",
+      "error_cases": [
+        {
+          "name": "no_video_id_found",
+          "condition": "URL does not contain a recognizable YouTube video ID pattern",
+          "error_type": "str",
+          "error_data": {
+            "returns": "empty string"
+          }
+        }
+      ],
+      "preconditions": [
+        "url is a non-empty string"
+      ],
+      "postconditions": [
+        "If url matches youtube.com/watch?v={id}, returns the 11-character video ID",
+        "If url matches youtu.be/{id}, returns the 11-character video ID",
+        "If url does not match either pattern, returns an empty string"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — string parsing only, no side effects"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": null,
+        "max_memory_mb": null,
+        "complexity": "O(1)"
+      }
+    }
+  ],
+  "dependencies": [],
+  "dependency_contracts": {},
+  "invariants": [
+    "All four components (CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox) are named exports from the barrel index.ts — no default exports anywhere",
+    "All five type exports (CalloutVariant, CodeBlockProps, VersionBadgeProps, YouTubeEmbedProps, CalloutBoxProps) are exported via 'export type { }' syntax from the barrel",
+    "The barrel file (index.ts) re-exports all runtime and type exports from individual component files and types.ts",
+    "File structure: src/components/shared/{CodeBlock.tsx, VersionBadge.tsx, YouTubeEmbed.tsx, CalloutBox.tsx, types.ts, index.ts}",
+    "Each component file has a corresponding .test.tsx file using vitest + @testing-library/react",
+    "Consumers mocking this module via vi.mock() must provide exactly { CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox } — all four runtime exports",
+    "CalloutBox internally uses a Record<CalloutVariant, string> mapping to assign distinct Tailwind class strings per variant",
+    "YouTubeEmbed wrapper div always has the Tailwind 'aspect-video' class for responsive sizing",
+    "CodeBlock copy button calls navigator.clipboard.writeText(props.code) and handles both unavailable clipboard API and rejected promise gracefully",
+    "All components are pure presentational — no internal state management beyond transient UI state (e.g. copy button feedback)",
+    "All public function signatures have explicit TypeScript type annotations per project standards"
+  ],
+  "requires": [],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Shared UI components are purely presentational and receive all data via props. They read only PUBLIC-tier data: code snippets for display (CodeBlock), version strings (VersionBadge), YouTube video URLs (YouTubeEmbed), and callout text content (CalloutBox). No PII, INTERNAL, or sensitive data is accessed. No data is written to any persistent store.",
+    "side_effects": [
+      {
+        "type": "clipboard_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "CodeBlockProps.code"
+        ],
+        "rationale": "CodeBlock copies the code prop (a CLI command string, PUBLIC data) to the system clipboard when the user clicks the copy button via navigator.clipboard.writeText"
+      },
+      {
+        "type": "iframe_network_load",
+        "classification": "PUBLIC",
+        "fields": [
+          "YouTubeEmbedProps.url"
+        ],
+        "rationale": "YouTubeEmbed renders an iframe whose src points to youtube.com/embed/{videoId}, causing the browser to fetch the YouTube embed page. The URL is PUBLIC documentation content."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [],
+    "rationale": null
+  }
+}

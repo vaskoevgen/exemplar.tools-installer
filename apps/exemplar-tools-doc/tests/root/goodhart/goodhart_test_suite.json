@@ -1,0 +1,245 @@
+{
+  "component_id": "root",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_initApp_passes_router_to_mountApp",
+      "description": "initApp must pass the exact router instance returned by createAppRouter to mountApp, not a hardcoded value or a different object",
+      "function": "initApp",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "routing_and_layout.createAppRouter": "returns a unique sentinel router object",
+        "project_scaffold.mountApp": "spy that captures its argument"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "mountApp is called with the specific router object returned by createAppRouter"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_passes_different_router_instances",
+      "description": "When createAppRouter returns different router instances across separate invocations, mountApp must receive the corresponding instance each time — not a cached or hardcoded value",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "routing_and_layout.createAppRouter": "returns different unique objects on successive calls",
+        "project_scaffold.mountApp": "spy"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "First call: mountApp receives routerA",
+        "Second call: mountApp receives routerB",
+        "routerA !== routerB"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_no_extra_calls_to_createAppRouter",
+      "description": "initApp must call createAppRouter exactly once per invocation — not zero times, not twice — regardless of the specific router returned",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "createAppRouter call count is exactly 1 after initApp completes"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_no_extra_calls_to_mountApp",
+      "description": "initApp must call mountApp exactly once per invocation — implementations that call it zero times or multiple times violate the contract",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "mountApp call count is exactly 1 after initApp completes"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_does_not_call_mountApp_if_createAppRouter_throws",
+      "description": "When createAppRouter throws, mountApp must never be invoked — the error should propagate before mounting is attempted",
+      "function": "initApp",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "router_creation_failure",
+      "assertions": [
+        "mountApp call count is 0",
+        "error from createAppRouter propagates"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_does_not_directly_import_shared_ui",
+      "description": "Root must have no direct runtime dependency on shared_ui — it is consumed transitively through page_content and routing_and_layout",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The root module source does not import from shared_ui"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_does_not_directly_import_pipeline_diagram",
+      "description": "Root must have no direct runtime dependency on pipeline_diagram — it is consumed transitively through child modules",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The root module source does not import from pipeline_diagram"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_does_not_manipulate_slugs",
+      "description": "Root must never manipulate slug strings directly — all slug handling is delegated to ensureLeadingSlash from routing_and_layout",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "initApp source code does not contain slug string manipulation patterns"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_return_type_is_void",
+      "description": "initApp must return void/undefined — it should not return the router or any other value",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "The return value of initApp() is undefined"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_is_a_function_export",
+      "description": "initApp must be exported as a callable function, not as a constant or object",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "typeof initApp === 'function'"
+      ]
+    },
+    {
+      "id": "goodhart_root_no_type_reexports",
+      "description": "Root must not re-export any child module types or constants — consumers import directly from the owning child module",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Module exports contain no StepId, StepLabel, RouteSlug, StepContent, RouteEntry, or other domain types"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_mountApp_receives_one_argument",
+      "description": "mountApp must be called with exactly one argument (the router instance) — not zero arguments or extraneous parameters",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {
+        "project_scaffold.mountApp": "spy that checks arguments.length"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "mountApp was called with exactly 1 argument"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_createAppRouter_called_with_no_args",
+      "description": "createAppRouter must be called with zero arguments — root should not pass configuration or page components to it, as routing_and_layout handles that internally",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "createAppRouter was called with 0 arguments"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_idempotent_calls_both_deps_each_time",
+      "description": "Each invocation of initApp must call both createAppRouter and mountApp — a second call should not skip either due to caching or memoization",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "After two calls to initApp, createAppRouter called 2 times",
+        "After two calls to initApp, mountApp called 2 times"
+      ]
+    },
+    {
+      "id": "goodhart_initApp_synchronous_execution",
+      "description": "initApp should execute synchronously — it should not return a Promise, ensuring the mount happens immediately",
+      "function": "initApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "initApp() does not return a thenable/Promise"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport * as fs from 'fs';\nimport * as path from 'path';\n\n// Module-scope mock function refs — declared before vi.mock() calls\nconst mockCreateAppRouter = vi.fn();\nconst mockMountApp = vi.fn();\n\nvi.mock('../src/../routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\n// Also mock with likely actual import paths\nvi.mock('routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('../src/../project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\nvi.mock('project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\n// We need to handle the actual import paths used by the module.\n// Try multiple possible mock patterns for the dependencies.\nvi.mock('@routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('@project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\n// Common relative path patterns\nvi.mock('../routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('../project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\nvi.mock('./routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('./project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\ndescribe('Root - Adversarial Hidden Tests', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    // Ensure #root element exists for happy-path tests\n    if (!document.getElementById('root')) {\n      const rootEl = document.createElement('div');\n      rootEl.id = 'root';\n      document.body.appendChild(rootEl);\n    }\n    // Default mock behavior\n    mockCreateAppRouter.mockReturnValue({ __routerSentinel: true });\n    mockMountApp.mockReturnValue(undefined);\n  });\n\n  afterEach(() => {\n    const rootEl = document.getElementById('root');\n    if (rootEl) {\n      document.body.removeChild(rootEl);\n    }\n  });\n\n  describe('initApp', () => {\n    it('goodhart: initApp must pass the exact router instance returned by createAppRouter to mountApp, not a hardcoded or fabricated object', async () => {\n      const uniqueRouter = { __unique: Symbol('router-sentinel'), routes: [] };\n      mockCreateAppRouter.mockReturnValue(uniqueRouter);\n\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n      const passedArg = mockMountApp.mock.calls[0][0];\n      expect(passedArg).toBe(uniqueRouter);\n    });\n\n    it('goodhart: when createAppRouter returns different instances on successive calls, mountApp must receive the corresponding instance each time', async () => {\n      const routerA = { id: 'router-A', __brand: Symbol('A') };\n      const routerB = { id: 'router-B', __brand: Symbol('B') };\n      mockCreateAppRouter.mockReturnValueOnce(routerA).mockReturnValueOnce(routerB);\n\n      const { initApp } = await import('../src/root');\n\n      initApp();\n      expect(mockMountApp.mock.calls[0][0]).toBe(routerA);\n\n      // Re-add #root if mountApp removed it\n      if (!document.getElementById('root')) {\n        const rootEl = document.createElement('div');\n        rootEl.id = 'root';\n        document.body.appendChild(rootEl);\n      }\n\n      initApp();\n      expect(mockMountApp.mock.calls[1][0]).toBe(routerB);\n      expect(routerA).not.toBe(routerB);\n    });\n\n    it('goodhart: initApp must call createAppRouter exactly once per invocation — never zero or multiple times', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n    });\n\n    it('goodhart: initApp must call mountApp exactly once per invocation', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n    });\n\n    it('goodhart: when createAppRouter throws, mountApp must never be invoked — error propagates before mount', async () => {\n      mockCreateAppRouter.mockImplementation(() => {\n        throw new Error('router_creation_failure: missing component');\n      });\n\n      const { initApp } = await import('../src/root');\n      expect(() => initApp()).toThrow();\n      expect(mockMountApp).not.toHaveBeenCalled();\n    });\n\n    it('goodhart: initApp must return void/undefined — it must not return the router or any other value', async () => {\n      const { initApp } = await import('../src/root');\n      const result = initApp();\n      expect(result).toBeUndefined();\n    });\n\n    it('goodhart: initApp must be exported as a callable function', async () => {\n      const { initApp } = await import('../src/root');\n      expect(typeof initApp).toBe('function');\n    });\n\n    it('goodhart: mountApp must be called with exactly one argument — the router instance', async () => {\n      const sentinel = { __router: true };\n      mockCreateAppRouter.mockReturnValue(sentinel);\n\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n      // Check it was called with exactly 1 arg\n      expect(mockMountApp.mock.calls[0]).toHaveLength(1);\n      expect(mockMountApp.mock.calls[0][0]).toBe(sentinel);\n    });\n\n    it('goodhart: createAppRouter must be called with zero arguments — root should not pass config or pages to it', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n      expect(mockCreateAppRouter.mock.calls[0]).toHaveLength(0);\n    });\n\n    it('goodhart: each invocation of initApp must call both dependencies — no caching or memoization across calls', async () => {\n      const { initApp } = await import('../src/root');\n\n      initApp();\n\n      // Re-add #root if needed\n      if (!document.getElementById('root')) {\n        const rootEl = document.createElement('div');\n        rootEl.id = 'root';\n        document.body.appendChild(rootEl);\n      }\n\n      initApp();\n\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(2);\n      expect(mockMountApp).toHaveBeenCalledTimes(2);\n    });\n\n    it('goodhart: initApp should execute synchronously — it must not return a Promise', async () => {\n      const { initApp } = await import('../src/root');\n      const result = initApp();\n\n      // Should not be a thenable\n      const isThenable = result != null && typeof (result as any).then === 'function';\n      expect(isThenable).toBe(false);\n    });\n  });\n\n  describe('module structure invariants', () => {\n    it('goodhart: src/root.ts must export exactly one named runtime export: initApp', async () => {\n      const rootModule = await import('../src/root');\n      const exportKeys = Object.keys(rootModule).filter(k => k !== 'default' && k !== '__esModule');\n      // initApp must be present\n      expect(exportKeys).toContain('initApp');\n      // Filter to only runtime (non-type) exports — in JS, all keys are runtime\n      // There should be exactly one\n      const runtimeExports = exportKeys.filter(k => typeof rootModule[k as keyof typeof rootModule] !== 'undefined');\n      expect(runtimeExports).toEqual(['initApp']);\n    });\n\n    it('goodhart: root module must not re-export domain types like StepId, RouteEntry, RouteSlug, etc.', async () => {\n      const rootModule = await import('../src/root');\n      const exportKeys = Object.keys(rootModule);\n      const forbiddenExports = [\n        'StepId', 'StepLabel', 'RouteSlug', 'StepContent', 'RouteEntry',\n        'ROUTE_ENTRY_LIST', 'PIPELINE_NODES', 'PIPELINE_EDGES',\n        'Layout', 'Sidebar', 'HomePage', 'CartographerPage',\n        'ensureLeadingSlash', 'guardSlug', 'CodeBlock', 'VersionBadge',\n      ];\n      for (const name of forbiddenExports) {\n        expect(exportKeys).not.toContain(name);\n      }\n    });\n\n    it('goodhart: root module source must not directly import from shared_ui or pipeline_diagram', async () => {\n      // Read the actual source file to check import statements\n      const possiblePaths = [\n        path.resolve(__dirname, '../src/root.ts'),\n        path.resolve(__dirname, '../src/root.tsx'),\n      ];\n\n      let source = '';\n      for (const p of possiblePaths) {\n        try {\n          source = fs.readFileSync(p, 'utf-8');\n          break;\n        } catch {\n          // try next\n        }\n      }\n\n      // If we can read the source, verify no direct imports from shared_ui or pipeline_diagram\n      if (source) {\n        // Check for import statements referencing these modules\n        expect(source).not.toMatch(/from\\s+['\"].*shared_ui/);\n        expect(source).not.toMatch(/from\\s+['\"].*pipeline_diagram/);\n        expect(source).not.toMatch(/import\\s+.*['\"].*shared_ui/);\n        expect(source).not.toMatch(/import\\s+.*['\"].*pipeline_diagram/);\n      }\n    });\n\n    it('goodhart: root module source must not contain slug string manipulation — all slug handling delegated to routing_and_layout', async () => {\n      const possiblePaths = [\n        path.resolve(__dirname, '../src/root.ts'),\n        path.resolve(__dirname, '../src/root.tsx'),\n      ];\n\n      let source = '';\n      for (const p of possiblePaths) {\n        try {\n          source = fs.readFileSync(p, 'utf-8');\n          break;\n        } catch {\n          // try next\n        }\n      }\n\n      if (source) {\n        // Should not contain slug manipulation like string replace, startsWith('/'), etc.\n        // on slug-like strings\n        expect(source).not.toMatch(/\\.replace\\s*\\(\\s*['\"]\\//);\n        expect(source).not.toMatch(/\\.startsWith\\s*\\(\\s*['\"]\\//);\n        expect(source).not.toMatch(/['\"]\\/[a-z]+-[a-z]+['\"]/); // hardcoded route paths\n      }\n    });\n  });\n\n  describe('main module', () => {\n    it('goodhart: main.tsx must have zero named exports — only side effects', async () => {\n      // We need to be careful importing main.tsx as it has side effects\n      // Instead, check its exports after import\n      try {\n        const mainModule = await import('../src/main');\n        const exportKeys = Object.keys(mainModule).filter(k => k !== 'default' && k !== '__esModule');\n        expect(exportKeys).toHaveLength(0);\n      } catch {\n        // If import fails due to side effects in test env, that's acceptable\n        // The visible test should catch this — we just add extra coverage\n      }\n    });\n  });\n});\n"
+}

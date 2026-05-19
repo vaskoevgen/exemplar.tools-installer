@@ -1,0 +1,85 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_site_001
+
+constraints:
+  - id: C001
+    boundary: "Source file language"
+    condition: "All source files must use TypeScript with .ts or .tsx extensions"
+    violation: "Python files or non-TypeScript source files exist"
+    severity: must
+    rationale: "Implementation language explicitly specified as TypeScript"
+    classification_tier: null
+    affected_components: ["docs_site", "build_system"]
+
+  - id: C002
+    boundary: "Command accuracy"
+    condition: "All CLI commands must match howto.md exactly with zero transcription errors"
+    violation: "Commands differ from source documentation"
+    severity: must
+    rationale: "Incorrect commands could damage developer environments"
+    classification_tier: null
+    affected_components: ["docs_site"]
+
+  - id: C003
+    boundary: "Page completeness"
+    condition: "Exactly 13 pages must exist (1 home + 12 tool pages)"
+    violation: "Missing pages or incorrect page count"
+    severity: must
+    rationale: "Complete coverage of all tools is required"
+    classification_tier: null
+    affected_components: ["docs_site"]
+
+  - id: C004
+    boundary: "Video embedding"
+    condition: "YouTube videos must be embedded and functional on each relevant page"
+    violation: "Broken video embeds or missing videos"
+    severity: must
+    rationale: "Visual learning component is critical for user experience"
+    classification_tier: null
+    affected_components: ["docs_site"]
+
+  - id: C005
+    boundary: "Development server port"
+    condition: "Vite dev server must run on port 4000"
+    violation: "Dev server runs on different port"
+    severity: must
+    rationale: "Port specification provided in requirements"
+    classification_tier: null
+    affected_components: ["build_system"]
+
+  - id: C006
+    boundary: "Static deployment"
+    condition: "No backend services or APIs allowed"
+    violation: "Backend components or server-side processing detected"
+    severity: must
+    rationale: "System explicitly scoped as static-only"
+    classification_tier: null
+    affected_components: ["docs_site", "deployment_system"]
+
+  - id: C007
+    boundary: "Navigation functionality"
+    condition: "Navigation must work between all pages without broken links"
+    violation: "Broken navigation links or unreachable pages"
+    severity: must
+    rationale: "Poor navigation creates unusable documentation"
+    classification_tier: null
+    affected_components: ["docs_site"]
+
+  - id: C008
+    boundary: "Build success"
+    condition: "Site must build successfully with npm run build"
+    violation: "Build failures or compilation errors"
+    severity: must
+    rationale: "Failed builds prevent deployment"
+    classification_tier: null
+    affected_components: ["build_system"]
+
+  - id: C009
+    boundary: "Version badge display"
+    condition: "Version badges must show current component versions"
+    violation: "Missing or incorrect version information"
+    severity: should
+    rationale: "Version info helps developers understand compatibility"
+    classification_tier: null
+    affected_components: ["docs_site"]

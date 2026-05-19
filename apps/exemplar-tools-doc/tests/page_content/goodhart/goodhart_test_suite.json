@@ -1,0 +1,340 @@
+{
+  "component_id": "page_content",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_step_page_multiple_commands_not_merged",
+      "description": "StepPage must render a distinct CodeBlock for each command entry — commands must not be concatenated or merged into a single block",
+      "function": "StepPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with 3 distinct command entries each having unique command strings",
+      "expected_output_description": "3 CodeBlock components rendered, each receiving one command's data",
+      "expected_error": "",
+      "assertions": [
+        "When given 3 commands, exactly 3 separate CodeBlock instances are rendered, not 1 or 2"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_multiple_examples_not_merged",
+      "description": "StepPage must render a distinct CodeBlock for each example entry — examples must not be concatenated into fewer blocks",
+      "function": "StepPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with 4 distinct example strings",
+      "expected_output_description": "4 CodeBlock components rendered for examples section",
+      "expected_error": "",
+      "assertions": [
+        "When given 4 examples, exactly 4 separate CodeBlock instances are rendered for examples"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_commands_preserve_description",
+      "description": "StepPage must pass through the description field of each CommandEntry to the CodeBlock component, not just the command string",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with commands that have non-trivial description fields",
+      "expected_output_description": "Each CodeBlock receives the description associated with its command",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlock receives both command and description from CommandEntry"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_youtube_empty_string_no_render",
+      "description": "YouTubeEmbed must not render when youtubeUrl is an empty string — only non-empty strings trigger rendering",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with youtubeUrl set to empty string ''",
+      "expected_output_description": "No YouTubeEmbed in rendered output",
+      "expected_error": "",
+      "assertions": [
+        "YouTubeEmbed component is not present in the rendered tree when youtubeUrl is ''"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_version_empty_string_no_render",
+      "description": "VersionBadge must not render when version is an empty string — only non-empty strings trigger rendering",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with version set to empty string ''",
+      "expected_output_description": "No VersionBadge in rendered output",
+      "expected_error": "",
+      "assertions": [
+        "VersionBadge component is not present in the rendered tree when version is ''"
+      ]
+    },
+    {
+      "id": "goodhart_get_step_content_returns_same_reference",
+      "description": "getStepContent should return the same object reference as directly accessing STEP_CONTENT, not a copy or reconstruction",
+      "function": "getStepContent",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Multiple valid StepId values",
+      "expected_output_description": "Returned object is referentially identical to the STEP_CONTENT entry",
+      "expected_error": "",
+      "assertions": [
+        "getStepContent(stepId) === STEP_CONTENT[stepId] for multiple step IDs"
+      ]
+    },
+    {
+      "id": "goodhart_get_step_content_various_invalid_inputs",
+      "description": "getStepContent must reject various non-StepId inputs including empty string, numeric values, null, and close misspellings",
+      "function": "getStepContent",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Invalid inputs: '', 0, null, 'cartographr', 'HOME', 'step0'",
+      "expected_output_description": "",
+      "expected_error": "invalid_step_id",
+      "assertions": [
+        "Throws for empty string",
+        "Throws for numeric input",
+        "Throws for null",
+        "Throws for misspelled step id like 'cartographr'"
+      ]
+    },
+    {
+      "id": "goodhart_step_content_deep_frozen",
+      "description": "STEP_CONTENT must be deeply frozen — nested objects within entries should also be immutable at runtime",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Attempt to push to STEP_CONTENT.cartographer.commands or modify STEP_CONTENT.cartographer.overview",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Attempting to mutate a nested property (e.g., push to commands array, modify overview) either throws or has no effect"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_novel_content_not_hardcoded",
+      "description": "StepPage must render arbitrary content passed via props — it cannot hardcode known STEP_CONTENT values",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A completely synthetic StepContent with unique strings not found in any STEP_CONTENT entry",
+      "expected_output_description": "All synthetic strings appear in the rendered output in the correct elements",
+      "expected_error": "",
+      "assertions": [
+        "Renders custom label in h1",
+        "Renders custom overview in paragraph",
+        "Renders custom command in CodeBlock",
+        "Renders custom callout in CalloutBox",
+        "Renders custom example in CodeBlock"
+      ]
+    },
+    {
+      "id": "goodhart_step_content_overview_non_empty_all_entries",
+      "description": "Every entry in STEP_CONTENT must have a non-empty overview string — the contract requires this as a precondition for StepPage",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Iterate over all STEP_CONTENT entries",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every entry's overview is a string with length > 0 and is not just whitespace"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_callout_variant_passthrough_per_item",
+      "description": "When multiple callouts with different variants are provided, each CalloutBox must receive its own specific variant — variants must not be swapped or defaulted",
+      "function": "StepPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with callouts in order: gotcha, tip, warning",
+      "expected_output_description": "Three CalloutBox components with variants in the exact same order",
+      "expected_error": "",
+      "assertions": [
+        "First CalloutBox receives 'gotcha' variant",
+        "Second CalloutBox receives 'tip' variant",
+        "Third CalloutBox receives 'warning' variant",
+        "Order is preserved"
+      ]
+    },
+    {
+      "id": "goodhart_barrel_exports_all_components",
+      "description": "The barrel index must re-export all 14 page components, both enums, STEP_CONTENT constant, and getStepContent function as named exports",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "StepId is exported",
+        "StepLabel is exported",
+        "CalloutVariant is exported",
+        "STEP_CONTENT is exported",
+        "getStepContent is exported",
+        "StepPage is exported",
+        "HomePage is exported",
+        "CartographerPage is exported",
+        "ConstrainPage is exported",
+        "LedgerPage is exported",
+        "PactPage is exported",
+        "AdvocatePage is exported",
+        "ArbiterPage is exported",
+        "BatonPage is exported",
+        "SentinelPage is exported",
+        "ChroniclerPage is exported",
+        "StigmergyPage is exported",
+        "ApprenticePage is exported",
+        "KindexPage is exported"
+      ]
+    },
+    {
+      "id": "goodhart_step_content_callout_items_have_valid_variants",
+      "description": "Every callout entry across all STEP_CONTENT must use a valid CalloutVariant enum value — no typos or invalid strings",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every callout.variant in every entry is one of 'gotcha', 'warning', 'tip'"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_both_youtube_and_version_simultaneously",
+      "description": "StepPage must correctly render both YouTubeEmbed and VersionBadge simultaneously when both youtubeUrl and version are non-empty",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with both youtubeUrl and version set to non-empty strings",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Both YouTubeEmbed and VersionBadge are present in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_single_command_renders_one_codeblock",
+      "description": "StepPage must handle a single command entry correctly — exactly one CodeBlock, not zero or duplicated",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with exactly one command entry",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Exactly 1 CodeBlock rendered for commands section when commands has length 1"
+      ]
+    },
+    {
+      "id": "goodhart_home_page_uses_home_stepid_content",
+      "description": "HomePage must use the content keyed by the 'home' StepId, not any other step — it should display the home label and overview specifically",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Rendered h1 contains 'Home' label",
+        "Rendered overview matches STEP_CONTENT.home.overview exactly"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_no_section_heading_for_empty_commands",
+      "description": "When commands array is empty, StepPage must not render any section heading for commands — the entire section should be absent, not just the code blocks",
+      "function": "StepPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with empty commands array but non-empty callouts and examples",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "No 'Commands' or similar section heading exists in rendered output when commands is empty array"
+      ]
+    },
+    {
+      "id": "goodhart_step_content_enum_count_matches",
+      "description": "The StepId enum must have exactly 13 members and STEP_CONTENT must have exactly 13 entries — guards against missing or extra entries",
+      "function": "STEP_CONTENT",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(STEP_CONTENT).length === 13",
+        "StepId enum has exactly 13 values"
+      ]
+    },
+    {
+      "id": "goodhart_wrapper_pages_render_correct_label_in_h1",
+      "description": "Each wrapper page component must render the correct StepLabel in its h1 — not a generic or swapped label from another step",
+      "function": "StepPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render StigmergyPage, ApprenticePage, and KindexPage and inspect h1 text",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "StigmergyPage renders h1 with 'Step 5c — Stigmergy'",
+        "ApprenticePage renders h1 with 'Step 6 — Apprentice'",
+        "KindexPage renders h1 with 'Step 7 — Kindex'"
+      ]
+    },
+    {
+      "id": "goodhart_step_page_callout_text_passthrough",
+      "description": "StepPage must pass through the text field of each callout item to the CalloutBox component — not just the variant",
+      "function": "StepPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "StepContent with callouts having unique, distinguishable text strings",
+      "expected_output_description": "Each callout text appears in the rendered output",
+      "expected_error": "",
+      "assertions": [
+        "Each CalloutBox receives the correct text string from its corresponding CalloutItem"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport { render, screen } from '@testing-library/react';\nimport React from 'react';\n\n// Mock shared_ui components\nvi.mock('../src/shared_ui', () => ({\n  CodeBlock: vi.fn(({ command, description, code, children, ...props }: any) => {\n    const text = command || code || children || '';\n    const desc = description || '';\n    return React.createElement('div', { 'data-testid': 'code-block', 'data-command': text, 'data-description': desc }, text);\n  }),\n  CalloutBox: vi.fn(({ variant, text, children, ...props }: any) => {\n    const content = text || children || '';\n    return React.createElement('div', { 'data-testid': 'callout-box', 'data-variant': variant }, content);\n  }),\n  YouTubeEmbed: vi.fn(({ url, youtubeUrl, ...props }: any) => {\n    return React.createElement('div', { 'data-testid': 'youtube-embed', 'data-url': url || youtubeUrl || '' });\n  }),\n  VersionBadge: vi.fn(({ version, ...props }: any) => {\n    return React.createElement('span', { 'data-testid': 'version-badge' }, version);\n  }),\n}));\n\nvi.mock('../src/pipeline_diagram', () => ({\n  PipelineDiagram: vi.fn(() => {\n    return React.createElement('div', { 'data-testid': 'pipeline-diagram' });\n  }),\n}));\n\nimport {\n  StepId,\n  StepLabel,\n  CalloutVariant,\n  STEP_CONTENT,\n  getStepContent,\n  StepPage,\n  HomePage,\n  CartographerPage,\n  ConstrainPage,\n  LedgerPage,\n  PactPage,\n  AdvocatePage,\n  ArbiterPage,\n  BatonPage,\n  SentinelPage,\n  ChroniclerPage,\n  StigmergyPage,\n  ApprenticePage,\n  KindexPage,\n} from '../src/page_content';\n\nfunction makeTestContent(overrides: Partial<any> = {}): any {\n  return {\n    stepId: 'cartographer' as any,\n    label: 'Step 0 — Cartographer' as any,\n    overview: 'Test overview for adversarial testing',\n    commands: [],\n    callouts: [],\n    examples: [],\n    youtubeUrl: undefined,\n    version: undefined,\n    ...overrides,\n  };\n}\n\ndescribe('goodhart: StepPage renders distinct CodeBlocks per command without merging', () => {\n  it('goodhart: should render exactly 3 CodeBlock components for 3 commands', () => {\n    const content = makeTestContent({\n      commands: [\n        { command: 'cmd-alpha-unique-1', description: 'desc-alpha' },\n        { command: 'cmd-beta-unique-2', description: 'desc-beta' },\n        { command: 'cmd-gamma-unique-3', description: 'desc-gamma' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const codeBlocks = container.querySelectorAll('[data-testid=\"code-block\"]');\n    // Count code blocks that correspond to commands (not examples)\n    // We need at least 3 code blocks total\n    expect(codeBlocks.length).toBeGreaterThanOrEqual(3);\n    const html = container.innerHTML;\n    expect(html).toContain('cmd-alpha-unique-1');\n    expect(html).toContain('cmd-beta-unique-2');\n    expect(html).toContain('cmd-gamma-unique-3');\n  });\n});\n\ndescribe('goodhart: StepPage renders distinct CodeBlocks per example without merging', () => {\n  it('goodhart: should render exactly 4 CodeBlock components for 4 examples', () => {\n    const content = makeTestContent({\n      examples: [\n        'example-zeta-unique-1',\n        'example-eta-unique-2',\n        'example-theta-unique-3',\n        'example-iota-unique-4',\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const codeBlocks = container.querySelectorAll('[data-testid=\"code-block\"]');\n    expect(codeBlocks.length).toBeGreaterThanOrEqual(4);\n    const html = container.innerHTML;\n    expect(html).toContain('example-zeta-unique-1');\n    expect(html).toContain('example-eta-unique-2');\n    expect(html).toContain('example-theta-unique-3');\n    expect(html).toContain('example-iota-unique-4');\n  });\n});\n\ndescribe('goodhart: StepPage passes command descriptions through to CodeBlock', () => {\n  it('goodhart: should pass description field of CommandEntry to CodeBlock', () => {\n    const content = makeTestContent({\n      commands: [\n        { command: 'npm run build', description: 'Builds the project for production' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const html = container.innerHTML;\n    // The description should be present somewhere in the rendered output\n    expect(html).toContain('Builds the project for production');\n  });\n});\n\ndescribe('goodhart: StepPage does not render YouTubeEmbed for empty string url', () => {\n  it('goodhart: should not render YouTubeEmbed when youtubeUrl is empty string', () => {\n    const content = makeTestContent({ youtubeUrl: '' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const ytEmbeds = container.querySelectorAll('[data-testid=\"youtube-embed\"]');\n    expect(ytEmbeds.length).toBe(0);\n  });\n});\n\ndescribe('goodhart: StepPage does not render VersionBadge for empty string version', () => {\n  it('goodhart: should not render VersionBadge when version is empty string', () => {\n    const content = makeTestContent({ version: '' });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const badges = container.querySelectorAll('[data-testid=\"version-badge\"]');\n    expect(badges.length).toBe(0);\n  });\n});\n\ndescribe('goodhart: getStepContent returns same reference as STEP_CONTENT entry', () => {\n  it('goodhart: should return referentially identical object to STEP_CONTENT[stepId]', () => {\n    const ids = Object.values(StepId) as string[];\n    for (const id of ids) {\n      const result = getStepContent(id as any);\n      expect(result).toBe((STEP_CONTENT as any)[id]);\n    }\n  });\n});\n\ndescribe('goodhart: getStepContent rejects various invalid inputs', () => {\n  it('goodhart: should throw for empty string', () => {\n    expect(() => getStepContent('' as any)).toThrow();\n  });\n\n  it('goodhart: should throw for close misspelling of valid id', () => {\n    expect(() => getStepContent('cartographr' as any)).toThrow();\n  });\n\n  it('goodhart: should throw for uppercased valid id', () => {\n    expect(() => getStepContent('HOME' as any)).toThrow();\n  });\n\n  it('goodhart: should throw for numeric input', () => {\n    expect(() => getStepContent(0 as any)).toThrow();\n  });\n\n  it('goodhart: should throw for null input', () => {\n    expect(() => getStepContent(null as any)).toThrow();\n  });\n\n  it('goodhart: should throw for undefined input', () => {\n    expect(() => getStepContent(undefined as any)).toThrow();\n  });\n\n  it('goodhart: should throw for a plausible but invalid step name', () => {\n    expect(() => getStepContent('step0' as any)).toThrow();\n  });\n});\n\ndescribe('goodhart: STEP_CONTENT is deeply frozen', () => {\n  it('goodhart: should not allow mutation of nested arrays within entries', () => {\n    const entry = (STEP_CONTENT as any).cartographer;\n    const origLen = entry.commands.length;\n    try {\n      entry.commands.push({ command: 'hacked', description: 'hacked' });\n    } catch {\n      // strict mode throws\n    }\n    expect(entry.commands.length).toBe(origLen);\n  });\n\n  it('goodhart: should not allow mutation of overview string on entries', () => {\n    const entry = (STEP_CONTENT as any).home;\n    const origOverview = entry.overview;\n    try {\n      entry.overview = 'mutated';\n    } catch {\n      // strict mode throws\n    }\n    expect(entry.overview).toBe(origOverview);\n  });\n});\n\ndescribe('goodhart: StepPage renders arbitrary novel content not from STEP_CONTENT', () => {\n  it('goodhart: should render completely synthetic content proving no hardcoded returns', () => {\n    const content = makeTestContent({\n      stepId: 'constrain',\n      label: 'Step 1a — Constrain',\n      overview: 'XYZZY-UNIQUE-OVERVIEW-ADVERSARIAL-12345',\n      commands: [{ command: 'plugh-cmd-adversarial', description: 'plugh-desc-adversarial' }],\n      callouts: [{ variant: 'tip', text: 'FROTZ-CALLOUT-ADVERSARIAL-67890' }],\n      examples: ['REZROV-EXAMPLE-ADVERSARIAL-ABCDE'],\n      youtubeUrl: 'https://youtube.com/watch?v=ADVERSARIAL_TEST',\n      version: '99.88.77-adversarial',\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const html = container.innerHTML;\n\n    expect(html).toContain('Step 1a — Constrain');\n    expect(html).toContain('XYZZY-UNIQUE-OVERVIEW-ADVERSARIAL-12345');\n    expect(html).toContain('plugh-cmd-adversarial');\n    expect(html).toContain('FROTZ-CALLOUT-ADVERSARIAL-67890');\n    expect(html).toContain('REZROV-EXAMPLE-ADVERSARIAL-ABCDE');\n    expect(container.querySelectorAll('[data-testid=\"youtube-embed\"]').length).toBe(1);\n    expect(container.querySelectorAll('[data-testid=\"version-badge\"]').length).toBe(1);\n  });\n});\n\ndescribe('goodhart: Every STEP_CONTENT entry has non-empty non-whitespace overview', () => {\n  it('goodhart: should have meaningful overview text for all entries', () => {\n    const ids = Object.values(StepId) as string[];\n    for (const id of ids) {\n      const entry = (STEP_CONTENT as any)[id];\n      expect(typeof entry.overview).toBe('string');\n      expect(entry.overview.trim().length).toBeGreaterThan(0);\n    }\n  });\n});\n\ndescribe('goodhart: StepPage preserves callout variant order for mixed variants', () => {\n  it('goodhart: should pass through variants in exact order: gotcha, tip, warning', () => {\n    const content = makeTestContent({\n      callouts: [\n        { variant: 'gotcha', text: 'Gotcha callout text unique-g' },\n        { variant: 'tip', text: 'Tip callout text unique-t' },\n        { variant: 'warning', text: 'Warning callout text unique-w' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const calloutBoxes = container.querySelectorAll('[data-testid=\"callout-box\"]');\n    expect(calloutBoxes.length).toBe(3);\n    expect(calloutBoxes[0].getAttribute('data-variant')).toBe('gotcha');\n    expect(calloutBoxes[1].getAttribute('data-variant')).toBe('tip');\n    expect(calloutBoxes[2].getAttribute('data-variant')).toBe('warning');\n  });\n});\n\ndescribe('goodhart: barrel index re-exports all required named exports', () => {\n  it('goodhart: should export all enums, constants, functions, and components', () => {\n    expect(StepId).toBeDefined();\n    expect(StepLabel).toBeDefined();\n    expect(CalloutVariant).toBeDefined();\n    expect(STEP_CONTENT).toBeDefined();\n    expect(typeof getStepContent).toBe('function');\n    expect(typeof StepPage).toBe('function');\n    expect(typeof HomePage).toBe('function');\n    expect(typeof CartographerPage).toBe('function');\n    expect(typeof ConstrainPage).toBe('function');\n    expect(typeof LedgerPage).toBe('function');\n    expect(typeof PactPage).toBe('function');\n    expect(typeof AdvocatePage).toBe('function');\n    expect(typeof ArbiterPage).toBe('function');\n    expect(typeof BatonPage).toBe('function');\n    expect(typeof SentinelPage).toBe('function');\n    expect(typeof ChroniclerPage).toBe('function');\n    expect(typeof StigmergyPage).toBe('function');\n    expect(typeof ApprenticePage).toBe('function');\n    expect(typeof KindexPage).toBe('function');\n  });\n});\n\ndescribe('goodhart: All STEP_CONTENT callout items use valid CalloutVariant values', () => {\n  it('goodhart: should only contain gotcha, warning, or tip as callout variants', () => {\n    const validVariants = new Set(['gotcha', 'warning', 'tip']);\n    const ids = Object.values(StepId) as string[];\n    for (const id of ids) {\n      const entry = (STEP_CONTENT as any)[id];\n      for (const callout of entry.callouts) {\n        expect(validVariants.has(callout.variant)).toBe(true);\n      }\n    }\n  });\n});\n\ndescribe('goodhart: StepPage renders both YouTubeEmbed and VersionBadge simultaneously', () => {\n  it('goodhart: should render both optional components when both fields are non-empty', () => {\n    const content = makeTestContent({\n      youtubeUrl: 'https://youtube.com/watch?v=SimultaneousTest',\n      version: '1.2.3-both',\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    expect(container.querySelectorAll('[data-testid=\"youtube-embed\"]').length).toBe(1);\n    expect(container.querySelectorAll('[data-testid=\"version-badge\"]').length).toBe(1);\n  });\n});\n\ndescribe('goodhart: StepPage renders exactly 1 CodeBlock for single command', () => {\n  it('goodhart: should not duplicate or skip a single command entry', () => {\n    const content = makeTestContent({\n      commands: [{ command: 'solo-command-unique-xyz', description: 'solo-desc' }],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const html = container.innerHTML;\n    expect(html).toContain('solo-command-unique-xyz');\n    // Ensure it appears exactly once\n    const matches = html.match(/solo-command-unique-xyz/g);\n    expect(matches).not.toBeNull();\n    expect(matches!.length).toBe(1);\n  });\n});\n\ndescribe('goodhart: HomePage uses home StepId content specifically', () => {\n  it('goodhart: should display the Home label in h1 and the home overview', () => {\n    const { container } = render(React.createElement(HomePage));\n    const h1 = container.querySelector('h1');\n    expect(h1).not.toBeNull();\n    expect(h1!.textContent).toContain('Home');\n    const homeContent = (STEP_CONTENT as any).home;\n    expect(container.innerHTML).toContain(homeContent.overview);\n  });\n});\n\ndescribe('goodhart: StepPage omits section heading when commands array is empty but others are not', () => {\n  it('goodhart: should not render command-related headings when commands is empty', () => {\n    const content = makeTestContent({\n      commands: [],\n      callouts: [{ variant: 'tip', text: 'A tip for you' }],\n      examples: ['An example here'],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    // Callouts and examples should be present\n    expect(container.querySelectorAll('[data-testid=\"callout-box\"]').length).toBe(1);\n    expect(container.querySelectorAll('[data-testid=\"code-block\"]').length).toBeGreaterThanOrEqual(1);\n    // There should be no heading for commands\n    const headings = container.querySelectorAll('h2, h3');\n    const headingTexts = Array.from(headings).map(h => h.textContent?.toLowerCase() || '');\n    const hasCommandHeading = headingTexts.some(t => t.includes('command'));\n    expect(hasCommandHeading).toBe(false);\n  });\n});\n\ndescribe('goodhart: STEP_CONTENT has exactly 13 entries matching StepId enum', () => {\n  it('goodhart: should have exactly 13 keys', () => {\n    const keys = Object.keys(STEP_CONTENT as any);\n    expect(keys.length).toBe(13);\n  });\n\n  it('goodhart: should have keys matching all StepId enum values', () => {\n    const stepIdValues = Object.values(StepId) as string[];\n    expect(stepIdValues.length).toBe(13);\n    const contentKeys = new Set(Object.keys(STEP_CONTENT as any));\n    for (const id of stepIdValues) {\n      expect(contentKeys.has(id)).toBe(true);\n    }\n  });\n});\n\ndescribe('goodhart: Wrapper pages render correct specific labels in h1', () => {\n  it('goodhart: StigmergyPage should render h1 with Stigmergy label', () => {\n    const { container } = render(React.createElement(StigmergyPage));\n    const h1 = container.querySelector('h1');\n    expect(h1).not.toBeNull();\n    expect(h1!.textContent).toContain('Stigmergy');\n  });\n\n  it('goodhart: ApprenticePage should render h1 with Apprentice label', () => {\n    const { container } = render(React.createElement(ApprenticePage));\n    const h1 = container.querySelector('h1');\n    expect(h1).not.toBeNull();\n    expect(h1!.textContent).toContain('Apprentice');\n  });\n\n  it('goodhart: KindexPage should render h1 with Kindex label', () => {\n    const { container } = render(React.createElement(KindexPage));\n    const h1 = container.querySelector('h1');\n    expect(h1).not.toBeNull();\n    expect(h1!.textContent).toContain('Kindex');\n  });\n\n  it('goodhart: SentinelPage should render h1 with Sentinel label', () => {\n    const { container } = render(React.createElement(SentinelPage));\n    const h1 = container.querySelector('h1');\n    expect(h1).not.toBeNull();\n    expect(h1!.textContent).toContain('Sentinel');\n  });\n});\n\ndescribe('goodhart: StepPage passes callout text through to CalloutBox', () => {\n  it('goodhart: should render each callout text in the output', () => {\n    const content = makeTestContent({\n      callouts: [\n        { variant: 'gotcha', text: 'UNIQUE-CALLOUT-TEXT-ALPHA-999' },\n        { variant: 'warning', text: 'UNIQUE-CALLOUT-TEXT-BETA-888' },\n      ],\n    });\n    const { container } = render(React.createElement(StepPage, { content }));\n    const html = container.innerHTML;\n    expect(html).toContain('UNIQUE-CALLOUT-TEXT-ALPHA-999');\n    expect(html).toContain('UNIQUE-CALLOUT-TEXT-BETA-888');\n  });\n});\n"
+}

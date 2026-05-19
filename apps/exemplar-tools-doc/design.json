@@ -1,0 +1,1996 @@
+{
+  "project_id": "exemplar-tools-doc",
+  "title": "Design: exemplar-tools-doc",
+  "summary": "",
+  "decomposition_tree": {
+    "root_id": "root",
+    "nodes": {
+      "project_scaffold": {
+        "component_id": "project_scaffold",
+        "name": "Project Scaffold & Configuration",
+        "description": "Bootstraps the exemplar-tools-doc project: package.json with all dependencies (react, react-dom, react-router-dom, vite, tailwindcss, vitest, @testing-library/react, jsdom), vite.config.ts (port 4000), tsconfig.json (strict mode), tailwind.config.js, postcss.config.js, index.html entry point, vercel.json with SPA rewrites, and the main App.tsx shell that sets up BrowserRouter. All config files only — no page content. Named exports only per SOP.",
+        "depth": 1,
+        "parent_id": "root",
+        "children": [],
+        "contract": {
+          "component_id": "project_scaffold",
+          "name": "Project Scaffold & Configuration",
+          "description": "Bootstraps the exemplar-tools-doc project: package.json with all dependencies (react, react-dom, react-router-dom, vite, tailwindcss, vitest, @testing-library/react, jsdom), vite.config.ts (port 4000), tsconfig.json (strict mode), tailwind.config.js, postcss.config.js, index.html entry point, vercel.json with SPA rewrites, and the main App.tsx shell that sets up BrowserRouter. All config files only — no page content. Named exports only per SOP for application source files. Config files are tool-mandated and exempt from the named-export SOP.",
+          "version": 1,
+          "types": [
+            {
+              "name": "ReactElementNode",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Opaque React.ReactElement returned by function components. Represents a rendered React virtual DOM tree.",
+              "owner_component": ""
+            },
+            {
+              "name": "ViteServerConfig",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "port",
+                  "type_ref": "int",
+                  "required": true,
+                  "default": "",
+                  "description": "Dev server listen port. Must be 4000 per SOP.",
+                  "validators": [
+                    {
+                      "kind": "range",
+                      "expression": "value == 4000",
+                      "error_message": "Vite dev server port must be exactly 4000 per project SOP."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Shape of the Vite dev server configuration block in vite.config.ts.",
+              "owner_component": ""
+            },
+            {
+              "name": "VitestConfig",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "environment",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Test environment. Must be 'jsdom' for React component testing.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === 'jsdom'",
+                      "error_message": "Vitest environment must be 'jsdom' for React DOM testing."
+                    }
+                  ]
+                },
+                {
+                  "name": "globals",
+                  "type_ref": "bool",
+                  "required": true,
+                  "default": "",
+                  "description": "When true, vitest globals (describe, it, expect) are available without imports.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === true",
+                      "error_message": "Vitest globals must be enabled (true)."
+                    }
+                  ]
+                },
+                {
+                  "name": "setupFiles",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Path to the test setup file that imports @testing-library/jest-dom.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === './src/test-setup.ts'",
+                      "error_message": "setupFiles must point to './src/test-setup.ts'."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Shape of the vitest test configuration block embedded in vite.config.ts.",
+              "owner_component": ""
+            },
+            {
+              "name": "TsCompilerOptions",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "strict",
+                  "type_ref": "bool",
+                  "required": true,
+                  "default": "",
+                  "description": "TypeScript strict mode flag.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === true",
+                      "error_message": "tsconfig strict must be true per SOP."
+                    }
+                  ]
+                },
+                {
+                  "name": "jsx",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "JSX transform mode.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === 'react-jsx'",
+                      "error_message": "jsx must be 'react-jsx' for React 18 automatic runtime."
+                    }
+                  ]
+                },
+                {
+                  "name": "moduleResolution",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Module resolution strategy.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === 'bundler'",
+                      "error_message": "moduleResolution must be 'bundler' for Vite compatibility."
+                    }
+                  ]
+                },
+                {
+                  "name": "isolatedModules",
+                  "type_ref": "bool",
+                  "required": true,
+                  "default": "",
+                  "description": "Ensures each file can be transpiled independently.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === true",
+                      "error_message": "isolatedModules must be true for Vite/esbuild compatibility."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Key tsconfig.json compilerOptions that the scaffold guarantees.",
+              "owner_component": ""
+            },
+            {
+              "name": "TailwindContentGlob",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "A glob pattern string used in tailwind.config.js content array to specify which files to scan for class usage.",
+              "owner_component": ""
+            },
+            {
+              "name": "VercelRewriteRule",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "source",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "URL pattern to match. For SPA catch-all this is '/(.*)'.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === '/(.*)'",
+                      "error_message": "SPA rewrite source must be '/(.*)'."
+                    }
+                  ]
+                },
+                {
+                  "name": "destination",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Target to rewrite to. For SPA this is '/index.html'.",
+                  "validators": [
+                    {
+                      "kind": "custom",
+                      "expression": "value === '/index.html'",
+                      "error_message": "SPA rewrite destination must be '/index.html'."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "A single Vercel rewrite rule for SPA client-side routing support.",
+              "owner_component": ""
+            },
+            {
+              "name": "PackageDependencyMap",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "react",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "React 18.x runtime.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^18\\.",
+                      "error_message": "react must be caret-pinned to ^18.x."
+                    }
+                  ]
+                },
+                {
+                  "name": "react_dom",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "React DOM 18.x renderer.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^18\\.",
+                      "error_message": "react-dom must be caret-pinned to ^18.x."
+                    }
+                  ]
+                },
+                {
+                  "name": "react_router_dom",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "React Router DOM for client-side routing.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "react-router-dom must be caret-pinned."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Required npm dependencies with caret-pinned semver versions.",
+              "owner_component": ""
+            },
+            {
+              "name": "PackageDevDependencyMap",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "vite",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Vite build tool.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "vite must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "vitest",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Vitest test runner.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "vitest must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "tailwindcss",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Tailwind CSS utility framework.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "tailwindcss must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "testing_library_react",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "@testing-library/react for component tests.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "@testing-library/react must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "jsdom",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "jsdom environment for vitest.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "jsdom must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "vitejs_plugin_react",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "@vitejs/plugin-react for JSX/Fast Refresh support.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "@vitejs/plugin-react must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "typescript",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "TypeScript compiler.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "typescript must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "autoprefixer",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "PostCSS autoprefixer plugin.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "autoprefixer must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "postcss",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "PostCSS processor.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "postcss must be caret-pinned."
+                    }
+                  ]
+                },
+                {
+                  "name": "testing_library_jest_dom",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "@testing-library/jest-dom for custom DOM matchers.",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^\\^",
+                      "error_message": "@testing-library/jest-dom must be caret-pinned."
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Required npm devDependencies with caret-pinned semver versions.",
+              "owner_component": ""
+            }
+          ],
+          "functions": [
+            {
+              "name": "App",
+              "description": "Root React function component. Renders a BrowserRouter wrapping a container div with id='app-shell'. Children and routes are injected by the downstream routing_and_layout component. Exported as a named export from src/App.tsx. Must NOT be a default export.",
+              "inputs": [],
+              "output_type": "ReactElementNode",
+              "error_cases": [
+                {
+                  "name": "missing_react_router",
+                  "condition": "react-router-dom is not installed or importable.",
+                  "error_type": "ModuleNotFoundError",
+                  "error_data": {
+                    "module": "react-router-dom"
+                  }
+                }
+              ],
+              "preconditions": [
+                "React 18 runtime is available in the module scope.",
+                "react-router-dom BrowserRouter is importable."
+              ],
+              "postconditions": [
+                "Returns a React element tree with BrowserRouter at the root.",
+                "The rendered DOM contains a div with id='app-shell' inside the BrowserRouter.",
+                "The component is available as a named export: `import { App } from './App'`.",
+                "No default export exists on the module."
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure function component — no side effects. Returns JSX tree only."
+                }
+              ],
+              "performance_budget": null
+            },
+            {
+              "name": "mountApp",
+              "description": "Side-effect entry point in src/main.tsx. Imports { App } from './App', imports './index.css' for Tailwind styles, calls createRoot on the DOM element with id='root', and renders <App />. This module has no named exports — it executes on import as the Vite entry point referenced by index.html.",
+              "inputs": [],
+              "output_type": "None",
+              "error_cases": [
+                {
+                  "name": "missing_root_element",
+                  "condition": "No DOM element with id='root' found in the document.",
+                  "error_type": "DOMException",
+                  "error_data": {
+                    "selector": "#root"
+                  }
+                },
+                {
+                  "name": "app_import_failure",
+                  "condition": "Named export { App } not found in ./App module.",
+                  "error_type": "ImportError",
+                  "error_data": {
+                    "module": "./App",
+                    "export": "App"
+                  }
+                }
+              ],
+              "preconditions": [
+                "DOM element with id='root' exists in index.html.",
+                "react-dom/client createRoot is importable.",
+                "src/App.tsx exports { App } as a named export.",
+                "src/index.css contains valid Tailwind @tailwind directives."
+              ],
+              "postconditions": [
+                "React application is mounted into the #root DOM element.",
+                "Tailwind base/components/utilities styles are injected into the document.",
+                "No named exports exist on this module — it is a side-effect-only entry point."
+              ],
+              "idempotent": false,
+              "is_async": false,
+              "side_effects": [
+                "Mounts React tree to DOM #root element",
+                "Imports CSS side-effect module"
+              ],
+              "structured_side_effects": [
+                {
+                  "kind": "mutates_state",
+                  "target": "document.getElementById('root')",
+                  "description": "Calls createRoot and render to attach the React component tree to the #root DOM node."
+                },
+                {
+                  "kind": "reads_file",
+                  "target": "src/index.css",
+                  "description": "Imports Tailwind CSS directive file as a side effect to inject styles into the document."
+                }
+              ],
+              "performance_budget": null
+            }
+          ],
+          "dependencies": [],
+          "dependency_contracts": {},
+          "invariants": [
+            "All application source files (.ts, .tsx) use TypeScript strict mode as enforced by tsconfig.json strict: true.",
+            "All application source files use named exports only — no default exports. Config files (package.json, vite.config.ts, tailwind.config.js, postcss.config.js, vercel.json) are exempt from this rule as they are tool-mandated.",
+            "Vite dev server always listens on port 4000.",
+            "Vitest uses jsdom environment with globals enabled and setupFiles pointing to src/test-setup.ts.",
+            "tsconfig.json uses jsx: 'react-jsx', moduleResolution: 'bundler', and isolatedModules: true.",
+            "tailwind.config.js content array includes './index.html' and './src/**/*.{ts,tsx}'.",
+            "postcss.config.js includes tailwindcss and autoprefixer plugins.",
+            "index.html contains <div id='root'></div> and <script type='module' src='/src/main.tsx'></script>.",
+            "vercel.json contains a single rewrite rule: { source: '/(.*)', destination: '/index.html' } for SPA client-side routing.",
+            "src/index.css contains exactly: @tailwind base; @tailwind components; @tailwind utilities;",
+            "src/test-setup.ts imports '@testing-library/jest-dom' to register custom DOM matchers globally.",
+            "package.json lists react, react-dom, and react-router-dom as runtime dependencies (caret-pinned to their major versions).",
+            "package.json lists vite, vitest, tailwindcss, @testing-library/react, @testing-library/jest-dom, jsdom, @vitejs/plugin-react, typescript, autoprefixer, and postcss as devDependencies (all caret-pinned).",
+            "The App component renders a BrowserRouter at its root with a child div having id='app-shell'.",
+            "No page content, route definitions, or layout components are defined by this scaffold — those are the responsibility of downstream components."
+          ],
+          "requires": [],
+          "processing_register": "systematic-verification",
+          "data_access": {
+            "reads": [
+              "PUBLIC"
+            ],
+            "writes": [
+              "PUBLIC"
+            ],
+            "rationale": "The scaffold reads and writes only PUBLIC-tier data: static configuration files (package.json, tsconfig.json, vite.config.ts, tailwind.config.js, postcss.config.js, vercel.json, index.html) and boilerplate application entry points (App.tsx, main.tsx, index.css, test-setup.ts). No user data, PII, secrets, or internal API details are accessed. All artifacts are committed to version control and publicly visible in the repository.",
+            "side_effects": [
+              {
+                "type": "file_write",
+                "classification": "PUBLIC",
+                "fields": [
+                  "package.json",
+                  "vite.config.ts",
+                  "tsconfig.json",
+                  "tailwind.config.js",
+                  "postcss.config.js",
+                  "index.html",
+                  "vercel.json"
+                ],
+                "rationale": "Generates project configuration files that define build tooling, TypeScript compiler options, CSS processing pipeline, dev server settings, and deployment routing rules."
+              },
+              {
+                "type": "file_write",
+                "classification": "PUBLIC",
+                "fields": [
+                  "src/App.tsx",
+                  "src/main.tsx",
+                  "src/index.css",
+                  "src/test-setup.ts"
+                ],
+                "rationale": "Generates application entry point source files: the root React component shell, the DOM mount script, the Tailwind CSS directive file, and the test setup file for jest-dom matchers."
+              },
+              {
+                "type": "file_write",
+                "classification": "PUBLIC",
+                "fields": [
+                  "src/App.test.tsx"
+                ],
+                "rationale": "Generates the contract test file that verifies the App component renders correctly with router context and uses named exports."
+              }
+            ]
+          },
+          "authority": {
+            "domains": [
+              "project_configuration",
+              "build_pipeline",
+              "test_infrastructure",
+              "deployment_config"
+            ],
+            "rationale": "This component is the sole authority for all project-level configuration and infrastructure: package.json dependency manifest, TypeScript compiler settings, Vite build/dev-server config, Tailwind/PostCSS styling pipeline, Vercel deployment routing, vitest test environment setup, and the root application shell. No other component may modify these files. Downstream components consume the infrastructure this scaffold provides but do not own or alter it."
+          }
+        },
+        "implementation_status": "contracted",
+        "test_results": null
+      },
+      "routing_and_layout": {
+        "component_id": "routing_and_layout",
+        "name": "Routing, Layout & Navigation",
+        "description": "Implements the routing data model and layout shell. Includes: (1) ROUTE_SLUG_MAP constant mapping all 14 routes (home + 13 steps) with leading-slash values, (2) a persistent Sidebar component with NavLinks to all pages highlighting the active route, (3) a Layout component wrapping sidebar + content area with React Router <Outlet>, (4) route registration in App.tsx using createBrowserRouter or <Routes>. All use React Router v6 browser history mode. Slug guard utility: slug.startsWith('/') ? slug : '/' + slug. Tests verify all 14 routes exist, no double-slash bugs, and sidebar renders all links.",
+        "depth": 1,
+        "parent_id": "root",
+        "children": [],
+        "contract": {
+          "component_id": "routing_and_layout",
+          "name": "Routing, Layout & Navigation",
+          "description": "Implements the routing data model and layout shell for the exemplar.tools documentation website. Includes: (1) ROUTE_SLUG_MAP constant mapping all 13 routes (home + 12 steps) with leading-slash values as a Record<StepId, RouteSlug>, (2) ROUTE_ENTRY_LIST ordered array of 13 RouteEntry objects defining sidebar order and route registration sequence, (3) ensureLeadingSlash slug guard utility using the exact ternary from operating procedures, (4) a persistent Sidebar component with NavLinks to all pages highlighting the active route (home NavLink uses `end` prop), (5) a Layout component wrapping sidebar + content area with React Router <Outlet />, (6) route registration in App.tsx using createBrowserRouter with Layout as parent route element and all 13 pages as children. All use React Router v6 browser history mode. Tests verify all 13 routes exist, no double-slash bugs, slug guard edge cases, sidebar renders all links, and all slugs are unique.",
+          "version": 1,
+          "types": [
+            {
+              "name": "RouteSlug",
+              "kind": "enum",
+              "fields": [],
+              "item_type": "",
+              "variants": [
+                "/",
+                "/cartographer",
+                "/constrain",
+                "/ledger",
+                "/pact",
+                "/advocate",
+                "/arbiter",
+                "/baton",
+                "/sentinel",
+                "/chronicler",
+                "/stigmergy",
+                "/apprentice",
+                "/kindex"
+              ],
+              "inner_types": [],
+              "description": "All 14 valid route slugs (leading-slash paths) used for navigation and route registration across the app.",
+              "owner_component": "routing_and_layout"
+            },
+            {
+              "name": "StepId",
+              "kind": "enum",
+              "fields": [],
+              "item_type": "",
+              "variants": [
+                "home",
+                "cartographer",
+                "constrain",
+                "ledger",
+                "pact",
+                "advocate",
+                "arbiter",
+                "baton",
+                "sentinel",
+                "chronicler",
+                "stigmergy",
+                "apprentice",
+                "kindex"
+              ],
+              "inner_types": [],
+              "description": "Unique identifier for each step in the exemplar.tools pipeline, used as keys in content data and pipeline diagram nodes.",
+              "owner_component": "page_content"
+            },
+            {
+              "name": "StepLabel",
+              "kind": "enum",
+              "fields": [],
+              "item_type": "",
+              "variants": [
+                "Home",
+                "Step 0 — Cartographer",
+                "Step 1a — Constrain",
+                "Step 1b — Ledger",
+                "Step 2a — Pact",
+                "Step 2b — Advocate",
+                "Step 3 — Arbiter",
+                "Step 4 — Baton",
+                "Step 5a — Sentinel",
+                "Step 5b — Chronicler",
+                "Step 5c — Stigmergy",
+                "Step 6 — Apprentice",
+                "Step 7 — Kindex"
+              ],
+              "inner_types": [],
+              "description": "Human-readable display labels for each pipeline step, shown in sidebar navigation, diagram boxes, and page titles.",
+              "owner_component": "page_content"
+            },
+            {
+              "name": "RouteEntry",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "stepId",
+                  "type_ref": "StepId",
+                  "required": true,
+                  "default": "",
+                  "description": "Unique pipeline step identifier.",
+                  "validators": []
+                },
+                {
+                  "name": "slug",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "URL path slug for this route (always starts with '/').",
+                  "validators": []
+                },
+                {
+                  "name": "label",
+                  "type_ref": "StepLabel",
+                  "required": true,
+                  "default": "",
+                  "description": "Human-readable label displayed in navigation and page headers.",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "A single entry in the route map linking a step to its slug and display label, consumed by sidebar nav and route registration.",
+              "owner_component": "routing_and_layout"
+            },
+            {
+              "name": "RouteEntryList",
+              "kind": "list",
+              "fields": [],
+              "item_type": "RouteEntry",
+              "variants": [],
+              "inner_types": [],
+              "description": "Ordered list of all 14 RouteEntry items, defining sidebar order and route registration sequence.",
+              "owner_component": "routing_and_layout"
+            },
+            {
+              "name": "RouteSlugMap",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "home",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for home page: '/'",
+                  "validators": []
+                },
+                {
+                  "name": "cartographer",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for cartographer step: '/cartographer'",
+                  "validators": []
+                },
+                {
+                  "name": "constrain",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for constrain step: '/constrain'",
+                  "validators": []
+                },
+                {
+                  "name": "ledger",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for ledger step: '/ledger'",
+                  "validators": []
+                },
+                {
+                  "name": "pact",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for pact step: '/pact'",
+                  "validators": []
+                },
+                {
+                  "name": "advocate",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for advocate step: '/advocate'",
+                  "validators": []
+                },
+                {
+                  "name": "arbiter",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for arbiter step: '/arbiter'",
+                  "validators": []
+                },
+                {
+                  "name": "baton",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for baton step: '/baton'",
+                  "validators": []
+                },
+                {
+                  "name": "sentinel",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for sentinel step: '/sentinel'",
+                  "validators": []
+                },
+                {
+                  "name": "chronicler",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for chronicler step: '/chronicler'",
+                  "validators": []
+                },
+                {
+                  "name": "stigmergy",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for stigmergy step: '/stigmergy'",
+                  "validators": []
+                },
+                {
+                  "name": "apprentice",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for apprentice step: '/apprentice'",
+                  "validators": []
+                },
+                {
+                  "name": "kindex",
+                  "type_ref": "RouteSlug",
+                  "required": true,
+                  "default": "",
+                  "description": "Slug for kindex step: '/kindex'",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Record<StepId, RouteSlug> providing O(1) lookup from step ID to its URL slug. Derived from ROUTE_ENTRY_LIST via Array.reduce — never independently maintained.",
+              "owner_component": ""
+            },
+            {
+              "name": "ReactNode",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "React.ReactNode — the return type of React functional components. Represents any renderable React content.",
+              "owner_component": ""
+            },
+            {
+              "name": "NavLinkClassName",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "The className callback signature for React Router NavLink: ({ isActive }: { isActive: boolean }) => string. Returns Tailwind classes for active/inactive states.",
+              "owner_component": ""
+            },
+            {
+              "name": "RouterConfig",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "path",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Root path, always '/'",
+                  "validators": []
+                },
+                {
+                  "name": "element",
+                  "type_ref": "ReactNode",
+                  "required": true,
+                  "default": "",
+                  "description": "The Layout component instance wrapping Sidebar + Outlet",
+                  "validators": []
+                },
+                {
+                  "name": "children",
+                  "type_ref": "list",
+                  "required": true,
+                  "default": "",
+                  "description": "Array of child route objects, one per ROUTE_ENTRY_LIST entry, each with path and element props",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Configuration object returned by createBrowserRouter. Represents the complete route tree with Layout as the parent route and all 13 page routes as children.",
+              "owner_component": ""
+            }
+          ],
+          "functions": [
+            {
+              "name": "ensureLeadingSlash",
+              "description": "Pure utility function that guarantees a string has exactly one leading slash. Uses the exact ternary from operating procedures: `slug.startsWith('/') ? slug : '/' + slug`. Does NOT strip double slashes — that is a separate concern validated by invariants on ROUTE_SLUG_MAP values.",
+              "inputs": [
+                {
+                  "name": "slug",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "A URL slug string that may or may not already have a leading slash.",
+                  "validators": []
+                }
+              ],
+              "output_type": "str",
+              "error_cases": [],
+              "preconditions": [
+                "slug is a string (may be empty)"
+              ],
+              "postconditions": [
+                "Return value always starts with '/'",
+                "If input already starts with '/', return value equals input unchanged",
+                "If input does not start with '/', return value equals '/' + input",
+                "Empty string input returns '/'"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure function — no side effects. Performs only string inspection and concatenation."
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 1,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            },
+            {
+              "name": "Sidebar",
+              "description": "React functional component that renders a vertical navigation sidebar. Iterates over ROUTE_ENTRY_LIST and renders one React Router NavLink per entry, using entry.slug as the `to` prop and entry.label as the link text. Uses NavLink's className callback `({ isActive }) => string` to apply Tailwind active/inactive styles. The home NavLink (slug='/') uses the `end` prop to prevent it from matching all routes. Styled with Tailwind for fixed-width left sidebar positioning.",
+              "inputs": [],
+              "output_type": "ReactNode",
+              "error_cases": [
+                {
+                  "name": "no_router_context",
+                  "condition": "Sidebar is rendered outside of a React Router context",
+                  "error_type": "React Router invariant error",
+                  "error_data": {
+                    "message": "useLocation() may be used only in the context of a <Router> component"
+                  }
+                }
+              ],
+              "preconditions": [
+                "Component must be rendered within a React Router context (BrowserRouter, MemoryRouter, or RouterProvider)",
+                "ROUTE_ENTRY_LIST must be available as an import from the routing module"
+              ],
+              "postconditions": [
+                "Renders exactly 13 NavLink elements, one per entry in ROUTE_ENTRY_LIST",
+                "NavLinks appear in the same order as ROUTE_ENTRY_LIST",
+                "The home NavLink (slug='/') has the `end` prop set to true",
+                "Each NavLink's `to` prop matches the corresponding entry's slug value",
+                "Each NavLink displays the corresponding entry's label as text content",
+                "Active NavLink receives distinct Tailwind classes for visual highlighting"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure render function. NavLink click handlers are provided by React Router, not by this component."
+                }
+              ],
+              "performance_budget": null
+            },
+            {
+              "name": "Layout",
+              "description": "React functional component that renders the top-level page layout shell. Uses a Tailwind flex container with Sidebar on the left and a main content area on the right containing React Router's <Outlet /> component. The Outlet renders the matched child route's component. Layout is used as the `element` of the root route in createBrowserRouter configuration.",
+              "inputs": [],
+              "output_type": "ReactNode",
+              "error_cases": [
+                {
+                  "name": "no_router_context",
+                  "condition": "Layout is rendered outside of a React Router context",
+                  "error_type": "React Router invariant error",
+                  "error_data": {
+                    "message": "useOutlet() may be used only in the context of a <Router> component"
+                  }
+                }
+              ],
+              "preconditions": [
+                "Component must be rendered within a React Router context",
+                "Sidebar component must be available as an import",
+                "React Router Outlet must be available"
+              ],
+              "postconditions": [
+                "Renders a flex container with exactly two children: Sidebar and a main content wrapper",
+                "The main content wrapper contains exactly one <Outlet /> component",
+                "Sidebar is positioned on the left side of the flex container",
+                "The main content area fills the remaining horizontal space"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure render function. Layout delegates routing behavior to React Router's Outlet."
+                }
+              ],
+              "performance_budget": null
+            },
+            {
+              "name": "createAppRouter",
+              "description": "Factory function that creates and returns a React Router v6 browser router instance using createBrowserRouter. Constructs the route tree with Layout as the parent route element (path='/') and all 13 page routes as children. Child route paths are derived from ROUTE_ENTRY_LIST entries: home uses `index: true`, all others use `path: entry.slug.slice(1)` (removing the leading slash since they are relative to the parent). Each child route's element is the corresponding page component, lazy-loaded or directly imported.",
+              "inputs": [],
+              "output_type": "RouterConfig",
+              "error_cases": [
+                {
+                  "name": "missing_page_component",
+                  "condition": "A page component referenced in ROUTE_ENTRY_LIST cannot be resolved at import time",
+                  "error_type": "ModuleNotFoundError",
+                  "error_data": {
+                    "message": "Cannot find module for route entry stepId"
+                  }
+                }
+              ],
+              "preconditions": [
+                "ROUTE_ENTRY_LIST must contain exactly 13 entries",
+                "All page components referenced by route entries must be importable",
+                "React Router createBrowserRouter must be available"
+              ],
+              "postconditions": [
+                "Returns a valid router instance with exactly 1 parent route and 13 child routes",
+                "Parent route has path '/' and element <Layout />",
+                "Home child route uses `index: true` instead of `path: ''`",
+                "All non-home child routes have paths matching their slug without the leading slash",
+                "Router uses browser history mode (not hash or memory)"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Creates a router configuration object. Does not mount to DOM or trigger navigation. The router object is inert until passed to <RouterProvider>."
+                }
+              ],
+              "performance_budget": null
+            },
+            {
+              "name": "getNavLinkClassName",
+              "description": "Pure helper function that returns the className callback for NavLink components. Given an isActive boolean from React Router's NavLink render prop, returns the appropriate Tailwind CSS class string for active or inactive navigation link styling.",
+              "inputs": [
+                {
+                  "name": "isActive",
+                  "type_ref": "bool",
+                  "required": true,
+                  "default": "",
+                  "description": "Whether the NavLink's route matches the current URL, provided by React Router's NavLink className callback.",
+                  "validators": []
+                }
+              ],
+              "output_type": "str",
+              "error_cases": [],
+              "preconditions": [],
+              "postconditions": [
+                "When isActive is true, returns a class string containing active state Tailwind classes (e.g., font-bold, specific background/text color)",
+                "When isActive is false, returns a class string containing inactive state Tailwind classes",
+                "Return value is always a non-empty string"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure function — returns a CSS class string based on boolean input."
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 1,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            }
+          ],
+          "dependencies": [
+            "page_content"
+          ],
+          "dependency_contracts": {
+            "page_content": [
+              "StepId",
+              "StepLabel"
+            ]
+          },
+          "invariants": [
+            "ROUTE_ENTRY_LIST always contains exactly 13 entries",
+            "Every value in ROUTE_SLUG_MAP starts with exactly one leading slash character ('/')",
+            "No slug value in ROUTE_SLUG_MAP produces a double-slash ('//') when used as a path",
+            "All RouteSlug values across ROUTE_ENTRY_LIST are unique — no two entries share the same slug",
+            "ROUTE_SLUG_MAP is derivable from ROUTE_ENTRY_LIST — they are never independently maintained",
+            "The first entry in ROUTE_ENTRY_LIST is always the home route with slug '/'",
+            "Sidebar renders exactly one NavLink per entry in ROUTE_ENTRY_LIST, in the same order",
+            "The home NavLink always uses the `end` prop to prevent matching all routes",
+            "Layout always renders Sidebar on the left and Outlet in the main content area",
+            "ensureLeadingSlash is a pure function with no side effects"
+          ],
+          "requires": [
+            "react-router-dom@^6",
+            "react@^18",
+            "tailwindcss"
+          ],
+          "processing_register": "systematic-verification",
+          "data_access": {
+            "reads": [
+              "PUBLIC"
+            ],
+            "writes": [],
+            "rationale": "Reads only public, static routing configuration data (step IDs, labels, slugs) defined at build time. No user data, PII, or secrets are accessed. The component produces purely presentational output (navigation links, layout containers) with no server-side data fetching or persistence.",
+            "side_effects": [
+              {
+                "type": "browser_history_navigation",
+                "classification": "PUBLIC",
+                "fields": [
+                  "window.location",
+                  "history.state"
+                ],
+                "rationale": "React Router v6 manipulates browser history state and window.location when users click NavLinks in the Sidebar. This is a client-side-only side effect with no server interaction."
+              }
+            ]
+          },
+          "authority": {
+            "domains": [
+              "route_slugs",
+              "route_entries",
+              "navigation_structure",
+              "layout_shell"
+            ],
+            "rationale": "This component is the single source of truth for all URL slugs, route-to-step mappings, navigation ordering, and the top-level layout structure. No other component may define or modify route paths or navigation order."
+          }
+        },
+        "implementation_status": "contracted",
+        "test_results": null
+      },
+      "shared_ui": {
+        "component_id": "shared_ui",
+        "name": "Shared UI Components",
+        "description": "Reusable presentational components used across all pages: (1) CodeBlock — renders preformatted CLI commands with syntax styling and a copy-to-clipboard button (navigator.clipboard.writeText), (2) VersionBadge — styled inline badge displaying a component name + version string, (3) YouTubeEmbed — responsive iframe wrapper for YouTube video URLs, (4) CalloutBox — styled container for gotchas, warnings, and tips with variant prop (gotcha | warning | tip). All components have explicit type annotations, named exports, and vitest + @testing-library/react tests.",
+        "depth": 1,
+        "parent_id": "root",
+        "children": [],
+        "contract": {
+          "component_id": "shared_ui",
+          "name": "Shared UI Components",
+          "description": "Reusable presentational React components used across all pages of the exemplar.tools documentation website. Barrel-exported collection of four components: CodeBlock (preformatted CLI commands with copy-to-clipboard), VersionBadge (inline component name + version badge), YouTubeEmbed (responsive YouTube iframe wrapper), and CalloutBox (variant-styled container for gotchas, warnings, and tips). All components use strict TypeScript annotations, named exports only (no defaults), and are tested with vitest + @testing-library/react. Mock surface: consumers mocking this module must provide exactly four runtime exports: { CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox }.",
+          "version": 1,
+          "types": [
+            {
+              "name": "CalloutVariant",
+              "kind": "enum",
+              "fields": [],
+              "item_type": "",
+              "variants": [
+                "gotcha",
+                "warning",
+                "tip"
+              ],
+              "inner_types": [],
+              "description": "Visual variant for CalloutBox components indicating the type of supplementary information.",
+              "owner_component": "shared_ui"
+            },
+            {
+              "name": "CodeBlockProps",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "code",
+                  "type_ref": "string",
+                  "required": true,
+                  "default": "",
+                  "description": "The preformatted CLI command text to display.",
+                  "validators": []
+                },
+                {
+                  "name": "description",
+                  "type_ref": "OptionalString",
+                  "required": false,
+                  "default": "",
+                  "description": "Optional caption/description shown above or below the code.",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Props for the CodeBlock shared component, used by page_content when rendering CLI commands.",
+              "owner_component": "shared_ui"
+            },
+            {
+              "name": "VersionBadgeProps",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "componentName",
+                  "type_ref": "string",
+                  "required": true,
+                  "default": "",
+                  "description": "The name of the tool/component to display on the badge.",
+                  "validators": []
+                },
+                {
+                  "name": "version",
+                  "type_ref": "string",
+                  "required": true,
+                  "default": "",
+                  "description": "The version string to display (e.g. 'v1.2.3').",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Props for the VersionBadge shared component, used by page_content to display version info.",
+              "owner_component": "shared_ui"
+            },
+            {
+              "name": "YouTubeEmbedProps",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "url",
+                  "type_ref": "string",
+                  "required": true,
+                  "default": "",
+                  "description": "Full YouTube video URL to embed in a responsive iframe.",
+                  "validators": []
+                },
+                {
+                  "name": "title",
+                  "type_ref": "OptionalString",
+                  "required": false,
+                  "default": "",
+                  "description": "Accessible title for the iframe element.",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Props for the YouTubeEmbed shared component, used by page_content to embed tutorial videos.",
+              "owner_component": "shared_ui"
+            },
+            {
+              "name": "YouTubeUrl",
+              "kind": "primitive",
+              "fields": [
+                {
+                  "name": "value",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "The raw URL string",
+                  "validators": [
+                    {
+                      "kind": "regex",
+                      "expression": "^https?:\\/\\/(www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)[a-zA-Z0-9_-]{11}",
+                      "error_message": "url must be a valid YouTube watch URL (youtube.com/watch?v=...) or short URL (youtu.be/...)"
+                    }
+                  ]
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "A validated YouTube video URL. Must be a youtube.com/watch or youtu.be short URL.",
+              "owner_component": ""
+            },
+            {
+              "name": "CalloutBoxProps",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "variant",
+                  "type_ref": "CalloutVariant",
+                  "required": true,
+                  "default": "",
+                  "description": "Visual style variant: gotcha, warning, or tip.",
+                  "validators": []
+                },
+                {
+                  "name": "text",
+                  "type_ref": "string",
+                  "required": true,
+                  "default": "",
+                  "description": "The callout body text to display.",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Props for the CalloutBox shared component, used by page_content to render gotchas, warnings, and tips.",
+              "owner_component": "shared_ui"
+            },
+            {
+              "name": "CalloutVariantClassMap",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "gotcha",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Tailwind classes for the 'gotcha' variant (e.g. red/orange border and background)",
+                  "validators": []
+                },
+                {
+                  "name": "warning",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Tailwind classes for the 'warning' variant (e.g. yellow/amber border and background)",
+                  "validators": []
+                },
+                {
+                  "name": "tip",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "Tailwind classes for the 'tip' variant (e.g. green/teal border and background)",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Internal type representing the Record<CalloutVariant, string> mapping each variant to its Tailwind CSS class string. Not exported — used only within CalloutBox implementation.",
+              "owner_component": ""
+            },
+            {
+              "name": "ReactElement",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "React.ReactElement — the return type of a React functional component. Represents a rendered JSX tree.",
+              "owner_component": ""
+            },
+            {
+              "name": "ClipboardWriteResult",
+              "kind": "struct",
+              "fields": [
+                {
+                  "name": "success",
+                  "type_ref": "bool",
+                  "required": true,
+                  "default": "",
+                  "description": "Whether the clipboard write succeeded",
+                  "validators": []
+                },
+                {
+                  "name": "error",
+                  "type_ref": "str",
+                  "required": false,
+                  "default": "",
+                  "description": "Error message if the clipboard write failed",
+                  "validators": []
+                }
+              ],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Result of a navigator.clipboard.writeText call, used internally by CodeBlock's copy button handler.",
+              "owner_component": ""
+            },
+            {
+              "name": "string",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "TypeScript string primitive.",
+              "owner_component": ""
+            },
+            {
+              "name": "OptionalString",
+              "kind": "optional",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [
+                "string"
+              ],
+              "description": "A string value that may be undefined or empty.",
+              "owner_component": ""
+            }
+          ],
+          "functions": [
+            {
+              "name": "CodeBlock",
+              "description": "React functional component that renders a preformatted CLI command or code snippet inside <pre><code> with syntax styling via Tailwind CSS and a copy-to-clipboard button. The copy button invokes navigator.clipboard.writeText(code) on click. File: src/components/shared/CodeBlock.tsx. Named export only.",
+              "inputs": [
+                {
+                  "name": "props",
+                  "type_ref": "CodeBlockProps",
+                  "required": true,
+                  "default": "",
+                  "description": "Component props containing the code string and optional description",
+                  "validators": []
+                }
+              ],
+              "output_type": "ReactElement",
+              "error_cases": [
+                {
+                  "name": "clipboard_unavailable",
+                  "condition": "navigator.clipboard is undefined (e.g. non-HTTPS context or older browser)",
+                  "error_type": "ClipboardApiUnavailableError",
+                  "error_data": {
+                    "behavior": "Copy button should degrade gracefully — either hide the button or show a fallback tooltip. Must not throw an unhandled exception."
+                  }
+                },
+                {
+                  "name": "clipboard_write_rejected",
+                  "condition": "navigator.clipboard.writeText rejects (e.g. permission denied)",
+                  "error_type": "ClipboardWriteError",
+                  "error_data": {
+                    "behavior": "The promise rejection must be caught. Component may show a brief error state on the button but must not propagate the error to the React error boundary."
+                  }
+                }
+              ],
+              "preconditions": [
+                "props.code is a non-empty string",
+                "Component is rendered within a React 18 tree"
+              ],
+              "postconditions": [
+                "Returns a <pre> element containing a <code> element with the code text",
+                "A copy button element is present as a sibling or child of the <pre>",
+                "If props.description is provided and non-empty, a descriptive label element is rendered above or within the block",
+                "If props.description is omitted or empty, no description element is rendered",
+                "Clicking the copy button calls navigator.clipboard.writeText with props.code"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "mutates_state",
+                  "target": "navigator.clipboard",
+                  "description": "Writes props.code to system clipboard via navigator.clipboard.writeText when copy button is clicked"
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 16,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            },
+            {
+              "name": "VersionBadge",
+              "description": "React functional component that renders a styled inline badge displaying a component name and version string. Uses Tailwind CSS for pill/badge styling. File: src/components/shared/VersionBadge.tsx. Named export only.",
+              "inputs": [
+                {
+                  "name": "props",
+                  "type_ref": "VersionBadgeProps",
+                  "required": true,
+                  "default": "",
+                  "description": "Component props containing componentName and version strings",
+                  "validators": []
+                }
+              ],
+              "output_type": "ReactElement",
+              "error_cases": [],
+              "preconditions": [
+                "props.componentName is a non-empty string",
+                "props.version matches semver-like pattern",
+                "Component is rendered within a React 18 tree"
+              ],
+              "postconditions": [
+                "Returns an inline element (e.g. <span>) with badge styling",
+                "The rendered text contains both props.componentName and props.version",
+                "The element uses Tailwind classes for pill/badge appearance (rounded, background color, padding)"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure presentational component with no side effects"
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 8,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            },
+            {
+              "name": "YouTubeEmbed",
+              "description": "React functional component that renders a responsive iframe wrapper for YouTube videos. Converts standard YouTube watch URLs (youtube.com/watch?v=ID) and short URLs (youtu.be/ID) to embed format (youtube.com/embed/ID). Uses Tailwind 'aspect-video' class on a wrapper div for responsive sizing. File: src/components/shared/YouTubeEmbed.tsx. Named export only.",
+              "inputs": [
+                {
+                  "name": "props",
+                  "type_ref": "YouTubeEmbedProps",
+                  "required": true,
+                  "default": "",
+                  "description": "Component props containing the YouTube URL and optional title",
+                  "validators": []
+                }
+              ],
+              "output_type": "ReactElement",
+              "error_cases": [
+                {
+                  "name": "invalid_youtube_url",
+                  "condition": "props.url does not match expected YouTube URL patterns and video ID cannot be extracted",
+                  "error_type": "InvalidYouTubeUrlError",
+                  "error_data": {
+                    "behavior": "Component renders a fallback element (e.g. a styled <div> with error text) instead of a broken iframe. Must not throw during render."
+                  }
+                }
+              ],
+              "preconditions": [
+                "props.url is a valid YouTube watch URL or youtu.be short URL",
+                "Component is rendered within a React 18 tree"
+              ],
+              "postconditions": [
+                "Returns a wrapper <div> with Tailwind 'aspect-video' class for responsive sizing",
+                "Contains an <iframe> element whose src is 'https://www.youtube.com/embed/{videoId}' derived from props.url",
+                "The iframe has title attribute set to props.title (or 'YouTube video' if omitted)",
+                "The iframe has allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' and allowFullScreen",
+                "The iframe has frameBorder='0' and width='100%' height='100%'"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "network_call",
+                  "target": "https://www.youtube.com/embed/{videoId}",
+                  "description": "The rendered iframe triggers a network request to YouTube's embed endpoint when mounted in the browser. The component itself does not make the request — the browser does via the iframe src."
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 16,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            },
+            {
+              "name": "CalloutBox",
+              "description": "React functional component that renders a styled container for gotchas, warnings, and tips. Uses a variant prop (gotcha | warning | tip) to select from a Record<CalloutVariant, string> mapping of Tailwind CSS class strings, producing distinct visual styling per variant. File: src/components/shared/CalloutBox.tsx. Named export only.",
+              "inputs": [
+                {
+                  "name": "props",
+                  "type_ref": "CalloutBoxProps",
+                  "required": true,
+                  "default": "",
+                  "description": "Component props containing the variant discriminator and text content",
+                  "validators": []
+                }
+              ],
+              "output_type": "ReactElement",
+              "error_cases": [],
+              "preconditions": [
+                "props.variant is one of 'gotcha' | 'warning' | 'tip'",
+                "props.text is a non-empty string",
+                "Component is rendered within a React 18 tree"
+              ],
+              "postconditions": [
+                "Returns a container <div> (or <aside>) with variant-specific Tailwind classes applied",
+                "The 'gotcha' variant renders with distinct border/background classes (e.g. red/orange tones)",
+                "The 'warning' variant renders with distinct border/background classes (e.g. yellow/amber tones)",
+                "The 'tip' variant renders with distinct border/background classes (e.g. green/teal tones)",
+                "All three variants produce visually distinguishable containers (different class strings)",
+                "props.text is rendered as visible text content within the container",
+                "The container includes a role='alert' or appropriate ARIA attribute for accessibility"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure presentational component with no side effects"
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": 8,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            },
+            {
+              "name": "extractYouTubeVideoId",
+              "description": "Internal utility function that extracts the 11-character YouTube video ID from a watch URL or short URL. Used by YouTubeEmbed to construct the embed src. Not exported from the barrel — internal to YouTubeEmbed.tsx or a shared utility.",
+              "inputs": [
+                {
+                  "name": "url",
+                  "type_ref": "str",
+                  "required": true,
+                  "default": "",
+                  "description": "A YouTube URL string to extract the video ID from",
+                  "validators": []
+                }
+              ],
+              "output_type": "str",
+              "error_cases": [
+                {
+                  "name": "no_video_id_found",
+                  "condition": "URL does not contain a recognizable YouTube video ID pattern",
+                  "error_type": "str",
+                  "error_data": {
+                    "returns": "empty string"
+                  }
+                }
+              ],
+              "preconditions": [
+                "url is a non-empty string"
+              ],
+              "postconditions": [
+                "If url matches youtube.com/watch?v={id}, returns the 11-character video ID",
+                "If url matches youtu.be/{id}, returns the 11-character video ID",
+                "If url does not match either pattern, returns an empty string"
+              ],
+              "idempotent": true,
+              "is_async": false,
+              "side_effects": [],
+              "structured_side_effects": [
+                {
+                  "kind": "none",
+                  "target": "",
+                  "description": "Pure function — string parsing only, no side effects"
+                }
+              ],
+              "performance_budget": {
+                "p95_latency_ms": null,
+                "max_memory_mb": null,
+                "complexity": "O(1)"
+              }
+            }
+          ],
+          "dependencies": [],
+          "dependency_contracts": {},
+          "invariants": [
+            "All four components (CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox) are named exports from the barrel index.ts — no default exports anywhere",
+            "All five type exports (CalloutVariant, CodeBlockProps, VersionBadgeProps, YouTubeEmbedProps, CalloutBoxProps) are exported via 'export type { }' syntax from the barrel",
+            "The barrel file (index.ts) re-exports all runtime and type exports from individual component files and types.ts",
+            "File structure: src/components/shared/{CodeBlock.tsx, VersionBadge.tsx, YouTubeEmbed.tsx, CalloutBox.tsx, types.ts, index.ts}",
+            "Each component file has a corresponding .test.tsx file using vitest + @testing-library/react",
+            "Consumers mocking this module via vi.mock() must provide exactly { CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox } — all four runtime exports",
+            "CalloutBox internally uses a Record<CalloutVariant, string> mapping to assign distinct Tailwind class strings per variant",
+            "YouTubeEmbed wrapper div always has the Tailwind 'aspect-video' class for responsive sizing",
+            "CodeBlock copy button calls navigator.clipboard.writeText(props.code) and handles both unavailable clipboard API and rejected promise gracefully",
+            "All components are pure presentational — no internal state management beyond transient UI state (e.g. copy button feedback)",
+            "All public function signatures have explicit TypeScript type annotations per project standards"
+          ],
+          "requires": [],
+          "processing_register": "systematic-verification",
+          "data_access": {
+            "reads": [
+              "PUBLIC"
+            ],
+            "writes": [],
+            "rationale": "Shared UI components are purely presentational and receive all data via props. They read only PUBLIC-tier data: code snippets for display (CodeBlock), version strings (VersionBadge), YouTube video URLs (YouTubeEmbed), and callout text content (CalloutBox). No PII, INTERNAL, or sensitive data is accessed. No data is written to any persistent store.",
+            "side_effects": [
+              {
+                "type": "clipboard_write",
+                "classification": "PUBLIC",
+                "fields": [
+                  "CodeBlockProps.code"
+                ],
+                "rationale": "CodeBlock copies the code prop (a CLI command string, PUBLIC data) to the system clipboard when the user clicks the copy button via navigator.clipboard.writeText"
+              },
+              {
+                "type": "iframe_network_load",
+                "classification": "PUBLIC",
+                "fields": [
+                  "YouTubeEmbedProps.url"
+                ],
+                "rationale": "YouTubeEmbed renders an iframe whose src points to youtube.com/embed/{videoId}, causing the browser to fetch the YouTube embed page. The URL is PUBLIC documentation content."
+              }
+            ]
+          },
+          "authority": {
+            "domains": [],
+            "rationale": null
+          }
+        },
+        "implementation_status": "contracted",
+        "test_results": null
+      },
+      "pipeline_diagram": {
+        "component_id": "pipeline_diagram",
+        "name": "Pipeline Diagram Component",
+        "description": "Custom React/SVG component for the Home page showing the exemplar.tools pipeline flow. Renders step boxes (Step 0 through Step 7) connected by arrows/lines in the correct order, with branching for parallel steps (1a/1b, 2a/2b, 5a/5b/5c). Each box is clickable and navigates to the corresponding step page via React Router. Responsive sizing. Named export PipelineDiagram. Tests verify all step nodes render and click navigation.",
+        "depth": 1,
+        "parent_id": "root",
+        "children": [],
+        "contract": null,
+        "implementation_status": "pending",
+        "test_results": null
+      },
+      "page_content": {
+        "component_id": "page_content",
+        "name": "Step Page Content & Data",
+        "description": "All 14 page components with hardcoded content from howto.md. Includes: (1) A STEP_CONTENT data structure holding per-step commands, gotchas, warnings, tips, examples, YouTube URLs, and version strings — all verbatim from howto.md. (2) HomePage component rendering overview text + PipelineDiagram. (3) StepPage generic component that receives step data and renders sections using CodeBlock, CalloutBox, YouTubeEmbed, and VersionBadge. (4) Individual page wrapper components for each of the 13 steps (CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage). Content placeholder structure is built now; exact howto.md text is filled when the file is provided. Tests verify each page renders its key sections, code blocks, and embeds.",
+        "depth": 1,
+        "parent_id": "root",
+        "children": [],
+        "contract": null,
+        "implementation_status": "pending",
+        "test_results": null
+      },
+      "root": {
+        "component_id": "root",
+        "name": "Root",
+        "description": "# exemplar.tools Documentation Website\n\nBuild a documentation website for the exemplar.tools CLI suite.\nDevelopers will use this site as a reference for running commands — all content must be exact as",
+        "depth": 0,
+        "parent_id": "",
+        "children": [
+          "page_content",
+          "pipeline_diagram",
+          "project_scaffold",
+          "routing_and_layout",
+          "shared_ui"
+        ],
+        "contract": {
+          "component_id": "root",
+          "name": "Root",
+          "description": "Thin orchestration layer for the exemplar.tools documentation website. Composes child modules (project_scaffold, routing_and_layout, page_content) to wire all 13 page components into a router and mount the React application into the DOM. Owns no domain types — all canonical types are defined by child modules. Consists of two files: src/root.ts (exports initApp) and src/main.tsx (side-effect entry point that calls initApp, no exports).",
+          "version": 1,
+          "types": [
+            {
+              "name": "void",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "TypeScript void return type, indicating the function returns no value.",
+              "owner_component": ""
+            },
+            {
+              "name": "RouterInstance",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "Opaque React Router browser router instance returned by createBrowserRouter / createAppRouter. Passed to RouterProvider for mounting.",
+              "owner_component": ""
+            },
+            {
+              "name": "ReactElement",
+              "kind": "primitive",
+              "fields": [],
+              "item_type": "",
+              "variants": [],
+              "inner_types": [],
+              "description": "React.ReactElement / JSX.Element returned by React functional components.",
+              "owner_component": ""
+            }
+          ],
+          "functions": [
+            {
+              "name": "initApp",
+              "description": "Composition entry point that wires all child modules together and mounts the application. Imports createAppRouter from routing_and_layout (which internally references all 13 page components from page_content via ROUTE_ENTRY_LIST and the Layout/Sidebar shell). Calls createAppRouter() to build the complete route tree with all 13 routes (home + 12 steps). Then calls mountApp from project_scaffold, which creates a React root on the #root DOM element and renders the application with the router. This function is the single point of integration — it ensures that routing_and_layout's createAppRouter has already wired every page component to its route, so root merely invokes the composition. File: src/root.ts.",
+              "inputs": [],
+              "output_type": "void",
+              "error_cases": [
+                {
+                  "name": "missing_root_element",
+                  "condition": "DOM element with id='root' does not exist when mountApp is called",
+                  "error_type": "DOMException",
+                  "error_data": {
+                    "message": "Cannot find DOM element with id='root'. Ensure index.html contains <div id=\"root\"></div>.",
+                    "selector": "#root"
+                  }
+                },
+                {
+                  "name": "router_creation_failure",
+                  "condition": "createAppRouter throws because a required page component import is missing or ROUTE_ENTRY_LIST is malformed",
+                  "error_type": "ModuleNotFoundError",
+                  "error_data": {
+                    "message": "Failed to create app router. A page component or route entry could not be resolved."
+                  }
+                },
+                {
+                  "name": "mount_failure",
+                  "condition": "mountApp throws because React root creation fails (e.g., createRoot is unavailable)",
+                  "error_type": "RuntimeError",
+                  "error_data": {
+                    "message": "Failed to mount React application. Ensure react-dom/client is installed and createRoot is available."
+                  }
+                }
+              ],
+              "preconditions": [
+                "DOM element with id='root' exists in the document (provided by index.html from project_scaffold)",
+                "All child module imports resolve successfully: project_scaffold.mountApp, routing_and_layout.createAppRouter",
+                "routing_and_layout.createAppRouter internally references all 13 page components from page_content",
+                "React 18 runtime and react-dom/client are available"
+              ],
+              "postconditions": [
+                "createAppRouter() from routing_and_layout has been called exactly once",
+                "mountApp() from project_scaffold has been called exactly once after createAppRouter completes",
+                "The React application is mounted into the #root DOM element with the complete router containing all 13 routes",
+                "All 13 page components (HomePage, CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage) are reachable via their registered routes"
+              ],
+              "idempotent": false,
+              "is_async": false,
+              "side_effects": [
+                "Mounts React application tree into DOM #root element",
+                "Triggers React Router initialization with browser history"
+              ],
+              "structured_side_effects": [
+                {
+                  "kind": "mutates_state",
+                  "target": "DOM #root element",
+                  "description": "Creates a React root and renders the full application tree (router + layout + pages) into the #root DOM element."
+                },
+                {
+                  "kind": "mutates_state",
+                  "target": "Browser history API",
+                  "description": "React Router initializes browser history mode, registering popstate listeners for client-side navigation."
+                }
+              ],
+              "performance_budget": null
+            },
+            {
+              "name": "main",
+              "description": "Side-effect entry point module at src/main.tsx. Imports initApp from src/root.ts and calls it immediately. Also imports src/index.css for Tailwind style injection. This module has zero named exports — it is referenced by index.html as <script type='module' src='/src/main.tsx'> and executes on load. This is not a callable function but a module-level side effect.",
+              "inputs": [],
+              "output_type": "void",
+              "error_cases": [
+                {
+                  "name": "init_app_import_failure",
+                  "condition": "Named export initApp cannot be resolved from src/root.ts",
+                  "error_type": "ImportError",
+                  "error_data": {
+                    "message": "Cannot import { initApp } from './root'. Ensure root.ts exports initApp as a named export.",
+                    "module": "./root",
+                    "export": "initApp"
+                  }
+                },
+                {
+                  "name": "css_import_failure",
+                  "condition": "src/index.css cannot be resolved or is malformed",
+                  "error_type": "ImportError",
+                  "error_data": {
+                    "message": "Cannot import './index.css'. Ensure the file exists and contains valid CSS.",
+                    "module": "./index.css"
+                  }
+                }
+              ],
+              "preconditions": [
+                "src/root.ts exports initApp as a named export",
+                "src/index.css exists and contains valid Tailwind @tailwind directives",
+                "The module is loaded by the browser via the script tag in index.html"
+              ],
+              "postconditions": [
+                "initApp() has been called exactly once",
+                "Tailwind base/components/utilities styles are injected into the document via the CSS import side effect",
+                "No named exports exist on this module"
+              ],
+              "idempotent": false,
+              "is_async": false,
+              "side_effects": [
+                "Calls initApp() which mounts the React application",
+                "Imports CSS which injects Tailwind styles into the document"
+              ],
+              "structured_side_effects": [
+                {
+                  "kind": "mutates_state",
+                  "target": "DOM #root element",
+                  "description": "Delegates to initApp() which mounts the React tree into the DOM."
+                },
+                {
+                  "kind": "mutates_state",
+                  "target": "Document stylesheets",
+                  "description": "Importing index.css causes Vite/PostCSS to inject compiled Tailwind styles into the document's style sheets."
+                }
+              ],
+              "performance_budget": null
+            }
+          ],
+          "dependencies": [
+            "page_content",
+            "pipeline_diagram",
+            "project_scaffold",
+            "routing_and_layout",
+            "shared_ui"
+          ],
+          "dependency_contracts": {
+            "project_scaffold": [
+              "App",
+              "mountApp"
+            ],
+            "routing_and_layout": [
+              "createAppRouter",
+              "ROUTE_ENTRY_LIST",
+              "ROUTE_SLUG_MAP",
+              "ensureLeadingSlash",
+              "Layout",
+              "Sidebar"
+            ],
+            "page_content": [
+              "HomePage",
+              "CartographerPage",
+              "ConstrainPage",
+              "LedgerPage",
+              "PactPage",
+              "AdvocatePage",
+              "ArbiterPage",
+              "BatonPage",
+              "SentinelPage",
+              "ChroniclerPage",
+              "StigmergyPage",
+              "ApprenticePage",
+              "KindexPage",
+              "STEP_CONTENT",
+              "StepId"
+            ],
+            "pipeline_diagram": [
+              "PipelineDiagram",
+              "PIPELINE_NODES",
+              "PIPELINE_EDGES"
+            ],
+            "shared_ui": [
+              "CodeBlock",
+              "VersionBadge",
+              "YouTubeEmbed",
+              "CalloutBox"
+            ]
+          },
+          "invariants": [
+            "Root owns zero domain types — all types (StepId, StepLabel, RouteSlug, StepContent, RouteEntry, etc.) are defined by and imported from child modules.",
+            "Root does not re-export any child module types or constants — consumers import directly from the owning child module.",
+            "The total number of registered routes is exactly 13: 1 home route + 12 step routes.",
+            "src/main.tsx has zero named exports — it is a side-effect-only entry point.",
+            "src/root.ts exports exactly one named runtime export: initApp.",
+            "initApp calls createAppRouter exactly once and mountApp exactly once, in that order.",
+            "Root has no direct runtime dependency on shared_ui or pipeline_diagram — those are consumed transitively through page_content and routing_and_layout.",
+            "All slug handling is delegated to ensureLeadingSlash from routing_and_layout — root never manipulates slug strings directly.",
+            "All source files use TypeScript strict mode, named exports only, and 'export type { }' for type-only exports per project standards."
+          ],
+          "requires": [
+            "project_scaffold",
+            "routing_and_layout",
+            "page_content"
+          ],
+          "processing_register": "systematic-verification",
+          "data_access": {
+            "reads": [],
+            "writes": [],
+            "rationale": "Root is a pure orchestration layer that reads no persistent data and writes no persistent data. It composes child modules (routing configuration, page components, scaffold utilities) at application startup. All data access is transitive through child modules. The only state mutation is the one-time DOM mount of the React application tree into the #root element, which is an in-memory browser DOM operation with no data classification implications.",
+            "side_effects": [
+              {
+                "type": "dom_mount",
+                "classification": "PUBLIC",
+                "fields": [
+                  "#root DOM element"
+                ],
+                "rationale": "Mounts the React application tree into the #root DOM element at startup. This is a public, client-side browser DOM operation with no sensitive data."
+              }
+            ]
+          },
+          "authority": {
+            "domains": [],
+            "rationale": null
+          }
+        },
+        "implementation_status": "contracted",
+        "test_results": null
+      }
+    }
+  },
+  "engineering_decisions": [],
+  "failure_history": [],
+  "lessons_learned": [],
+  "version": 1
+}

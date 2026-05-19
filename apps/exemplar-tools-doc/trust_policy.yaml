@@ -1,0 +1,40 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_site_001
+system: "exemplar.tools documentation website"
+
+trust:
+  floor: 0.10
+  authority_override_floor: 0.40
+  decay_lambda: 0.05
+  taint_lock_tiers: []
+  conflict_trust_delta_threshold: 0.20
+
+classifications:
+  - field_pattern: "*"
+    tier: PUBLIC
+    authoritative_component: docs_site
+    canary_eligible: false
+    canary_pattern: null
+    rationale: "All content is public documentation"
+
+soak:
+  base_durations:
+    PUBLIC: 1h
+    PII: 6h
+    FINANCIAL: 24h
+    AUTH: 48h
+    COMPLIANCE: 72h
+  target_requests: 1000
+
+authority_map:
+  - component: docs_site
+    domains: ["documentation/*", "commands/*", "content/*"]
+    rationale: "Single component owns all documentation content"
+
+human_gates:
+  always: []
+  on_low_trust_authoritative: false
+  on_unresolvable_conflict: false
+
+_note: "No sensitive data tiers involved - documentation site handles only public content"

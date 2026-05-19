@@ -1,0 +1,9 @@
+version: "1.0"
+generated_by: constrain
+session_id: docs_site_001
+
+storage_backends: []
+
+field_hints: []
+
+_note: "Documentation website uses no persistent storage - all content is static files built from howto.md source. No database schemas or sensitive field classifications apply to this static documentation system."

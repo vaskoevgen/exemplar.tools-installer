@@ -1,0 +1,101 @@
+{
+  "task_summary": "Implement 'Step Page Content & Data' component (id: page_content) — a set of TypeScript/React page components and a data layer for a multi-step pipeline wizard. Each step has a dedicated page component (CartographerPage, ConstrainPage, etc.), a shared StepPage renderer, a HomePage, and a getStepContent lookup function. The data model includes StepId/StepLabel enums, CalloutVariant enum, and structured content types (CommandEntry, CalloutItem, StepContent). Dependencies are shared_ui and pipeline_diagram.",
+  "findings": [
+    {
+      "topic": "Content-driven page pattern",
+      "finding": "The established pattern for content-heavy step/wizard pages is to separate data (content records) from presentation (a single shared renderer). Each step-specific page component (CartographerPage, etc.) should be a thin wrapper that calls getStepContent(StepId.Cartographer) and passes the result to <StepPage content={...} />. This avoids duplicating layout logic across 13+ pages and makes content changes trivial.",
+      "source": "React compositional patterns / Container-Presentational pattern",
+      "relevance": "Directly applies — StepPage is the presentational component, each named page is a thin container.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Enum-keyed content lookup",
+      "finding": "Using a Record<StepId, StepContent> as the backing store for getStepContent is idiomatic TypeScript. Declaring the record with `satisfies Record<StepId, StepContent>` (TS 4.9+) ensures exhaustiveness at compile time — every StepId must have a corresponding entry. This eliminates runtime 'missing step' bugs without needing a switch statement.",
+      "source": "TypeScript handbook — satisfies operator, mapped types",
+      "relevance": "getStepContent should index into a StepContentRecord. The 'satisfies' pattern catches missing entries at build time.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Named exports only — no default exports",
+      "finding": "Per project standards, every component and function must use named exports. This means `export function CartographerPage()` not `export default function`. This also affects how vi.mock() factories must be structured — every named export must be present in the mock object.",
+      "source": "Project Operating Procedures — Standards section",
+      "relevance": "Critical compliance requirement. Failing to use named exports will break imports across the project.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "vi.mock() completeness for testing",
+      "finding": "When mocking dependencies (shared_ui, pipeline_diagram), the vi.mock() factory MUST enumerate every named runtime export from those modules. Missing an export causes 'undefined is not a function' errors at test time. For shared_ui this likely includes shared UI primitives (Callout, CodeBlock, etc.) and for pipeline_diagram the diagram component. Use vi.fn() or simple stub components for each.",
+      "source": "Project Operating Procedures — vi.mock() Rules",
+      "relevance": "Tests will fail if mocks are incomplete. Need to know exact export names from dependencies before writing mocks.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Slug handling in page components",
+      "finding": "If any page component constructs URLs or links using ROUTE_SLUG_MAP, the values already include a leading slash. The guard pattern `slug.startsWith('/') ? slug : '/' + slug` must be used. Double-slashes ('//step-0-cartographer') are a frequent bug.",
+      "source": "Project Operating Procedures — Slug Handling",
+      "relevance": "Any navigation links within step pages must follow this convention.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "React 18 rendering in tests",
+      "finding": "With React 18 and vitest, use @testing-library/react's render() which handles createRoot internally. Avoid ReactDOM.render() which is deprecated. For snapshot or structural tests of page components, render + screen queries are standard. For pure data tests (getStepContent), no rendering is needed — just assert on the returned object shape.",
+      "source": "React Testing Library docs, React 18 migration guide",
+      "relevance": "Directly applies to testing strategy — split tests into data-layer unit tests and component render tests.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Callout/Command content types",
+      "finding": "CalloutVariant enum (likely: info, warning, tip, danger or similar) should align with the shared_ui Callout component's variant prop. CommandEntry likely holds { command: string, description?: string } for CLI-style instructions. CalloutItem likely holds { variant: CalloutVariant, content: string | ReactNode }. These types should be exported with `export type { }` syntax per project standards.",
+      "source": "Common documentation/wizard UI patterns, project standards",
+      "relevance": "Type definitions must match what shared_ui expects to consume.",
+      "confidence": 0.8
+    },
+    {
+      "topic": "Exhaustive content coverage testing",
+      "finding": "A common pitfall is adding a new StepId to the enum but forgetting to add its content entry. A single parameterized test that iterates over all StepId values and calls getStepContent(id) — asserting the result is defined and has required fields — catches this immediately. This is a best practice for enum-driven data stores.",
+      "source": "Testing best practices for enum-keyed data",
+      "relevance": "Ensures every step ID has valid content. Should be the first test written.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Performance: static content should be module-level constants",
+      "finding": "Since step content is static data, the StepContentRecord should be a module-level const, not recreated on each getStepContent call or component render. This avoids unnecessary object allocations and GC pressure. If content includes JSX, use lazy initialization or keep content as plain data and let StepPage render it.",
+      "source": "React performance patterns",
+      "relevance": "With 13 steps, this is minor but still good practice. Keeping content as plain data (strings, arrays) rather than JSX also makes it serializable and testable without rendering.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Type-only exports for interfaces",
+      "finding": "Per project standards, interfaces and type aliases must use `export type { StepContent }` syntax. This ensures they are erased at compile time and don't create runtime artifacts. Enums, however, are runtime values and must use regular `export { StepId }` or `export enum StepId`.",
+      "source": "Project Operating Procedures — Standards section, TypeScript isolatedModules",
+      "relevance": "Critical for build correctness, especially with Vite which uses esbuild/SWC for transpilation and requires explicit type-only exports.",
+      "confidence": 0.97
+    }
+  ],
+  "recommended_approach": "**Architecture:**\n1. **Data layer** (`stepContent.ts`): Define StepId enum, StepLabel enum, CalloutVariant enum, and all struct types. Create a module-level `STEP_CONTENT: Record<StepId, StepContent>` constant (using `satisfies` for exhaustiveness). Export `getStepContent(stepId: StepId): StepContent` that indexes into this record.\n\n2. **Shared renderer** (`StepPage.tsx`): A single `StepPage` component that accepts `StepContent` as props and renders the title, description, callouts, commands, and embeds the pipeline diagram from the `pipeline_diagram` dependency.\n\n3. **Thin page wrappers** (one file per page or a single `pages.tsx`): Each named page (CartographerPage, ConstrainPage, etc.) is a 3-line function that calls `getStepContent(StepId.X)` and returns `<StepPage content={content} />`. HomePage may have a distinct layout.\n\n4. **Types file** (`types.ts`): Export all type aliases and interfaces with `export type { }`. Export enums as regular named exports.\n\n5. **Tests**: \n   - Data test: iterate all StepId values, assert getStepContent returns valid StepContent.\n   - Component tests: render each page component, assert key content appears. Mock shared_ui and pipeline_diagram with complete vi.mock() factories.\n\n**Key decisions:**\n- Keep content as plain data (strings, string arrays) not JSX — makes data layer testable without React.\n- Use `satisfies` on the content record for compile-time exhaustiveness.\n- One test file for data, one for components.",
+  "alternatives_considered": [
+    "Single large switch statement in getStepContent instead of Record lookup — rejected because it's harder to verify exhaustiveness and more verbose.",
+    "Default exports for page components — rejected per project standards requiring named exports only.",
+    "Inline content in each page component instead of a shared data store — rejected because it duplicates layout logic and makes content harder to test independently.",
+    "JSX in content records (e.g., ReactNode fields) — avoided where possible to keep content serializable and testable without rendering. StepPage should construct JSX from plain data.",
+    "Single pages.tsx barrel file vs individual files per page — either works, but individual files improve code-splitting with Vite's lazy imports if needed later."
+  ],
+  "risks": [
+    "Incomplete vi.mock() factories for shared_ui or pipeline_diagram — must discover exact export names from those modules before writing tests.",
+    "StepId enum values may not match expected string keys if they're defined elsewhere — need to verify the enum is defined here or imported.",
+    "If StepContent includes optional fields (OptionalString), getStepContent callers must handle undefined — StepPage rendering must null-check optional fields.",
+    "HomePage may have a substantially different layout than step pages — need to confirm whether it uses StepPage or has its own template.",
+    "Adding a new step to StepId without updating the content record will be a compile error (good), but only if satisfies is used correctly."
+  ],
+  "compliance_notes": [
+    "All files must be .ts or .tsx — no .js or .py files.",
+    "TypeScript strict mode — no implicit any, strict null checks.",
+    "Named exports only: `export function X()` and `export const Y`, never `export default`.",
+    "Type-only exports: `export type { StepContent, StepPageProps }` for interfaces/type aliases.",
+    "Enums are runtime values and use regular exports: `export enum StepId { ... }`.",
+    "vi.mock() factories must provide every named runtime export of mocked modules.",
+    "Slug values from ROUTE_SLUG_MAP already have leading slash — guard against double-slash.",
+    "Every function must have at least one test, runnable without external services.",
+    "No task is done until contract tests pass."
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "total": 1,
+  "passed": 0,
+  "failed": 0,
+  "errors": 1,
+  "failure_details": [
+    {
+      "test_id": "collection",
+      "test_description": "",
+      "error_message": "Failed to collect or run tests",
+      "stdout": "\n RUN  v1.6.1 /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc\n\n\n Test Files  1 failed (1)\n      Tests  no tests\n   Start at  12:04:47\n   Duration  401ms (transform 8ms, setup 33ms, collect 0ms, tests 0ms, environment 226ms, prepare 36ms)\n\n",
+      "stderr": "⎯⎯⎯⎯⎯⎯ Failed Suites 1 ⎯⎯⎯⎯⎯⎯⎯\n\n FAIL  tests/root/contract_test.test.ts [ tests/root/contract_test.test.ts ]\nError: Failed to resolve import \"../../src/main\" from \"tests/root/contract_test.test.ts\". Does the file exist?\n ❯ TransformPluginContext._formatError node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49258:41\n ❯ TransformPluginContext.error node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49253:16\n ❯ normalizeUrl node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64307:23\n ❯ async file:/Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64439:39\n ❯ TransformPluginContext.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:64366:7\n ❯ PluginContainer.transform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:49099:18\n ❯ loadAndTransform node_modules/vite/dist/node/chunks/dep-BK3b2jBa.js:51978:27\n\n⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯\n\n"
+    }
+  ],
+  "timestamp": "2026-05-19T12:04:47.731406"
+}

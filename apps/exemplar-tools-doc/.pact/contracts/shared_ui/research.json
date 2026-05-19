@@ -1,0 +1,101 @@
+{
+  "task_summary": "Define the interface contract for the 'Shared UI Components' module (id: shared_ui) in a TypeScript/React documentation website. This module owns four presentational components — CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox — plus their prop types (CodeBlockProps, VersionBadgeProps, YouTubeEmbedProps, CalloutBoxProps) and the CalloutVariant enum. Must follow strict TypeScript, named exports only, `export type {}` for type aliases, and include vitest + @testing-library/react contract tests.",
+  "findings": [
+    {
+      "topic": "React Component Prop Typing Patterns",
+      "finding": "Best practice for presentational React components is to define props as a standalone exported type (using `export type { }`) and then use that type as the single generic parameter to `React.FC` or as a function parameter annotation. For shared_ui, each component's props interface is already defined in the canonical registry (CodeBlockProps, VersionBadgeProps, YouTubeEmbedProps, CalloutBoxProps). These must be exported as types via `export type { CodeBlockProps, ... }` and the components themselves as named runtime exports via `export { CodeBlock, ... }`. Avoid `React.FC` if you want to keep the contract minimal — prefer explicit function signatures with return type `React.ReactElement`.",
+      "source": "React TypeScript Cheatsheet (github.com/typescript-cheatsheets/react)",
+      "relevance": "Directly governs how the four shared components are typed and exported",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Enum vs Union Type for CalloutVariant",
+      "finding": "The canonical registry defines CalloutVariant as an enum with variants gotcha | warning | tip. In TypeScript, string literal union types (`type CalloutVariant = 'gotcha' | 'warning' | 'tip'`) are preferred over `enum` for serializable, tree-shakeable values — but the registry says 'enum'. The safest approach that satisfies both strict TS and the registry is a `const` enum or a plain string union exported via `export type`. Since the operating procedures say `export type { }` for type aliases, a string union type is the idiomatic choice: `export type CalloutVariant = 'gotcha' | 'warning' | 'tip';` — this still matches the registry's intent (fixed set of variants) while being fully compatible with JSON serialization and vi.mock rules.",
+      "source": "TypeScript handbook — Enums vs Union Types; project operating procedures",
+      "relevance": "CalloutVariant is owned by shared_ui and consumed by page_content; incorrect form would break cross-module contracts",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Clipboard API Testing Strategy",
+      "finding": "CodeBlock uses `navigator.clipboard.writeText`. In vitest + jsdom, `navigator.clipboard` is undefined by default. The established pattern is to mock it in test setup: `Object.assign(navigator, { clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } })`. Alternatively, use `vi.stubGlobal`. The copy handler should be async and handle errors gracefully (try/catch around writeText). Tests should verify: (1) clicking the copy button calls writeText with the exact `code` prop value, (2) the button provides feedback (e.g., text changes to 'Copied!'), (3) error state is handled if writeText rejects.",
+      "source": "vitest docs (vi.stubGlobal), @testing-library/react userEvent.click pattern",
+      "relevance": "CodeBlock's copy-to-clipboard is the most complex behavior in shared_ui and the most likely source of test failures",
+      "confidence": 0.92
+    },
+    {
+      "topic": "YouTube Embed Security and Responsiveness",
+      "finding": "YouTubeEmbed should: (1) Use youtube-nocookie.com domain for privacy-enhanced embedding, (2) Extract video ID from various YouTube URL formats (watch?v=, youtu.be/, /embed/) using a parsing utility, (3) Set `sandbox='allow-scripts allow-same-origin'` and `allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'` on the iframe, (4) Use `loading='lazy'` for performance, (5) Responsive pattern: wrap iframe in a container with `aspect-video` (Tailwind class) for 16:9 ratio. The URL-to-embed-URL conversion is a common pitfall — must handle edge cases like URLs with timestamps, playlists, and extra query params.",
+      "source": "YouTube IFrame API docs, OWASP iframe embedding guidelines, Tailwind CSS aspect-ratio plugin",
+      "relevance": "YouTubeEmbed is a shared component; incorrect URL parsing or missing security attributes would affect all pages with videos",
+      "confidence": 0.88
+    },
+    {
+      "topic": "CalloutBox Variant Styling Pattern",
+      "finding": "A common pattern for variant-driven styling in Tailwind is a variant-to-classes lookup map: `const variantStyles: Record<CalloutVariant, string> = { gotcha: 'border-red-500 bg-red-50', warning: 'border-yellow-500 bg-yellow-50', tip: 'border-green-500 bg-green-50' }`. This is type-safe (exhaustive via Record), readable, and easy to test. Each variant should also include an icon/emoji and an aria-label or role='alert' (for warning) / role='note' (for tip/gotcha) for accessibility.",
+      "source": "Tailwind CSS docs, WAI-ARIA Practices for alerts and notes",
+      "relevance": "CalloutBox variant prop is the only polymorphic pattern in shared_ui; must be exhaustive and accessible",
+      "confidence": 0.91
+    },
+    {
+      "topic": "vi.mock() Factory Completeness for shared_ui",
+      "finding": "Per operating procedures, vi.mock() factories MUST provide every named runtime export. For shared_ui, the runtime exports will be: CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox. The type exports (CodeBlockProps, etc., CalloutVariant) do NOT need to be in vi.mock() factories since they are erased at runtime. Consumers mocking shared_ui must list all four components. A common pitfall is forgetting one component in the mock factory, causing 'undefined is not a function' errors in consumer tests.",
+      "source": "Project operating procedures — vi.mock() Rules",
+      "relevance": "Directly affects how downstream modules (page_content, step pages) will mock shared_ui in their tests",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Named Export Index Pattern",
+      "finding": "For a multi-component shared module, the standard pattern is: each component in its own file (e.g., CodeBlock.tsx, VersionBadge.tsx), re-exported from an index.ts barrel file using `export { CodeBlock } from './CodeBlock'` and `export type { CodeBlockProps } from './CodeBlock'`. This keeps files focused while allowing consumers to import from '@/components/shared' or similar. The barrel file IS the contract surface — it must export exactly the types and components listed in the registry.",
+      "source": "TypeScript module patterns, project naming conventions",
+      "relevance": "Defines the module boundary and import paths for all consumers of shared_ui",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Testing Presentational Components with @testing-library/react",
+      "finding": "Best practices: (1) Test rendering with required props — verify key text/elements appear, (2) Test each variant for polymorphic components (CalloutBox), (3) Use `screen.getByRole`, `screen.getByText`, `screen.getByTestId` — prefer accessible queries, (4) For CodeBlock, test that the `code` prop renders inside a <pre> or <code> element, (5) For YouTubeEmbed, test that the iframe src is correctly formed, (6) For VersionBadge, test that componentName and version are both rendered. Common pitfall: testing implementation details (class names) instead of behavior/content.",
+      "source": "@testing-library/react guiding principles, Kent C. Dodds testing best practices",
+      "relevance": "All four components need contract tests per operating procedures",
+      "confidence": 0.94
+    },
+    {
+      "topic": "OptionalString Handling in Props",
+      "finding": "The registry defines OptionalString as 'A string value that may be undefined or empty'. In TypeScript this maps to `string | undefined` (i.e., the prop is optional). For CodeBlockProps.description, YouTubeEmbedProps.title — these should be typed as `description?: string` and `title?: string`. Components must handle both undefined and empty string gracefully — render nothing if falsy. A common pitfall is rendering an empty <p> tag when description is ''.",
+      "source": "Canonical Type Registry, TypeScript optional property semantics",
+      "relevance": "Two of four components have optional string props; incorrect handling creates empty DOM nodes",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Accessibility for CodeBlock and Pre-formatted Content",
+      "finding": "CodeBlock should use semantic HTML: <pre><code>...</code></pre>. The copy button needs an accessible label (aria-label='Copy to clipboard'). After copying, announce success to screen readers via aria-live region or by changing the button's text. The preformatted block should not have role='img' — it's actual text content that should be readable. Consider tabIndex={0} on the code block for keyboard users who want to select text.",
+      "source": "WAI-ARIA authoring practices, MDN <pre> element docs",
+      "relevance": "CodeBlock is the most used shared component (every step page has CLI commands); accessibility is critical",
+      "confidence": 0.87
+    }
+  ],
+  "recommended_approach": "Define the shared_ui module as a barrel-exported collection of four React components and their associated types, strictly following the canonical type registry:\n\n1. **File Structure**: One file per component (`CodeBlock.tsx`, `VersionBadge.tsx`, `YouTubeEmbed.tsx`, `CalloutBox.tsx`) plus `types.ts` for `CalloutVariant`, and an `index.ts` barrel that re-exports everything.\n\n2. **Type Exports** (via `export type {}`):\n   - `CalloutVariant` — string union: `'gotcha' | 'warning' | 'tip'`\n   - `CodeBlockProps` — `{ code: string; description?: string }`\n   - `VersionBadgeProps` — `{ componentName: string; version: string }`\n   - `YouTubeEmbedProps` — `{ url: string; title?: string }`\n   - `CalloutBoxProps` — `{ variant: CalloutVariant; text: string }`\n\n3. **Runtime Exports** (named, no defaults):\n   - `CodeBlock` — renders `<pre><code>` with copy button using `navigator.clipboard.writeText`\n   - `VersionBadge` — inline badge rendering `componentName` + `version`\n   - `YouTubeEmbed` — responsive iframe with URL-to-embed conversion, `aspect-video` Tailwind wrapper\n   - `CalloutBox` — variant-styled container using a `Record<CalloutVariant, string>` class map\n\n4. **Contract Tests**: One `.test.tsx` file per component using vitest + @testing-library/react. Test: renders correctly with required props, handles optional props being undefined/empty, copy button calls clipboard API (CodeBlock), all three variants render distinct styling (CalloutBox), iframe src is correct (YouTubeEmbed).\n\n5. **Mock Surface Documentation**: Clearly document that consumers mocking this module need exactly four runtime exports: `{ CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox }`.",
+  "alternatives_considered": [
+    "Using TypeScript `enum` keyword for CalloutVariant instead of string union — rejected because string unions are more idiomatic in modern TS, work better with `export type {}`, avoid runtime overhead, and are JSON-serializable without transformation. The registry's 'enum' label maps naturally to a union type.",
+    "Single-file approach with all four components in one shared-ui.tsx — rejected because it hurts tree-shaking, makes diffs noisier, and complicates individual component testing. Barrel re-export provides the same single-import ergonomics.",
+    "Using a third-party clipboard library (e.g., clipboard.js) instead of native navigator.clipboard — rejected because the native API is well-supported in modern browsers, simpler to mock in tests, and avoids an unnecessary dependency.",
+    "Using a YouTube embed library (e.g., react-youtube, lite-youtube-embed) — rejected to minimize dependencies for a simple iframe wrapper. A lightweight URL parser utility is sufficient.",
+    "Defining props inline (React.FC<{ code: string }>) without named prop types — rejected because the canonical registry explicitly defines named prop structs that must be exported for cross-module consumption."
+  ],
+  "risks": [
+    "YouTube URL parsing edge cases: URLs with timestamps (?t=120), playlist params (?list=...), shorts URLs (/shorts/), and non-standard formats could break embed. Mitigation: implement a focused extractVideoId utility with explicit format handling and tests for each format.",
+    "navigator.clipboard.writeText unavailability: In non-secure contexts (HTTP, not HTTPS) or older browsers, the API may be undefined. Mitigation: guard with `if (navigator.clipboard?.writeText)` and provide a fallback or graceful degradation.",
+    "Tailwind class purging: If variant-driven class strings are dynamically constructed (e.g., template literals like `bg-${color}-50`), Tailwind's JIT compiler won't detect them. Mitigation: always use complete static class strings in the variant lookup map.",
+    "vi.mock() drift: If a new component is added to shared_ui later, all consumer mock factories must be updated. Mitigation: document the mock contract clearly and consider a test helper that validates mock completeness.",
+    "Empty string vs undefined for OptionalString props: Components might render empty containers when description='' is passed. Mitigation: use falsy checks (`if (!description)`) rather than strict undefined checks."
+  ],
+  "compliance_notes": [
+    "All source files must be .ts or .tsx — no .js, .jsx, or .py files",
+    "All public functions must have explicit TypeScript return type annotations",
+    "Named exports only — no `export default` anywhere in the module",
+    "Type aliases and interfaces must use `export type { }` syntax",
+    "CalloutVariant, CodeBlockProps, VersionBadgeProps, YouTubeEmbedProps, CalloutBoxProps must match canonical registry exactly — same names, same fields, same field types",
+    "vi.mock() factories for this module must include all four runtime exports: CodeBlock, VersionBadge, YouTubeEmbed, CalloutBox",
+    "Every component function must have at least one vitest test",
+    "Tests must run without external services (mock clipboard API, no real YouTube fetches)",
+    "Import sibling modules using exact exported names — never guess at export names"
+  ]
+}

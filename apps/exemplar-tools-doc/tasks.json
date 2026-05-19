@@ -1,0 +1,520 @@
+{
+  "project_id": "exemplar-tools-doc",
+  "tasks": [
+    {
+      "id": "T001",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Initialize project directory structure",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "scaffold"
+    },
+    {
+      "id": "T002",
+      "phase": "setup",
+      "component_id": "",
+      "description": "Verify environment and dependencies",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T001"
+      ],
+      "category": "scaffold"
+    },
+    {
+      "id": "T003",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: CalloutVariant",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T004",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: OptionalString",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T005",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ReactElement",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T006",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RouteSlug",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T007",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: StepId",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T008",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: StepLabel",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T009",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: string",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T010",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Review contract for Project Scaffold & Configuration",
+      "file_path": "contracts/project_scaffold/interface.json",
+      "status": "completed",
+      "parallel": true,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T011",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Set up test harness for Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T010"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T012",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Write contract tests for Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T011"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T013",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Implement Project Scaffold & Configuration",
+      "file_path": "implementations/project_scaffold/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T012"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T014",
+      "phase": "component",
+      "component_id": "project_scaffold",
+      "description": "Run tests and verify Project Scaffold & Configuration",
+      "file_path": "",
+      "status": "failed",
+      "parallel": false,
+      "depends_on": [
+        "T013"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T015",
+      "phase": "component",
+      "component_id": "routing_and_layout",
+      "description": "Review contract for Routing, Layout & Navigation",
+      "file_path": "contracts/routing_and_layout/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T016",
+      "phase": "component",
+      "component_id": "routing_and_layout",
+      "description": "Set up test harness for Routing, Layout & Navigation",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T015"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T017",
+      "phase": "component",
+      "component_id": "routing_and_layout",
+      "description": "Write contract tests for Routing, Layout & Navigation",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T016"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T018",
+      "phase": "component",
+      "component_id": "routing_and_layout",
+      "description": "Implement Routing, Layout & Navigation",
+      "file_path": "implementations/routing_and_layout/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T017"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T019",
+      "phase": "component",
+      "component_id": "routing_and_layout",
+      "description": "Run tests and verify Routing, Layout & Navigation",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T018"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T020",
+      "phase": "component",
+      "component_id": "shared_ui",
+      "description": "Review contract for Shared UI Components",
+      "file_path": "contracts/shared_ui/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T021",
+      "phase": "component",
+      "component_id": "shared_ui",
+      "description": "Set up test harness for Shared UI Components",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T020"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T022",
+      "phase": "component",
+      "component_id": "shared_ui",
+      "description": "Write contract tests for Shared UI Components",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T021"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T023",
+      "phase": "component",
+      "component_id": "shared_ui",
+      "description": "Implement Shared UI Components",
+      "file_path": "implementations/shared_ui/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T022"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T024",
+      "phase": "component",
+      "component_id": "shared_ui",
+      "description": "Run tests and verify Shared UI Components",
+      "file_path": "",
+      "status": "failed",
+      "parallel": false,
+      "depends_on": [
+        "T023"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T025",
+      "phase": "component",
+      "component_id": "pipeline_diagram",
+      "description": "Review contract for Pipeline Diagram Component",
+      "file_path": "contracts/pipeline_diagram/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T026",
+      "phase": "component",
+      "component_id": "pipeline_diagram",
+      "description": "Set up test harness for Pipeline Diagram Component",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T025"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T027",
+      "phase": "component",
+      "component_id": "pipeline_diagram",
+      "description": "Write contract tests for Pipeline Diagram Component",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T026"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T028",
+      "phase": "component",
+      "component_id": "pipeline_diagram",
+      "description": "Implement Pipeline Diagram Component",
+      "file_path": "implementations/pipeline_diagram/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T027"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T029",
+      "phase": "component",
+      "component_id": "pipeline_diagram",
+      "description": "Run tests and verify Pipeline Diagram Component",
+      "file_path": "",
+      "status": "failed",
+      "parallel": false,
+      "depends_on": [
+        "T028"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T030",
+      "phase": "component",
+      "component_id": "page_content",
+      "description": "Review contract for Step Page Content & Data",
+      "file_path": "contracts/page_content/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T031",
+      "phase": "component",
+      "component_id": "page_content",
+      "description": "Set up test harness for Step Page Content & Data",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T030"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T032",
+      "phase": "component",
+      "component_id": "page_content",
+      "description": "Write contract tests for Step Page Content & Data",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T031"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T033",
+      "phase": "component",
+      "component_id": "page_content",
+      "description": "Implement Step Page Content & Data",
+      "file_path": "implementations/page_content/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T032"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T034",
+      "phase": "component",
+      "component_id": "page_content",
+      "description": "Run tests and verify Step Page Content & Data",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T033"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T035",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Review integration contract for Root",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T036",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Write integration tests for Root",
+      "file_path": "",
+      "status": "completed",
+      "parallel": true,
+      "depends_on": [],
+      "category": "test_write"
+    },
+    {
+      "id": "T037",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Wire children for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [
+        "T034",
+        "T029",
+        "T014",
+        "T019",
+        "T024"
+      ],
+      "category": "integrate"
+    },
+    {
+      "id": "T038",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Run integration tests for Root",
+      "file_path": "",
+      "status": "failed",
+      "parallel": false,
+      "depends_on": [
+        "T037"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T039",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Run full contract validation gate",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T040",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Cross-artifact analysis",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "validate"
+    },
+    {
+      "id": "T041",
+      "phase": "polish",
+      "component_id": "",
+      "description": "Update design document",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "document"
+    }
+  ],
+  "checkpoints": [
+    {
+      "after_phase": "component",
+      "description": "All leaf components verified",
+      "validation": "All leaf contract tests pass"
+    },
+    {
+      "after_phase": "integration",
+      "description": "All integrations verified",
+      "validation": "All integration tests pass"
+    }
+  ],
+  "generated_at": "2026-05-19T10:51:10.016614",
+  "version": 1
+}

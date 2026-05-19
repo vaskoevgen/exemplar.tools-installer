@@ -1,0 +1,32 @@
+[
+  {
+    "ambiguity": "",
+    "decision": "Five components instead of trivial",
+    "rationale": "The project has genuinely distinct subsystems: build config, routing/layout, reusable UI primitives, the SVG diagram, and 14 pages of content. Each can be developed and tested independently with clean interfaces. Total LOC will exceed 500 across all pages."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Content hardcoded in TSX, not parsed from markdown",
+    "rationale": "Per interview answers and the 'accuracy is paramount' requirement, all howto.md content is hardcoded into TypeScript data structures and JSX rather than using a markdown parser or Vite plugin."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Pipeline diagram as separate component from shared_ui",
+    "rationale": "The SVG pipeline diagram is a complex, one-off component with routing dependencies and its own interaction logic \u2014 it doesn't belong in the generic shared UI library."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Single StepPage template component with per-step data",
+    "rationale": "All 13 step pages share the same layout (commands, gotchas, warnings, tips, video, version badge). A generic StepPage component receives typed step data, avoiding 13 copies of layout code. Thin wrapper components per step pass the correct data slice."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Tailwind CSS v3 with PostCSS",
+    "rationale": "Per assumptions, Tailwind v3 is used for stability. Standard postcss.config.js + tailwind.config.js setup with content paths pointing to src/**/*.tsx."
+  },
+  {
+    "ambiguity": "",
+    "decision": "Copy-to-clipboard uses navigator.clipboard API",
+    "rationale": "Modern browsers support navigator.clipboard.writeText. No polyfill needed for a developer-facing documentation site. Button shows visual feedback on copy."
+  }
+]

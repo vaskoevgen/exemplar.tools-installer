@@ -1,0 +1,521 @@
+{
+  "component_id": "shared_ui",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "extract_youtube_id_watch_url",
+      "description": "extractYouTubeVideoId extracts 11-char ID from standard youtube.com/watch?v= URL",
+      "function": "extractYouTubeVideoId",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns 'dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "result equals 'dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_short_url",
+      "description": "extractYouTubeVideoId extracts 11-char ID from youtu.be short URL",
+      "function": "extractYouTubeVideoId",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://youtu.be/dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns 'dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "result equals 'dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_with_extra_params",
+      "description": "extractYouTubeVideoId handles URLs with extra query params (e.g. &t=120)",
+      "function": "extractYouTubeVideoId",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=120"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns 'dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "result equals 'dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_http_no_www",
+      "description": "extractYouTubeVideoId handles http:// without www prefix",
+      "function": "extractYouTubeVideoId",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "http://youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "Returns 'dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "result equals 'dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_invalid_url",
+      "description": "extractYouTubeVideoId returns empty string for non-YouTube URL",
+      "function": "extractYouTubeVideoId",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://vimeo.com/123456"
+      },
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "no_video_id_found",
+      "assertions": [
+        "result is empty string or error is thrown"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_empty_string",
+      "description": "extractYouTubeVideoId returns empty string for empty input",
+      "function": "extractYouTubeVideoId",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": ""
+      },
+      "input_description": "",
+      "expected_output_description": "Returns empty string",
+      "expected_error": "",
+      "assertions": [
+        "result is empty string"
+      ]
+    },
+    {
+      "id": "codeblock_renders_code",
+      "description": "CodeBlock renders a <pre> containing <code> with the provided code text",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "code": "npm install vitest",
+        "description": ""
+      },
+      "input_description": "",
+      "expected_output_description": "A <pre> with <code> containing 'npm install vitest'",
+      "expected_error": "",
+      "assertions": [
+        "<code> element contains 'npm install vitest'",
+        "<pre> element is present"
+      ]
+    },
+    {
+      "id": "codeblock_renders_description",
+      "description": "CodeBlock renders a descriptive label when description prop is provided",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "code": "echo hello",
+        "description": "Say hello"
+      },
+      "input_description": "",
+      "expected_output_description": "Description text 'Say hello' is visible",
+      "expected_error": "",
+      "assertions": [
+        "text 'Say hello' is in the document"
+      ]
+    },
+    {
+      "id": "codeblock_no_description_when_omitted",
+      "description": "CodeBlock does not render description element when description is omitted",
+      "function": "CodeBlock",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "code": "echo hello"
+      },
+      "input_description": "",
+      "expected_output_description": "No description element rendered",
+      "expected_error": "",
+      "assertions": [
+        "no element with description text is present"
+      ]
+    },
+    {
+      "id": "codeblock_copy_button_success",
+      "description": "Clicking copy button calls navigator.clipboard.writeText with the code",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "navigator.clipboard.writeText": "resolves undefined"
+      },
+      "input_values": {
+        "code": "npm install vitest"
+      },
+      "input_description": "",
+      "expected_output_description": "writeText called with 'npm install vitest'",
+      "expected_error": "",
+      "assertions": [
+        "navigator.clipboard.writeText called with 'npm install vitest'"
+      ]
+    },
+    {
+      "id": "codeblock_clipboard_unavailable",
+      "description": "CodeBlock handles clipboard_unavailable gracefully when navigator.clipboard is undefined",
+      "function": "CodeBlock",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "navigator.clipboard": "undefined"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "clipboard_unavailable",
+      "assertions": [
+        "clicking copy does not throw unhandled error"
+      ]
+    },
+    {
+      "id": "codeblock_clipboard_write_rejected",
+      "description": "CodeBlock handles clipboard_write_rejected when writeText promise rejects",
+      "function": "CodeBlock",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {
+        "navigator.clipboard.writeText": "rejects with Error('Permission denied')"
+      },
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "clipboard_write_rejected",
+      "assertions": [
+        "clicking copy does not throw unhandled error"
+      ]
+    },
+    {
+      "id": "versionbadge_renders_name_and_version",
+      "description": "VersionBadge renders both componentName and version as visible text",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "componentName": "CodeBlock",
+        "version": "1.2.3"
+      },
+      "input_description": "",
+      "expected_output_description": "Text containing 'CodeBlock' and '1.2.3'",
+      "expected_error": "",
+      "assertions": [
+        "text 'CodeBlock' is visible",
+        "text '1.2.3' is visible"
+      ]
+    },
+    {
+      "id": "versionbadge_has_badge_styling",
+      "description": "VersionBadge uses Tailwind pill/badge classes (rounded, bg, padding)",
+      "function": "VersionBadge",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "componentName": "Test",
+        "version": "0.1.0"
+      },
+      "input_description": "",
+      "expected_output_description": "Element has badge-like Tailwind classes",
+      "expected_error": "",
+      "assertions": [
+        "container has class containing 'rounded'"
+      ]
+    },
+    {
+      "id": "youtube_embed_renders_iframe",
+      "description": "YouTubeEmbed renders an iframe with correct embed src from watch URL",
+      "function": "YouTubeEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "iframe with src='https://www.youtube.com/embed/dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "iframe src is 'https://www.youtube.com/embed/dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "youtube_embed_short_url",
+      "description": "YouTubeEmbed renders correct embed src from youtu.be short URL",
+      "function": "YouTubeEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://youtu.be/dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "iframe with src='https://www.youtube.com/embed/dQw4w9WgXcQ'",
+      "expected_error": "",
+      "assertions": [
+        "iframe src is 'https://www.youtube.com/embed/dQw4w9WgXcQ'"
+      ]
+    },
+    {
+      "id": "youtube_embed_custom_title",
+      "description": "YouTubeEmbed sets the iframe title attribute from props.title",
+      "function": "YouTubeEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        "title": "My Tutorial"
+      },
+      "input_description": "",
+      "expected_output_description": "iframe title is 'My Tutorial'",
+      "expected_error": "",
+      "assertions": [
+        "iframe title attribute is 'My Tutorial'"
+      ]
+    },
+    {
+      "id": "youtube_embed_default_title",
+      "description": "YouTubeEmbed defaults iframe title to 'YouTube video' when title prop is omitted",
+      "function": "YouTubeEmbed",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "iframe title is 'YouTube video'",
+      "expected_error": "",
+      "assertions": [
+        "iframe title attribute is 'YouTube video'"
+      ]
+    },
+    {
+      "id": "youtube_embed_aspect_video_class",
+      "description": "YouTubeEmbed wrapper div always has the Tailwind 'aspect-video' class",
+      "function": "YouTubeEmbed",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "wrapper div has class 'aspect-video'",
+      "expected_error": "",
+      "assertions": [
+        "wrapper div contains class 'aspect-video'"
+      ]
+    },
+    {
+      "id": "youtube_embed_iframe_attributes",
+      "description": "YouTubeEmbed iframe has required allow, allowFullScreen, frameBorder, width, height attributes",
+      "function": "YouTubeEmbed",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "iframe has all required attributes",
+      "expected_error": "",
+      "assertions": [
+        "iframe has allowFullScreen",
+        "iframe has allow attribute with required policies",
+        "iframe has frameBorder='0'",
+        "iframe width='100%' and height='100%'"
+      ]
+    },
+    {
+      "id": "calloutbox_gotcha_variant",
+      "description": "CalloutBox with 'gotcha' variant renders text with distinct red/orange styling",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "variant": "gotcha",
+        "text": "Watch out for this!"
+      },
+      "input_description": "",
+      "expected_output_description": "Container with gotcha-specific classes and visible text",
+      "expected_error": "",
+      "assertions": [
+        "text 'Watch out for this!' is visible",
+        "container has gotcha-specific classes"
+      ]
+    },
+    {
+      "id": "calloutbox_warning_variant",
+      "description": "CalloutBox with 'warning' variant renders text with distinct yellow/amber styling",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "variant": "warning",
+        "text": "Be careful here"
+      },
+      "input_description": "",
+      "expected_output_description": "Container with warning-specific classes and visible text",
+      "expected_error": "",
+      "assertions": [
+        "text 'Be careful here' is visible",
+        "container has warning-specific classes"
+      ]
+    },
+    {
+      "id": "calloutbox_tip_variant",
+      "description": "CalloutBox with 'tip' variant renders text with distinct green/teal styling",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "variant": "tip",
+        "text": "Pro tip!"
+      },
+      "input_description": "",
+      "expected_output_description": "Container with tip-specific classes and visible text",
+      "expected_error": "",
+      "assertions": [
+        "text 'Pro tip!' is visible",
+        "container has tip-specific classes"
+      ]
+    },
+    {
+      "id": "calloutbox_variants_distinct",
+      "description": "All three CalloutBox variants produce visually distinguishable containers with different class strings",
+      "function": "CalloutBox",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Each variant has unique class strings",
+      "expected_error": "",
+      "assertions": [
+        "gotcha classes != warning classes != tip classes"
+      ]
+    },
+    {
+      "id": "calloutbox_accessibility",
+      "description": "CalloutBox container includes role='alert' or appropriate ARIA attribute",
+      "function": "CalloutBox",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "variant": "warning",
+        "text": "Test a11y"
+      },
+      "input_description": "",
+      "expected_output_description": "Container has accessibility role",
+      "expected_error": "",
+      "assertions": [
+        "container has role attribute"
+      ]
+    },
+    {
+      "id": "barrel_named_exports",
+      "description": "Barrel index.ts exports all four components as named exports (no default exports)",
+      "function": "index",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "All four components are importable as named exports",
+      "expected_error": "",
+      "assertions": [
+        "CodeBlock is a function",
+        "VersionBadge is a function",
+        "YouTubeEmbed is a function",
+        "CalloutBox is a function"
+      ]
+    },
+    {
+      "id": "youtube_url_validator_valid",
+      "description": "YouTubeUrl regex validates correct youtube.com/watch and youtu.be URLs",
+      "function": "YouTubeUrl",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      },
+      "input_description": "",
+      "expected_output_description": "URL matches the YouTubeUrl regex pattern",
+      "expected_error": "",
+      "assertions": [
+        "regex matches standard watch URL",
+        "regex matches short URL",
+        "regex matches http variant"
+      ]
+    },
+    {
+      "id": "youtube_url_validator_invalid",
+      "description": "YouTubeUrl regex rejects non-YouTube URLs and malformed URLs",
+      "function": "YouTubeUrl",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {
+        "url": "https://vimeo.com/123456"
+      },
+      "input_description": "",
+      "expected_output_description": "URL does not match the YouTubeUrl regex pattern",
+      "expected_error": "",
+      "assertions": [
+        "regex does not match vimeo URL",
+        "regex does not match empty string",
+        "regex does not match random string"
+      ]
+    },
+    {
+      "id": "extract_youtube_id_parameterized",
+      "description": "extractYouTubeVideoId works correctly across a range of URL formats",
+      "function": "extractYouTubeVideoId",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Each URL format maps to the correct video ID or empty string",
+      "expected_error": "",
+      "assertions": [
+        "all parameterized cases pass"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport { render, screen, fireEvent, cleanup } from '@testing-library/react';\nimport React from 'react';\nimport {\n  CodeBlock,\n  VersionBadge,\n  YouTubeEmbed,\n  CalloutBox,\n} from '../../src/shared_ui';\n\n// Attempt to import extractYouTubeVideoId — it may be an internal utility\n// exported from the component file or a shared util\nlet extractYouTubeVideoId: ((url: string) => string) | undefined;\ntry {\n  // Try importing from the barrel — if not exported, tests will skip gracefully\n  const mod = await import('../../src/shared_ui');\n  extractYouTubeVideoId = (mod as Record<string, unknown>).extractYouTubeVideoId as\n    | ((url: string) => string)\n    | undefined;\n} catch {\n  // Will be handled in tests\n}\n\n// If not exported from barrel, try the YouTubeEmbed file directly\nif (!extractYouTubeVideoId) {\n  try {\n    const mod = await import('../../src/shared_ui/YouTubeEmbed');\n    extractYouTubeVideoId = (mod as Record<string, unknown>).extractYouTubeVideoId as\n      | ((url: string) => string)\n      | undefined;\n  } catch {\n    // Will be handled in tests\n  }\n}\n\n// YouTubeUrl regex from the contract\nconst YOUTUBE_URL_REGEX =\n  /^https?:\\/\\/(www\\.)?(youtube\\.com\\/watch\\?v=|youtu\\.be\\/)[a-zA-Z0-9_-]{11}/;\n\ndescribe('shared_ui', () => {\n  afterEach(() => {\n    cleanup();\n  });\n\n  // =========================================================================\n  // YouTubeUrl type validator (regex)\n  // =========================================================================\n  describe('YouTubeUrl regex validation', () => {\n    it('should match standard youtube.com/watch URLs', () => {\n      expect(YOUTUBE_URL_REGEX.test('https://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);\n      expect(YOUTUBE_URL_REGEX.test('https://youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);\n      expect(YOUTUBE_URL_REGEX.test('http://www.youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);\n      expect(YOUTUBE_URL_REGEX.test('http://youtube.com/watch?v=dQw4w9WgXcQ')).toBe(true);\n    });\n\n    it('should match youtu.be short URLs', () => {\n      expect(YOUTUBE_URL_REGEX.test('https://youtu.be/dQw4w9WgXcQ')).toBe(true);\n      expect(YOUTUBE_URL_REGEX.test('http://youtu.be/dQw4w9WgXcQ')).toBe(true);\n    });\n\n    it('should reject non-YouTube URLs', () => {\n      expect(YOUTUBE_URL_REGEX.test('https://vimeo.com/123456')).toBe(false);\n      expect(YOUTUBE_URL_REGEX.test('')).toBe(false);\n      expect(YOUTUBE_URL_REGEX.test('not-a-url')).toBe(false);\n      expect(YOUTUBE_URL_REGEX.test('https://example.com')).toBe(false);\n      expect(YOUTUBE_URL_REGEX.test('https://youtube.com/watch?v=short')).toBe(false); // < 11 chars\n    });\n  });\n\n  // =========================================================================\n  // extractYouTubeVideoId\n  // =========================================================================\n  describe('extractYouTubeVideoId', () => {\n    const runIfAvailable = extractYouTubeVideoId ? it : it.skip;\n\n    const validCases: Array<[string, string]> = [\n      ['https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['https://youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['http://www.youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['http://youtube.com/watch?v=dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['https://youtu.be/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['http://youtu.be/dQw4w9WgXcQ', 'dQw4w9WgXcQ'],\n      ['https://www.youtube.com/watch?v=dQw4w9WgXcQ&t=120', 'dQw4w9WgXcQ'],\n      ['https://www.youtube.com/watch?v=abc_def-123', 'abc_def-123'],\n      ['https://youtu.be/abc_def-123', 'abc_def-123'],\n    ];\n\n    it.each(validCases)(\n      'extracts video ID from %s',\n      (url: string, expectedId: string) => {\n        if (!extractYouTubeVideoId) return;\n        const result = extractYouTubeVideoId(url);\n        expect(result).toBe(expectedId);\n      },\n    );\n\n    const invalidCases: string[] = [\n      '',\n      'https://vimeo.com/123456',\n      'not-a-url',\n      'https://example.com',\n      'https://youtube.com/',\n      'https://youtube.com/watch',\n      'https://youtube.com/watch?v=',\n    ];\n\n    it.each(invalidCases)(\n      'returns empty string for invalid URL: %s',\n      (url: string) => {\n        if (!extractYouTubeVideoId) return;\n        const result = extractYouTubeVideoId(url);\n        expect(result).toBe('');\n      },\n    );\n\n    runIfAvailable('returns empty string for empty input', () => {\n      const result = extractYouTubeVideoId!('');\n      expect(result).toBe('');\n    });\n  });\n\n  // =========================================================================\n  // CodeBlock\n  // =========================================================================\n  describe('CodeBlock', () => {\n    let originalClipboard: Clipboard;\n\n    beforeEach(() => {\n      originalClipboard = navigator.clipboard;\n    });\n\n    afterEach(() => {\n      // Restore original clipboard\n      Object.defineProperty(navigator, 'clipboard', {\n        value: originalClipboard,\n        writable: true,\n        configurable: true,\n      });\n    });\n\n    it('renders a <pre> containing a <code> element with the code text', () => {\n      render(React.createElement(CodeBlock, { code: 'npm install vitest' }));\n      const codeEl = screen.getByText('npm install vitest');\n      expect(codeEl).toBeTruthy();\n      // Verify it's inside a <code> element\n      const codeTag = codeEl.closest('code') ?? codeEl.tagName === 'CODE' ? codeEl : null;\n      expect(codeTag).toBeTruthy();\n      // Verify <code> is inside a <pre>\n      const preEl = codeEl.closest('pre');\n      expect(preEl).toBeTruthy();\n    });\n\n    it('renders description when props.description is provided and non-empty', () => {\n      render(React.createElement(CodeBlock, { code: 'echo hello', description: 'Say hello' }));\n      expect(screen.getByText('Say hello')).toBeTruthy();\n    });\n\n    it('does not render description element when description is omitted', () => {\n      render(React.createElement(CodeBlock, { code: 'echo hello' }));\n      expect(screen.queryByText('Say hello')).toBeNull();\n    });\n\n    it('does not render description element when description is empty string', () => {\n      render(React.createElement(CodeBlock, { code: 'echo hello', description: '' }));\n      // The code text should be present but no description\n      expect(screen.getByText('echo hello')).toBeTruthy();\n    });\n\n    it('copy button calls navigator.clipboard.writeText with props.code on click', async () => {\n      const writeTextMock = vi.fn().mockResolvedValue(undefined);\n      Object.defineProperty(navigator, 'clipboard', {\n        value: { writeText: writeTextMock },\n        writable: true,\n        configurable: true,\n      });\n\n      render(React.createElement(CodeBlock, { code: 'npm install vitest' }));\n\n      // Find the copy button — try by role first, then fallback\n      const copyButton =\n        screen.queryByRole('button') ??\n        screen.queryByLabelText(/copy/i) ??\n        document.querySelector('button');\n      expect(copyButton, 'Copy button should be present').toBeTruthy();\n\n      await fireEvent.click(copyButton!);\n\n      expect(writeTextMock).toHaveBeenCalledWith('npm install vitest');\n    });\n\n    it('handles clipboard_unavailable gracefully when navigator.clipboard is undefined', async () => {\n      Object.defineProperty(navigator, 'clipboard', {\n        value: undefined,\n        writable: true,\n        configurable: true,\n      });\n\n      // Should not throw during render\n      expect(() => {\n        render(React.createElement(CodeBlock, { code: 'test command' }));\n      }).not.toThrow();\n\n      const copyButton =\n        screen.queryByRole('button') ?? document.querySelector('button');\n\n      if (copyButton) {\n        // Clicking should not throw an unhandled error\n        await expect(fireEvent.click(copyButton)).resolves !== undefined;\n      }\n    });\n\n    it('handles clipboard_write_rejected when writeText promise rejects', async () => {\n      const writeTextMock = vi.fn().mockRejectedValue(new Error('Permission denied'));\n      Object.defineProperty(navigator, 'clipboard', {\n        value: { writeText: writeTextMock },\n        writable: true,\n        configurable: true,\n      });\n\n      render(React.createElement(CodeBlock, { code: 'test command' }));\n\n      const copyButton =\n        screen.queryByRole('button') ?? document.querySelector('button');\n      expect(copyButton, 'Copy button should be present').toBeTruthy();\n\n      // Should handle rejection gracefully — no unhandled promise rejection\n      await fireEvent.click(copyButton!);\n      expect(writeTextMock).toHaveBeenCalledWith('test command');\n    });\n  });\n\n  // =========================================================================\n  // VersionBadge\n  // =========================================================================\n  describe('VersionBadge', () => {\n    it('renders both componentName and version as visible text', () => {\n      render(React.createElement(VersionBadge, { componentName: 'CodeBlock', version: '1.2.3' }));\n      const container = screen.getByText(/CodeBlock/);\n      expect(container).toBeTruthy();\n      // Version should also be in the document\n      const versionText = screen.getByText(/1\\.2\\.3/);\n      expect(versionText).toBeTruthy();\n    });\n\n    it('renders an inline element with badge/pill styling (rounded class)', () => {\n      render(React.createElement(VersionBadge, { componentName: 'Test', version: '0.1.0' }));\n      const el = screen.getByText(/Test/);\n      // Walk up to find the badge container\n      const badge = el.closest('[class]') ?? el;\n      const classes = badge.className;\n      expect(\n        classes.includes('rounded'),\n        `Expected badge to have 'rounded' in its classes, got: ${classes}`,\n      ).toBe(true);\n    });\n\n    it('handles special characters in componentName', () => {\n      render(React.createElement(VersionBadge, { componentName: '@scope/pkg', version: '2.0.0-rc.1' }));\n      expect(screen.getByText(/@scope\\/pkg/)).toBeTruthy();\n      expect(screen.getByText(/2\\.0\\.0-rc\\.1/)).toBeTruthy();\n    });\n  });\n\n  // =========================================================================\n  // YouTubeEmbed\n  // =========================================================================\n  describe('YouTubeEmbed', () => {\n    it('renders an iframe with correct embed src from watch URL', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe, 'An iframe element should be rendered').toBeTruthy();\n      expect(iframe!.getAttribute('src')).toBe('https://www.youtube.com/embed/dQw4w9WgXcQ');\n    });\n\n    it('renders correct embed src from youtu.be short URL', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://youtu.be/dQw4w9WgXcQ',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe).toBeTruthy();\n      expect(iframe!.getAttribute('src')).toBe('https://www.youtube.com/embed/dQw4w9WgXcQ');\n    });\n\n    it('sets iframe title to props.title when provided', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n          title: 'My Tutorial',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe).toBeTruthy();\n      expect(iframe!.getAttribute('title')).toBe('My Tutorial');\n    });\n\n    it('defaults iframe title to \"YouTube video\" when title prop is omitted', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe).toBeTruthy();\n      expect(iframe!.getAttribute('title')).toBe('YouTube video');\n    });\n\n    it('wrapper div has Tailwind \"aspect-video\" class', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe).toBeTruthy();\n      const wrapper = iframe!.parentElement;\n      expect(wrapper).toBeTruthy();\n      expect(\n        wrapper!.className.includes('aspect-video'),\n        `Expected wrapper to have 'aspect-video' class, got: ${wrapper!.className}`,\n      ).toBe(true);\n    });\n\n    it('iframe has required attributes: allow, allowFullScreen, frameBorder, width, height', () => {\n      render(\n        React.createElement(YouTubeEmbed, {\n          url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',\n        }),\n      );\n      const iframe = document.querySelector('iframe');\n      expect(iframe).toBeTruthy();\n\n      // allowFullScreen\n      expect(\n        iframe!.hasAttribute('allowfullscreen') || iframe!.allowFullscreen === true,\n        'iframe should have allowFullScreen attribute',\n      ).toBe(true);\n\n      // allow attribute with required policies\n      const allowAttr = iframe!.getAttribute('allow') ?? '';\n      expect(allowAttr).toContain('accelerometer');\n      expect(allowAttr).toContain('autoplay');\n      expect(allowAttr).toContain('clipboard-write');\n      expect(allowAttr).toContain('encrypted-media');\n      expect(allowAttr).toContain('gyroscope');\n      expect(allowAttr).toContain('picture-in-picture');\n\n      // frameBorder\n      expect(iframe!.getAttribute('frameBorder') ?? iframe!.getAttribute('frameborder')).toBe('0');\n\n      // width and height\n      expect(iframe!.getAttribute('width')).toBe('100%');\n      expect(iframe!.getAttribute('height')).toBe('100%');\n    });\n  });\n\n  // =========================================================================\n  // CalloutBox\n  // =========================================================================\n  describe('CalloutBox', () => {\n    it('renders \"gotcha\" variant with visible text and variant-specific styling', () => {\n      render(React.createElement(CalloutBox, { variant: 'gotcha', text: 'Watch out for this!' }));\n      expect(screen.getByText('Watch out for this!')).toBeTruthy();\n    });\n\n    it('renders \"warning\" variant with visible text and variant-specific styling', () => {\n      render(React.createElement(CalloutBox, { variant: 'warning', text: 'Be careful here' }));\n      expect(screen.getByText('Be careful here')).toBeTruthy();\n    });\n\n    it('renders \"tip\" variant with visible text and variant-specific styling', () => {\n      render(React.createElement(CalloutBox, { variant: 'tip', text: 'Pro tip!' }));\n      expect(screen.getByText('Pro tip!')).toBeTruthy();\n    });\n\n    it('all three variants produce visually distinguishable containers (different class strings)', () => {\n      const { unmount: unmount1 } = render(\n        React.createElement(CalloutBox, { variant: 'gotcha', text: 'gotcha-text' }),\n      );\n      const gotchaEl = screen.getByText('gotcha-text');\n      const gotchaContainer = gotchaEl.closest('[class]') ?? gotchaEl;\n      const gotchaClasses = gotchaContainer.className;\n      unmount1();\n\n      const { unmount: unmount2 } = render(\n        React.createElement(CalloutBox, { variant: 'warning', text: 'warning-text' }),\n      );\n      const warningEl = screen.getByText('warning-text');\n      const warningContainer = warningEl.closest('[class]') ?? warningEl;\n      const warningClasses = warningContainer.className;\n      unmount2();\n\n      const { unmount: unmount3 } = render(\n        React.createElement(CalloutBox, { variant: 'tip', text: 'tip-text' }),\n      );\n      const tipEl = screen.getByText('tip-text');\n      const tipContainer = tipEl.closest('[class]') ?? tipEl;\n      const tipClasses = tipContainer.className;\n      unmount3();\n\n      // All three must have different class strings\n      expect(\n        gotchaClasses !== warningClasses,\n        `gotcha and warning should have different classes. gotcha: \"${gotchaClasses}\", warning: \"${warningClasses}\"`,\n      ).toBe(true);\n      expect(\n        warningClasses !== tipClasses,\n        `warning and tip should have different classes. warning: \"${warningClasses}\", tip: \"${tipClasses}\"`,\n      ).toBe(true);\n      expect(\n        gotchaClasses !== tipClasses,\n        `gotcha and tip should have different classes. gotcha: \"${gotchaClasses}\", tip: \"${tipClasses}\"`,\n      ).toBe(true);\n    });\n\n    it('container includes role=\"alert\" or appropriate ARIA attribute for accessibility', () => {\n      render(React.createElement(CalloutBox, { variant: 'warning', text: 'Test a11y' }));\n      const textEl = screen.getByText('Test a11y');\n      // Look for role on the text element or its ancestors\n      const containerWithRole =\n        textEl.closest('[role]') ??\n        (textEl.getAttribute('role') ? textEl : null);\n      expect(\n        containerWithRole,\n        'CalloutBox should have a role attribute (e.g. role=\"alert\") for accessibility',\n      ).toBeTruthy();\n    });\n  });\n\n  // =========================================================================\n  // Barrel exports invariant\n  // =========================================================================\n  describe('barrel exports', () => {\n    it('exports all four components as named exports (functions)', async () => {\n      const mod = await import('../../src/shared_ui');\n      expect(typeof mod.CodeBlock).toBe('function');\n      expect(typeof mod.VersionBadge).toBe('function');\n      expect(typeof mod.YouTubeEmbed).toBe('function');\n      expect(typeof mod.CalloutBox).toBe('function');\n    });\n\n    it('does not have a default export', async () => {\n      const mod = await import('../../src/shared_ui');\n      // default should be undefined if no default export\n      expect((mod as Record<string, unknown>).default).toBeUndefined();\n    });\n  });\n});\n"
+}

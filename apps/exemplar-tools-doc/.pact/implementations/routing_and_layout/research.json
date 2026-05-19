@@ -1,0 +1,94 @@
+{
+  "task_summary": "Implement the 'Routing, Layout & Navigation' component (id: routing_and_layout) in TypeScript/React 18 using react-router-dom. This includes: ensureLeadingSlash utility, Sidebar and Layout components, createAppRouter factory, getNavLinkClassName helper, and associated types (RouteSlug, StepId, StepLabel enums; RouteEntry, RouteEntryList, RouteSlugMap structs). The component depends on 'page_content' module. Prior attempts failed because createAppRouter tried to dynamically require a non-existent './errors' module and failed to resolve page content modules at runtime.",
+  "findings": [
+    {
+      "topic": "React Router v6 createBrowserRouter / createMemoryRouter patterns",
+      "finding": "React Router v6.4+ provides createBrowserRouter() which accepts a RouteObject[] array. Each RouteObject has { path, element, children, index } properties. For testing, createMemoryRouter() is the correct choice as it doesn't require a DOM history API. The router is passed to <RouterProvider router={router} />. Child routes under a parent with path '/' should use RELATIVE paths (no leading slash). An index route uses { index: true, element } instead of { path: '', element }.",
+      "source": "react-router-dom v6 documentation and API reference",
+      "relevance": "Directly defines how createAppRouter should construct its route config. Tests expect: parent route path='/', 13 child routes, index route for home, relative paths without leading slash.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Root cause of prior failures: dynamic require of './errors' module",
+      "finding": "The previous implementation used a dynamic require() call to load page content modules and had a custom error class in a separate './errors' file. This caused MODULE_NOT_FOUND errors in two stages: first the './errors' module didn't exist, then after that was addressed, the dynamic require for route entry 'home' failed. The fix is to NOT use dynamic require/import at all. Instead, directly import the page_content dependency (STEPS array or similar) and use React.createElement or JSX to create route elements statically. The route config should be a pure data structure built from the STEPS/route entries without any dynamic module resolution.",
+      "source": "Analysis of error traces from prior attempts",
+      "relevance": "Critical — this is the exact mistake that must not be repeated. createAppRouter must NOT use require() or dynamic import() to resolve page components.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "Slug handling — stripping leading slash for child routes",
+      "finding": "ROUTE_SLUG_MAP values already include a leading slash (e.g. '/step-0-cartographer'). When used as child route paths under parent path '/', the leading slash must be STRIPPED to make them relative. Tests explicitly verify: 'no child route path starts with /' and 'no double-slash when combined with parent /'. The ensureLeadingSlash() utility is for NavLink 'to' props (absolute navigation), NOT for route path definitions. For route paths: slug.startsWith('/') ? slug.slice(1) : slug.",
+      "source": "Operating procedures slug handling rules + test expectations",
+      "relevance": "Directly relevant — this is a common pitfall. Route child paths must be relative (no leading /), but NavLink targets need absolute paths (with leading /).",
+      "confidence": 0.98
+    },
+    {
+      "topic": "vi.mock() rules for the page_content dependency",
+      "finding": "Tests will mock the 'page_content' dependency. The mock MUST provide every named runtime export of that module with exact names (e.g., STEPS not STEP_CONTENT_LIST, ROUTE_SLUG_MAP not ROUTE_SLUGS). The implementation must import from page_content using the exact exported names. Based on the test expecting 13 child routes and the naming conventions, the page_content module likely exports: STEPS (array of 13 step entries including home), ROUTE_SLUG_MAP (record mapping step IDs to slugs), and possibly step component references or a ROUTE_ENTRY_LIST.",
+      "source": "Operating procedures vi.mock() rules",
+      "relevance": "Essential for tests to pass — mismatched import names will cause test failures.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "NavLink className function pattern in React Router v6",
+      "finding": "React Router v6 NavLink accepts a className prop that can be a function: className={({ isActive }) => getNavLinkClassName(isActive)}. The getNavLinkClassName helper should return Tailwind CSS class strings — typically a base set of classes plus active-state classes (e.g., bold, colored text, background highlight). This is a pure function taking a boolean and returning a string.",
+      "source": "react-router-dom NavLink API documentation",
+      "relevance": "Defines how getNavLinkClassName integrates with NavLink in the Sidebar component.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Layout component pattern with React Router Outlet",
+      "finding": "The Layout component in React Router v6 uses <Outlet /> to render child route content. A typical pattern: Layout renders a flex container with <Sidebar /> on one side and <Outlet /> as the main content area. The Layout component is set as the 'element' of the parent route, and child routes render into the Outlet.",
+      "source": "React Router v6 nested routes documentation",
+      "relevance": "Defines the architectural pattern for the Layout component.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Type/enum patterns in TypeScript for route configuration",
+      "finding": "For RouteSlug, StepId, StepLabel enums — use 'as const' objects with derived union types or TypeScript string enums. Given the 'export type {}' rule, interfaces and type aliases must use 'export type'. However, enums are runtime values and use regular 'export'. For RouteEntry struct: { id: StepId, slug: RouteSlug, label: StepLabel, element: ReactNode }. RouteSlugMap should be Record<StepId, RouteSlug> or similar.",
+      "source": "TypeScript strict mode best practices, operating procedures",
+      "relevance": "Ensures correct export syntax and type safety per project standards.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "13 child routes composition",
+      "finding": "The test expects exactly 13 child routes. This likely corresponds to: 1 home/index route + 12 step routes (step-0 through step-11), or 1 home + 12 steps. The home route must use { index: true } rather than { path: '' }. Each route needs a non-null element. The elements should be created from the STEPS data imported from page_content, likely by wrapping each step's content in a React component/element.",
+      "source": "Test expectations analysis: 'parent route has exactly 13 child routes', 'home child route uses index: true'",
+      "relevance": "Directly constrains the implementation of createAppRouter.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "Named exports only — no default exports",
+      "finding": "All modules must use named exports exclusively. Components like Sidebar, Layout must be exported as 'export function Sidebar()' or 'export const Sidebar = ...', never 'export default'. The barrel file (index.ts) should re-export all public API members as named exports.",
+      "source": "Operating procedures — Standards",
+      "relevance": "Hard requirement that affects every file in the module.",
+      "confidence": 1.0
+    }
+  ],
+  "recommended_approach": "**Architecture:**\n\n1. **Types file (`types.ts`)**: Define RouteSlug, StepId, StepLabel as string enums (runtime values, regular export). Define RouteEntry as an interface, RouteEntryList as a type alias, RouteSlugMap as a type — use `export type {}` for these.\n\n2. **`ensureLeadingSlash.ts`**: Pure utility function. Guard: `slug.startsWith('/') ? slug : '/' + slug`. Used for NavLink navigation targets, NOT for route path definitions.\n\n3. **`getNavLinkClassName.ts`**: Pure function `(isActive: boolean) => string` returning Tailwind classes. Active state gets highlighted styling, inactive gets default.\n\n4. **`Sidebar.tsx`**: Import STEPS/route entries from `page_content`. Render a `<nav>` with `<NavLink>` for each step, using `ensureLeadingSlash` on slugs for the `to` prop and `getNavLinkClassName` for styling.\n\n5. **`Layout.tsx`**: Render a flex container with `<Sidebar />` and `<Outlet />` from react-router-dom. No default export.\n\n6. **`createAppRouter.tsx`**: \n   - Import STEPS and ROUTE_SLUG_MAP from `page_content` (exact names!)\n   - **DO NOT use dynamic require() or import()** — this was the fatal mistake in prior attempts\n   - Build RouteObject[] statically: one parent route with `path: '/'`, `element: <Layout />`, and `children` array\n   - Home entry gets `{ index: true, element: <HomeComponent /> }`\n   - All other entries get `{ path: slugWithoutLeadingSlash, element: <StepComponent /> }`\n   - Strip leading slash from ROUTE_SLUG_MAP values for child route paths\n   - Return `createBrowserRouter(routes)` (or expose the route config for testability)\n   - For testing, consider returning the route config object so tests can inspect it without needing a full browser environment, or use createMemoryRouter in tests\n\n7. **`index.ts`**: Barrel file re-exporting all named exports.\n\n**Key safeguards:**\n- No dynamic module resolution whatsoever\n- Strip leading slash for route paths: `slug.replace(/^\\//, '')`\n- Use index route for home (not path: '')\n- All exports are named\n- Type annotations on all public functions",
+  "alternatives_considered": [
+    "Using dynamic import() or require() to lazily load page components — REJECTED: this caused all prior test failures due to module resolution issues in the test environment. Static imports are simpler and reliable.",
+    "Using React.lazy() for route code-splitting — REJECTED for now: adds complexity, and the prior failures suggest the test environment doesn't support dynamic resolution well. Can be added later as an optimization.",
+    "Defining route config as a plain array and having createAppRouter just wrap it with createBrowserRouter — CONSIDERED: this improves testability since tests can inspect the raw config. Recommend exposing both the config and the router factory.",
+    "Using 'as const' objects + union types instead of TypeScript enums — VIABLE: avoids enum pitfalls (tree-shaking, type-widening), but the spec says 'enum' so we should use TypeScript enums.",
+    "Having createAppRouter return the route config array instead of a router instance — REJECTED: tests expect a router instance (tested with RouterProvider), but we could export the config separately for inspection tests."
+  ],
+  "risks": [
+    "CRITICAL: Prior attempts failed because createAppRouter used dynamic require() to load modules. The implementation MUST use static imports from page_content and construct JSX elements directly — no dynamic module resolution.",
+    "Mismatched export names from page_content (e.g., STEPS vs STEP_CONTENT_LIST) will cause runtime errors. Must verify exact export names from the page_content module.",
+    "Child route paths must NOT have leading slashes — ROUTE_SLUG_MAP values DO have leading slashes, so they must be stripped when building route config children.",
+    "The home/index route must use { index: true } not { path: '' } — tests explicitly verify this.",
+    "The test expects exactly 13 child routes — must ensure the mapping from STEPS to routes produces exactly 13 entries.",
+    "vi.mock() of page_content in tests must provide ALL named runtime exports with exact names — if our implementation imports something the mock doesn't provide, tests fail."
+  ],
+  "compliance_notes": [
+    "All source files must be .ts or .tsx — no .js or .py files",
+    "TypeScript strict mode enabled — all public functions must have type annotations",
+    "Named exports only — no default exports anywhere",
+    "Use 'export type {}' for interfaces and type aliases, regular 'export' for enums and runtime values",
+    "Slug handling: ROUTE_SLUG_MAP values include leading slash; guard with startsWith('/') check; strip for child route paths",
+    "vi.mock() factories must provide every named runtime export of mocked module with exact names",
+    "All functions must have at least one test, tests must run without external services",
+    "Import from sibling modules using exact exported names — never guess"
+  ]
+}
