@@ -3,131 +3,473 @@
   "contract_version": 1,
   "test_cases": [
     {
-      "id": "initApp_happy_path",
-      "description": "initApp calls createAppRouter exactly once, then mountApp exactly once with the resulting router, mounting the app into #root",
-      "function": "initApp",
+      "id": "bootstrap-happy-path-default",
+      "description": "bootstrapApp with valid config mounts app and returns BootstrapResult with all 13 routes/components",
+      "function": "bootstrapApp",
       "category": "happy_path",
-      "setup_description": "DOM element #root exists. createAppRouter and mountApp mocks are set up to succeed.",
+      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "No arguments",
-      "expected_output_description": "void — createAppRouter called once, mountApp called once after createAppRouter, in that order",
+      "input_description": "BootstrapConfig with targetElementId='root', strictMode=true",
+      "expected_output_description": "BootstrapResult with routeCount=13, pageComponentCount=13, allRoutesHaveComponents=true, targetElementId='root'",
       "expected_error": "",
       "assertions": [
-        "createAppRouter is called exactly once",
-        "mountApp is called exactly once",
-        "createAppRouter is called before mountApp (call order)"
+        "result.routeCount === 13",
+        "result.pageComponentCount === 13",
+        "result.allRoutesHaveComponents === true",
+        "result.targetElementId === 'root'",
+        "getRouteManifest called exactly once",
+        "getPageComponentMap called exactly once",
+        "renderEntryPoint called exactly once"
       ]
     },
     {
-      "id": "initApp_missing_root_element",
-      "description": "initApp throws missing_root_element error when DOM element #root does not exist",
-      "function": "initApp",
-      "category": "error_case",
-      "setup_description": "DOM body is empty — no #root element exists",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "No arguments",
-      "expected_output_description": "",
-      "expected_error": "missing_root_element",
-      "assertions": [
-        "initApp throws or mountApp propagates an error related to missing root element"
-      ]
-    },
-    {
-      "id": "initApp_router_creation_failure",
-      "description": "initApp propagates error when createAppRouter throws because a page component import is missing",
-      "function": "initApp",
-      "category": "error_case",
-      "setup_description": "DOM element #root exists. createAppRouter mock throws an error.",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "No arguments",
-      "expected_output_description": "",
-      "expected_error": "router_creation_failure",
-      "assertions": [
-        "initApp throws/rejects with the router creation error",
-        "mountApp is never called when router creation fails"
-      ]
-    },
-    {
-      "id": "initApp_mount_failure",
-      "description": "initApp propagates error when mountApp throws because React root creation fails",
-      "function": "initApp",
-      "category": "error_case",
-      "setup_description": "DOM element #root exists. createAppRouter succeeds but mountApp throws.",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "No arguments",
-      "expected_output_description": "",
-      "expected_error": "mount_failure",
-      "assertions": [
-        "initApp throws/rejects with the mount failure error",
-        "createAppRouter was still called exactly once before the failure"
-      ]
-    },
-    {
-      "id": "initApp_calls_createAppRouter_before_mountApp",
-      "description": "initApp always calls createAppRouter before mountApp — order invariant",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "DOM element #root exists. Both mocks succeed and record call order.",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "No arguments",
-      "expected_output_description": "createAppRouter invocation order index < mountApp invocation order index",
-      "expected_error": "",
-      "assertions": [
-        "createAppRouter call order is strictly before mountApp call order"
-      ]
-    },
-    {
-      "id": "root_module_exports_only_initApp",
-      "description": "src/root.ts exports exactly one named runtime export: initApp",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "Import all exports from root module",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "Module introspection",
-      "expected_output_description": "Module has exactly one named export: initApp, which is a function",
-      "expected_error": "",
-      "assertions": [
-        "initApp is a function",
-        "Module has exactly one named export key: 'initApp'"
-      ]
-    },
-    {
-      "id": "main_happy_path",
-      "description": "main.tsx module side-effect calls initApp exactly once and imports CSS",
-      "function": "main",
+      "id": "bootstrap-happy-path-custom-target",
+      "description": "bootstrapApp with custom targetElementId mounts into that element",
+      "function": "bootstrapApp",
       "category": "happy_path",
-      "setup_description": "Mock initApp from root module and CSS import. Dynamically import main.tsx.",
+      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Module loaded as side-effect",
-      "expected_output_description": "initApp called exactly once, CSS import resolved",
+      "input_description": "BootstrapConfig with targetElementId='app-mount', strictMode=false",
+      "expected_output_description": "BootstrapResult.targetElementId === 'app-mount'",
       "expected_error": "",
       "assertions": [
-        "initApp is called exactly once upon module load"
+        "result.targetElementId === 'app-mount'"
       ]
     },
     {
-      "id": "main_has_zero_named_exports",
-      "description": "main.tsx has zero named exports — it is a side-effect-only entry point",
-      "function": "main",
-      "category": "invariant",
-      "setup_description": "Mock initApp and CSS. Dynamically import main.tsx and inspect exports.",
+      "id": "bootstrap-error-target-not-found",
+      "description": "bootstrapApp throws target_element_not_found when DOM element missing",
+      "function": "bootstrapApp",
+      "category": "error_case",
+      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Module introspection",
-      "expected_output_description": "The module object has no named export keys (possibly only default undefined or empty)",
+      "input_description": "BootstrapConfig with targetElementId='nonexistent'",
+      "expected_output_description": "",
+      "expected_error": "TARGET_ELEMENT_NOT_FOUND",
+      "assertions": [
+        "throws error indicating target element not found"
+      ]
+    },
+    {
+      "id": "bootstrap-error-manifest-mismatch",
+      "description": "bootstrapApp throws manifest_component_mismatch when map keys don't match manifest",
+      "function": "bootstrapApp",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "MANIFEST_COMPONENT_MISMATCH",
+      "assertions": [
+        "throws error indicating manifest component mismatch"
+      ]
+    },
+    {
+      "id": "bootstrap-error-render-failure",
+      "description": "bootstrapApp throws render_failure when renderEntryPoint throws",
+      "function": "bootstrapApp",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "RENDER_FAILURE",
+      "assertions": [
+        "throws error indicating render failure"
+      ]
+    },
+    {
+      "id": "bootstrap-calls-once-each",
+      "description": "bootstrapApp calls getRouteManifest and getPageComponentMap exactly once each",
+      "function": "bootstrapApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Module export keys (excluding __esModule and default) is empty"
+        "getRouteManifest called exactly 1 time",
+        "getPageComponentMap called exactly 1 time"
+      ]
+    },
+    {
+      "id": "bootstrap-verifies-bijection-before-render",
+      "description": "bootstrapApp verifies bijection before calling renderEntryPoint",
+      "function": "bootstrapApp",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renderEntryPoint not called if bijection fails"
+      ]
+    },
+    {
+      "id": "verify-bijection-happy-path",
+      "description": "verifyManifestComponentBijection returns isValid=true when manifest and map keys match exactly",
+      "function": "verifyManifestComponentBijection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === true",
+        "result.missingInMap.length === 0",
+        "result.extraInMap.length === 0"
+      ]
+    },
+    {
+      "id": "verify-bijection-missing-in-map",
+      "description": "verifyManifestComponentBijection detects keys missing from map",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === false",
+        "result.missingInMap contains the missing key"
+      ]
+    },
+    {
+      "id": "verify-bijection-extra-in-map",
+      "description": "verifyManifestComponentBijection detects extra keys in map not in manifest",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === false",
+        "result.extraInMap contains the extra key"
+      ]
+    },
+    {
+      "id": "verify-bijection-pure-no-side-effects",
+      "description": "verifyManifestComponentBijection is pure — same inputs yield same outputs",
+      "function": "verifyManifestComponentBijection",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "two calls with identical inputs return deeply equal results"
+      ]
+    },
+    {
+      "id": "get-route-manifest-happy-path",
+      "description": "getRouteManifest returns exactly 13 RouteEntry objects",
+      "function": "getRouteManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.length === 13",
+        "every entry has path, label, componentKey"
+      ]
+    },
+    {
+      "id": "get-route-manifest-unique-paths",
+      "description": "getRouteManifest returns entries with all unique paths",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Set of paths has size 13"
+      ]
+    },
+    {
+      "id": "get-route-manifest-all-component-keys",
+      "description": "getRouteManifest covers all 13 PageComponentKey variants",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "componentKeys set equals PageComponentKey enum set"
+      ]
+    },
+    {
+      "id": "get-page-component-map-happy-path",
+      "description": "getPageComponentMap returns map with exactly 13 entries all being functions",
+      "function": "getPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(result).length === 13",
+        "every value is a function"
+      ]
+    },
+    {
+      "id": "get-page-component-map-all-keys",
+      "description": "getPageComponentMap has every PageComponentKey as a key",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all 13 PageComponentKey values present as keys"
+      ]
+    },
+    {
+      "id": "build-page-component-map-happy-path",
+      "description": "buildPageComponentMap returns map with 13 entries keyed by PageComponentKey",
+      "function": "buildPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(result).length === 13",
+        "every PageComponentKey is present"
+      ]
+    },
+    {
+      "id": "get-project-manifest-happy-path",
+      "description": "getProjectManifest returns manifest with correct projectName and devServerPort",
+      "function": "getProjectManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.projectName === 'exemplar-tools-doc'",
+        "result.devServerPort === 4000",
+        "result.files.length === 12"
+      ]
+    },
+    {
+      "id": "get-required-dependencies-happy-path",
+      "description": "getRequiredDependencies returns correct counts",
+      "function": "getRequiredDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.dependencies.length === 3",
+        "result.devDependencies.length === 13"
+      ]
+    },
+    {
+      "id": "config-empty-target-id-rejected",
+      "description": "BootstrapConfig with empty targetElementId is invalid",
+      "function": "bootstrapApp",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "BootstrapConfig with targetElementId=''",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "rejects or throws due to empty targetElementId"
+      ]
+    },
+    {
+      "id": "manifest-component-keys-match-map-keys-invariant",
+      "description": "The set of componentKeys in route manifest equals the set of keys in page component map",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "componentKeys from manifest === keys from pageComponentMap"
+      ]
+    },
+    {
+      "id": "app-renders-browser-router",
+      "description": "App component renders with BrowserRouter and 13 routes",
+      "function": "App",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders without throwing"
+      ]
+    },
+    {
+      "id": "callout-box-renders-gotcha",
+      "description": "CalloutBox renders gotcha variant",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders callout with title"
+      ]
+    },
+    {
+      "id": "callout-box-renders-warning",
+      "description": "CalloutBox renders warning variant",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders callout with title"
+      ]
+    },
+    {
+      "id": "callout-box-renders-tip",
+      "description": "CalloutBox renders tip variant",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders callout with title"
+      ]
+    },
+    {
+      "id": "code-block-renders",
+      "description": "CodeBlock renders code with syntax highlighting",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders code content"
+      ]
+    },
+    {
+      "id": "version-badge-renders",
+      "description": "VersionBadge renders pill badge",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders version text"
+      ]
+    },
+    {
+      "id": "video-embed-renders",
+      "description": "VideoEmbed renders iframe",
+      "function": "VideoEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders iframe with title"
+      ]
+    },
+    {
+      "id": "sidebar-renders-links",
+      "description": "Sidebar renders NavLink per route entry",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders link for each route"
+      ]
+    },
+    {
+      "id": "page-layout-renders-children",
+      "description": "PageLayout renders Sidebar and children",
+      "function": "PageLayout",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "children are rendered in content area"
       ]
     }
   ],
   "test_language": "typescript",
-  "generated_code": "import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\n\n// ─── Module-level mock fns declared before vi.mock() calls ───\n\nconst mockCreateAppRouter = vi.fn();\nconst mockMountApp = vi.fn();\nconst mockInitApp = vi.fn();\n\n// ─── vi.mock() factories ───\n\n// Mock routing_and_layout\nvi.mock('../../src/routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n  ensureLeadingSlash: vi.fn((s: string) => (s.startsWith('/') ? s : `/${s}`)),\n  Sidebar: vi.fn(),\n  Layout: vi.fn(),\n  getNavLinkClassName: vi.fn(),\n}));\n\n// Mock project_scaffold\nvi.mock('../../src/project_scaffold', () => ({\n  mountApp: mockMountApp,\n  App: vi.fn(),\n}));\n\n// Mock page_content — every named runtime export\nvi.mock('../../src/page_content', () => ({\n  StepPage: vi.fn(),\n  HomePage: vi.fn(),\n  CartographerPage: vi.fn(),\n  ConstrainPage: vi.fn(),\n  LedgerPage: vi.fn(),\n  PactPage: vi.fn(),\n  AdvocatePage: vi.fn(),\n  ArbiterPage: vi.fn(),\n  BatonPage: vi.fn(),\n  SentinelPage: vi.fn(),\n  ChroniclerPage: vi.fn(),\n  StigmergyPage: vi.fn(),\n  ApprenticePage: vi.fn(),\n  KindexPage: vi.fn(),\n  getStepContent: vi.fn(),\n}));\n\n// Mock pipeline_diagram\nvi.mock('../../src/pipeline_diagram', () => ({\n  PipelineDiagram: vi.fn(),\n  guardSlug: vi.fn(),\n  PIPELINE_NODES: vi.fn(() => []),\n  PIPELINE_EDGES: vi.fn(() => []),\n}));\n\n// Mock shared_ui\nvi.mock('../../src/shared_ui', () => ({\n  CodeBlock: vi.fn(),\n  VersionBadge: vi.fn(),\n  YouTubeEmbed: vi.fn(),\n  CalloutBox: vi.fn(),\n  extractYouTubeVideoId: vi.fn(),\n}));\n\n// ─── Import the module under test ───\n// Note: we import AFTER vi.mock() declarations (which are hoisted anyway)\nimport * as rootModule from '../../src/root';\n\n// ─── Test Suite ───\n\ndescribe('root – initApp()', () => {\n  const callOrder: string[] = [];\n\n  beforeEach(() => {\n    // Set up the DOM with a #root element\n    document.body.innerHTML = '<div id=\"root\"></div>';\n\n    // Reset call tracking\n    callOrder.length = 0;\n\n    // Set up mock implementations that track call order\n    const fakeRouter = { routes: 'fake-router-instance' };\n    mockCreateAppRouter.mockImplementation(() => {\n      callOrder.push('createAppRouter');\n      return fakeRouter;\n    });\n    mockMountApp.mockImplementation(() => {\n      callOrder.push('mountApp');\n    });\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n    vi.restoreAllMocks();\n  });\n\n  it('happy path: calls createAppRouter once then mountApp once, mounting the app into #root', () => {\n    const { initApp } = rootModule;\n\n    initApp();\n\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n    expect(mockMountApp).toHaveBeenCalledTimes(1);\n\n    // Verify ordering: createAppRouter before mountApp\n    expect(callOrder).toEqual(['createAppRouter', 'mountApp']);\n  });\n\n  it('invariant: createAppRouter is called strictly before mountApp', () => {\n    const { initApp } = rootModule;\n\n    initApp();\n\n    const createIndex = callOrder.indexOf('createAppRouter');\n    const mountIndex = callOrder.indexOf('mountApp');\n\n    expect(createIndex).toBeGreaterThanOrEqual(0);\n    expect(mountIndex).toBeGreaterThanOrEqual(0);\n    expect(createIndex).toBeLessThan(mountIndex);\n  });\n\n  it('error: missing_root_element — propagates error when #root DOM element does not exist', () => {\n    // Remove the #root element\n    document.body.innerHTML = '';\n\n    const { initApp } = rootModule;\n\n    // mountApp should be configured to throw when root is missing\n    mockMountApp.mockImplementation(() => {\n      const el = document.getElementById('root');\n      if (!el) {\n        throw new Error('missing_root_element: DOM element with id=\"root\" not found');\n      }\n    });\n\n    expect(() => initApp()).toThrow();\n\n    // createAppRouter should still have been called (it runs first)\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n  });\n\n  it('error: router_creation_failure — propagates error when createAppRouter throws', () => {\n    const routerError = new Error('router_creation_failure: Missing page component import');\n    mockCreateAppRouter.mockImplementation(() => {\n      throw routerError;\n    });\n\n    const { initApp } = rootModule;\n\n    expect(() => initApp()).toThrow(routerError);\n\n    // mountApp must NOT be called if createAppRouter fails\n    expect(mockMountApp).not.toHaveBeenCalled();\n  });\n\n  it('error: mount_failure — propagates error when mountApp throws', () => {\n    const mountError = new Error('mount_failure: createRoot is unavailable');\n    mockMountApp.mockImplementation(() => {\n      throw mountError;\n    });\n\n    const { initApp } = rootModule;\n\n    expect(() => initApp()).toThrow(mountError);\n\n    // createAppRouter should have been called before the mount failure\n    expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n  });\n\n  it('invariant: root module exports exactly one named runtime export: initApp', () => {\n    // Filter out potential __esModule or default keys\n    const exportKeys = Object.keys(rootModule).filter(\n      (k) => k !== '__esModule' && k !== 'default'\n    );\n\n    expect(exportKeys).toEqual(['initApp']);\n    expect(typeof rootModule.initApp).toBe('function');\n  });\n});\n\ndescribe('root – main.tsx (side-effect entry point)', () => {\n  beforeEach(() => {\n    document.body.innerHTML = '<div id=\"root\"></div>';\n    vi.resetModules();\n\n    // Reset mock state\n    mockInitApp.mockReset();\n    mockCreateAppRouter.mockReset();\n    mockMountApp.mockReset();\n\n    mockCreateAppRouter.mockReturnValue({ routes: 'fake-router' });\n    mockMountApp.mockImplementation(() => {});\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n    vi.restoreAllMocks();\n  });\n\n  it('happy path: importing main.tsx calls initApp exactly once', async () => {\n    // We need to dynamically mock and import main.tsx to test its side effect\n    // Mock the root module so we can track initApp calls\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    // Mock CSS import (side-effect only)\n    vi.doMock('../../src/index.css', () => ({}));\n\n    // Dynamically import main.tsx — this triggers the side effect\n    await import('../../src/main');\n\n    expect(mockInitApp).toHaveBeenCalledTimes(1);\n  });\n\n  it('invariant: main.tsx has zero named exports', async () => {\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    vi.doMock('../../src/index.css', () => ({}));\n\n    const mainModule = await import('../../src/main');\n\n    // Filter out meta keys like __esModule and default\n    const namedExports = Object.keys(mainModule).filter(\n      (k) => k !== '__esModule' && k !== 'default'\n    );\n\n    expect(namedExports).toEqual([]);\n  });\n\n  it('error: init_app_import_failure — fails when initApp cannot be resolved from root', async () => {\n    // Mock root module to not export initApp at all\n    vi.doMock('../../src/root', () => {\n      throw new Error('init_app_import_failure: Named export initApp cannot be resolved');\n    });\n\n    vi.doMock('../../src/index.css', () => ({}));\n\n    await expect(async () => {\n      await import('../../src/main');\n    }).rejects.toThrow();\n  });\n\n  it('error: css_import_failure — fails when index.css cannot be resolved', async () => {\n    vi.doMock('../../src/root', () => ({\n      initApp: mockInitApp,\n    }));\n\n    vi.doMock('../../src/index.css', () => {\n      throw new Error('css_import_failure: src/index.css cannot be resolved');\n    });\n\n    await expect(async () => {\n      await import('../../src/main');\n    }).rejects.toThrow();\n  });\n});\n"
+  "generated_code": "\n// @vitest-environment jsdom\n// tests/root/contract_test.test.ts\n//\n// This file is split into three describe blocks corresponding to the three\n// logical test areas: bootstrap/bijection, accessors, and components.\n\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport React from 'react';\n\n// ─── Hoisted mocks ───────────────────────────────────────────────────────────\n\nconst {\n  mockGetRouteManifest,\n  mockGetPageComponentMap,\n  mockRenderEntryPoint,\n  mockBuildPageComponentMap,\n  mockApp,\n  mockGetProjectManifest,\n  mockGetRequiredDependencies,\n  mockGenerateScaffold,\n  mockValidateScaffold,\n  mockCalloutBox,\n  mockCodeBlock,\n  mockVersionBadge,\n  mockVideoEmbed,\n  mockSidebar,\n  mockPageLayout,\n  mockHomePage,\n  mockCartographerPage,\n  mockConstrainPage,\n  mockLedgerPage,\n  mockPactPage,\n  mockAdvocatePage,\n  mockArbiterPage,\n  mockBatonPage,\n  mockSentinelPage,\n  mockChroniclerPage,\n  mockStigmergyPage,\n  mockApprenticePage,\n  mockKindexPage,\n} = vi.hoisted(() => {\n  const page = () => React.createElement('div', null, 'page');\n  return {\n    mockGetRouteManifest: vi.fn(),\n    mockGetPageComponentMap: vi.fn(),\n    mockRenderEntryPoint: vi.fn(),\n    mockBuildPageComponentMap: vi.fn(),\n    mockApp: vi.fn(() => React.createElement('div', null, 'App')),\n    mockGetProjectManifest: vi.fn(),\n    mockGetRequiredDependencies: vi.fn(),\n    mockGenerateScaffold: vi.fn(),\n    mockValidateScaffold: vi.fn(),\n    mockCalloutBox: vi.fn((props: { title: string; children?: React.ReactNode }) =>\n      React.createElement('div', { 'data-testid': 'callout' }, props.title, props.children)\n    ),\n    mockCodeBlock: vi.fn((props: { code: string }) =>\n      React.createElement('pre', { 'data-testid': 'codeblock' }, props.code)\n    ),\n    mockVersionBadge: vi.fn((props: { version: string; label: string }) =>\n      React.createElement('span', { 'data-testid': 'badge' }, `${props.label} ${props.version}`)\n    ),\n    mockVideoEmbed: vi.fn((props: { title: string }) =>\n      React.createElement('iframe', { 'data-testid': 'video', title: props.title })\n    ),\n    mockSidebar: vi.fn(() => React.createElement('nav', { 'data-testid': 'sidebar' }, 'Sidebar')),\n    mockPageLayout: vi.fn((props: { children?: React.ReactNode }) =>\n      React.createElement('div', { 'data-testid': 'layout' }, props.children)\n    ),\n    mockHomePage: vi.fn(page),\n    mockCartographerPage: vi.fn(page),\n    mockConstrainPage: vi.fn(page),\n    mockLedgerPage: vi.fn(page),\n    mockPactPage: vi.fn(page),\n    mockAdvocatePage: vi.fn(page),\n    mockArbiterPage: vi.fn(page),\n    mockBatonPage: vi.fn(page),\n    mockSentinelPage: vi.fn(page),\n    mockChroniclerPage: vi.fn(page),\n    mockStigmergyPage: vi.fn(page),\n    mockApprenticePage: vi.fn(page),\n    mockKindexPage: vi.fn(page),\n  };\n});\n\n// ─── vi.mock() declarations ──────────────────────────────────────────────────\n\nvi.mock('../../src/app_routing', () => ({\n  getRouteManifest: mockGetRouteManifest,\n  App: mockApp,\n  renderEntryPoint: mockRenderEntryPoint,\n  buildPageComponentMap: mockBuildPageComponentMap,\n}));\n\nvi.mock('../../src/page_components', () => ({\n  HomePage: mockHomePage,\n  CartographerPage: mockCartographerPage,\n  ConstrainPage: mockConstrainPage,\n  LedgerPage: mockLedgerPage,\n  PactPage: mockPactPage,\n  AdvocatePage: mockAdvocatePage,\n  ArbiterPage: mockArbiterPage,\n  BatonPage: mockBatonPage,\n  SentinelPage: mockSentinelPage,\n  ChroniclerPage: mockChroniclerPage,\n  StigmergyPage: mockStigmergyPage,\n  ApprenticePage: mockApprenticePage,\n  KindexPage: mockKindexPage,\n  getPageComponentMap: mockGetPageComponentMap,\n}));\n\nvi.mock('../../src/project_scaffold', () => ({\n  generateScaffold: mockGenerateScaffold,\n  getProjectManifest: mockGetProjectManifest,\n  getRequiredDependencies: mockGetRequiredDependencies,\n  validateScaffold: mockValidateScaffold,\n}));\n\nvi.mock('../../src/shared_components', () => ({\n  CalloutBox: mockCalloutBox,\n  CodeBlock: mockCodeBlock,\n  VersionBadge: mockVersionBadge,\n  VideoEmbed: mockVideoEmbed,\n  Sidebar: mockSidebar,\n  PageLayout: mockPageLayout,\n}));\n\n// ─── Shared test fixtures ────────────────────────────────────────────────────\n\nconst ALL_KEYS = [\n  'Home', 'Cartographer', 'Constrain', 'Ledger', 'Pact',\n  'Advocate', 'Arbiter', 'Baton', 'Sentinel', 'Chronicler',\n  'Stigmergy', 'Apprentice', 'Kindex',\n] as const;\n\nfunction makeFakeManifest(keys: readonly string[] = ALL_KEYS) {\n  return keys.map((k, i) => ({\n    path: `/${k.toLowerCase()}`,\n    label: `${k} Page`,\n    componentKey: k,\n  }));\n}\n\nfunction makeFakeComponentMap(keys: readonly string[] = ALL_KEYS) {\n  const map: Record<string, () => React.ReactElement> = {};\n  for (const k of keys) {\n    map[k] = () => React.createElement('div', null, k);\n  }\n  return map;\n}\n\n// ─── Import SUT ──────────────────────────────────────────────────────────────\n\nimport {\n  bootstrapApp,\n  verifyManifestComponentBijection,\n  getRouteManifest,\n  getPageComponentMap,\n  buildPageComponentMap,\n  getProjectManifest,\n  getRequiredDependencies,\n  App,\n  renderEntryPoint,\n  CalloutBox,\n  CodeBlock,\n  VersionBadge,\n  VideoEmbed,\n  Sidebar,\n  PageLayout,\n} from '../../src/root';\n\n// ═══════════════════════════════════════════════════════════════════════════════\n// SECTION 1: bootstrapApp & verifyManifestComponentBijection\n// ═══════════════════════════════════════════════════════════════════════════════\n\ndescribe('bootstrapApp', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    // Set up default mocks returning valid data\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n    mockRenderEntryPoint.mockReturnValue(undefined);\n  });\n\n  afterEach(() => {\n    // Clean up any created DOM elements\n    const el = document.getElementById('root');\n    if (el) el.remove();\n    const el2 = document.getElementById('app-mount');\n    if (el2) el2.remove();\n  });\n\n  function createTarget(id = 'root') {\n    const el = document.createElement('div');\n    el.id = id;\n    document.body.appendChild(el);\n    return el;\n  }\n\n  it('returns BootstrapResult with 13 routes, 13 components, allRoutesHaveComponents=true, and matching targetElementId', async () => {\n    createTarget('root');\n    const result = await bootstrapApp({ targetElementId: 'root', strictMode: true });\n\n    expect(result.routeCount, 'routeCount must be 13').toBe(13);\n    expect(result.pageComponentCount, 'pageComponentCount must be 13').toBe(13);\n    expect(result.allRoutesHaveComponents, 'allRoutesHaveComponents must be true').toBe(true);\n    expect(result.targetElementId, 'targetElementId must match config').toBe('root');\n  });\n\n  it('calls getRouteManifest and getPageComponentMap exactly once each', async () => {\n    createTarget('root');\n    await bootstrapApp({ targetElementId: 'root', strictMode: true });\n\n    expect(mockGetRouteManifest, 'getRouteManifest should be called once').toHaveBeenCalledTimes(1);\n    expect(mockGetPageComponentMap, 'getPageComponentMap should be called once').toHaveBeenCalledTimes(1);\n  });\n\n  it('calls renderEntryPoint exactly once after bijection verification', async () => {\n    createTarget('root');\n    await bootstrapApp({ targetElementId: 'root', strictMode: true });\n\n    expect(mockRenderEntryPoint, 'renderEntryPoint should be called once').toHaveBeenCalledTimes(1);\n  });\n\n  it('works with a custom targetElementId', async () => {\n    createTarget('app-mount');\n    const result = await bootstrapApp({ targetElementId: 'app-mount', strictMode: false });\n\n    expect(result.targetElementId, 'should use custom target ID').toBe('app-mount');\n    expect(result.routeCount).toBe(13);\n  });\n\n  it('throws TARGET_ELEMENT_NOT_FOUND when the DOM element is missing', async () => {\n    // Do NOT create any DOM element\n    await expect(\n      bootstrapApp({ targetElementId: 'nonexistent', strictMode: true })\n    ).rejects.toThrow(/target.?element.?not.?found|TARGET_ELEMENT_NOT_FOUND/i);\n  });\n\n  it('throws MANIFEST_COMPONENT_MISMATCH when page component map is missing a key', async () => {\n    createTarget('root');\n    // Return a map missing 'Kindex'\n    const incompleteMap = makeFakeComponentMap(ALL_KEYS.slice(0, 12));\n    mockGetPageComponentMap.mockReturnValue(incompleteMap);\n\n    await expect(\n      bootstrapApp({ targetElementId: 'root', strictMode: true })\n    ).rejects.toThrow(/mismatch|MANIFEST_COMPONENT_MISMATCH/i);\n  });\n\n  it('does NOT call renderEntryPoint when bijection fails', async () => {\n    createTarget('root');\n    const incompleteMap = makeFakeComponentMap(ALL_KEYS.slice(0, 12));\n    mockGetPageComponentMap.mockReturnValue(incompleteMap);\n\n    try {\n      await bootstrapApp({ targetElementId: 'root', strictMode: true });\n    } catch {\n      // expected\n    }\n\n    expect(mockRenderEntryPoint, 'renderEntryPoint should not be called on mismatch').not.toHaveBeenCalled();\n  });\n\n  it('throws RENDER_FAILURE when renderEntryPoint throws', async () => {\n    createTarget('root');\n    mockRenderEntryPoint.mockImplementation(() => {\n      throw new Error('React root creation failed');\n    });\n\n    await expect(\n      bootstrapApp({ targetElementId: 'root', strictMode: true })\n    ).rejects.toThrow(/render.?failure|RENDER_FAILURE|React root/i);\n  });\n\n  it('rejects empty targetElementId per BootstrapConfig validator', async () => {\n    await expect(\n      bootstrapApp({ targetElementId: '', strictMode: true })\n    ).rejects.toThrow();\n  });\n});\n\ndescribe('verifyManifestComponentBijection', () => {\n  it('returns isValid=true when manifest keys and map keys match exactly', () => {\n    const manifest = makeFakeManifest();\n    const map = makeFakeComponentMap();\n    const result = verifyManifestComponentBijection(manifest, map);\n\n    expect(result.isValid, 'should be valid when keys match').toBe(true);\n    expect(result.missingInMap, 'no keys should be missing from map').toHaveLength(0);\n    expect(result.extraInMap, 'no extra keys in map').toHaveLength(0);\n    expect(result.manifestKeys, 'manifestKeys should have 13 entries').toHaveLength(13);\n    expect(result.mapKeys, 'mapKeys should have 13 entries').toHaveLength(13);\n  });\n\n  it.each([\n    {\n      desc: 'key missing from map',\n      manifestKeys: ALL_KEYS,\n      mapKeys: ALL_KEYS.slice(0, 12), // missing Kindex\n      expectedMissing: ['Kindex'],\n      expectedExtra: [],\n    },\n    {\n      desc: 'extra key in map not in manifest',\n      manifestKeys: ALL_KEYS.slice(0, 12), // missing Kindex in manifest\n      mapKeys: ALL_KEYS,\n      expectedMissing: [],\n      expectedExtra: ['Kindex'],\n    },\n    {\n      desc: 'both missing and extra',\n      manifestKeys: [...ALL_KEYS.slice(0, 12), 'Unknown'] as string[],\n      mapKeys: [...ALL_KEYS] as string[],\n      expectedMissing: ['Unknown'],\n      expectedExtra: ['Kindex'],\n    },\n  ])('detects $desc', ({ manifestKeys, mapKeys, expectedMissing, expectedExtra }) => {\n    const manifest = makeFakeManifest(manifestKeys);\n    const map = makeFakeComponentMap(mapKeys);\n    const result = verifyManifestComponentBijection(manifest, map);\n\n    expect(result.isValid, 'should be invalid on mismatch').toBe(false);\n    for (const k of expectedMissing) {\n      expect(result.missingInMap, `missingInMap should contain ${k}`).toContain(k);\n    }\n    for (const k of expectedExtra) {\n      expect(result.extraInMap, `extraInMap should contain ${k}`).toContain(k);\n    }\n  });\n\n  it('is a pure function — identical inputs produce identical outputs', () => {\n    const manifest = makeFakeManifest();\n    const map = makeFakeComponentMap();\n    const result1 = verifyManifestComponentBijection(manifest, map);\n    const result2 = verifyManifestComponentBijection(manifest, map);\n\n    expect(result1, 'two calls with same inputs must return equal results').toEqual(result2);\n  });\n\n  it('returns correct manifestKeys in order', () => {\n    const manifest = makeFakeManifest();\n    const map = makeFakeComponentMap();\n    const result = verifyManifestComponentBijection(manifest, map);\n\n    const expectedKeys = ALL_KEYS.map(k => k);\n    expect(result.manifestKeys).toEqual(expectedKeys);\n  });\n});\n\n// ═══════════════════════════════════════════════════════════════════════════════\n// SECTION 2: Accessor functions (re-exports)\n// ═══════════════════════════════════════════════════════════════════════════════\n\ndescribe('getRouteManifest (re-export)', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n  });\n\n  it('returns exactly 13 RouteEntry objects', () => {\n    const manifest = getRouteManifest();\n    expect(manifest, 'manifest must be an array').toBeInstanceOf(Array);\n    expect(manifest).toHaveLength(13);\n  });\n\n  it('every entry has path, label, and componentKey fields', () => {\n    const manifest = getRouteManifest();\n    for (const entry of manifest) {\n      expect(entry).toHaveProperty('path');\n      expect(entry).toHaveProperty('label');\n      expect(entry).toHaveProperty('componentKey');\n      expect(typeof entry.path).toBe('string');\n      expect(typeof entry.label).toBe('string');\n      expect(entry.label.length).toBeGreaterThan(0);\n    }\n  });\n\n  it('all paths are unique', () => {\n    const manifest = getRouteManifest();\n    const paths = manifest.map((e: { path: string }) => e.path);\n    expect(new Set(paths).size, 'all route paths must be unique').toBe(13);\n  });\n\n  it('every PageComponentKey variant appears exactly once', () => {\n    const manifest = getRouteManifest();\n    const keys = manifest.map((e: { componentKey: string }) => e.componentKey);\n    const keySet = new Set(keys);\n    for (const k of ALL_KEYS) {\n      expect(keySet.has(k), `manifest should contain componentKey '${k}'`).toBe(true);\n    }\n    expect(keySet.size).toBe(13);\n  });\n});\n\ndescribe('getPageComponentMap (re-export)', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n  });\n\n  it('returns a map with exactly 13 entries', () => {\n    const map = getPageComponentMap();\n    expect(Object.keys(map)).toHaveLength(13);\n  });\n\n  it('every value is a function (React.ComponentType)', () => {\n    const map = getPageComponentMap();\n    for (const [key, value] of Object.entries(map)) {\n      expect(typeof value, `${key} should be a function`).toBe('function');\n    }\n  });\n\n  it('has every PageComponentKey as a key', () => {\n    const map = getPageComponentMap();\n    for (const k of ALL_KEYS) {\n      expect(map).toHaveProperty(k);\n    }\n  });\n});\n\ndescribe('buildPageComponentMap (re-export)', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockBuildPageComponentMap.mockReturnValue(makeFakeComponentMap());\n  });\n\n  it('returns a map with exactly 13 entries keyed by PageComponentKey', () => {\n    const map = buildPageComponentMap();\n    const keys = Object.keys(map);\n    expect(keys).toHaveLength(13);\n    for (const k of ALL_KEYS) {\n      expect(keys, `map should include key '${k}'`).toContain(k);\n    }\n  });\n});\n\ndescribe('getProjectManifest (re-export)', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockGetProjectManifest.mockReturnValue({\n      projectRoot: '/tmp/exemplar-tools-doc',\n      files: Array.from({ length: 12 }, (_, i) => `file-${i}`),\n      projectName: 'exemplar-tools-doc',\n      devServerPort: 4000,\n    });\n  });\n\n  it('returns manifest with projectName, devServerPort, and 12 files', () => {\n    const manifest = getProjectManifest();\n    expect(manifest.projectName, 'projectName must be exemplar-tools-doc').toBe('exemplar-tools-doc');\n    expect(manifest.devServerPort, 'devServerPort must be 4000').toBe(4000);\n    expect(manifest.files, 'files must have 12 entries').toHaveLength(12);\n  });\n});\n\ndescribe('getRequiredDependencies (re-export)', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockGetRequiredDependencies.mockReturnValue({\n      dependencies: [\n        { packageName: 'react', versionRange: '^18.0.0', isDev: false },\n        { packageName: 'react-dom', versionRange: '^18.0.0', isDev: false },\n        { packageName: 'react-router-dom', versionRange: '^6.0.0', isDev: false },\n      ],\n      devDependencies: Array.from({ length: 13 }, (_, i) => ({\n        packageName: `dev-dep-${i}`,\n        versionRange: '^1.0.0',\n        isDev: true,\n      })),\n    });\n  });\n\n  it('returns 3 dependencies and 13 devDependencies', () => {\n    const deps = getRequiredDependencies();\n    expect(deps.dependencies, 'dependencies must have 3 entries').toHaveLength(3);\n    expect(deps.devDependencies, 'devDependencies must have 13 entries').toHaveLength(13);\n  });\n});\n\n// ═══════════════════════════════════════════════════════════════════════════════\n// SECTION 3: Component re-exports\n// ═══════════════════════════════════════════════════════════════════════════════\n\n// We test that re-exported components are callable and forward to mocks.\n// For deeper rendering tests, use @testing-library/react in a .tsx file.\n\ndescribe('App (re-export)', () => {\n  it('is a function (React component)', () => {\n    expect(typeof App).toBe('function');\n  });\n});\n\ndescribe('CalloutBox (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof CalloutBox).toBe('function');\n  });\n\n  it.each(['gotcha', 'warning', 'tip'] as const)('can be called with type=%s', (variant) => {\n    // Verify the mock is invocable with each variant\n    const props = { type: variant, title: `${variant} title`, children: 'content' };\n    const result = CalloutBox(props);\n    expect(result).toBeDefined();\n  });\n});\n\ndescribe('CodeBlock (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof CodeBlock).toBe('function');\n  });\n});\n\ndescribe('VersionBadge (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof VersionBadge).toBe('function');\n  });\n});\n\ndescribe('VideoEmbed (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof VideoEmbed).toBe('function');\n  });\n});\n\ndescribe('Sidebar (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof Sidebar).toBe('function');\n  });\n\n  it('can be called with routes prop', () => {\n    const routes = makeFakeManifest();\n    const result = Sidebar({ routes });\n    expect(result).toBeDefined();\n  });\n});\n\ndescribe('PageLayout (re-export)', () => {\n  it('is re-exported as a function', () => {\n    expect(typeof PageLayout).toBe('function');\n  });\n\n  it('can be called with routes and children props', () => {\n    const routes = makeFakeManifest();\n    const result = PageLayout({ routes, children: React.createElement('div', null, 'child') });\n    expect(result).toBeDefined();\n  });\n});\n\n// ═══════════════════════════════════════════════════════════════════════════════\n// SECTION 4: Cross-cutting Invariants\n// ═══════════════════════════════════════════════════════════════════════════════\n\ndescribe('Root Module Invariants', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n  });\n\n  it('manifest componentKey set equals page component map key set', () => {\n    const manifest = getRouteManifest();\n    const map = getPageComponentMap();\n    const manifestKeys = new Set(manifest.map((e: { componentKey: string }) => e.componentKey));\n    const mapKeys = new Set(Object.keys(map));\n\n    expect(manifestKeys, 'manifest componentKeys must equal map keys').toEqual(mapKeys);\n  });\n\n  it('route manifest has exactly 13 entries', () => {\n    const manifest = getRouteManifest();\n    expect(manifest).toHaveLength(13);\n  });\n\n  it('page component map has exactly 13 entries', () => {\n    const map = getPageComponentMap();\n    expect(Object.keys(map)).toHaveLength(13);\n  });\n\n  it('all 13 PageComponentKey values are present in both manifest and map', () => {\n    const manifest = getRouteManifest();\n    const map = getPageComponentMap();\n    const manifestKeys = manifest.map((e: { componentKey: string }) => e.componentKey);\n    const mapKeys = Object.keys(map);\n\n    for (const k of ALL_KEYS) {\n      expect(manifestKeys, `manifest should include '${k}'`).toContain(k);\n      expect(mapKeys, `map should include '${k}'`).toContain(k);\n    }\n  });\n});\n"
 }

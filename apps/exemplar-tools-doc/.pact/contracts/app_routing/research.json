@@ -1,0 +1,104 @@
+{
+  "task_summary": "Define the interface contract for the 'App Shell & Routing' component (id: app_routing). This component owns: (1) the PageComponentKey enum (13 variants), (2) the RouteEntry struct, (3) the RouteManifest (ordered array of RouteEntry), (4) App.tsx with BrowserRouter routing for 13 pages, (5) main.tsx entry point, and (6) a route manifest as a shared data structure consumed by Sidebar/PageLayout. Contract must include type definitions and smoke tests verifying all 13 routes are registered. Implementation language is TypeScript with vitest.",
+  "findings": [
+    {
+      "topic": "Route manifest as single source of truth",
+      "finding": "The established pattern for React Router v6+ apps with navigation sidebars is to define a route manifest array (often called routeConfig or routeManifest) as a plain data structure, then derive both the <Route> elements and the sidebar links from it. This avoids route/nav drift. The manifest should be a const assertion or typed array exported from a dedicated module (e.g., src/routes.ts), not embedded inside App.tsx.",
+      "source": "React Router v6 documentation, common open-source dashboard patterns (e.g., Vite + React Router starters)",
+      "relevance": "Directly matches the architecture requirement: RouteManifest is consumed by both the router config in App.tsx and the Sidebar component via SidebarProps.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "TypeScript string enum vs union type for PageComponentKey",
+      "finding": "TypeScript offers two viable approaches: (a) string enum (`export enum PageComponentKey { Home = 'Home', ... }`) or (b) const object + union (`export const PageComponentKey = { Home: 'Home', ... } as const; export type PageComponentKey = typeof PageComponentKey[keyof typeof PageComponentKey];`). String enums provide nominal typing and are iterable at runtime, which is useful for exhaustiveness checks in the component lookup map. The const-object pattern avoids enum quirks (tree-shaking, isolatedModules). Given the registry specifies 'enum' and the project prefers stdlib, a true TypeScript `enum` is the most literal match to the contract.",
+      "source": "TypeScript handbook (Enums), Matt Pocock's TypeScript patterns, project type registry specification",
+      "relevance": "PageComponentKey is the discriminator for lazy-loading or mapping to page components. The choice affects how the component lookup map is typed and how exhaustiveness is enforced.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Lazy loading page components via componentKey indirection",
+      "finding": "The architecture specifies that page components depend on shared_components but NOT on app_routing. This means App.tsx must resolve PageComponentKey → React component at the routing layer. The standard pattern is a Record<PageComponentKey, React.LazyExoticComponent<...>> or Record<PageComponentKey, React.ComponentType> lookup map in App.tsx (or a dedicated resolver module). React.lazy() with dynamic import is idiomatic for code-splitting. However, for a documentation site with 13 small pages, eager imports into a map are also acceptable and simpler to test.",
+      "source": "React documentation (Code Splitting), react-router-dom examples",
+      "relevance": "The componentKey field on RouteEntry exists precisely for this indirection. The contract must define the lookup mechanism's type signature without creating a circular dependency.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Route path strings must match AS3 slug pattern exactly",
+      "finding": "The engineering decisions explicitly state 'Route slugs follow AS3 pattern exactly'. The 13 paths are: /, /step-0-cartographer, /step-1a-constrain, /step-1b-ledger, /step-2a-pact, /step-2b-advocate, /step-3-arbiter, /step-4-baton, /step-5a-sentinel, /step-5b-chronicler, /step-5c-stigmergy, /step-6-apprentice, /step-7-kindex. These are literal strings and the contract tests MUST use these exact values — not inferred from component names.",
+      "source": "Project description, operating procedures (String Keys in Maps and Registries — CRITICAL)",
+      "relevance": "Critical: the CRITICAL operating procedure warns against inferring key strings. The contract test must hard-code these 13 path strings as the source of truth and verify the manifest contains exactly these paths.",
+      "confidence": 0.98
+    },
+    {
+      "topic": "Smoke test pattern for route registration completeness",
+      "finding": "The standard smoke test for route manifest completeness: (1) assert manifest.length === 13, (2) assert every PageComponentKey variant appears exactly once in manifest, (3) assert every expected path string appears exactly once, (4) optionally render <MemoryRouter> with the App and navigate to each path to verify no 404. For contract-level tests (no external services), MemoryRouter-based rendering with @testing-library/react is the established approach. The test should NOT import page components directly — it should verify the manifest data structure and that App renders routes without crashing.",
+      "source": "React Testing Library documentation, react-router-dom testing patterns, vitest + jsdom setup",
+      "relevance": "The verification requirement states 'includes smoke test verifying all routes are registered'. This is the core contract test.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "main.tsx entry point pattern for Vite + React",
+      "finding": "Standard Vite + React entry point: `import React from 'react'; import ReactDOM from 'react-dom/client'; import App from './App'; ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><App /></React.StrictMode>);`. The main.tsx file is typically NOT unit-tested (it's the bootstrap). The contract test focuses on App.tsx and the route manifest. main.tsx should be minimal — just mounting.",
+      "source": "Vite React template (create-vite), React 18 documentation",
+      "relevance": "main.tsx is mentioned as a deliverable but testing it is impractical without DOM. The contract should specify its structure but not require a dedicated test for it.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Named exports and default export pairing for React components",
+      "finding": "Project rules require: every .tsx file with a React component must have BOTH a named export AND a default export. Pattern: `export function App(): React.ReactElement { ... } export default App;`. This applies to App.tsx. Non-component modules (routes.ts with the manifest) only need named exports.",
+      "source": "Project operating procedures (TypeScript / React Rules — CRITICAL)",
+      "relevance": "App.tsx is a React component and must follow this rule. The route manifest module (routes.ts) exports types and data, not components, so only named exports apply.",
+      "confidence": 0.97
+    },
+    {
+      "topic": "Avoiding circular dependencies between app_routing and page components",
+      "finding": "The architecture decision states 'Page components depend on shared_components but not on app_routing'. This means the RouteManifest must NOT import page components at the type level. The componentKey indirection (PageComponentKey enum) exists to break this cycle. The component lookup map (PageComponentKey → ComponentType) should live in App.tsx or a resolver module within app_routing, importing page components there — but the manifest module itself must remain free of page component imports.",
+      "source": "Project engineering decisions, dependency inversion principle",
+      "relevance": "Critical architectural constraint. The contract must ensure routes.ts (manifest) has zero imports from page component modules.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "BrowserRouter vs createBrowserRouter (React Router v6.4+)",
+      "finding": "React Router v6.4+ introduced createBrowserRouter with data APIs (loaders, actions). For a static documentation site with no data loading, the classic <BrowserRouter> + <Routes> + <Route> pattern is simpler and sufficient. The description explicitly says 'BrowserRouter', so the contract should use this API. However, the route manifest can still be mapped to <Route> elements programmatically.",
+      "source": "React Router v6 documentation, project description",
+      "relevance": "The description explicitly specifies BrowserRouter. Using createBrowserRouter would be overengineering for this use case.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Type-safe exhaustive component resolution",
+      "finding": "When mapping PageComponentKey to components, a switch statement or Record<PageComponentKey, ComponentType> ensures exhaustiveness at compile time. The Record approach is preferred in TypeScript because adding a new enum variant without updating the map produces a type error. Pattern: `const PAGE_COMPONENTS: Record<PageComponentKey, React.ComponentType> = { [PageComponentKey.Home]: HomePage, ... };`. This is safer than a switch with a default throw.",
+      "source": "TypeScript handbook (Mapped Types), common React patterns",
+      "relevance": "Ensures that if a 14th page is added to the enum, the build fails until the component map is updated — preventing silent routing errors.",
+      "confidence": 0.92
+    }
+  ],
+  "recommended_approach": "Structure the app_routing component as three files plus a test file:\n\n1. **src/routes.ts** — Pure data module. Exports: `PageComponentKey` (enum with 13 variants), `RouteEntry` (interface), `ROUTE_MANIFEST` (typed `RouteEntry[]` constant with all 13 entries using exact AS3 slug paths). Zero component imports. This is the shared data structure consumed by both App.tsx and shared_components (Sidebar).\n\n2. **src/App.tsx** — React component. Imports `ROUTE_MANIFEST` and `PageComponentKey` from routes.ts. Imports all 13 page components. Defines `PAGE_COMPONENTS: Record<PageComponentKey, React.ComponentType>` lookup map. Renders `<BrowserRouter>` → `<PageLayout routes={ROUTE_MANIFEST}>` → `<Routes>` with manifest-derived `<Route>` elements. Both named and default export.\n\n3. **src/main.tsx** — Minimal entry point. Imports App, renders into `#root` with StrictMode.\n\n4. **src/__tests__/app-routing.test.ts** — Contract tests:\n   - Verify `ROUTE_MANIFEST.length === 13`\n   - Verify every `PageComponentKey` variant appears exactly once\n   - Verify all 13 exact path strings are present\n   - Verify paths are unique (no duplicates)\n   - Verify labels are non-empty strings\n   - Render App in MemoryRouter and verify each route renders without crashing\n\nKey type decisions:\n- `PageComponentKey` as a TypeScript string enum for runtime iterability + compile-time safety\n- `RouteEntry` as an interface (not type alias) for better error messages and extensibility\n- `ROUTE_MANIFEST` typed as `readonly RouteEntry[]` (or `ReadonlyArray<RouteEntry>`) to prevent mutation\n- Component map typed as `Record<PageComponentKey, React.ComponentType>` for exhaustive coverage",
+  "alternatives_considered": [
+    "String union type instead of TypeScript enum for PageComponentKey — rejected because the registry explicitly specifies 'enum' and runtime iterability is useful for exhaustiveness tests.",
+    "createBrowserRouter (data router API) instead of BrowserRouter — rejected because the project description explicitly specifies BrowserRouter and there are no data-loading requirements.",
+    "Embedding the route manifest inside App.tsx — rejected because the manifest must be importable by Sidebar/PageLayout (shared_components) without importing the entire App shell.",
+    "React.lazy() for all page components — viable but adds complexity for a small documentation site; can be deferred. The contract should type componentKey resolution to support either eager or lazy imports.",
+    "Placing the component lookup map in the manifest module — rejected because it would create a circular dependency (manifest → page components → shared_components, while shared_components consumes manifest via SidebarProps)."
+  ],
+  "risks": [
+    "Path string typos — misspelling a slug like '/step-5c-stigmergy' would silently break routing. Mitigation: contract test hard-codes all 13 expected paths and asserts exact match.",
+    "Enum variant ordering vs manifest ordering — the manifest must be ordered for sidebar navigation but the enum has no inherent order. Mitigation: test asserts manifest order matches the expected navigation sequence.",
+    "Circular dependency if page components ever import from routes.ts — currently safe since pages depend only on shared_components, but must be documented as an architectural invariant.",
+    "React Router version mismatch — BrowserRouter API differs between v5 and v6. Contract should note dependency on react-router-dom v6+.",
+    "Missing `import React from 'react'` in .tsx files — required by project rules even if the JSX transform doesn't need it. Must be included in App.tsx and main.tsx."
+  ],
+  "compliance_notes": [
+    "All files will be .ts or .tsx — no Python output.",
+    "All public functions and exports will have explicit type annotations.",
+    "Named exports on all types, interfaces, functions, and constants.",
+    "App.tsx will have both named export (`export function App()`) and default export (`export default App`).",
+    "Every .tsx file will include `import React from 'react'` at the top.",
+    "Tests will use vitest + @testing-library/react in jsdom environment.",
+    "No third-party libraries beyond react-router-dom and testing-library (stdlib-preferred).",
+    "Route path strings will be verified against the exact AS3 slugs from the project description — never inferred from component names.",
+    "All types match the Canonical Type Registry exactly: PageComponentKey (enum, 13 variants), RouteEntry (path, label, componentKey), RouteManifest (RouteEntry[]).",
+    "Files will stay under 300 lines.",
+    "Composition over inheritance — no class-based components.",
+    "import.meta.env accessed directly, never via `(import.meta as any).env`."
+  ]
+}

@@ -1,0 +1,1392 @@
+{
+  "component_id": "root",
+  "name": "Root",
+  "description": "Thin composition layer and barrel re-export module for the exemplar.tools documentation website. The root is the ONLY integration point where app_routing and page_components meet — it retrieves the route manifest from app_routing, the page component map from page_components, and passes both into the entry point renderer. All canonical types from child components are re-exported (never redefined) for consumer convenience. Defines one root-owned function bootstrapApp() that orchestrates the composition, and one root-specific type BootstrapConfig for optional configuration. This module enforces the dependency inversion constraint: page_components never imports from app_routing directly; the root wires them together.",
+  "version": 1,
+  "types": [
+    {
+      "name": "BootstrapConfig",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "targetElementId",
+          "type_ref": "str",
+          "required": false,
+          "default": "root",
+          "description": "DOM element ID to mount the React root onto. Defaults to 'root' matching the scaffold's index.html <div id=\"root\">.",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "length >= 1",
+              "error_message": "targetElementId must be a non-empty string"
+            }
+          ]
+        },
+        {
+          "name": "strictMode",
+          "type_ref": "bool",
+          "required": false,
+          "default": "true",
+          "description": "Whether to wrap the App component in React.StrictMode. Defaults to true matching the scaffold's src/main.tsx.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Optional configuration for the bootstrapApp function controlling where and how the React application is mounted.",
+      "owner_component": ""
+    },
+    {
+      "name": "BootstrapResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routeCount",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of route entries in the manifest (must be 13).",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "value == 13",
+              "error_message": "Route manifest must contain exactly 13 entries"
+            }
+          ]
+        },
+        {
+          "name": "pageComponentCount",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of entries in the page component map (must be 13).",
+          "validators": [
+            {
+              "kind": "range",
+              "expression": "value == 13",
+              "error_message": "Page component map must contain exactly 13 entries"
+            }
+          ]
+        },
+        {
+          "name": "targetElementId",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The DOM element ID that was used for mounting.",
+          "validators": []
+        },
+        {
+          "name": "allRoutesHaveComponents",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if every componentKey in the route manifest has a corresponding entry in the page component map (bijection verified).",
+          "validators": [
+            {
+              "kind": "custom",
+              "expression": "value === true",
+              "error_message": "Every route manifest componentKey must have a corresponding page component map entry"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Result returned by bootstrapApp confirming successful mount and providing diagnostics.",
+      "owner_component": ""
+    },
+    {
+      "name": "PageComponentKey",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "Home",
+        "Cartographer",
+        "Constrain",
+        "Ledger",
+        "Pact",
+        "Advocate",
+        "Arbiter",
+        "Baton",
+        "Sentinel",
+        "Chronicler",
+        "Stigmergy",
+        "Apprentice",
+        "Kindex"
+      ],
+      "inner_types": [],
+      "description": "Discriminator enum identifying each of the 13 page components.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RouteEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "URL path segment, e.g. '/step-0-cartographer' or '/' for home.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable navigation label shown in the Sidebar, e.g. 'Step 0 — Cartographer'.",
+          "validators": []
+        },
+        {
+          "name": "componentKey",
+          "type_ref": "PageComponentKey",
+          "required": true,
+          "default": "",
+          "description": "Lookup key that maps this route to its lazy-loaded or statically-imported page component.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single route definition consumed by both the router configuration and the Sidebar navigation.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RouteManifest",
+      "kind": "list",
+      "fields": [],
+      "item_type": "RouteEntry",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of all 13 route entries; single source of truth for navigation and routing.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RoutePath",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from app_routing. A validated URL path string starting with '/' containing only lowercase alphanumeric characters, hyphens, and forward slashes.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RouteLabel",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from app_routing. A validated non-empty string used as the sidebar display label for a route.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "PageComponentMap",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "Home",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "HomePage component",
+          "validators": []
+        },
+        {
+          "name": "Cartographer",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "CartographerPage component",
+          "validators": []
+        },
+        {
+          "name": "Constrain",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "ConstrainPage component",
+          "validators": []
+        },
+        {
+          "name": "Ledger",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "LedgerPage component",
+          "validators": []
+        },
+        {
+          "name": "Pact",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "PactPage component",
+          "validators": []
+        },
+        {
+          "name": "Advocate",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "AdvocatePage component",
+          "validators": []
+        },
+        {
+          "name": "Arbiter",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "ArbiterPage component",
+          "validators": []
+        },
+        {
+          "name": "Baton",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "BatonPage component",
+          "validators": []
+        },
+        {
+          "name": "Sentinel",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "SentinelPage component",
+          "validators": []
+        },
+        {
+          "name": "Chronicler",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "ChroniclerPage component",
+          "validators": []
+        },
+        {
+          "name": "Stigmergy",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "StigmergyPage component",
+          "validators": []
+        },
+        {
+          "name": "Apprentice",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "ApprenticePage component",
+          "validators": []
+        },
+        {
+          "name": "Kindex",
+          "type_ref": "any",
+          "required": true,
+          "default": "",
+          "description": "KindexPage component",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from page_components. Record<PageComponentKey, React.ComponentType> — exhaustive lookup map from every PageComponentKey variant to its corresponding React page component.",
+      "owner_component": "page_components"
+    },
+    {
+      "name": "ReactComponentType",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from app_routing. Opaque reference to React.ComponentType — a function or class component.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "AppProps",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from app_routing. Empty props for the App root component.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "CalloutType",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "gotcha",
+        "warning",
+        "tip"
+      ],
+      "inner_types": [],
+      "description": "Visual variant for a CalloutBox — determines border color, icon, and background tint.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "CalloutBoxProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "type",
+          "type_ref": "CalloutType",
+          "required": true,
+          "default": "",
+          "description": "Visual style variant (gotcha, warning, or tip).",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional bold heading rendered above the body text.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Body content of the callout (JSX).",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the CalloutBox component; used by every page component to render callouts.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "CodeBlockProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "code",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The verbatim CLI command or code snippet to display.",
+          "validators": []
+        },
+        {
+          "name": "language",
+          "type_ref": "string",
+          "required": false,
+          "default": "bash",
+          "description": "Prism language identifier for syntax highlighting.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional filename or label shown above the code block.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the CodeBlock component; used by every page to render CLI commands with syntax highlighting and copy button.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "VersionBadgeProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Semantic version string to display, e.g. '1.2.3'.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional tool name rendered before the version number.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the VersionBadge component; used by page components to show component version pills.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "VideoEmbedProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "url",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Full YouTube video URL (https://www.youtube.com/watch?v=... or https://youtu.be/...).",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Accessible title for the iframe element.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the VideoEmbed component; used by page components to embed YouTube walkthroughs.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "SidebarProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routes",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "The full ordered list of routes to render as nav links.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the Sidebar component; receives the route manifest to render navigation links.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "PageLayoutProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routes",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "Route manifest forwarded to the Sidebar for navigation rendering.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Page content rendered in the main content area.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the PageLayout shell component; wraps Sidebar + scrollable content area.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "ReactNode",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactNode — opaque type representing renderable JSX children.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "ProjectManifest",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "projectRoot",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Absolute path to the exemplar-tools-doc/ project directory.",
+          "validators": []
+        },
+        {
+          "name": "files",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Ordered array of all 12 file paths relative to projectRoot.",
+          "validators": []
+        },
+        {
+          "name": "projectName",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The npm package name: 'exemplar-tools-doc'.",
+          "validators": []
+        },
+        {
+          "name": "devServerPort",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Vite dev server port, must be 4000.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Manifest enumerating all produced file paths and project metadata.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "DependencyEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "packageName",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "npm package name.",
+          "validators": []
+        },
+        {
+          "name": "versionRange",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Semver range string.",
+          "validators": []
+        },
+        {
+          "name": "isDev",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if devDependency.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. A single npm dependency with its pinned semver range.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "RequiredDependencies",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "dependencies",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Runtime dependencies.",
+          "validators": []
+        },
+        {
+          "name": "devDependencies",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Dev dependencies.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Complete set of pinned dependencies the scaffold must declare.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "ScaffoldResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "manifest",
+          "type_ref": "ProjectManifest",
+          "required": true,
+          "default": "",
+          "description": "The complete project manifest.",
+          "validators": []
+        },
+        {
+          "name": "filesWritten",
+          "type_ref": "int",
+          "required": true,
+          "default": "",
+          "description": "Number of files written (must be 12).",
+          "validators": []
+        },
+        {
+          "name": "hasJsFiles",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be false.",
+          "validators": []
+        },
+        {
+          "name": "hasPyFiles",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "Must be false.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Result of scaffold generation.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "ScaffoldOptions",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "outputDir",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "Target project directory path.",
+          "validators": []
+        },
+        {
+          "name": "overwrite",
+          "type_ref": "bool",
+          "required": false,
+          "default": "false",
+          "description": "Whether to overwrite existing files.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Options controlling scaffold generation.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "ScaffoldFilePath",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "package.json",
+        "tsconfig.json",
+        "tsconfig.node.json",
+        "vite.config.ts",
+        "tailwind.config.ts",
+        "postcss.config.mjs",
+        "vercel.json",
+        "index.html",
+        "vitest.setup.ts",
+        "src/main.tsx",
+        "src/index.css",
+        "src/App.tsx"
+      ],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Literal string union of every file path produced by the scaffold.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "ScaffoldError",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "DIRECTORY_NOT_FOUND",
+        "FILE_ALREADY_EXISTS",
+        "WRITE_PERMISSION_DENIED",
+        "INVALID_OUTPUT_DIR"
+      ],
+      "inner_types": [],
+      "description": "Re-exported from project_scaffold. Discriminated error types for scaffold generation failures.",
+      "owner_component": "project_scaffold"
+    },
+    {
+      "name": "BootstrapError",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "MANIFEST_COMPONENT_MISMATCH",
+        "TARGET_ELEMENT_NOT_FOUND",
+        "RENDER_FAILURE"
+      ],
+      "inner_types": [],
+      "description": "Root-owned error type for bootstrapApp failures.",
+      "owner_component": ""
+    },
+    {
+      "name": "ManifestComponentBijectionResult",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "isValid",
+          "type_ref": "bool",
+          "required": true,
+          "default": "",
+          "description": "True if every componentKey in the manifest has a corresponding page component map entry and the counts match.",
+          "validators": []
+        },
+        {
+          "name": "manifestKeys",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Array of PageComponentKey strings extracted from the route manifest.",
+          "validators": []
+        },
+        {
+          "name": "mapKeys",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Array of key strings from the page component map.",
+          "validators": []
+        },
+        {
+          "name": "missingInMap",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "componentKey values present in the manifest but missing from the page component map. Empty if isValid.",
+          "validators": []
+        },
+        {
+          "name": "extraInMap",
+          "type_ref": "list",
+          "required": true,
+          "default": "",
+          "description": "Key values present in the page component map but not referenced by any manifest entry. Empty if isValid.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Root-owned diagnostic type returned by verifyManifestComponentBijection, confirming that every route manifest componentKey has a matching page component map entry and vice versa.",
+      "owner_component": ""
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'root'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "bootstrapApp",
+      "description": "Main composition function and the sole integration point where app_routing and page_components meet. Retrieves the route manifest from app_routing via getRouteManifest(), retrieves the page component map from page_components via getPageComponentMap(), verifies the bijection between manifest componentKeys and map keys, then calls renderEntryPoint() from app_routing to mount the React application into the DOM. This function enforces the architectural constraint that page_components never imports from app_routing directly — the root wires them together via dependency inversion.",
+      "inputs": [
+        {
+          "name": "config",
+          "type_ref": "BootstrapConfig",
+          "required": false,
+          "default": "{ targetElementId: 'root', strictMode: true }",
+          "description": "Optional configuration controlling mount target and StrictMode wrapping. Defaults to mounting on #root with StrictMode enabled.",
+          "validators": []
+        }
+      ],
+      "output_type": "BootstrapResult",
+      "error_cases": [
+        {
+          "name": "manifest_component_mismatch",
+          "condition": "At least one componentKey in the route manifest has no corresponding entry in the page component map, or vice versa",
+          "error_type": "MANIFEST_COMPONENT_MISMATCH",
+          "error_data": {
+            "missingInMap": "JSON array of componentKey values missing from page component map",
+            "extraInMap": "JSON array of map keys not referenced by any manifest entry"
+          }
+        },
+        {
+          "name": "target_element_not_found",
+          "condition": "document.getElementById(config.targetElementId) returns null — the mount target does not exist in the DOM",
+          "error_type": "TARGET_ELEMENT_NOT_FOUND",
+          "error_data": {
+            "targetElementId": "The element ID that was not found in the document"
+          }
+        },
+        {
+          "name": "render_failure",
+          "condition": "renderEntryPoint() throws during React root creation or initial render",
+          "error_type": "RENDER_FAILURE",
+          "error_data": {
+            "cause": "String representation of the underlying error"
+          }
+        }
+      ],
+      "preconditions": [
+        "document contains an element with the ID specified by config.targetElementId (default 'root')",
+        "getRouteManifest() is callable and returns a valid RouteManifest with exactly 13 entries",
+        "getPageComponentMap() is callable and returns a valid PageComponentMap with exactly 13 entries",
+        "Every componentKey in the route manifest has a corresponding key in the page component map (bijection holds)"
+      ],
+      "postconditions": [
+        "getRouteManifest() was called exactly once and its result contains exactly 13 RouteEntry objects",
+        "getPageComponentMap() was called exactly once and its result contains exactly 13 entries",
+        "Bijection between manifest componentKeys and map keys was verified before rendering",
+        "renderEntryPoint() was called to mount <App /> into the target DOM element",
+        "Returned BootstrapResult.routeCount === 13",
+        "Returned BootstrapResult.pageComponentCount === 13",
+        "Returned BootstrapResult.allRoutesHaveComponents === true",
+        "Returned BootstrapResult.targetElementId matches the config value used"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "document DOM tree",
+          "description": "Mounts the React application into the target DOM element, replacing its children with the rendered React component tree."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "verifyManifestComponentBijection",
+      "description": "Pure diagnostic function that checks whether every componentKey in the route manifest has a corresponding entry in the page component map and vice versa. Used internally by bootstrapApp before rendering, and exported for contract test verification. Does not perform any side effects — purely compares the two data structures.",
+      "inputs": [
+        {
+          "name": "manifest",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "The route manifest array (from getRouteManifest()).",
+          "validators": []
+        },
+        {
+          "name": "componentMap",
+          "type_ref": "PageComponentMap",
+          "required": true,
+          "default": "",
+          "description": "The page component map (from getPageComponentMap()).",
+          "validators": []
+        }
+      ],
+      "output_type": "ManifestComponentBijectionResult",
+      "error_cases": [],
+      "preconditions": [
+        "manifest is a non-null array of RouteEntry objects",
+        "componentMap is a non-null object with string keys"
+      ],
+      "postconditions": [
+        "result.isValid is true if and only if manifestKeys and mapKeys are identical sets",
+        "result.missingInMap contains every componentKey present in manifest but absent from componentMap",
+        "result.extraInMap contains every key present in componentMap but not referenced by any manifest entry",
+        "result.manifestKeys contains the componentKey from every manifest entry in order",
+        "result.mapKeys contains every key from componentMap"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getRouteManifest",
+      "description": "Re-exported from app_routing. Returns the ROUTE_MANIFEST constant — the canonical readonly array of all 13 RouteEntry objects. See app_routing contract for full specification.",
+      "inputs": [],
+      "output_type": "RouteManifest",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned array has exactly 13 entries",
+        "Every PageComponentKey variant appears exactly once across all entries",
+        "All path values are unique",
+        "All label values are non-empty strings"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getPageComponentMap",
+      "description": "Re-exported from page_components. Returns the pageComponentMap: Record<PageComponentKey, React.ComponentType> containing all 13 page components keyed by their exact PageComponentKey enum values. See page_components contract for full specification.",
+      "inputs": [],
+      "output_type": "PageComponentMap",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned map contains exactly 13 entries",
+        "Every PageComponentKey enum value is present as a key",
+        "Every value is a valid React.ComponentType"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "App",
+      "description": "Re-exported from app_routing. Root React component that renders BrowserRouter wrapping PageLayout with Routes for all 13 pages. See app_routing contract for full specification.",
+      "inputs": [],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a BrowserRouter at the root",
+        "Renders exactly 13 Route elements"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "renderEntryPoint",
+      "description": "Re-exported from app_routing. Minimal entry point that calls ReactDOM.createRoot and renders <App /> inside React.StrictMode. See app_routing contract for full specification.",
+      "inputs": [],
+      "output_type": "None",
+      "error_cases": [
+        {
+          "name": "missing_root_element",
+          "condition": "document.getElementById('root') returns null",
+          "error_type": "TypeError",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [],
+      "postconditions": [
+        "React root is created and mounted on #root element",
+        "App component is rendered inside React.StrictMode"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "document DOM tree",
+          "description": "Mounts the React application into the #root DOM element."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "buildPageComponentMap",
+      "description": "Re-exported from app_routing. Constructs the PAGE_COMPONENTS constant mapping every PageComponentKey to its imported page component. See app_routing contract for full specification.",
+      "inputs": [],
+      "output_type": "PageComponentMap",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned map contains exactly 13 entries",
+        "Every PageComponentKey variant is a key in the map"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getProjectManifest",
+      "description": "Re-exported from project_scaffold. Returns the canonical ProjectManifest for the exemplar-tools-doc project. See project_scaffold contract for full specification.",
+      "inputs": [],
+      "output_type": "ProjectManifest",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Returned manifest.files has exactly 12 entries",
+        "Returned manifest.projectName === 'exemplar-tools-doc'",
+        "Returned manifest.devServerPort === 4000"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getRequiredDependencies",
+      "description": "Re-exported from project_scaffold. Returns the complete list of pinned npm dependencies. See project_scaffold contract for full specification.",
+      "inputs": [],
+      "output_type": "RequiredDependencies",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "dependencies contains exactly 3 entries",
+        "devDependencies contains exactly 13 entries"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure function — no side effects."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CalloutBox",
+      "description": "Re-exported from shared_components. Renders a color-coded callout box. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CalloutBoxProps",
+          "required": true,
+          "default": "",
+          "description": "CalloutBox props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a callout with border color matching props.type"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CodeBlock",
+      "description": "Re-exported from shared_components. Renders syntax-highlighted code with copy button. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CodeBlockProps",
+          "required": true,
+          "default": "",
+          "description": "CodeBlock props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders code with prism-react-renderer highlighting and copy button"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "VersionBadge",
+      "description": "Re-exported from shared_components. Renders a Tailwind pill badge for version strings. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "VersionBadgeProps",
+          "required": true,
+          "default": "",
+          "description": "VersionBadge props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a pill badge with the version string"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "VideoEmbed",
+      "description": "Re-exported from shared_components. Renders a responsive 16:9 YouTube iframe. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "VideoEmbedProps",
+          "required": true,
+          "default": "",
+          "description": "VideoEmbed props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders an iframe with aspect-video styling"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "Sidebar",
+      "description": "Re-exported from shared_components. Renders persistent navigation sidebar with NavLink per route. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "SidebarProps",
+          "required": true,
+          "default": "",
+          "description": "Sidebar props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders a nav element with one NavLink per route entry"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "PageLayout",
+      "description": "Re-exported from shared_components. Shell component composing Sidebar and content area in responsive flex layout. See shared_components contract for full specification.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "PageLayoutProps",
+          "required": true,
+          "default": "",
+          "description": "PageLayout props.",
+          "validators": []
+        }
+      ],
+      "output_type": "any",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "Renders flex container with Sidebar and main content area"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function."
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "app_routing",
+    "page_components",
+    "project_scaffold",
+    "shared_components"
+  ],
+  "dependency_contracts": {
+    "app_routing": [
+      "getRouteManifest",
+      "renderEntryPoint",
+      "App",
+      "buildPageComponentMap"
+    ],
+    "page_components": [
+      "getPageComponentMap",
+      "HomePage",
+      "CartographerPage",
+      "ConstrainPage",
+      "LedgerPage",
+      "PactPage",
+      "AdvocatePage",
+      "ArbiterPage",
+      "BatonPage",
+      "SentinelPage",
+      "ChroniclerPage",
+      "StigmergyPage",
+      "ApprenticePage",
+      "KindexPage"
+    ],
+    "project_scaffold": [
+      "getProjectManifest",
+      "getRequiredDependencies",
+      "generateScaffold",
+      "validateScaffold"
+    ],
+    "shared_components": [
+      "CalloutBox",
+      "CodeBlock",
+      "VersionBadge",
+      "VideoEmbed",
+      "Sidebar",
+      "PageLayout"
+    ]
+  },
+  "invariants": [
+    "Root module is a pure composition layer — it never redefines types owned by child components, only re-exports them",
+    "Root is the ONLY module where app_routing and page_components are both imported — enforcing dependency inversion",
+    "bootstrapApp() always verifies the manifest-to-component-map bijection before attempting to render",
+    "getRouteManifest() always returns exactly 13 RouteEntry objects",
+    "getPageComponentMap() always returns a map with exactly 13 entries keyed by PageComponentKey values",
+    "The set of componentKey values in the route manifest is identical to the set of keys in the page component map",
+    "No .js or .py source files exist in the root module — all source files are .ts or .tsx",
+    "All re-exported types preserve their owner_component attribution — root claims no authority over child-owned types",
+    "bootstrapApp() calls getRouteManifest() and getPageComponentMap() exactly once each per invocation",
+    "verifyManifestComponentBijection() is a pure function with no side effects"
+  ],
+  "requires": [
+    "app_routing.getRouteManifest",
+    "app_routing.renderEntryPoint",
+    "app_routing.App",
+    "app_routing.buildPageComponentMap",
+    "page_components.getPageComponentMap",
+    "page_components.HomePage",
+    "page_components.CartographerPage",
+    "page_components.ConstrainPage",
+    "page_components.LedgerPage",
+    "page_components.PactPage",
+    "page_components.AdvocatePage",
+    "page_components.ArbiterPage",
+    "page_components.BatonPage",
+    "page_components.SentinelPage",
+    "page_components.ChroniclerPage",
+    "page_components.StigmergyPage",
+    "page_components.ApprenticePage",
+    "page_components.KindexPage",
+    "project_scaffold.getProjectManifest",
+    "project_scaffold.getRequiredDependencies",
+    "shared_components.CalloutBox",
+    "shared_components.CodeBlock",
+    "shared_components.VersionBadge",
+    "shared_components.VideoEmbed",
+    "shared_components.Sidebar",
+    "shared_components.PageLayout"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Root reads only PUBLIC-tier data: the static route manifest (13 route paths, labels, and component keys) and the page component map (13 React component references). No PII, INTERNAL, or sensitive data is accessed. The route manifest and component map are compile-time constants embedded in the JavaScript bundle — no runtime data fetching or external service calls occur. Writes are empty because root only reads existing data structures from child modules and passes them to the renderer.",
+    "side_effects": [
+      {
+        "type": "DOM mutation",
+        "classification": "PUBLIC",
+        "fields": [
+          "document.getElementById('root').innerHTML"
+        ],
+        "rationale": "bootstrapApp() mounts the React component tree into the #root DOM element, replacing its contents. This is the only side effect in the root module. The DOM mutation renders PUBLIC documentation content only."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "application-composition",
+      "bootstrap-lifecycle"
+    ],
+    "rationale": "Root owns the application composition domain — it is the sole authority on how app_routing, page_components, project_scaffold, and shared_components are wired together. It owns the bootstrap lifecycle: the sequence of getRouteManifest() → getPageComponentMap() → bijection verification → renderEntryPoint(). No other component may perform this composition. Root does NOT own route definitions (app_routing), page content (page_components), scaffold configuration (project_scaffold), or UI primitives (shared_components)."
+  }
+}

@@ -1,97 +1,101 @@
 {
-  "task_summary": "Implement the 'Project Scaffold & Configuration' component for a React 18 + Vite + TypeScript + Tailwind CSS project. The component includes: App() function returning a ReactElementNode, mountApp() as a side-effect-only entry point, and all supporting configuration files (vite.config.ts, vitest config, tsconfig, tailwind config, index.css, test-setup.ts, package.json). Prior attempts failed because two critical files were missing from disk: `src/index.css` and `src/test-setup.ts`. The tests read these files from the filesystem, so they MUST physically exist.",
+  "task_summary": "Implement a TypeScript component 'Project Scaffold & Configuration' that generates project scaffolding (config files, directory structures) and validates them. The component exposes four functions (generateScaffold, getProjectManifest, getRequiredDependencies, validateScaffold) and defines 11 types covering file paths, manifests, dependencies, Vercel/Vite configs, and validation results. No external dependencies. Must be tested with vitest.",
   "findings": [
     {
-      "topic": "Root Cause of Prior Failures",
-      "finding": "Every single test failure traces back to the same two ENOENT errors: `src/project_scaffold/src/index.css` and `src/project_scaffold/src/test-setup.ts` do not exist on disk. The tests (or the vitest setup file referenced in config) attempt to read/import these files at module load time, causing all tests to abort before any assertions run. The fix is simple: these files must be created as actual files on disk before tests execute.",
-      "source": "Error log analysis — all 16 failures share identical ENOENT stack traces",
-      "relevance": "This is THE critical blocker. No other code changes matter until these files exist.",
-      "confidence": 0.99
-    },
-    {
-      "topic": "File: src/index.css",
-      "finding": "For a Tailwind CSS v3 project, index.css must contain the three Tailwind directives: `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`. The test explicitly checks for these directives ('contains @tailwind base, components, and utilities directives'). The file must be at the exact path: `src/project_scaffold/src/index.css` relative to the project root.",
-      "source": "Tailwind CSS v3 installation docs; test name analysis",
-      "relevance": "Direct requirement from the contract test suite",
-      "confidence": 0.98
-    },
-    {
-      "topic": "File: src/test-setup.ts",
-      "finding": "The test-setup.ts file must import `@testing-library/jest-dom` to register global matchers (toBeInTheDocument, toHaveTextContent, etc.). The test explicitly checks: 'imports @testing-library/jest-dom for global matchers'. The vitest config's setupFiles must point to `./src/test-setup.ts`. The file path must be `src/project_scaffold/src/test-setup.ts`.",
-      "source": "Testing Library jest-dom docs; test name analysis",
-      "relevance": "Direct requirement from the contract test suite",
-      "confidence": 0.98
-    },
-    {
-      "topic": "mountApp() Pattern — Side-Effect-Only Module",
-      "finding": "The test 'invariant: mountApp module has no named exports (side-effect only)' means main.tsx should NOT use `export` statements. It should import App, import createRoot from react-dom/client, find `document.getElementById('root')`, call `createRoot(el).render(<App />)`. The module executes as a side-effect on import. The test likely does `import * as mod from '...'` and asserts `Object.keys(mod).length === 0`.",
-      "source": "Vite React template conventions; test name analysis",
-      "relevance": "Critical for the mountApp bootstrap tests to pass",
+      "topic": "Project scaffolding patterns in TypeScript",
+      "finding": "Well-established scaffolding tools (Yeoman, Plop, create-* CLIs) follow a template+data pattern: define a manifest of files to generate, pair each with a template or static content, and emit them to a target directory. The key abstraction is separating the 'what to generate' (manifest/config) from the 'how to write it' (file system operations). Since this component must be testable without external services, the scaffold generation should return an in-memory representation (ScaffoldResult with file paths and contents) rather than performing I/O directly. This aligns with the functional core / imperative shell pattern.",
+      "source": "Yeoman architecture, Plop.js design, create-vite source code",
+      "relevance": "Directly informs the architecture of generateScaffold — it should be a pure function returning a data structure, not performing side effects",
       "confidence": 0.95
     },
     {
-      "topic": "App() Component",
-      "finding": "App must be a named export (`export function App()`) per project standards (named exports only, no default exports). It returns a ReactElementNode (JSX). The mountApp module (main.tsx) imports App and renders it. The test mocks react-dom/client to verify createRoot is called with the #root element and render is called with <App />.",
-      "source": "Operating procedures — 'Named exports only — no default exports'",
-      "relevance": "Compliance with project coding standards",
-      "confidence": 0.97
+      "topic": "Vercel configuration schema",
+      "finding": "Vercel's vercel.json supports a 'rewrites' array with objects containing 'source' (regex/glob pattern) and 'destination' (target path or URL). The VercelRewriteRule type should model { source: string; destination: string }. VercelConfig typically includes: framework, buildCommand, outputDirectory, rewrites, headers, and redirects. For SPA routing, a common catch-all rewrite is { source: '/(.*)', destination: '/index.html' }. For Convex integration, API rewrites proxy to the Convex backend URL.",
+      "source": "Vercel documentation (vercel.com/docs/projects/project-configuration)",
+      "relevance": "Directly defines the shape of VercelRewriteRule and VercelConfig types",
+      "confidence": 0.92
     },
     {
-      "topic": "ViteServerConfig",
-      "finding": "The vite.config.ts must configure `server.port` to exactly 4000 per the operating procedures. The test explicitly checks 'port must be exactly 4000'. The config should use `defineConfig` from vite with the react plugin.",
-      "source": "Operating procedures — 'Vite (dev server on port 4000)'; test name",
-      "relevance": "Direct contract test requirement",
-      "confidence": 0.99
+      "topic": "Vite configuration patterns",
+      "finding": "Vite config (vite.config.ts) is typically exported as a defineConfig() call. Key fields: plugins (array of plugin functions), resolve.alias (path aliases like '@' -> './src'), server.proxy (dev proxy rules), build.outDir, and define (compile-time constants). For scaffold generation, the ViteConfig type should capture these as structured data that can be serialized to a valid vite.config.ts file. Common plugins for React: @vitejs/plugin-react. For Convex: the vite plugin handles code generation.",
+      "source": "Vite documentation (vitejs.dev/config/), @vitejs/plugin-react",
+      "relevance": "Defines the ViteConfig struct shape and informs what fields are essential for scaffold generation",
+      "confidence": 0.9
     },
     {
-      "topic": "VitestConfig",
-      "finding": "The vitest configuration (likely in vite.config.ts under `test` key) must have: `environment: 'jsdom'`, `globals: true`, and `setupFiles: './src/test-setup.ts'`. All three are explicitly tested. The setupFiles path is relative to the config file location.",
-      "source": "Vitest configuration docs; test names for VitestConfig",
-      "relevance": "Direct contract test requirements",
-      "confidence": 0.99
+      "topic": "Enum patterns in TypeScript for string-based enums",
+      "finding": "TypeScript offers three patterns for string enums: (1) native `enum ScaffoldFilePath { ... }` with string values, (2) `as const` objects (`const ScaffoldFilePath = { ... } as const` with derived union type), (3) union type aliases. The `as const` pattern is increasingly preferred as it avoids TypeScript enum pitfalls (nominal typing, reverse mapping overhead, tree-shaking issues). For ScaffoldFilePath and ScaffoldError, the `as const` object pattern provides runtime values + type safety without enum quirks. Per project rules, all must be named exports.",
+      "source": "TypeScript handbook, Matt Pocock's Total TypeScript recommendations",
+      "relevance": "Directly affects implementation of ScaffoldFilePath and ScaffoldError enums — the 'as const' pattern is more idiomatic modern TypeScript",
+      "confidence": 0.88
     },
     {
-      "topic": "CSS Import in main.tsx Causes ENOENT",
-      "finding": "The main.tsx (mountApp) likely has `import './index.css'` which vitest tries to resolve. If index.css doesn't exist on disk, the import fails with ENOENT at module resolution time, crashing the entire test file. Even if the test mocks react-dom/client, CSS imports need to either: (a) exist on disk, or (b) be handled by vitest's CSS configuration (css: true/false). The safest approach is ensuring the file exists.",
-      "source": "Vitest CSS handling documentation; error trace analysis",
-      "relevance": "Root cause — this is why ALL tests fail, not just CSS-related ones",
-      "confidence": 0.97
+      "topic": "Validation patterns for project structure",
+      "finding": "validateScaffold should check: (1) existence of required files (package.json, tsconfig.json, vite.config.ts, vercel.json, index.html, src/main.tsx), (2) parsability of JSON/config files, (3) presence of required dependencies in package.json, (4) correct TypeScript compiler options. Return a structured result with per-file/per-check status rather than a boolean — this gives actionable diagnostics. Common pattern: accumulate errors into an array, return { valid: boolean, errors: ScaffoldError[] }.",
+      "source": "ESLint config validation, create-react-app eject validation, Nx workspace validation",
+      "relevance": "Directly informs the ScaffoldValidationResult type design and validateScaffold implementation",
+      "confidence": 0.91
     },
     {
-      "topic": "File Structure Convention",
-      "finding": "Based on the error paths, the project structure is: `src/project_scaffold/src/` contains the source files (App.tsx, main.tsx, index.css, test-setup.ts), and config files (vite.config.ts, tsconfig.json, tailwind.config.ts/js) live at `src/project_scaffold/`. Tests are at `tests/project_scaffold/contract_test.test.ts`. The tests import/read from relative paths based on this layout.",
-      "source": "Error path analysis: /apps/exemplar-tools-doc/src/project_scaffold/src/",
-      "relevance": "Getting the file paths exactly right is critical — prior failure was entirely about wrong/missing paths",
+      "topic": "Testing scaffold generators without filesystem",
+      "finding": "For vitest compatibility without external services: (1) generateScaffold should return in-memory file map (Map<string, string> or Record<ScaffoldFilePath, string>), (2) validateScaffold needs filesystem access — use dependency injection or a thin fs abstraction that can be mocked in tests, (3) vitest supports vi.mock() for module mocking and memfs (in-memory filesystem) for fs operations. However, per 'prefer stdlib' rule, simple vi.mock('node:fs') with manual mocks is preferable to adding memfs dependency.",
+      "source": "Vitest documentation, memfs library patterns, Yeoman testing guide",
+      "relevance": "Critical for meeting the 'tests must be runnable without external services' and 'prefer stdlib' requirements",
       "confidence": 0.93
     },
     {
-      "topic": "vi.mock() for CSS Imports",
-      "finding": "If the test file imports main.tsx which imports index.css, vitest may need CSS handling configured. Options: (1) vitest config `css: false` to skip CSS processing, (2) the test uses `vi.mock('./index.css', () => ({}))`, or (3) the actual CSS file exists and vitest handles it. Given the ENOENT error happens before test code runs, the file simply must exist on disk. Vitest by default can handle .css imports if the file exists (it returns an empty module).",
-      "source": "Vitest documentation on CSS handling",
-      "relevance": "Understanding why CSS file absence crashes everything",
-      "confidence": 0.92
+      "topic": "Dependency manifest patterns",
+      "finding": "DependencyEntry should capture: name, version (semver string), isDev (boolean for devDependencies vs dependencies), and optionally a purpose/description field. RequiredDependencies should group entries by category or as a flat array. getRequiredDependencies should return a deterministic, hardcoded list — not discover from filesystem. Common deps for a Vite+React+Convex stack: react, react-dom, convex, @vitejs/plugin-react (dev), vite (dev), typescript (dev).",
+      "source": "package.json specification (npm docs), create-vite templates",
+      "relevance": "Defines DependencyEntry and RequiredDependencies struct shapes",
+      "confidence": 0.89
+    },
+    {
+      "topic": "Common pitfalls in scaffold generation",
+      "finding": "Key pitfalls: (1) Path separator inconsistency — always use forward slashes in scaffold paths for cross-platform consistency, normalize with path.posix. (2) JSON serialization — use JSON.stringify with 2-space indent for human-readable output. (3) Version pinning — use caret ranges (^x.y.z) not exact versions to allow patch updates. (4) Forgetting .gitignore or env files in scaffold. (5) Hardcoding absolute paths instead of relative ones. (6) Not validating that ScaffoldOptions fields are non-empty/valid before generating.",
+      "source": "Common issues in create-* tool bug trackers, Yeoman known issues",
+      "relevance": "Directly prevents common bugs in implementation",
+      "confidence": 0.87
+    },
+    {
+      "topic": "Composition over inheritance for config builders",
+      "finding": "Per project standards, prefer composition. For building complex configs (Vercel, Vite), use a builder-function pattern: small pure functions that each produce a config fragment, composed together. E.g., buildVercelRewrites(options) returns rewrite rules, buildVitePlugins(options) returns plugin list, then assembleVercelConfig(...fragments) merges them. This is more testable than a class hierarchy and aligns with functional TypeScript idioms.",
+      "source": "Project operating procedures, functional programming patterns in TypeScript",
+      "relevance": "Architectural constraint from project standards — must use composition pattern",
+      "confidence": 0.95
+    },
+    {
+      "topic": "String key correctness in maps",
+      "finding": "Per CRITICAL project rule: ScaffoldFilePath enum values (used as keys in file maps) must be defined from the contract/type definition, not inferred from natural language. The enum values for file paths like 'package.json', 'tsconfig.json', etc. must exactly match what the contract tests expect. When building the scaffold result's file map, keys must come from the ScaffoldFilePath enum, not string literals. This prevents subtle mismatches (e.g., 'vite.config.ts' vs 'vite.config.mts').",
+      "source": "Project operating procedures — String Keys in Maps and Registries rule",
+      "relevance": "Critical correctness constraint — test failures from key mismatches are a top risk",
+      "confidence": 0.97
     }
   ],
-  "recommended_approach": "The implementation must create ALL physical files that are expected on disk. The prior attempt failed solely because `src/index.css` and `src/test-setup.ts` were missing. Here is the complete file manifest:\n\n1. **`src/project_scaffold/src/index.css`** — Must contain `@tailwind base;`, `@tailwind components;`, `@tailwind utilities;`\n\n2. **`src/project_scaffold/src/test-setup.ts`** — Must contain `import '@testing-library/jest-dom';`\n\n3. **`src/project_scaffold/src/App.tsx`** — Named export `App` function component returning JSX. No default export.\n\n4. **`src/project_scaffold/src/main.tsx`** — Side-effect-only module (no exports). Imports `./index.css`, imports `App` from `./App`, uses `createRoot(document.getElementById('root')!).render(<App />)`.\n\n5. **`src/project_scaffold/vite.config.ts`** — Uses `defineConfig` with react plugin, `server: { port: 4000 }`, and `test: { environment: 'jsdom', globals: true, setupFiles: './src/test-setup.ts' }`.\n\n6. **Config type exports** — Create a types file exporting `ReactElementNode`, `ViteServerConfig`, `VitestConfig`, `TsCompilerOptions`, `TailwindContentGlob`, `VercelRewriteRule`, `PackageDependencyMap`, `PackageDevDependencyMap` using `export type { }` syntax.\n\nKey principle: **Every file that any test reads from disk (via `fs.readFileSync` or `import`) must exist before tests run.** Do not assume vitest will mock away filesystem reads for CSS or setup files.",
+  "recommended_approach": "**Architecture: Functional core with in-memory representation**\n\n1. **Types file (`types.ts`, ~80 lines):** Define all 11 types as named exports. Use `as const` objects for ScaffoldFilePath and ScaffoldError enums, deriving union types. Structs as interfaces (ProjectManifest, DependencyEntry, RequiredDependencies, VercelRewriteRule, VercelConfig, ViteConfig, ScaffoldResult, ScaffoldOptions, ScaffoldValidationResult).\n\n2. **Core scaffold logic (`scaffold.ts`, ~200 lines):** Four exported functions:\n   - `generateScaffold(options: ScaffoldOptions): ScaffoldResult` — pure function, returns in-memory file map (Record<ScaffoldFilePath, string>) plus metadata. Composed from small builder functions (buildPackageJson, buildTsConfig, buildViteConfig, buildVercelConfig, buildIndexHtml, buildMainTsx).\n   - `getProjectManifest(): ProjectManifest` — returns static manifest describing the project structure.\n   - `getRequiredDependencies(): RequiredDependencies` — returns deterministic dependency list.\n   - `validateScaffold(projectRoot: string): ScaffoldValidationResult` — accepts fs abstraction via optional parameter or uses node:fs by default. Checks file existence, JSON parsability, required deps presence. Returns `{ valid: boolean, errors: Array<{ file: ScaffoldFilePath, error: ScaffoldError, message: string }> }`.\n\n3. **Tests (`scaffold.test.ts`, ~250 lines):** Test each function. For generateScaffold: verify all expected files present, JSON outputs are parseable, contents match expectations. For validateScaffold: mock node:fs to simulate valid/invalid project structures. For getRequiredDependencies: verify all critical deps included. For getProjectManifest: verify structure completeness.\n\n4. **Composition pattern:** Each config file's content is generated by a dedicated pure function. `generateScaffold` composes these. No classes.\n\n5. **Key discipline:** All file-path string keys come from the ScaffoldFilePath enum/const, never from inline string literals in business logic.",
   "alternatives_considered": [
-    "Mock CSS imports in vitest config with `css: false` instead of creating index.css — rejected because the test explicitly reads the file content to check for @tailwind directives, so the file must physically exist",
-    "Use vi.mock() in tests to mock the CSS import — rejected because the ENOENT occurs at vitest setup/module resolution time before any vi.mock() can intercept, and we don't control the test file",
-    "Place files at different paths (e.g., src/ instead of src/project_scaffold/src/) — rejected because error paths clearly show the expected location",
-    "Use default exports for App — rejected because operating procedures explicitly prohibit default exports"
+    "Class-based builder pattern (e.g., new ScaffoldBuilder().withVite().withVercel().build()) — rejected because project standards mandate composition over inheritance, and a class adds unnecessary state management for what is fundamentally a pure transformation",
+    "Template-file approach (read .hbs/.ejs templates from disk) — rejected because it introduces filesystem dependency in generation, complicates testing, and the configs are structured data better built programmatically than interpolated from templates",
+    "Using memfs for testing validateScaffold — rejected per 'prefer stdlib' rule; vi.mock('node:fs') with manual implementations is sufficient and avoids a third-party dependency",
+    "Native TypeScript enums for ScaffoldFilePath/ScaffoldError — viable but 'as const' objects are more idiomatic, tree-shake better, and avoid TypeScript enum gotchas (reverse mappings, nominal typing issues)"
   ],
   "risks": [
-    "If the test reads config files by importing them (e.g., `import config from '../vite.config'`), the vite.config.ts must be parseable in a test context — ensure no side effects that break in vitest",
-    "The exact relative path in setupFiles ('./src/test-setup.ts') must match what the test asserts — if the test checks for a different string form this will fail",
-    "The test for mountApp being side-effect-only may check `Object.keys(module)` — if any named export leaks (even a type re-export at runtime), it could fail",
-    "The index.css content test may do exact string matching — ensure no extra whitespace or content beyond the three @tailwind directives and minimal formatting"
+    "ScaffoldFilePath enum values may not match contract test expectations — mitigate by defining them from the contract/test data source of truth, not from assumptions",
+    "validateScaffold depends on node:fs which must be mockable in vitest — mitigate by using dynamic import or injectable fs parameter so tests remain hermetic",
+    "Generated JSON configs (package.json, tsconfig.json, vercel.json) must be valid JSON — mitigate by building as objects and using JSON.stringify, never string concatenation",
+    "File size limit (300 lines) may be tight if all logic is in one file — mitigate by splitting types into types.ts and helpers into focused utility functions",
+    "Vite config generation produces TypeScript source code (not JSON) — must use careful string building or template literals to produce syntactically valid vite.config.ts content"
   ],
   "compliance_notes": [
-    "All source files must be .ts or .tsx — no .js, .jsx, or .py files",
-    "TypeScript strict mode must be enabled in tsconfig",
-    "Named exports only — no default exports anywhere",
-    "Use `export type { }` for interfaces and type aliases",
-    "Type annotations on all public functions",
-    "Vite dev server port must be exactly 4000",
-    "Vitest config: environment='jsdom', globals=true, setupFiles='./src/test-setup.ts'"
+    "All files must be .ts — no .py, no .js",
+    "All public functions must have type annotations",
+    "Every type, interface, function, and constant must be a named export",
+    "No 'export default' as sole export — this component has no React components so default exports are not needed",
+    "import.meta.env must be accessed directly (import.meta.env.VITE_X), never via (import.meta as any)",
+    "Tests must use vitest, be runnable without external services",
+    "Each of the 4 functions needs at least one test",
+    "String keys in maps (ScaffoldFilePath values) must be verified against contract/type definitions, never inferred from names",
+    "Prefer node stdlib (node:fs, node:path) over third-party libraries",
+    "Files must stay under 300 lines — plan for types.ts + scaffold.ts + scaffold.test.ts split"
   ]
 }

@@ -6,15 +6,12 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      shared_ui: resolve(__dirname, 'src/shared_ui'),
-      page_content: resolve(__dirname, 'src/page_content'),
-      pipeline_diagram: resolve(__dirname, 'src/pipeline_diagram'),
-      routing_and_layout: resolve(__dirname, 'src/routing_and_layout'),
+      app_routing: resolve(__dirname, 'src/app_routing'),
+      page_components: resolve(__dirname, 'src/page_components'),
       project_scaffold: resolve(__dirname, 'src/project_scaffold'),
       root: resolve(__dirname, 'src/root'),
+      shared_components: resolve(__dirname, 'src/shared_components'),
     },
   },
-  server: {
-    port: 4000,
-  },
+  server: { port: 4000 },
 });

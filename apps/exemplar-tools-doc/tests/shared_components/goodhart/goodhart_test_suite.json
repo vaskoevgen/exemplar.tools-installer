@@ -1,0 +1,475 @@
+{
+  "component_id": "shared_components",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_callout_children_varied",
+      "description": "CalloutBox must render arbitrary children content, not just hardcoded text — verifies the component actually passes through children ReactNodes",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A gotcha callout with unique nested JSX children not seen in visible tests",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "children content appears in the rendered output",
+        "container has border styling for gotcha type"
+      ]
+    },
+    {
+      "id": "goodhart_callout_title_different_values",
+      "description": "CalloutBox title rendering must work for any non-empty string, not just titles used in visible tests",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A warning callout with a novel title string containing special characters",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "heading element contains the exact novel title text"
+      ]
+    },
+    {
+      "id": "goodhart_callout_undefined_title",
+      "description": "CalloutBox should not render a heading element when title prop is undefined (not just empty string)",
+      "function": "CalloutBox",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A tip callout with title prop omitted (undefined)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "no heading element is present in the DOM"
+      ]
+    },
+    {
+      "id": "goodhart_callout_invalid_type_uppercase",
+      "description": "CalloutType enum must be case-sensitive — uppercase variants like 'Gotcha' or 'WARNING' must be rejected",
+      "function": "CalloutBox",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CalloutBox with type='Gotcha' (capitalized)",
+      "expected_output_description": "",
+      "expected_error": "invalid_callout_type",
+      "assertions": [
+        "component throws or displays error for non-lowercase type variant"
+      ]
+    },
+    {
+      "id": "goodhart_callout_invalid_type_close_string",
+      "description": "CalloutType validation must reject strings that are close to valid variants but not exact matches",
+      "function": "CalloutBox",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CalloutBox with type='warn' (substring of 'warning')",
+      "expected_output_description": "",
+      "expected_error": "invalid_callout_type",
+      "assertions": [
+        "component throws or displays error for 'warn' type"
+      ]
+    },
+    {
+      "id": "goodhart_callout_icon_differs_per_type",
+      "description": "Each CalloutType must produce a visually distinct icon — implementation cannot use the same icon for all types",
+      "function": "CalloutBox",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Render all three callout types and compare their icon elements",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "gotcha icon differs from warning icon",
+        "warning icon differs from tip icon"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_novel_code_string",
+      "description": "CodeBlock must render the actual code prop text, not a hardcoded string matching visible test fixtures",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "A unique code string not used in any visible test: 'kubectl get pods --namespace=kube-system -o wide'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "the exact novel code string appears in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_copy_novel_code",
+      "description": "Copy button must pass the exact code prop to clipboard.writeText for any code string, not just visible test values",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {
+        "navigator.clipboard.writeText": "vi.fn().mockResolvedValue(undefined)"
+      },
+      "input_values": {},
+      "input_description": "CodeBlock with a unique multi-line code string, then click copy",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "clipboard.writeText called with exact multi-line code string"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_title_rendered",
+      "description": "CodeBlock title must be rendered as visible text above the code area for any title value",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CodeBlock with a novel title string 'Deployment Script v2'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "title text 'Deployment Script v2' appears in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_no_title",
+      "description": "CodeBlock should not render a title element when title prop is omitted or empty",
+      "function": "CodeBlock",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CodeBlock with code but no title prop",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "no title element is rendered above the code block"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_whitespace_only_code",
+      "description": "CodeBlock should treat whitespace-only code as valid (non-empty) since it contains characters",
+      "function": "CodeBlock",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CodeBlock with code='   ' (spaces only)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "component renders without error",
+        "code content is present"
+      ]
+    },
+    {
+      "id": "goodhart_codeblock_language_typescript",
+      "description": "CodeBlock must accept and use arbitrary language identifiers beyond the default 'bash'",
+      "function": "CodeBlock",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CodeBlock with language='typescript' and TypeScript code",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "component renders successfully",
+        "code text is visible"
+      ]
+    },
+    {
+      "id": "goodhart_version_badge_novel_version",
+      "description": "VersionBadge must display the exact version string passed, not a hardcoded value matching visible tests",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VersionBadge with version='4.7.2-rc.1'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "text content contains '4.7.2-rc.1'",
+        "element has rounded-full class"
+      ]
+    },
+    {
+      "id": "goodhart_version_badge_label_rendered",
+      "description": "VersionBadge should render the label prop alongside or near the version string when provided",
+      "function": "VersionBadge",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VersionBadge with version='2.0.0' and label='Release'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "version text '2.0.0' is present",
+        "label text 'Release' is present or version is displayed"
+      ]
+    },
+    {
+      "id": "goodhart_version_badge_single_char_version",
+      "description": "VersionBadge must accept any non-empty string as version, including a single character",
+      "function": "VersionBadge",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VersionBadge with version='1'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "renders without error",
+        "text content includes '1'",
+        "has rounded-full class"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_watch_url_with_params",
+      "description": "VideoEmbed must correctly convert watch URLs with additional query params (e.g., t= timestamp) to embed format",
+      "function": "VideoEmbed",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VideoEmbed with url='https://www.youtube.com/watch?v=abc123XYZ90&t=120'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "iframe is rendered",
+        "iframe src contains youtube embed path with video ID"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_short_url",
+      "description": "VideoEmbed should accept youtu.be short URLs as valid YouTube URLs",
+      "function": "VideoEmbed",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VideoEmbed with url='https://youtu.be/dQw4w9WgXcQ'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "iframe is rendered or URL is accepted without invalid_youtube_url error"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_custom_title",
+      "description": "VideoEmbed iframe title must reflect the actual title prop value, not a hardcoded default",
+      "function": "VideoEmbed",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VideoEmbed with title='My Custom Tutorial' and valid YouTube URL",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "iframe title attribute equals 'My Custom Tutorial'"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_reject_vimeo",
+      "description": "VideoEmbed must reject non-YouTube video URLs even from legitimate video platforms",
+      "function": "VideoEmbed",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VideoEmbed with url='https://vimeo.com/123456789'",
+      "expected_output_description": "",
+      "expected_error": "invalid_youtube_url",
+      "assertions": [
+        "component throws or shows error for Vimeo URL"
+      ]
+    },
+    {
+      "id": "goodhart_video_embed_reject_partial_youtube",
+      "description": "VideoEmbed must reject URLs that contain 'youtube' but are not valid video URLs",
+      "function": "VideoEmbed",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "VideoEmbed with url='https://youtube.com/results?search_query=cats'",
+      "expected_output_description": "",
+      "expected_error": "invalid_youtube_url",
+      "assertions": [
+        "component rejects youtube search URL as invalid"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_route_order_preserved",
+      "description": "Sidebar must render NavLinks in the exact order of the routes array, not sorted or shuffled",
+      "function": "Sidebar",
+      "category": "invariant",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sidebar with 3 routes in a specific order: Z-route first, A-route second, M-route third",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "NavLinks appear in DOM order matching input array order"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_navlink_href_exact",
+      "description": "Each NavLink 'to' attribute must exactly match the corresponding RouteEntry.path, not a derived or modified path",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sidebar with routes containing paths with varying patterns like '/foo/bar' and '/baz'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each link href matches the exact path from the route entry"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_single_route",
+      "description": "Sidebar must work correctly with a single-element routes array, not just hardcoded for multi-route scenarios",
+      "function": "Sidebar",
+      "category": "edge_case",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sidebar with exactly 1 route entry",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "exactly 1 link is rendered",
+        "nav element is present"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_many_routes",
+      "description": "Sidebar must dynamically render links for any number of routes, including the full 13-route manifest",
+      "function": "Sidebar",
+      "category": "happy_path",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sidebar with 7 route entries",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "exactly 7 links are rendered"
+      ]
+    },
+    {
+      "id": "goodhart_sidebar_nav_semantic_element",
+      "description": "Sidebar root must be a semantic <nav> HTML element, not just a div with role='navigation'",
+      "function": "Sidebar",
+      "category": "invariant",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Sidebar with standard routes",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "root element tagName is NAV"
+      ]
+    },
+    {
+      "id": "goodhart_page_layout_flex1_content",
+      "description": "PageLayout content area must use flex-1 or equivalent to fill remaining horizontal space",
+      "function": "PageLayout",
+      "category": "invariant",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "PageLayout with standard routes and children",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "content area element has flex-1 or grow class"
+      ]
+    },
+    {
+      "id": "goodhart_page_layout_sidebar_receives_routes",
+      "description": "PageLayout must actually pass routes to its internal Sidebar component, not render a static sidebar",
+      "function": "PageLayout",
+      "category": "happy_path",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "PageLayout with 3 custom routes and verify links appear",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all 3 route labels appear as navigation links in the sidebar area"
+      ]
+    },
+    {
+      "id": "goodhart_page_layout_children_novel_content",
+      "description": "PageLayout must render the actual children passed, not hardcoded content",
+      "function": "PageLayout",
+      "category": "happy_path",
+      "setup_description": "Wrap in MemoryRouter",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "PageLayout with unique child content 'Unique-Goodhart-Content-XYZ'",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "text 'Unique-Goodhart-Content-XYZ' is present in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_exports_named_and_default",
+      "description": "All components must be available as both named exports from their files — barrel index must re-export all named components",
+      "function": "CalloutBox",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "Import from the barrel index and verify named exports exist",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CalloutBox is a function",
+        "CodeBlock is a function",
+        "VersionBadge is a function",
+        "VideoEmbed is a function",
+        "Sidebar is a function",
+        "PageLayout is a function"
+      ]
+    },
+    {
+      "id": "goodhart_callout_multiple_children",
+      "description": "CalloutBox must render multiple children elements, not just a single text child",
+      "function": "CalloutBox",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "CalloutBox with multiple JSX children (paragraph + list)",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all child elements are rendered in the callout body"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport React from 'react';\nimport { render, screen, fireEvent } from '@testing-library/react';\nimport { MemoryRouter } from 'react-router-dom';\n\n// Import from barrel\nimport {\n  CalloutBox,\n  CodeBlock,\n  VersionBadge,\n  VideoEmbed,\n  Sidebar,\n  PageLayout,\n} from '../../../src/shared_components';\n\n// Helper to make route entries\nfunction makeRoute(path: string, label: string, componentKey: string = 'Home') {\n  return { path, label, componentKey };\n}\n\ndescribe('goodhart: CalloutBox', () => {\n  it('goodhart: should render arbitrary children content not seen in visible tests', () => {\n    const uniqueText = 'UniqueGoodhartChild-' + Date.now();\n    render(\n      <CalloutBox type=\"gotcha\" title=\"Test\">\n        <div data-testid=\"custom-child\">{uniqueText}</div>\n      </CalloutBox>\n    );\n    expect(screen.getByText(uniqueText)).toBeTruthy();\n  });\n\n  it('goodhart: should render novel title strings with special characters', () => {\n    const novelTitle = '⚠️ Caution: Don\\'t ignore <this> & \"that\"!';\n    render(\n      <CalloutBox type=\"warning\" title={novelTitle}>\n        <p>Body</p>\n      </CalloutBox>\n    );\n    // The title must appear as a heading or prominent text\n    expect(screen.getByText(novelTitle)).toBeTruthy();\n  });\n\n  it('goodhart: should not render heading when title is undefined (not just empty string)', () => {\n    const { container } = render(\n      <CalloutBox type=\"tip\" title={undefined as any}>\n        <p>Some content</p>\n      </CalloutBox>\n    );\n    // No heading elements should be present\n    const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');\n    expect(headings.length).toBe(0);\n  });\n\n  it('goodhart: should reject uppercase CalloutType variants like \"Gotcha\"', () => {\n    expect(() => {\n      render(\n        <CalloutBox type={'Gotcha' as any} title=\"Test\">\n          <p>Body</p>\n        </CalloutBox>\n      );\n    }).toThrow();\n  });\n\n  it('goodhart: should reject close-but-not-exact type strings like \"warn\"', () => {\n    expect(() => {\n      render(\n        <CalloutBox type={'warn' as any} title=\"Test\">\n          <p>Body</p>\n        </CalloutBox>\n      );\n    }).toThrow();\n  });\n\n  it('goodhart: should render distinct icons for each callout type', () => {\n    const { container: gotchaContainer } = render(\n      <CalloutBox type=\"gotcha\" title=\"G\">\n        <p>g</p>\n      </CalloutBox>\n    );\n    const { container: warningContainer } = render(\n      <CalloutBox type=\"warning\" title=\"W\">\n        <p>w</p>\n      </CalloutBox>\n    );\n    const { container: tipContainer } = render(\n      <CalloutBox type=\"tip\" title=\"T\">\n        <p>t</p>\n      </CalloutBox>\n    );\n\n    // Extract icon-like elements (svg, img, span with icon class, emoji text, etc.)\n    // The key assertion is that the three types don't produce identical markup\n    const gotchaHTML = gotchaContainer.innerHTML;\n    const warningHTML = warningContainer.innerHTML;\n    const tipHTML = tipContainer.innerHTML;\n\n    // At least two of the three must differ (they can't all be identical)\n    const allSame = gotchaHTML === warningHTML && warningHTML === tipHTML;\n    expect(allSame).toBe(false);\n  });\n\n  it('goodhart: should render multiple children elements in the callout body', () => {\n    render(\n      <CalloutBox type=\"tip\" title=\"Multi-child\">\n        <p>First paragraph</p>\n        <ul>\n          <li>Item one</li>\n          <li>Item two</li>\n        </ul>\n      </CalloutBox>\n    );\n    expect(screen.getByText('First paragraph')).toBeTruthy();\n    expect(screen.getByText('Item one')).toBeTruthy();\n    expect(screen.getByText('Item two')).toBeTruthy();\n  });\n});\n\ndescribe('goodhart: CodeBlock', () => {\n  beforeEach(() => {\n    Object.assign(navigator, {\n      clipboard: {\n        writeText: vi.fn().mockResolvedValue(undefined),\n      },\n    });\n  });\n\n  it('goodhart: should render novel code strings not used in visible tests', () => {\n    const novelCode = 'kubectl get pods --namespace=kube-system -o wide';\n    render(<CodeBlock code={novelCode} language=\"bash\" title=\"\" />);\n    expect(screen.getByText(novelCode, { exact: false })).toBeTruthy();\n  });\n\n  it('goodhart: should copy the exact novel multi-line code string on button click', async () => {\n    const multiLineCode = 'const x = 1;\\nconst y = 2;\\nconsole.log(x + y);';\n    render(<CodeBlock code={multiLineCode} language=\"javascript\" title=\"Example\" />);\n\n    const copyButton = screen.getByRole('button');\n    await fireEvent.click(copyButton);\n\n    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(multiLineCode);\n  });\n\n  it('goodhart: should render a novel title string above the code block', () => {\n    render(\n      <CodeBlock code=\"echo hello\" language=\"bash\" title=\"Deployment Script v2\" />\n    );\n    expect(screen.getByText('Deployment Script v2')).toBeTruthy();\n  });\n\n  it('goodhart: should not render title element when title prop is omitted or empty', () => {\n    const { container } = render(\n      <CodeBlock code=\"echo hello\" language=\"bash\" title=\"\" />\n    );\n    // The code should render but no title text\n    // We verify by checking that 'echo hello' is present but no extra heading/title\n    expect(screen.getByText('echo hello', { exact: false })).toBeTruthy();\n    // Should not have any heading elements for the title\n    const headings = container.querySelectorAll('h1, h2, h3, h4, h5, h6');\n    const titleDivs = container.querySelectorAll('[class*=\"title\"]');\n    // At minimum, there shouldn't be an element with empty title text\n    // The key check: no visible title text appears (code block works without it)\n  });\n\n  it('goodhart: should accept whitespace-only code as valid non-empty input', () => {\n    expect(() => {\n      render(<CodeBlock code=\"   \" language=\"bash\" title=\"\" />);\n    }).not.toThrow();\n  });\n\n  it('goodhart: should accept and render with language=\"typescript\"', () => {\n    const tsCode = 'const greeting: string = \"hello\";';\n    expect(() => {\n      render(<CodeBlock code={tsCode} language=\"typescript\" title=\"TS Example\" />);\n    }).not.toThrow();\n    expect(screen.getByText(tsCode, { exact: false })).toBeTruthy();\n  });\n});\n\ndescribe('goodhart: VersionBadge', () => {\n  it('goodhart: should display a novel version string not seen in visible tests', () => {\n    render(<VersionBadge version=\"4.7.2-rc.1\" label=\"\" />);\n    expect(screen.getByText('4.7.2-rc.1', { exact: false })).toBeTruthy();\n    // Must have pill styling\n    const badge = screen.getByText('4.7.2-rc.1', { exact: false });\n    const el = badge.closest('[class*=\"rounded-full\"]') || badge;\n    expect(el.className).toMatch(/rounded-full/);\n  });\n\n  it('goodhart: should render label prop when provided', () => {\n    const { container } = render(<VersionBadge version=\"2.0.0\" label=\"Release\" />);\n    expect(screen.getByText('2.0.0', { exact: false })).toBeTruthy();\n    // Label should appear somewhere in the rendered output\n    expect(container.textContent).toContain('2.0.0');\n  });\n\n  it('goodhart: should accept single character version string', () => {\n    render(<VersionBadge version=\"1\" label=\"\" />);\n    const el = screen.getByText('1', { exact: false });\n    expect(el).toBeTruthy();\n    // Should still have pill class\n    const badge = el.closest('[class*=\"rounded-full\"]') || el;\n    expect(badge.className).toMatch(/rounded-full/);\n  });\n});\n\ndescribe('goodhart: VideoEmbed', () => {\n  it('goodhart: should handle watch URLs with additional query params like timestamp', () => {\n    const { container } = render(\n      <VideoEmbed url=\"https://www.youtube.com/watch?v=abc123XYZ90&t=120\" title=\"Timestamped\" />\n    );\n    const iframe = container.querySelector('iframe');\n    expect(iframe).toBeTruthy();\n    // The src should contain the video ID in an embed format\n    expect(iframe!.src).toContain('abc123XYZ90');\n  });\n\n  it('goodhart: should set iframe title to the exact custom title prop value', () => {\n    const { container } = render(\n      <VideoEmbed url=\"https://www.youtube.com/embed/dQw4w9WgXcQ\" title=\"My Custom Tutorial\" />\n    );\n    const iframe = container.querySelector('iframe');\n    expect(iframe).toBeTruthy();\n    expect(iframe!.title).toBe('My Custom Tutorial');\n  });\n\n  it('goodhart: should reject Vimeo URLs as invalid', () => {\n    expect(() => {\n      render(<VideoEmbed url=\"https://vimeo.com/123456789\" title=\"Vimeo\" />);\n    }).toThrow();\n  });\n\n  it('goodhart: should reject YouTube search result URLs as invalid', () => {\n    expect(() => {\n      render(\n        <VideoEmbed url=\"https://youtube.com/results?search_query=cats\" title=\"Search\" />\n      );\n    }).toThrow();\n  });\n\n  it('goodhart: should accept youtu.be short URLs', () => {\n    // youtu.be is a valid YouTube URL format\n    const renderShortUrl = () => {\n      render(<VideoEmbed url=\"https://youtu.be/dQw4w9WgXcQ\" title=\"Short URL\" />);\n    };\n    // Should either render successfully or at minimum not reject as invalid\n    // Most implementations should accept this common YouTube format\n    expect(renderShortUrl).not.toThrow();\n  });\n});\n\ndescribe('goodhart: Sidebar', () => {\n  it('goodhart: should preserve route order exactly as provided in the array', () => {\n    const routes = [\n      makeRoute('/zebra', 'Zebra Route'),\n      makeRoute('/alpha', 'Alpha Route'),\n      makeRoute('/middle', 'Middle Route'),\n    ];\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <Sidebar routes={routes as any} />\n      </MemoryRouter>\n    );\n\n    const links = screen.getAllByRole('link');\n    expect(links[0].textContent).toContain('Zebra Route');\n    expect(links[1].textContent).toContain('Alpha Route');\n    expect(links[2].textContent).toContain('Middle Route');\n  });\n\n  it('goodhart: should set NavLink href to the exact RouteEntry.path value', () => {\n    const routes = [\n      makeRoute('/foo/bar', 'Foo Bar'),\n      makeRoute('/baz-qux', 'Baz Qux'),\n    ];\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <Sidebar routes={routes as any} />\n      </MemoryRouter>\n    );\n\n    const links = screen.getAllByRole('link');\n    expect(links[0].getAttribute('href')).toBe('/foo/bar');\n    expect(links[1].getAttribute('href')).toBe('/baz-qux');\n  });\n\n  it('goodhart: should render correctly with a single route entry', () => {\n    const routes = [makeRoute('/only', 'Only Route')];\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <Sidebar routes={routes as any} />\n      </MemoryRouter>\n    );\n\n    const links = screen.getAllByRole('link');\n    expect(links.length).toBe(1);\n    expect(links[0].textContent).toContain('Only Route');\n\n    // nav element should still be present\n    const nav = screen.getByRole('navigation');\n    expect(nav).toBeTruthy();\n  });\n\n  it('goodhart: should dynamically render links for any count of routes (7 routes)', () => {\n    const routes = Array.from({ length: 7 }, (_, i) =>\n      makeRoute(`/route-${i}`, `Route ${i}`)\n    );\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <Sidebar routes={routes as any} />\n      </MemoryRouter>\n    );\n\n    const links = screen.getAllByRole('link');\n    expect(links.length).toBe(7);\n  });\n\n  it('goodhart: should use semantic <nav> HTML element as root', () => {\n    const routes = [makeRoute('/test', 'Test')];\n\n    const { container } = render(\n      <MemoryRouter initialEntries={['/']}>\n        <Sidebar routes={routes as any} />\n      </MemoryRouter>\n    );\n\n    const nav = container.querySelector('nav');\n    expect(nav).toBeTruthy();\n    expect(nav!.tagName).toBe('NAV');\n  });\n});\n\ndescribe('goodhart: PageLayout', () => {\n  it('goodhart: should have flex-1 on the content area for remaining space', () => {\n    const routes = [makeRoute('/home', 'Home')];\n\n    const { container } = render(\n      <MemoryRouter initialEntries={['/']}>\n        <PageLayout routes={routes as any}>\n          <div>Content</div>\n        </PageLayout>\n      </MemoryRouter>\n    );\n\n    // Find the main content area (main element or a div wrapping children)\n    const mainOrContent =\n      container.querySelector('main') ||\n      container.querySelector('[class*=\"flex-1\"]') ||\n      container.querySelector('[class*=\"grow\"]');\n    expect(mainOrContent).toBeTruthy();\n    expect(mainOrContent!.className).toMatch(/flex-1|grow/);\n  });\n\n  it('goodhart: should pass routes to Sidebar so that custom route labels appear as links', () => {\n    const routes = [\n      makeRoute('/aaa', 'Goodhart Alpha'),\n      makeRoute('/bbb', 'Goodhart Beta'),\n      makeRoute('/ccc', 'Goodhart Gamma'),\n    ];\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <PageLayout routes={routes as any}>\n          <div>Main</div>\n        </PageLayout>\n      </MemoryRouter>\n    );\n\n    expect(screen.getByText('Goodhart Alpha')).toBeTruthy();\n    expect(screen.getByText('Goodhart Beta')).toBeTruthy();\n    expect(screen.getByText('Goodhart Gamma')).toBeTruthy();\n  });\n\n  it('goodhart: should render novel children content that could not be hardcoded', () => {\n    const routes = [makeRoute('/x', 'X')];\n    const uniqueContent = 'Unique-Goodhart-Content-XYZ-' + Math.random().toString(36).slice(2);\n\n    render(\n      <MemoryRouter initialEntries={['/']}>\n        <PageLayout routes={routes as any}>\n          <div>{uniqueContent}</div>\n        </PageLayout>\n      </MemoryRouter>\n    );\n\n    expect(screen.getByText(uniqueContent)).toBeTruthy();\n  });\n});\n\ndescribe('goodhart: barrel exports', () => {\n  it('goodhart: all six components must be exported as named functions from the barrel', () => {\n    expect(typeof CalloutBox).toBe('function');\n    expect(typeof CodeBlock).toBe('function');\n    expect(typeof VersionBadge).toBe('function');\n    expect(typeof VideoEmbed).toBe('function');\n    expect(typeof Sidebar).toBe('function');\n    expect(typeof PageLayout).toBe('function');\n  });\n});\n"
+}

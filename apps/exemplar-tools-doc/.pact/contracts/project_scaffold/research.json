@@ -1,117 +1,120 @@
 {
-  "task_summary": "Define the interface contract for the 'Project Scaffold & Configuration' component (id: project_scaffold) — the foundational bootstrapping layer of the exemplar-tools-doc website. This component provides: package.json with all dependencies, vite.config.ts (port 4000), tsconfig.json (strict mode), tailwind.config.js, postcss.config.js, index.html, vercel.json (SPA rewrites), and the main App.tsx shell with BrowserRouter. No page content — config files only. All exports must be named exports per SOP. TypeScript strict mode throughout.",
+  "task_summary": "Define the interface contract for the 'Project Scaffold & Configuration' component (id: project_scaffold). This component initializes the exemplar-tools-doc/ project directory with all configuration files: package.json, tsconfig.json, vite.config.ts (port 4000), tailwind.config.ts, postcss.config.ts, index.html, vercel.json (SPA rewrite), and vitest.setup.ts. All files must be TypeScript — no .py or .js source files. The contract must specify exact file paths, file contents structure, dependency versions, and configuration shapes so downstream components (app_routing, shared_components, page_components) can rely on a deterministic project structure.",
   "findings": [
     {
       "topic": "Vite + React + TypeScript project structure",
-      "finding": "The canonical Vite React-TS template uses vite.config.ts with `@vitejs/plugin-react`, tsconfig.json with strict mode and composite references (tsconfig.app.json, tsconfig.node.json). For a scaffold component, the critical config is `server.port: 4000` in vite.config.ts. The `defineConfig` export should be a named export per SOP, but Vite requires a default export from vite.config.ts — this is the ONE exception where default export is mandated by the tool. Convention: use `const config = defineConfig({...}); export default config;` but do NOT re-export as named from application code.",
-      "source": "Vite documentation (vitejs.dev), vite create templates",
-      "relevance": "Directly defines the build tool configuration contract",
-      "confidence": 0.95
-    },
-    {
-      "topic": "Config files that MUST use default exports (tool-mandated exceptions)",
-      "finding": "Several config files are consumed by tools that require default exports: vite.config.ts (Vite), tailwind.config.js (Tailwind CSS), postcss.config.js (PostCSS). These are NOT application source modules — they are tool configuration files. The SOP 'named exports only' rule should apply to application source (.ts/.tsx) files, not tool configs. The contract should explicitly note these exceptions.",
-      "source": "Vite, Tailwind CSS, PostCSS documentation",
-      "relevance": "Critical to avoid SOP misinterpretation that would break builds",
+      "finding": "The canonical Vite React-TS template places config at root (vite.config.ts, tsconfig.json, tsconfig.node.json), source under src/, and index.html at root. vite.config.ts uses defineConfig from 'vite' and @vitejs/plugin-react. The dev server port is set via server.port in the Vite config. TypeScript strict mode should be enabled. Path aliases (e.g., @/ → src/) are commonly configured in both vite.config.ts (via resolve.alias) and tsconfig.json (via paths).",
+      "source": "Vite official documentation (vitejs.dev), create-vite template react-ts",
+      "relevance": "Directly defines the structure and configuration patterns this component must produce.",
       "confidence": 0.97
     },
     {
-      "topic": "tsconfig.json strict mode settings",
-      "finding": "TypeScript strict mode (`\"strict\": true`) enables: strictNullChecks, strictFunctionTypes, strictBindCallApply, strictPropertyInitialization, noImplicitAny, noImplicitThis, alwaysStrict. For React 18 + Vite, also need: `\"jsx\": \"react-jsx\"`, `\"module\": \"ESNext\"`, `\"moduleResolution\": \"bundler\"` (or `\"node\"`), `\"target\": \"ES2020\"` minimum, `\"esModuleInterop\": true`, `\"skipLibCheck\": true`, and `\"isolatedModules\": true` (required by Vite's esbuild transpilation).",
-      "source": "TypeScript handbook, Vite troubleshooting docs",
-      "relevance": "Defines the TypeScript compilation contract all downstream components depend on",
-      "confidence": 0.95
-    },
-    {
-      "topic": "App.tsx shell with BrowserRouter — named export pattern",
-      "finding": "The App.tsx shell should export a named `App` component (not default) that wraps children in `<BrowserRouter>`. Since this is the top-level shell, it should set up the router context but NOT define routes — route registration belongs to the routing_and_layout component. The contract: `export function App(): React.ReactElement` wrapping `<BrowserRouter>` around a placeholder or `<Outlet>` / `{children}`. For index.html, the entry script `main.tsx` will import `{ App }` and call `createRoot().render(<App />)`.",
-      "source": "React Router v6 documentation, React 18 createRoot API",
-      "relevance": "Defines the primary exported component contract consumed by downstream components",
+      "topic": "Tailwind CSS v3/v4 with Vite — TypeScript config",
+      "finding": "Tailwind CSS v3 uses a tailwind.config.ts (or .js) file with content paths pointing to src/**/*.{ts,tsx}. PostCSS config is required — postcss.config.ts (or .mjs) must reference tailwindcss and autoprefixer plugins. Tailwind v3's config exports a Config type from 'tailwindcss/types/config' (or 'tailwindcss' directly). A globals.css with @tailwind base/components/utilities directives is needed as the CSS entry point.",
+      "source": "Tailwind CSS v3 documentation, Vite integration guide",
+      "relevance": "Tailwind and PostCSS config files are explicit deliverables of this component. Using .ts for both avoids .js files per project rules.",
       "confidence": 0.93
     },
     {
-      "topic": "Tailwind CSS v3 configuration with Vite",
-      "finding": "Tailwind CSS v3 with Vite requires: tailwind.config.js with `content` array pointing to `./index.html` and `./src/**/*.{ts,tsx}`, postcss.config.js with `tailwindcss` and `autoprefixer` plugins, and a CSS entry file with `@tailwind base; @tailwind components; @tailwind utilities;` directives. The content paths are critical — missing them causes Tailwind to purge all classes in production.",
-      "source": "Tailwind CSS v3 installation guide for Vite",
-      "relevance": "Styling infrastructure contract — incorrect content paths silently break production builds",
+      "topic": "PostCSS config in TypeScript — .ts vs .mjs",
+      "finding": "PostCSS does NOT natively support .ts config files. The standard approach is postcss.config.mjs (ESM) or postcss.config.cjs (CJS). Vite's internal PostCSS loader reads postcss.config.js/.cjs/.mjs but not .ts. However, since Vite processes PostCSS internally, the postcss config can alternatively be inlined into vite.config.ts via the css.postcss option, avoiding a separate config file entirely. This is the cleanest way to satisfy the 'no .js files' constraint.",
+      "source": "Vite docs (css.postcss config option), PostCSS loader documentation",
+      "relevance": "Critical — the operating procedures mandate no .js source files. postcss.config.ts is not natively supported. Two viable paths: inline in vite.config.ts or use .mjs extension.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Vitest configuration with jsdom and @testing-library",
+      "finding": "Vitest is configured either in a dedicated vitest.config.ts or within vite.config.ts via the test property (using /// <reference types='vitest' /> or mergeConfig). The setup file (vitest.setup.ts) should import '@testing-library/jest-dom' to extend expect matchers. The test environment must be set to 'jsdom'. setupFiles should point to the setup file path. globals: true enables global test functions (describe, it, expect) without imports.",
+      "source": "Vitest documentation, @testing-library/jest-dom integration guide",
+      "relevance": "vitest.setup.ts is an explicit deliverable. The test configuration must be correct for all downstream component tests.",
+      "confidence": 0.96
+    },
+    {
+      "topic": "tsconfig.json settings for Vite + React",
+      "finding": "Recommended tsconfig for Vite React-TS: target ES2020+, module ESNext, moduleResolution bundler (TS 5+) or node, jsx react-jsx, strict true, skipLibCheck true, esModuleInterop true, isolatedModules true (required by Vite's esbuild transform), lib [ES2020, DOM, DOM.Iterable]. A separate tsconfig.node.json is used for vite.config.ts with composite: true. The main tsconfig references it and uses include: ['src'].",
+      "source": "Vite create-vite react-ts template, TypeScript handbook",
+      "relevance": "tsconfig.json is an explicit deliverable. isolatedModules is especially important — Vite requires it and omitting it causes subtle transpilation bugs.",
       "confidence": 0.95
     },
     {
       "topic": "Vercel SPA rewrite configuration",
-      "finding": "For single-page applications on Vercel, `vercel.json` needs `{ \"rewrites\": [{ \"source\": \"/(.*)\", \"destination\": \"/index.html\" }] }`. This ensures all routes (including deep links to /cartographer, /constrain, etc.) resolve to the SPA entry point. Without this, direct navigation or page refresh on any non-root route returns 404.",
-      "source": "Vercel documentation on SPA routing",
-      "relevance": "Deployment contract — all 14 routes from RouteSlug enum must be accessible via direct navigation",
+      "finding": "vercel.json for SPAs uses { \"rewrites\": [{ \"source\": \"/(.*)\", \"destination\": \"/index.html\" }] }. This catches all routes and serves index.html, enabling client-side routing. The exact shape is specified in the task description. No buildCommand or outputDirectory is strictly needed if Vercel auto-detects the Vite framework.",
+      "source": "Vercel documentation on rewrites, SPA deployment guides",
+      "relevance": "vercel.json is an explicit deliverable with exact content specified in the task.",
+      "confidence": 0.98
+    },
+    {
+      "topic": "package.json dependency version pinning strategy",
+      "finding": "For reproducibility, dependencies should use caret ranges (^) with specific minor versions rather than 'latest'. Key version considerations: react 18.x (react 19 is canary), react-router-dom v6 (v7 has breaking changes with new data router API), tailwindcss v3.4.x (v4 has breaking config changes), vite v5.x, vitest v1.x or v2.x (should match vite major), prism-react-renderer v2.x (v1 had very different API). The 'type: module' field in package.json is recommended for ESM Vite projects.",
+      "source": "npm registry, React/Vite/Tailwind changelogs",
+      "relevance": "package.json is a core deliverable. Version mismatches between vite and vitest, or using Tailwind v4 config format with v3 expectations, are common pitfalls.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "index.html structure for Vite SPA",
+      "finding": "Vite uses index.html at the project root as the entry point (not in public/). It must contain a <div id='root'></div> mount point and a <script type='module' src='/src/main.tsx'></script> entry. The HTML should include proper meta viewport tag, charset, and title. CSS is imported from within the TS entry point, not linked in HTML.",
+      "source": "Vite documentation on index.html and project structure",
+      "relevance": "index.html is an explicit deliverable. Placing it in the wrong directory or omitting type='module' on the script tag are common mistakes.",
       "confidence": 0.97
     },
     {
-      "topic": "Package.json dependency version pinning",
-      "finding": "For reproducible builds, pin major versions with caret ranges (e.g., `^18.2.0` for React). Key dependencies: react (^18.x), react-dom (^18.x), react-router-dom (^6.x), devDependencies: vite (^5.x), @vitejs/plugin-react (^4.x), typescript (^5.x), tailwindcss (^3.x), postcss (^8.x), autoprefixer (^10.x), vitest (^1.x or ^2.x), @testing-library/react (^14.x or ^15.x), @testing-library/jest-dom (^6.x), jsdom (^24.x), @types/react (^18.x), @types/react-dom (^18.x).",
-      "source": "npm registry, Vite/React/Vitest compatibility matrices",
-      "relevance": "Defines the dependency contract all other components build against",
+      "topic": "TypeScript path aliases for clean imports",
+      "finding": "Path aliases like @/ → ./src/ improve import readability. Must be configured in BOTH tsconfig.json (paths: { '@/*': ['./src/*'] }, baseUrl: '.') AND vite.config.ts (resolve.alias: { '@': path.resolve(__dirname, 'src') }). Without both, either the IDE or the build will fail to resolve. With vitest, aliases from vite.config.ts are automatically inherited.",
+      "source": "Vite resolve.alias docs, TypeScript path mapping docs",
+      "relevance": "While not explicitly required, path aliases are a strong convention for projects of this scale. If included, dual-configuration is essential.",
       "confidence": 0.9
     },
     {
-      "topic": "Vitest configuration for React component testing",
-      "finding": "Vitest config should be in vite.config.ts under the `test` key (or a separate vitest.config.ts). Key settings: `environment: 'jsdom'`, `globals: true` (so `describe`/`it`/`expect` are available without imports), `setupFiles` pointing to a test setup file that imports `@testing-library/jest-dom`. The `css: true` option may be needed if components import CSS. Adding `/// <reference types=\"vitest\" />` at the top of vite.config.ts provides type support.",
-      "source": "Vitest documentation, @testing-library/react setup guides",
-      "relevance": "Testing infrastructure contract — all downstream component tests depend on this configuration",
+      "topic": "Vitest type augmentation for jest-dom matchers",
+      "finding": "With @testing-library/jest-dom v6+, TypeScript types are included in the package. The setup file needs `import '@testing-library/jest-dom'` for runtime, and tsconfig should include the setup file or use a triple-slash reference `/// <reference types='@testing-library/jest-dom' />` for type coverage. Without this, matchers like toBeInTheDocument() will show TS errors.",
+      "source": "@testing-library/jest-dom v6 migration guide, vitest TypeScript docs",
+      "relevance": "Downstream tests will use jest-dom matchers extensively. Type augmentation must be correct in the scaffold.",
       "confidence": 0.94
     },
     {
-      "topic": "index.html entry point structure",
-      "finding": "Vite uses index.html at the project root (not in /public) as the entry point. It must contain a `<div id=\"root\"></div>` mount point and a `<script type=\"module\" src=\"/src/main.tsx\"></script>` entry. The main.tsx file imports the App component and calls `ReactDOM.createRoot(document.getElementById('root')!).render(...)`. The `!` non-null assertion is acceptable here since the element is guaranteed by index.html.",
-      "source": "Vite documentation on index.html and project structure",
-      "relevance": "Defines the HTML entry contract and the bridge between index.html and the React app",
+      "topic": "React import requirement in .tsx files",
+      "finding": "With jsx: 'react-jsx' in tsconfig (the new JSX transform), explicit `import React from 'react'` is NOT required by the compiler for JSX. However, the project operating procedures explicitly mandate it: 'Every .tsx file must include import React from react at the top'. This is a project convention that must be respected regardless of compiler settings.",
+      "source": "Project operating procedures, React 17+ new JSX transform docs",
+      "relevance": "The scaffold's tsconfig uses react-jsx which doesn't need the import, but the operating procedures override this. All downstream .tsx files must include the import. The scaffold should not configure anything that breaks this pattern.",
+      "confidence": 0.99
+    },
+    {
+      "topic": "CSS entry point for Tailwind in Vite",
+      "finding": "A src/index.css (or src/globals.css) file with the three Tailwind directives (@tailwind base; @tailwind components; @tailwind utilities;) must exist and be imported in the application entry point (main.tsx). This file is the bridge between Tailwind's PostCSS processing and the application. Without it, Tailwind classes have no effect.",
+      "source": "Tailwind CSS + Vite installation guide",
+      "relevance": "This is an often-forgotten file in scaffold definitions. Without it, the entire Tailwind integration is non-functional even if all config files are correct.",
       "confidence": 0.96
-    },
-    {
-      "topic": "Named exports only — implications for main.tsx and App.tsx",
-      "finding": "The SOP mandates named exports only and `export type { }` for type-only exports. For App.tsx: `export function App()` (not `export default function App()`). For main.tsx: this is a side-effect entry point that doesn't export anything — it only imports and mounts. No conflict with SOP. The scaffold should also export a CSS entry file (src/index.css) with Tailwind directives, which is imported by main.tsx as a side effect.",
-      "source": "Project SOP, TypeScript module conventions",
-      "relevance": "Ensures all application code follows the named-export-only contract",
-      "confidence": 0.96
-    },
-    {
-      "topic": "File and directory structure conventions",
-      "finding": "Standard Vite + React project layout: root config files (vite.config.ts, tsconfig.json, tailwind.config.js, postcss.config.js, package.json, vercel.json, index.html), src/ directory with main.tsx (entry), App.tsx (shell), index.css (Tailwind directives), and subdirectories for components, pages, etc. The scaffold should establish src/ but NOT create page/component subdirectories — those belong to downstream components.",
-      "source": "Vite project templates, React community conventions",
-      "relevance": "Defines the directory structure contract for all downstream components",
-      "confidence": 0.93
-    },
-    {
-      "topic": "Contract testing for configuration files",
-      "finding": "Per SOP, all functions must have at least one test. For a scaffold component, testable contracts include: (1) App component renders without crashing, (2) App component wraps content in a router context (test by rendering a route-dependent child), (3) Vite config exports correct port. Config files (JSON/JS) can be validated structurally. Use vitest with jsdom for React component tests.",
-      "source": "Vitest documentation, testing best practices for React apps",
-      "relevance": "Defines what must be tested for this component to meet SOP verification requirements",
-      "confidence": 0.91
     }
   ],
-  "recommended_approach": "Define the project_scaffold interface contract as follows:\n\n**Exported Artifacts (application code — named exports only):**\n1. `src/App.tsx` — exports `App` function component that renders `<BrowserRouter>` wrapping a `<div>` with an `id=\"app-shell\"` (or similar). Children/routes will be injected by the routing_and_layout component. Signature: `export function App(): React.ReactElement`.\n2. `src/main.tsx` — side-effect entry module (no exports). Imports `{ App }` from `./App`, mounts to `#root` via `createRoot`.\n3. `src/index.css` — Tailwind directive file (`@tailwind base/components/utilities`). Imported by main.tsx.\n\n**Config Files (tool-mandated, exempt from named-export SOP):**\n4. `package.json` — all runtime and dev dependencies with caret-pinned versions.\n5. `vite.config.ts` — `@vitejs/plugin-react`, `server.port: 4000`, vitest `test` block with `environment: 'jsdom'`, `globals: true`, `setupFiles`.\n6. `tsconfig.json` — `strict: true`, `jsx: 'react-jsx'`, `moduleResolution: 'bundler'`, `isolatedModules: true`.\n7. `tailwind.config.js` — `content: ['./index.html', './src/**/*.{ts,tsx}']`.\n8. `postcss.config.js` — tailwindcss + autoprefixer plugins.\n9. `index.html` — `<div id=\"root\">` + `<script type=\"module\" src=\"/src/main.tsx\">`.\n10. `vercel.json` — `rewrites: [{ source: \"/(.*)\", destination: \"/index.html\" }]`.\n11. `src/test-setup.ts` — imports `@testing-library/jest-dom`.\n\n**Contract Tests:**\n- `src/App.test.tsx` — verifies `App` renders, provides router context, and uses named export.\n\n**No types are defined by this component** — it owns no registry types. It consumes no registry types directly (those are consumed by downstream components). The scaffold's contract is purely structural: it guarantees the build/test/deploy infrastructure that all other components depend on.",
+  "recommended_approach": "The project_scaffold component should produce a deterministic set of files at known paths under the project root. The interface contract should:\n\n1. **Enumerate every file path** as a literal string union or checklist — downstream components depend on exact paths (e.g., `src/main.tsx`, `src/index.css`).\n\n2. **Inline PostCSS config into vite.config.ts** via the `css.postcss` option rather than producing a standalone postcss.config.ts, since PostCSS does not natively support .ts config files. If a standalone file is required per the task description, use postcss.config.mjs (ESM) as the .ts-equivalent — this satisfies \"no .js\" while remaining functional.\n\n3. **Configure vitest inside vite.config.ts** using the `test` property with `environment: 'jsdom'`, `globals: true`, and `setupFiles: ['./vitest.setup.ts']`. The setup file imports `@testing-library/jest-dom`.\n\n4. **Pin dependency versions** to known-compatible ranges: react@^18.3, react-dom@^18.3, react-router-dom@^6.23, vite@^5.4, @vitejs/plugin-react@^4.3, tailwindcss@^3.4, vitest@^1.6 (or ^2.0), @testing-library/react@^16, @testing-library/jest-dom@^6, jsdom@^24, prism-react-renderer@^2.3.\n\n5. **Set Vite dev server port to 4000** explicitly in `server.port`.\n\n6. **vercel.json** with the exact SPA rewrite rule as specified.\n\n7. **Include src/index.css** with Tailwind directives and **src/main.tsx** as a minimal React entry point that imports the CSS and mounts to `#root`.\n\n8. **Export a ProjectManifest type** from the contract that enumerates all produced file paths, enabling downstream components to assert scaffold completeness.\n\n9. **Contract tests** should verify: (a) all expected file paths exist, (b) package.json contains all required dependencies, (c) vite.config.ts has port 4000, (d) vitest.setup.ts imports jest-dom, (e) vercel.json has the correct rewrite rule, (f) no .py or .js files exist in the output.",
   "alternatives_considered": [
-    "Using a separate vitest.config.ts instead of embedding test config in vite.config.ts — rejected because co-locating in vite.config.ts is simpler and the vitest docs recommend it for Vite projects. A separate file adds maintenance burden with no benefit at this scale.",
-    "Using Tailwind CSS v4 (PostCSS-free, CSS-native) — rejected because v3 is more stable and widely documented; v4 is still maturing and the project scope doesn't need its features.",
-    "Defining route placeholders in App.tsx — rejected because route registration is owned by routing_and_layout component. App.tsx should only provide the BrowserRouter wrapper.",
-    "Using createBrowserRouter (data router API) instead of BrowserRouter — considered but rejected for simplicity; BrowserRouter is sufficient for a static documentation site with no loaders/actions. If routing_and_layout needs data routers, that decision belongs to that component.",
-    "Making App.tsx accept children props for route injection — rejected in favor of having the routing_and_layout component directly modify App.tsx's internals or compose at the main.tsx level. The cleaner pattern is for App.tsx to render an <Outlet /> or a designated slot that routing_and_layout fills."
+    "Standalone postcss.config.ts: Not viable — PostCSS loader doesn't support .ts. Would require tsx or ts-node as a runtime dependency, adding unnecessary complexity.",
+    "postcss.config.mjs as standalone file: Viable and explicit. Satisfies 'no .js' rule since .mjs is a distinct extension. Preferred if the task requires a visible standalone file.",
+    "Inline PostCSS in vite.config.ts: Cleanest solution, avoids the .js problem entirely, but deviates from the task description which lists postcss.config.ts as a separate file.",
+    "Vitest in separate vitest.config.ts: Adds another config file. Since Vitest inherits from Vite config, co-locating via the test property in vite.config.ts is simpler and ensures alias/plugin consistency.",
+    "Tailwind v4 (CSS-first config): Breaking change from v3 config format. The task implies v3 patterns (tailwind.config.ts with content array). Stick with v3.4.x.",
+    "react-router-dom v7: Major breaking changes (framework mode, data routers as default). v6.x is stable and matches the simple SPA routing pattern needed here."
   ],
   "risks": [
-    "vite.config.ts and other tool configs REQUIRE default exports — this conflicts with the 'named exports only' SOP. Mitigation: explicitly document that tool config files (vite.config.ts, tailwind.config.js, postcss.config.js) are exempt from this rule since they are consumed by external tools, not application imports.",
-    "Dependency version mismatches between react, @types/react, @testing-library/react, and react-router-dom can cause type errors or runtime failures. Mitigation: pin compatible version ranges and verify with a clean `npm install`.",
-    "Tailwind content array misconfiguration (wrong glob patterns) silently strips all utility classes in production. Mitigation: include both `./index.html` and `./src/**/*.{ts,tsx}` in content paths; add a smoke test.",
-    "The App.tsx shell must be designed so the routing_and_layout component can inject routes without modifying App.tsx's core structure. If the contract is too rigid (e.g., App renders only a static div), downstream integration requires refactoring. Mitigation: design App.tsx with clear extension points (e.g., children prop or a placeholder comment where routes go).",
-    "vitest globals: true requires a triple-slash reference or tsconfig include for type recognition. Missing this causes TypeScript errors on `describe`, `it`, `expect`. Mitigation: include `vitest/globals` in tsconfig types array.",
-    "jsdom environment doesn't support all browser APIs (e.g., IntersectionObserver, matchMedia). If downstream components use these, tests will fail. Mitigation: document in the test setup that polyfills/mocks may be needed."
+    "PostCSS .ts config: postcss.config.ts will silently fail to load in Vite. Must use .mjs or inline in vite.config.ts. This is the highest-risk item since the task description explicitly names postcss.config.ts.",
+    "Vite/Vitest version mismatch: vitest major version should align with vite major version. A mismatch (e.g., vitest@2 with vite@5) can cause plugin incompatibilities.",
+    "Tailwind v3 vs v4 confusion: If tailwindcss@^4 is installed, the tailwind.config.ts format is completely different (CSS-first). Must pin to ^3.4.",
+    "Missing src/index.css with Tailwind directives: If omitted, Tailwind classes render nothing. Easy to forget since it's not a 'config file' per se.",
+    "react-router-dom v7 auto-install: If no version pin is specified, npm may install v7 which has a fundamentally different API. Must pin to ^6.",
+    "@testing-library/jest-dom type augmentation: Without proper type setup, all jest-dom matchers (toBeInTheDocument, toHaveClass, etc.) will show TypeScript errors in downstream tests.",
+    "import React from 'react' convention: tsconfig jsx: 'react-jsx' makes this import unnecessary for compilation, but the project mandates it. Must not configure anything (like a linter rule) that strips this import.",
+    "Missing type: 'module' in package.json: Vite ESM projects should set this; without it, some imports may fail or behave unexpectedly."
   ],
   "compliance_notes": [
-    "SOP: TypeScript strict mode — enforced via tsconfig.json `strict: true`. All downstream components inherit this.",
-    "SOP: Named exports only — App.tsx uses `export function App()`. Config files (vite.config.ts, tailwind.config.js, postcss.config.js) are exempt as they are tool-consumed, not application modules.",
-    "SOP: `export type { }` for interfaces/type aliases — this component defines no types, so not applicable. Downstream components must follow this.",
-    "SOP: Vitest for testing — configured in vite.config.ts test block with jsdom environment.",
-    "SOP: Vite dev server on port 4000 — configured via `server: { port: 4000 }` in vite.config.ts.",
-    "SOP: All functions must have at least one test — App function component will have App.test.tsx verifying it renders and provides router context.",
-    "SOP: Tests runnable without external services — jsdom environment, no network calls in scaffold tests.",
-    "SOP: Slug handling guard — not directly applicable to scaffold, but the BrowserRouter setup enables downstream slug-based routing.",
-    "SOP: vi.mock() rules — no mocking needed in scaffold tests, but vitest config enables this for downstream components.",
-    "Registry compliance: This component owns no registry types. It provides infrastructure only."
+    "All output files must be .ts/.tsx — no .py or .js. postcss.config must be .mjs or inlined.",
+    "Implementation language is TypeScript — contract types, config files, and all source must be TypeScript.",
+    "Named exports required on all types, interfaces, functions, and constants.",
+    "Every .tsx file must import React from 'react' at the top.",
+    "vitest + @testing-library/react in jsdom environment — must be configured correctly in scaffold.",
+    "import.meta.env.VITE_X must be used directly — no (import.meta as any) casts.",
+    "Files must stay under 300 lines.",
+    "Prefer stdlib over third-party libraries — only install the explicitly listed dependencies.",
+    "All functions must have at least one test; tests must run without external services.",
+    "String keys in maps must be verified against source of truth (type registry), not inferred."
   ]
 }

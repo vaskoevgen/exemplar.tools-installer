@@ -1,0 +1,85 @@
+{
+  "task_summary": "Implement 13 page components as React functional components in TypeScript, plus a `getPageComponentMap()` function returning a typed map keyed by `PageComponentKey` enum values. Each page renders a heading and possibly other content. The HomePage includes a pipeline diagram image rendered via an SVG import. A prior attempt failed because the SVG import was treated as a React component (Vite's default SVGR behavior) rather than as a URL string for an `<img>` tag's `src` attribute.",
+  "findings": [
+    {
+      "topic": "SVG imports in Vite — URL vs React Component",
+      "finding": "Vite's default behavior for `import diagram from './file.svg'` returns a **URL string** (e.g., `/assets/file.abc123.svg`). However, if `vite-plugin-svgr` is installed, `import diagram from './file.svg'` may return a React component instead. Vitest mocks SVG imports differently depending on configuration: the default vitest asset transform returns the filename as a string, but if SVGR is configured, vitest may return a component function. The prior failures show vitest returning `SvgStub(props)` — a React component — when the code expected a URL string. The fix: use `import diagramUrl from './file.svg?url'` to force URL import, OR ensure the `<img src={...}>` receives a string. In vitest, SVG files are typically transformed by the built-in asset handler to return the file path string, but custom transforms or plugins can override this.",
+      "source": "Vite documentation on static asset handling; vitest asset transform docs",
+      "relevance": "Directly addresses the root cause of prior test failures — the SVG import resolved to a component stub instead of a URL string",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Vitest SVG mocking behavior",
+      "finding": "Vitest's default behavior transforms asset imports (including .svg) into their file paths as strings. However, if the project uses @svgr/plugin or vite-plugin-svgr, the transform changes. The test expects `src` to equal `/mocked-pipeline-diagram.svg`, implying the test file has a manual mock or vitest config that maps `.svg` to that path. The component MUST use the import value directly as the `src` attribute of an `<img>` tag — not invoke it as a component. If vitest stubs the module to return a string, doing `<img src={importedValue} />` works. If the stub returns something else, we need to check what the contract test's mock setup provides.",
+      "source": "Vitest documentation on module mocking; prior error analysis",
+      "relevance": "Critical for passing the contract test on first attempt",
+      "confidence": 0.92
+    },
+    {
+      "topic": "Contract test expectations for page headings",
+      "finding": "Page component contract tests typically assert that each page renders a heading (h1/h2) containing the page name. The `PageHeadingExpectation` struct likely maps each page key to an expected heading string. Each component must render a semantic heading element with the correct text.",
+      "source": "Common React page component testing patterns",
+      "relevance": "All 13 pages need headings that match contract expectations",
+      "confidence": 0.85
+    },
+    {
+      "topic": "PageComponentMap key strings must come from contract/enum, not inference",
+      "finding": "Per project operating procedures, map keys MUST be derived from the TypeScript interface definition or the contract test's test data. The `PageComponentKey` enum likely defines keys like 'home', 'cartographer', 'constrain', etc. — but these MUST NOT be guessed from component names. They must be read from the `app_routing` dependency or the contract test source. Mismatched keys are a common failure mode.",
+      "source": "Project operating procedures — String Keys in Maps and Registries rule",
+      "relevance": "Incorrect map keys would cause contract test failures",
+      "confidence": 0.95
+    },
+    {
+      "topic": "React FC pattern with named + default exports",
+      "finding": "Per project rules: every .tsx file needs `import React from 'react'`, every component must have both a named export and a default export. Pattern: `export function HomePage(): React.ReactElement { ... }` followed by `export default HomePage;`. Each page component file should be small and focused.",
+      "source": "Project operating procedures — TypeScript/React Rules",
+      "relevance": "Required for compliance with project standards",
+      "confidence": 1.0
+    },
+    {
+      "topic": "SVG import with ?url suffix for Vite",
+      "finding": "Vite supports `import svg from './file.svg?url'` to explicitly get the URL string regardless of any SVGR plugin. This is the safest way to ensure the import resolves to a string in both dev and test. In vitest, this should also resolve to a string path. If the contract test mocks the SVG module at a specific path (e.g., `vi.mock('path/to/diagram.svg')`), the component's import path must match exactly.",
+      "source": "Vite static asset handling documentation",
+      "relevance": "Recommended approach to fix the SVG URL issue from prior failures",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Composition over inheritance for page layout",
+      "finding": "Pages should compose shared layout components (from `shared_components` dependency) rather than extending base classes. A common pattern: each page wraps content in a shared `PageLayout` or similar wrapper component, passing title/heading as props.",
+      "source": "React composition patterns; project operating procedures",
+      "relevance": "Aligns with project preference for composition over inheritance",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Second prior failure — empty string src",
+      "finding": "The second failure showed `expected '' to be '/mocked-pipeline-diagram.svg'` — the src attribute was empty. This suggests the imported SVG value was undefined or falsy, likely because the import path didn't match the mock path in the test. The component must import the SVG from the exact path the contract test expects to mock. If the test mocks `'../../assets/pipeline-diagram.svg'`, the component must import from that exact relative path.",
+      "source": "Analysis of prior error messages",
+      "relevance": "Import path alignment between component and test mock is critical",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "1. **Read the contract test source first** to determine: (a) exact `PageComponentKey` enum values, (b) expected heading text for each page, (c) the exact SVG import path being mocked and the mock value, (d) how `getPageComponentMap()` is called and what structure is expected.\n\n2. **SVG handling for HomePage**: Import the pipeline diagram SVG as a URL string (using `?url` suffix if needed, or plain import if the contract test mocks the plain path). Render it as `<img src={diagramUrl} alt=\"...\" />` where both `src` and `alt` match contract expectations exactly. Do NOT treat the SVG import as a React component.\n\n3. **Page component structure**: Each page is a simple React FC rendering a heading element and minimal content. Use composition with any shared layout components from `shared_components` dependency.\n\n4. **PageComponentMap**: Build using exact key strings from `PageComponentKey` enum. Map each key to its corresponding page component. Export as a named export.\n\n5. **File organization**: One file per page component (keeps files under 300 lines easily), plus an index file exporting everything including the map and types.\n\n6. **Exports**: Every component gets both named and default export. Every type/interface/constant gets a named export.\n\n7. **Testing**: After reading contract tests, ensure all assertions can pass — particularly the SVG `src` attribute test which failed twice before.",
+  "alternatives_considered": [
+    "Using SVGR to import SVG as React component and render inline — rejected because contract test expects an <img> tag with src URL string",
+    "Single file for all 13 page components — rejected because it would approach/exceed 300-line limit and reduces maintainability",
+    "Dynamic page component generation from config — rejected as over-engineering for 13 simple pages; explicit components are clearer and easier to test"
+  ],
+  "risks": [
+    "SVG import path mismatch between component and contract test mock — must read exact path from test",
+    "PageComponentKey enum values may not match intuitive names (e.g., 'home' vs 'HomePage' vs 'HOME') — must verify against source of truth",
+    "Heading text expectations may be specific strings that differ from component names — must read from contract test",
+    "The contract test may expect specific HTML structure (e.g., h1 vs h2, specific test-ids) — must match exactly",
+    "The ?url suffix on SVG import may not be recognized by vitest's mock if the test mocks the path without ?url"
+  ],
+  "compliance_notes": [
+    "All files must be .ts/.tsx — no Python",
+    "Named exports required on all types, interfaces, functions, constants",
+    "React components need both named and default exports",
+    "Every .tsx file must import React from 'react'",
+    "Use import.meta.env.VITE_X directly — no (import.meta as any) cast",
+    "Map keys must be verified against contract test or enum definition, not inferred from names",
+    "Prefer stdlib over third-party libraries",
+    "All public functions need type annotations",
+    "Files under 300 lines"
+  ]
+}

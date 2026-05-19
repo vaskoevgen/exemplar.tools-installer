@@ -1,79 +1,76 @@
 {
   "types": [
     {
-      "name": "RouteSlug",
-      "kind": "enum",
-      "fields": [],
-      "item_type": "",
-      "variants": [
-        "/",
-        "/cartographer",
-        "/constrain",
-        "/ledger",
-        "/pact",
-        "/advocate",
-        "/arbiter",
-        "/baton",
-        "/sentinel",
-        "/chronicler",
-        "/stigmergy",
-        "/apprentice",
-        "/kindex"
+      "name": "RouteEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "URL path segment, e.g. '/step-0-cartographer' or '/' for home.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable navigation label shown in the Sidebar, e.g. 'Step 0 — Cartographer'.",
+          "validators": []
+        },
+        {
+          "name": "componentKey",
+          "type_ref": "PageComponentKey",
+          "required": true,
+          "default": "",
+          "description": "Lookup key that maps this route to its lazy-loaded or statically-imported page component.",
+          "validators": []
+        }
       ],
+      "item_type": "",
+      "variants": [],
       "inner_types": [],
-      "description": "All 14 valid route slugs (leading-slash paths) used for navigation and route registration across the app.",
-      "owner_component": "routing_and_layout"
+      "description": "A single route definition consumed by both the router configuration and the Sidebar navigation.",
+      "owner_component": "app_routing"
     },
     {
-      "name": "StepId",
-      "kind": "enum",
+      "name": "RouteManifest",
+      "kind": "list",
       "fields": [],
-      "item_type": "",
-      "variants": [
-        "home",
-        "cartographer",
-        "constrain",
-        "ledger",
-        "pact",
-        "advocate",
-        "arbiter",
-        "baton",
-        "sentinel",
-        "chronicler",
-        "stigmergy",
-        "apprentice",
-        "kindex"
-      ],
+      "item_type": "RouteEntry",
+      "variants": [],
       "inner_types": [],
-      "description": "Unique identifier for each step in the exemplar.tools pipeline, used as keys in content data and pipeline diagram nodes.",
-      "owner_component": "page_content"
+      "description": "Ordered array of all 13 route entries; single source of truth for navigation and routing.",
+      "owner_component": "app_routing"
     },
     {
-      "name": "StepLabel",
+      "name": "PageComponentKey",
       "kind": "enum",
       "fields": [],
       "item_type": "",
       "variants": [
         "Home",
-        "Step 0 — Cartographer",
-        "Step 1a — Constrain",
-        "Step 1b — Ledger",
-        "Step 2a — Pact",
-        "Step 2b — Advocate",
-        "Step 3 — Arbiter",
-        "Step 4 — Baton",
-        "Step 5a — Sentinel",
-        "Step 5b — Chronicler",
-        "Step 5c — Stigmergy",
-        "Step 6 — Apprentice",
-        "Step 7 — Kindex"
+        "Cartographer",
+        "Constrain",
+        "Ledger",
+        "Pact",
+        "Advocate",
+        "Arbiter",
+        "Baton",
+        "Sentinel",
+        "Chronicler",
+        "Stigmergy",
+        "Apprentice",
+        "Kindex"
       ],
       "inner_types": [],
-      "description": "Human-readable display labels for each pipeline step, shown in sidebar navigation, diagram boxes, and page titles.",
-      "owner_component": "page_content"
+      "description": "Discriminator enum identifying each of the 13 page components.",
+      "owner_component": "app_routing"
     },
     {
-      "name": "CalloutVariant",
+      "name": "CalloutType",
       "kind": "enum",
       "fields": [],
       "item_type": "",
@@ -83,344 +80,43 @@
         "tip"
       ],
       "inner_types": [],
-      "description": "Visual variant for CalloutBox components indicating the type of supplementary information.",
-      "owner_component": "shared_ui"
+      "description": "Visual variant for a CalloutBox — determines border color, icon, and background tint.",
+      "owner_component": "shared_components"
     },
     {
-      "name": "RouteEntry",
+      "name": "CalloutBoxProps",
       "kind": "struct",
       "fields": [
         {
-          "name": "stepId",
-          "type_ref": "StepId",
+          "name": "type",
+          "type_ref": "CalloutType",
           "required": true,
           "default": "",
-          "description": "Unique pipeline step identifier.",
+          "description": "Visual style variant (gotcha, warning, or tip).",
           "validators": []
         },
         {
-          "name": "slug",
-          "type_ref": "RouteSlug",
-          "required": true,
-          "default": "",
-          "description": "URL path slug for this route (always starts with '/').",
-          "validators": []
-        },
-        {
-          "name": "label",
-          "type_ref": "StepLabel",
-          "required": true,
-          "default": "",
-          "description": "Human-readable label displayed in navigation and page headers.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "A single entry in the route map linking a step to its slug and display label, consumed by sidebar nav and route registration.",
-      "owner_component": "routing_and_layout"
-    },
-    {
-      "name": "RouteEntryList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "RouteEntry",
-      "variants": [],
-      "inner_types": [],
-      "description": "Ordered list of all 14 RouteEntry items, defining sidebar order and route registration sequence.",
-      "owner_component": "routing_and_layout"
-    },
-    {
-      "name": "CalloutItem",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "variant",
-          "type_ref": "CalloutVariant",
-          "required": true,
-          "default": "",
-          "description": "The visual/semantic type of this callout.",
-          "validators": []
-        },
-        {
-          "name": "text",
-          "type_ref": "string",
-          "required": true,
-          "default": "",
-          "description": "The verbatim callout text from howto.md.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "A single callout (gotcha, warning, or tip) to be rendered via the shared CalloutBox component.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "CalloutItemList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "CalloutItem",
-      "variants": [],
-      "inner_types": [],
-      "description": "Ordered list of CalloutItem entries for a single step page.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "CommandEntry",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "command",
-          "type_ref": "string",
-          "required": true,
-          "default": "",
-          "description": "The exact CLI command string, verbatim from howto.md.",
-          "validators": []
-        },
-        {
-          "name": "description",
+          "name": "title",
           "type_ref": "string",
           "required": false,
           "default": "",
-          "description": "Optional prose describing what this command does.",
+          "description": "Optional bold heading rendered above the body text.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Body content of the callout (JSX).",
           "validators": []
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "A single CLI command block with optional description, rendered via the shared CodeBlock component.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "CommandEntryList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "CommandEntry",
-      "variants": [],
-      "inner_types": [],
-      "description": "Ordered list of CommandEntry items for a single step page.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "StepContent",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "stepId",
-          "type_ref": "StepId",
-          "required": true,
-          "default": "",
-          "description": "Unique identifier for this step.",
-          "validators": []
-        },
-        {
-          "name": "label",
-          "type_ref": "StepLabel",
-          "required": true,
-          "default": "",
-          "description": "Display label shown as the page title.",
-          "validators": []
-        },
-        {
-          "name": "overview",
-          "type_ref": "string",
-          "required": true,
-          "default": "",
-          "description": "Introductory prose for the step, verbatim from howto.md.",
-          "validators": []
-        },
-        {
-          "name": "commands",
-          "type_ref": "CommandEntryList",
-          "required": true,
-          "default": "",
-          "description": "All CLI commands for this step, in order.",
-          "validators": []
-        },
-        {
-          "name": "callouts",
-          "type_ref": "CalloutItemList",
-          "required": true,
-          "default": "",
-          "description": "Gotchas, warnings, and tips for this step.",
-          "validators": []
-        },
-        {
-          "name": "examples",
-          "type_ref": "StringList",
-          "required": true,
-          "default": "",
-          "description": "Verbatim example blocks from howto.md.",
-          "validators": []
-        },
-        {
-          "name": "youtubeUrl",
-          "type_ref": "OptionalString",
-          "required": false,
-          "default": "",
-          "description": "YouTube video URL for this step, if one exists in howto.md.",
-          "validators": []
-        },
-        {
-          "name": "version",
-          "type_ref": "OptionalString",
-          "required": false,
-          "default": "",
-          "description": "Version string displayed via VersionBadge, if applicable.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "Complete content payload for one step page, consumed by StepPage to render all sections using shared UI components.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "StepContentMap",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "entries",
-          "type_ref": "StepContentList",
-          "required": true,
-          "default": "",
-          "description": "All step content entries; runtime lookup is by stepId.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "Map-like record keyed by StepId holding all StepContent objects; the single source of truth for page data consumed by step page wrappers.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "StepContentList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "StepContent",
-      "variants": [],
-      "inner_types": [],
-      "description": "Ordered list of StepContent records.",
-      "owner_component": "page_content"
-    },
-    {
-      "name": "PipelineNode",
-      "kind": "struct",
-      "fields": [
-        {
-          "name": "stepId",
-          "type_ref": "StepId",
-          "required": true,
-          "default": "",
-          "description": "Step identifier used to look up the route slug for navigation.",
-          "validators": []
-        },
-        {
-          "name": "label",
-          "type_ref": "StepLabel",
-          "required": true,
-          "default": "",
-          "description": "Text rendered inside the SVG box.",
-          "validators": []
-        },
-        {
-          "name": "slug",
-          "type_ref": "RouteSlug",
-          "required": true,
-          "default": "",
-          "description": "Route slug for click-through navigation.",
-          "validators": []
-        },
-        {
-          "name": "x",
-          "type_ref": "number",
-          "required": true,
-          "default": "",
-          "description": "Horizontal position of the node in the SVG coordinate system.",
-          "validators": []
-        },
-        {
-          "name": "y",
-          "type_ref": "number",
-          "required": true,
-          "default": "",
-          "description": "Vertical position of the node in the SVG coordinate system.",
-          "validators": []
-        }
-      ],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "A single node in the pipeline diagram representing one step, linking to its route for click navigation.",
-      "owner_component": "pipeline_diagram"
-    },
-    {
-      "name": "PipelineNodeList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "PipelineNode",
-      "variants": [],
-      "inner_types": [],
-      "description": "All nodes to render in the pipeline diagram SVG.",
-      "owner_component": "pipeline_diagram"
-    },
-    {
-      "name": "string",
-      "kind": "primitive",
-      "fields": [],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "TypeScript string primitive.",
-      "owner_component": ""
-    },
-    {
-      "name": "number",
-      "kind": "primitive",
-      "fields": [],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "TypeScript number primitive.",
-      "owner_component": ""
-    },
-    {
-      "name": "boolean",
-      "kind": "primitive",
-      "fields": [],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [],
-      "description": "TypeScript boolean primitive.",
-      "owner_component": ""
-    },
-    {
-      "name": "OptionalString",
-      "kind": "optional",
-      "fields": [],
-      "item_type": "",
-      "variants": [],
-      "inner_types": [
-        "string"
-      ],
-      "description": "A string value that may be undefined or empty.",
-      "owner_component": ""
-    },
-    {
-      "name": "StringList",
-      "kind": "list",
-      "fields": [],
-      "item_type": "string",
-      "variants": [],
-      "inner_types": [],
-      "description": "An ordered array of strings, used for example blocks and similar text lists.",
-      "owner_component": ""
+      "description": "Props accepted by the CalloutBox component; used by every page component to render callouts.",
+      "owner_component": "shared_components"
     },
     {
       "name": "CodeBlockProps",
@@ -431,53 +127,61 @@
           "type_ref": "string",
           "required": true,
           "default": "",
-          "description": "The preformatted CLI command text to display.",
+          "description": "The verbatim CLI command or code snippet to display.",
           "validators": []
         },
         {
-          "name": "description",
-          "type_ref": "OptionalString",
+          "name": "language",
+          "type_ref": "string",
+          "required": false,
+          "default": "bash",
+          "description": "Prism language identifier for syntax highlighting.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
           "required": false,
           "default": "",
-          "description": "Optional caption/description shown above or below the code.",
+          "description": "Optional filename or label shown above the code block.",
           "validators": []
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Props for the CodeBlock shared component, used by page_content when rendering CLI commands.",
-      "owner_component": "shared_ui"
+      "description": "Props accepted by the CodeBlock component; used by every page to render CLI commands with syntax highlighting and copy button.",
+      "owner_component": "shared_components"
     },
     {
       "name": "VersionBadgeProps",
       "kind": "struct",
       "fields": [
         {
-          "name": "componentName",
-          "type_ref": "string",
-          "required": true,
-          "default": "",
-          "description": "The name of the tool/component to display on the badge.",
-          "validators": []
-        },
-        {
           "name": "version",
           "type_ref": "string",
           "required": true,
           "default": "",
-          "description": "The version string to display (e.g. 'v1.2.3').",
+          "description": "Semantic version string to display, e.g. '1.2.3'.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional tool name rendered before the version number.",
           "validators": []
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Props for the VersionBadge shared component, used by page_content to display version info.",
-      "owner_component": "shared_ui"
+      "description": "Props accepted by the VersionBadge component; used by page components to show component version pills.",
+      "owner_component": "shared_components"
     },
     {
-      "name": "YouTubeEmbedProps",
+      "name": "VideoEmbedProps",
       "kind": "struct",
       "fields": [
         {
@@ -485,12 +189,12 @@
           "type_ref": "string",
           "required": true,
           "default": "",
-          "description": "Full YouTube video URL to embed in a responsive iframe.",
+          "description": "Full YouTube video URL (https://www.youtube.com/watch?v=... or https://youtu.be/...).",
           "validators": []
         },
         {
           "name": "title",
-          "type_ref": "OptionalString",
+          "type_ref": "string",
           "required": false,
           "default": "",
           "description": "Accessible title for the iframe element.",
@@ -500,35 +204,64 @@
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Props for the YouTubeEmbed shared component, used by page_content to embed tutorial videos.",
-      "owner_component": "shared_ui"
+      "description": "Props accepted by the VideoEmbed component; used by page components to embed YouTube walkthroughs.",
+      "owner_component": "shared_components"
     },
     {
-      "name": "CalloutBoxProps",
+      "name": "SidebarProps",
       "kind": "struct",
       "fields": [
         {
-          "name": "variant",
-          "type_ref": "CalloutVariant",
+          "name": "routes",
+          "type_ref": "RouteManifest",
           "required": true,
           "default": "",
-          "description": "Visual style variant: gotcha, warning, or tip.",
-          "validators": []
-        },
-        {
-          "name": "text",
-          "type_ref": "string",
-          "required": true,
-          "default": "",
-          "description": "The callout body text to display.",
+          "description": "The full ordered list of routes to render as nav links.",
           "validators": []
         }
       ],
       "item_type": "",
       "variants": [],
       "inner_types": [],
-      "description": "Props for the CalloutBox shared component, used by page_content to render gotchas, warnings, and tips.",
-      "owner_component": "shared_ui"
+      "description": "Props accepted by the Sidebar component; receives the route manifest to render navigation links.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "PageLayoutProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routes",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "Route manifest forwarded to the Sidebar for navigation rendering.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Page content rendered in the main content area.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the PageLayout shell component; wraps Sidebar + scrollable content area.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "ReactNode",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactNode — opaque type representing renderable JSX children.",
+      "owner_component": "shared_components"
     }
   ]
 }

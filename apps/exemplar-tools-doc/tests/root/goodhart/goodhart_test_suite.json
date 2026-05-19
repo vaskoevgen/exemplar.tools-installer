@@ -3,93 +3,140 @@
   "contract_version": 1,
   "test_cases": [
     {
-      "id": "goodhart_initApp_passes_router_to_mountApp",
-      "description": "initApp must pass the exact router instance returned by createAppRouter to mountApp, not a hardcoded value or a different object",
-      "function": "initApp",
+      "id": "goodhart-bijection-both-missing-and-extra",
+      "description": "verifyManifestComponentBijection must correctly report both missingInMap and extraInMap simultaneously when manifest and map have non-overlapping keys, not just one direction at a time",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === false",
+        "result.missingInMap contains keys from manifest not in map",
+        "result.extraInMap contains keys from map not in manifest",
+        "both arrays are non-empty simultaneously"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-empty-manifest-nonempty-map",
+      "description": "verifyManifestComponentBijection must handle an empty manifest array against a non-empty component map, reporting all map keys as extraInMap",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === false",
+        "result.manifestKeys is empty array",
+        "result.extraInMap contains all map keys",
+        "result.missingInMap is empty"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-nonempty-manifest-empty-map",
+      "description": "verifyManifestComponentBijection must handle a non-empty manifest against an empty component map, reporting all manifest keys as missingInMap",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === false",
+        "result.mapKeys is empty array",
+        "result.missingInMap contains all manifest componentKeys",
+        "result.extraInMap is empty"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-duplicate-manifest-keys",
+      "description": "verifyManifestComponentBijection must correctly extract manifestKeys preserving order and duplicates from the manifest entries, since the contract says 'componentKey from every manifest entry in order'",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.manifestKeys reflects every entry's componentKey in order, including duplicates"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-manifest-keys-preserve-order",
+      "description": "verifyManifestComponentBijection must return manifestKeys in the same order as the manifest entries appear, not sorted or deduplicated",
+      "function": "verifyManifestComponentBijection",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "manifestKeys[i] === manifest[i].componentKey for all i"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-mapkeys-all-keys",
+      "description": "verifyManifestComponentBijection must return mapKeys containing every key from the componentMap object, not just ones matching PageComponentKey enum values",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.mapKeys includes arbitrary string keys from the map",
+        "result.extraInMap includes non-PageComponentKey keys"
+      ]
+    },
+    {
+      "id": "goodhart-bootstrap-result-targetElementId-reflects-config",
+      "description": "bootstrapApp must dynamically set BootstrapResult.targetElementId from the config parameter, not hardcode 'root' or any other string",
+      "function": "bootstrapApp",
       "category": "happy_path",
       "setup_description": "",
-      "mock_dependencies": {
-        "routing_and_layout.createAppRouter": "returns a unique sentinel router object",
-        "project_scaffold.mountApp": "spy that captures its argument"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "mountApp is called with the specific router object returned by createAppRouter"
-      ]
-    },
-    {
-      "id": "goodhart_initApp_passes_different_router_instances",
-      "description": "When createAppRouter returns different router instances across separate invocations, mountApp must receive the corresponding instance each time — not a cached or hardcoded value",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {
-        "routing_and_layout.createAppRouter": "returns different unique objects on successive calls",
-        "project_scaffold.mountApp": "spy"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "First call: mountApp receives routerA",
-        "Second call: mountApp receives routerB",
-        "routerA !== routerB"
-      ]
-    },
-    {
-      "id": "goodhart_initApp_no_extra_calls_to_createAppRouter",
-      "description": "initApp must call createAppRouter exactly once per invocation — not zero times, not twice — regardless of the specific router returned",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
       "input_description": "",
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "createAppRouter call count is exactly 1 after initApp completes"
+        "result.targetElementId === config.targetElementId for a non-default ID like 'my-app-container'"
       ]
     },
     {
-      "id": "goodhart_initApp_no_extra_calls_to_mountApp",
-      "description": "initApp must call mountApp exactly once per invocation — implementations that call it zero times or multiple times violate the contract",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "mountApp call count is exactly 1 after initApp completes"
-      ]
-    },
-    {
-      "id": "goodhart_initApp_does_not_call_mountApp_if_createAppRouter_throws",
-      "description": "When createAppRouter throws, mountApp must never be invoked — the error should propagate before mounting is attempted",
-      "function": "initApp",
+      "id": "goodhart-bootstrap-mismatch-extra-in-map-only",
+      "description": "bootstrapApp must throw manifest_component_mismatch when the page component map has extra keys not present in the manifest, even if all manifest keys ARE present in the map",
+      "function": "bootstrapApp",
       "category": "error_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
       "input_description": "",
       "expected_output_description": "",
-      "expected_error": "router_creation_failure",
+      "expected_error": "",
       "assertions": [
-        "mountApp call count is 0",
-        "error from createAppRouter propagates"
+        "throws manifest_component_mismatch error",
+        "mismatch detected even though no manifest key is missing from map"
       ]
     },
     {
-      "id": "goodhart_initApp_does_not_directly_import_shared_ui",
-      "description": "Root must have no direct runtime dependency on shared_ui — it is consumed transitively through page_content and routing_and_layout",
-      "function": "initApp",
+      "id": "goodhart-bootstrap-does-not-call-render-on-mismatch",
+      "description": "bootstrapApp must not call renderEntryPoint when bijection verification fails, confirming the ordering invariant that verification precedes rendering",
+      "function": "bootstrapApp",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -98,13 +145,14 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "The root module source does not import from shared_ui"
+        "renderEntryPoint was never called",
+        "error was thrown for mismatch"
       ]
     },
     {
-      "id": "goodhart_initApp_does_not_directly_import_pipeline_diagram",
-      "description": "Root must have no direct runtime dependency on pipeline_diagram — it is consumed transitively through child modules",
-      "function": "initApp",
+      "id": "goodhart-bootstrap-does-not-call-render-on-missing-element",
+      "description": "bootstrapApp must not call renderEntryPoint when the target DOM element is missing, confirming DOM check happens before render attempt",
+      "function": "bootstrapApp",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -113,13 +161,14 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "The root module source does not import from pipeline_diagram"
+        "renderEntryPoint was never called",
+        "target_element_not_found error thrown"
       ]
     },
     {
-      "id": "goodhart_initApp_does_not_manipulate_slugs",
-      "description": "Root must never manipulate slug strings directly — all slug handling is delegated to ensureLeadingSlash from routing_and_layout",
-      "function": "initApp",
+      "id": "goodhart-route-manifest-paths-start-with-slash",
+      "description": "Every path in the route manifest must start with '/' as required by RoutePath validation — ensures path format is not just checked for uniqueness but for structure",
+      "function": "getRouteManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -128,13 +177,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "initApp source code does not contain slug string manipulation patterns"
+        "every entry.path starts with '/'"
       ]
     },
     {
-      "id": "goodhart_initApp_return_type_is_void",
-      "description": "initApp must return void/undefined — it should not return the router or any other value",
-      "function": "initApp",
+      "id": "goodhart-route-manifest-paths-lowercase-only",
+      "description": "Every path in the route manifest must contain only lowercase alphanumeric characters, hyphens, and forward slashes per RoutePath specification",
+      "function": "getRouteManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -143,13 +192,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "The return value of initApp() is undefined"
+        "every entry.path matches /^\\/[a-z0-9\\-\\/]*$/"
       ]
     },
     {
-      "id": "goodhart_initApp_is_a_function_export",
-      "description": "initApp must be exported as a callable function, not as a constant or object",
-      "function": "initApp",
+      "id": "goodhart-route-manifest-labels-nonempty",
+      "description": "Every label in the route manifest must be a non-empty string, ensuring RouteLabel validation is enforced for all 13 entries",
+      "function": "getRouteManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -158,13 +207,14 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "typeof initApp === 'function'"
+        "every entry.label.length > 0",
+        "every entry.label is a string"
       ]
     },
     {
-      "id": "goodhart_root_no_type_reexports",
-      "description": "Root must not re-export any child module types or constants — consumers import directly from the owning child module",
-      "function": "initApp",
+      "id": "goodhart-page-component-map-values-are-functions",
+      "description": "Every value in the page component map must be a function (React.ComponentType), not a string, object, or other non-callable value",
+      "function": "getPageComponentMap",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -173,30 +223,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Module exports contain no StepId, StepLabel, RouteSlug, StepContent, RouteEntry, or other domain types"
+        "typeof value === 'function' for every entry in the map"
       ]
     },
     {
-      "id": "goodhart_initApp_mountApp_receives_one_argument",
-      "description": "mountApp must be called with exactly one argument (the router instance) — not zero arguments or extraneous parameters",
-      "function": "initApp",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {
-        "project_scaffold.mountApp": "spy that checks arguments.length"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "mountApp was called with exactly 1 argument"
-      ]
-    },
-    {
-      "id": "goodhart_initApp_createAppRouter_called_with_no_args",
-      "description": "createAppRouter must be called with zero arguments — root should not pass configuration or page components to it, as routing_and_layout handles that internally",
-      "function": "initApp",
+      "id": "goodhart-route-manifest-entry-structure",
+      "description": "Every RouteEntry in the manifest must have exactly the three required fields: path, label, and componentKey — no missing fields",
+      "function": "getRouteManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -205,13 +238,15 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "createAppRouter was called with 0 arguments"
+        "every entry has 'path' property",
+        "every entry has 'label' property",
+        "every entry has 'componentKey' property"
       ]
     },
     {
-      "id": "goodhart_initApp_idempotent_calls_both_deps_each_time",
-      "description": "Each invocation of initApp must call both createAppRouter and mountApp — a second call should not skip either due to caching or memoization",
-      "function": "initApp",
+      "id": "goodhart-bootstrap-second-invocation-independent",
+      "description": "bootstrapApp must call getRouteManifest and getPageComponentMap exactly once per invocation even when called multiple times sequentially, ensuring no caching or state leakage between calls",
+      "function": "bootstrapApp",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -220,14 +255,33 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "After two calls to initApp, createAppRouter called 2 times",
-        "After two calls to initApp, mountApp called 2 times"
+        "after two calls, getRouteManifest called exactly 2 times total",
+        "after two calls, getPageComponentMap called exactly 2 times total"
       ]
     },
     {
-      "id": "goodhart_initApp_synchronous_execution",
-      "description": "initApp should execute synchronously — it should not return a Promise, ensuring the mount happens immediately",
-      "function": "initApp",
+      "id": "goodhart-bijection-both-empty",
+      "description": "verifyManifestComponentBijection with an empty manifest and an empty component map should return isValid true since both sets are identical (empty)",
+      "function": "verifyManifestComponentBijection",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === true",
+        "result.manifestKeys is empty",
+        "result.mapKeys is empty",
+        "result.missingInMap is empty",
+        "result.extraInMap is empty"
+      ]
+    },
+    {
+      "id": "goodhart-project-manifest-files-count-12",
+      "description": "getProjectManifest must return a manifest whose files array contains exactly 12 entries, matching the ScaffoldFilePath enum cardinality",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -236,10 +290,95 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "initApp() does not return a thenable/Promise"
+        "manifest.files.length === 12"
+      ]
+    },
+    {
+      "id": "goodhart-project-manifest-project-root-nonempty",
+      "description": "getProjectManifest must return a manifest with a non-empty projectRoot string",
+      "function": "getProjectManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "typeof manifest.projectRoot === 'string'",
+        "manifest.projectRoot.length > 0"
+      ]
+    },
+    {
+      "id": "goodhart-required-deps-structure",
+      "description": "getRequiredDependencies must return an object with both dependencies and devDependencies arrays, each containing entries with packageName, versionRange, and isDev fields",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Array.isArray(result.dependencies)",
+        "Array.isArray(result.devDependencies)",
+        "every dep has packageName string",
+        "every dep has versionRange string"
+      ]
+    },
+    {
+      "id": "goodhart-bootstrap-whitespace-only-target-id",
+      "description": "bootstrapApp should reject a targetElementId that is whitespace-only since such an ID would fail DOM lookup, either through validation or target_element_not_found",
+      "function": "bootstrapApp",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "throws an error (validation or target_element_not_found)"
+      ]
+    },
+    {
+      "id": "goodhart-bijection-single-entry-match",
+      "description": "verifyManifestComponentBijection must work correctly with a single-entry manifest matching a single-key map, not just hardcoded for 13 entries",
+      "function": "verifyManifestComponentBijection",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === true",
+        "result.manifestKeys has length 1",
+        "result.mapKeys has length 1",
+        "result.missingInMap is empty",
+        "result.extraInMap is empty"
+      ]
+    },
+    {
+      "id": "goodhart-bootstrap-render-failure-propagates-after-bijection-passes",
+      "description": "bootstrapApp must propagate render_failure error even when bijection verification succeeds, confirming the error path is not short-circuited by prior success",
+      "function": "bootstrapApp",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "bijection would pass (all 13 keys match)",
+        "renderEntryPoint throws",
+        "render_failure error is thrown by bootstrapApp"
       ]
     }
   ],
   "test_language": "typescript",
-  "generated_code": "\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport * as fs from 'fs';\nimport * as path from 'path';\n\n// Module-scope mock function refs — declared before vi.mock() calls\nconst mockCreateAppRouter = vi.fn();\nconst mockMountApp = vi.fn();\n\nvi.mock('../src/../routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\n// Also mock with likely actual import paths\nvi.mock('routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('../src/../project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\nvi.mock('project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\n// We need to handle the actual import paths used by the module.\n// Try multiple possible mock patterns for the dependencies.\nvi.mock('@routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('@project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\n// Common relative path patterns\nvi.mock('../routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('../project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\nvi.mock('./routing_and_layout', () => ({\n  createAppRouter: mockCreateAppRouter,\n}));\n\nvi.mock('./project_scaffold', () => ({\n  mountApp: mockMountApp,\n}));\n\ndescribe('Root - Adversarial Hidden Tests', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    // Ensure #root element exists for happy-path tests\n    if (!document.getElementById('root')) {\n      const rootEl = document.createElement('div');\n      rootEl.id = 'root';\n      document.body.appendChild(rootEl);\n    }\n    // Default mock behavior\n    mockCreateAppRouter.mockReturnValue({ __routerSentinel: true });\n    mockMountApp.mockReturnValue(undefined);\n  });\n\n  afterEach(() => {\n    const rootEl = document.getElementById('root');\n    if (rootEl) {\n      document.body.removeChild(rootEl);\n    }\n  });\n\n  describe('initApp', () => {\n    it('goodhart: initApp must pass the exact router instance returned by createAppRouter to mountApp, not a hardcoded or fabricated object', async () => {\n      const uniqueRouter = { __unique: Symbol('router-sentinel'), routes: [] };\n      mockCreateAppRouter.mockReturnValue(uniqueRouter);\n\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n      const passedArg = mockMountApp.mock.calls[0][0];\n      expect(passedArg).toBe(uniqueRouter);\n    });\n\n    it('goodhart: when createAppRouter returns different instances on successive calls, mountApp must receive the corresponding instance each time', async () => {\n      const routerA = { id: 'router-A', __brand: Symbol('A') };\n      const routerB = { id: 'router-B', __brand: Symbol('B') };\n      mockCreateAppRouter.mockReturnValueOnce(routerA).mockReturnValueOnce(routerB);\n\n      const { initApp } = await import('../src/root');\n\n      initApp();\n      expect(mockMountApp.mock.calls[0][0]).toBe(routerA);\n\n      // Re-add #root if mountApp removed it\n      if (!document.getElementById('root')) {\n        const rootEl = document.createElement('div');\n        rootEl.id = 'root';\n        document.body.appendChild(rootEl);\n      }\n\n      initApp();\n      expect(mockMountApp.mock.calls[1][0]).toBe(routerB);\n      expect(routerA).not.toBe(routerB);\n    });\n\n    it('goodhart: initApp must call createAppRouter exactly once per invocation — never zero or multiple times', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n    });\n\n    it('goodhart: initApp must call mountApp exactly once per invocation', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n    });\n\n    it('goodhart: when createAppRouter throws, mountApp must never be invoked — error propagates before mount', async () => {\n      mockCreateAppRouter.mockImplementation(() => {\n        throw new Error('router_creation_failure: missing component');\n      });\n\n      const { initApp } = await import('../src/root');\n      expect(() => initApp()).toThrow();\n      expect(mockMountApp).not.toHaveBeenCalled();\n    });\n\n    it('goodhart: initApp must return void/undefined — it must not return the router or any other value', async () => {\n      const { initApp } = await import('../src/root');\n      const result = initApp();\n      expect(result).toBeUndefined();\n    });\n\n    it('goodhart: initApp must be exported as a callable function', async () => {\n      const { initApp } = await import('../src/root');\n      expect(typeof initApp).toBe('function');\n    });\n\n    it('goodhart: mountApp must be called with exactly one argument — the router instance', async () => {\n      const sentinel = { __router: true };\n      mockCreateAppRouter.mockReturnValue(sentinel);\n\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockMountApp).toHaveBeenCalledTimes(1);\n      // Check it was called with exactly 1 arg\n      expect(mockMountApp.mock.calls[0]).toHaveLength(1);\n      expect(mockMountApp.mock.calls[0][0]).toBe(sentinel);\n    });\n\n    it('goodhart: createAppRouter must be called with zero arguments — root should not pass config or pages to it', async () => {\n      const { initApp } = await import('../src/root');\n      initApp();\n\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(1);\n      expect(mockCreateAppRouter.mock.calls[0]).toHaveLength(0);\n    });\n\n    it('goodhart: each invocation of initApp must call both dependencies — no caching or memoization across calls', async () => {\n      const { initApp } = await import('../src/root');\n\n      initApp();\n\n      // Re-add #root if needed\n      if (!document.getElementById('root')) {\n        const rootEl = document.createElement('div');\n        rootEl.id = 'root';\n        document.body.appendChild(rootEl);\n      }\n\n      initApp();\n\n      expect(mockCreateAppRouter).toHaveBeenCalledTimes(2);\n      expect(mockMountApp).toHaveBeenCalledTimes(2);\n    });\n\n    it('goodhart: initApp should execute synchronously — it must not return a Promise', async () => {\n      const { initApp } = await import('../src/root');\n      const result = initApp();\n\n      // Should not be a thenable\n      const isThenable = result != null && typeof (result as any).then === 'function';\n      expect(isThenable).toBe(false);\n    });\n  });\n\n  describe('module structure invariants', () => {\n    it('goodhart: src/root.ts must export exactly one named runtime export: initApp', async () => {\n      const rootModule = await import('../src/root');\n      const exportKeys = Object.keys(rootModule).filter(k => k !== 'default' && k !== '__esModule');\n      // initApp must be present\n      expect(exportKeys).toContain('initApp');\n      // Filter to only runtime (non-type) exports — in JS, all keys are runtime\n      // There should be exactly one\n      const runtimeExports = exportKeys.filter(k => typeof rootModule[k as keyof typeof rootModule] !== 'undefined');\n      expect(runtimeExports).toEqual(['initApp']);\n    });\n\n    it('goodhart: root module must not re-export domain types like StepId, RouteEntry, RouteSlug, etc.', async () => {\n      const rootModule = await import('../src/root');\n      const exportKeys = Object.keys(rootModule);\n      const forbiddenExports = [\n        'StepId', 'StepLabel', 'RouteSlug', 'StepContent', 'RouteEntry',\n        'ROUTE_ENTRY_LIST', 'PIPELINE_NODES', 'PIPELINE_EDGES',\n        'Layout', 'Sidebar', 'HomePage', 'CartographerPage',\n        'ensureLeadingSlash', 'guardSlug', 'CodeBlock', 'VersionBadge',\n      ];\n      for (const name of forbiddenExports) {\n        expect(exportKeys).not.toContain(name);\n      }\n    });\n\n    it('goodhart: root module source must not directly import from shared_ui or pipeline_diagram', async () => {\n      // Read the actual source file to check import statements\n      const possiblePaths = [\n        path.resolve(__dirname, '../src/root.ts'),\n        path.resolve(__dirname, '../src/root.tsx'),\n      ];\n\n      let source = '';\n      for (const p of possiblePaths) {\n        try {\n          source = fs.readFileSync(p, 'utf-8');\n          break;\n        } catch {\n          // try next\n        }\n      }\n\n      // If we can read the source, verify no direct imports from shared_ui or pipeline_diagram\n      if (source) {\n        // Check for import statements referencing these modules\n        expect(source).not.toMatch(/from\\s+['\"].*shared_ui/);\n        expect(source).not.toMatch(/from\\s+['\"].*pipeline_diagram/);\n        expect(source).not.toMatch(/import\\s+.*['\"].*shared_ui/);\n        expect(source).not.toMatch(/import\\s+.*['\"].*pipeline_diagram/);\n      }\n    });\n\n    it('goodhart: root module source must not contain slug string manipulation — all slug handling delegated to routing_and_layout', async () => {\n      const possiblePaths = [\n        path.resolve(__dirname, '../src/root.ts'),\n        path.resolve(__dirname, '../src/root.tsx'),\n      ];\n\n      let source = '';\n      for (const p of possiblePaths) {\n        try {\n          source = fs.readFileSync(p, 'utf-8');\n          break;\n        } catch {\n          // try next\n        }\n      }\n\n      if (source) {\n        // Should not contain slug manipulation like string replace, startsWith('/'), etc.\n        // on slug-like strings\n        expect(source).not.toMatch(/\\.replace\\s*\\(\\s*['\"]\\//);\n        expect(source).not.toMatch(/\\.startsWith\\s*\\(\\s*['\"]\\//);\n        expect(source).not.toMatch(/['\"]\\/[a-z]+-[a-z]+['\"]/); // hardcoded route paths\n      }\n    });\n  });\n\n  describe('main module', () => {\n    it('goodhart: main.tsx must have zero named exports — only side effects', async () => {\n      // We need to be careful importing main.tsx as it has side effects\n      // Instead, check its exports after import\n      try {\n        const mainModule = await import('../src/main');\n        const exportKeys = Object.keys(mainModule).filter(k => k !== 'default' && k !== '__esModule');\n        expect(exportKeys).toHaveLength(0);\n      } catch {\n        // If import fails due to side effects in test env, that's acceptable\n        // The visible test should catch this — we just add extra coverage\n      }\n    });\n  });\n});\n"
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\n\n// ---- hoisted mocks ----\nconst {\n  mockGetRouteManifest,\n  mockGetPageComponentMap,\n  mockRenderEntryPoint,\n  mockBuildPageComponentMap,\n  mockApp,\n  mockGetProjectManifest,\n  mockGetRequiredDependencies,\n} = vi.hoisted(() => ({\n  mockGetRouteManifest: vi.fn(),\n  mockGetPageComponentMap: vi.fn(),\n  mockRenderEntryPoint: vi.fn(),\n  mockBuildPageComponentMap: vi.fn(),\n  mockApp: vi.fn(),\n  mockGetProjectManifest: vi.fn(),\n  mockGetRequiredDependencies: vi.fn(),\n}));\n\nvi.mock('../../../src/app_routing', () => ({\n  getRouteManifest: mockGetRouteManifest,\n  renderEntryPoint: mockRenderEntryPoint,\n  buildPageComponentMap: mockBuildPageComponentMap,\n  App: mockApp,\n}));\n\nvi.mock('../../../src/page_components', () => ({\n  getPageComponentMap: mockGetPageComponentMap,\n  HomePage: vi.fn(),\n  CartographerPage: vi.fn(),\n  ConstrainPage: vi.fn(),\n  LedgerPage: vi.fn(),\n  PactPage: vi.fn(),\n  AdvocatePage: vi.fn(),\n  ArbiterPage: vi.fn(),\n  BatonPage: vi.fn(),\n  SentinelPage: vi.fn(),\n  ChroniclerPage: vi.fn(),\n  StigmergyPage: vi.fn(),\n  ApprenticePage: vi.fn(),\n  KindexPage: vi.fn(),\n}));\n\nvi.mock('../../../src/project_scaffold', () => ({\n  getProjectManifest: mockGetProjectManifest,\n  getRequiredDependencies: mockGetRequiredDependencies,\n  generateScaffold: vi.fn(),\n  validateScaffold: vi.fn(),\n}));\n\nvi.mock('../../../src/shared_components', () => ({\n  CalloutBox: vi.fn(),\n  CodeBlock: vi.fn(),\n  VersionBadge: vi.fn(),\n  VideoEmbed: vi.fn(),\n  Sidebar: vi.fn(),\n  PageLayout: vi.fn(),\n}));\n\nimport {\n  bootstrapApp,\n  verifyManifestComponentBijection,\n  getRouteManifest,\n  getPageComponentMap,\n  getProjectManifest,\n  getRequiredDependencies,\n} from '../../../src/root';\n\n// Helper: all 13 page component keys\nconst ALL_KEYS = [\n  'Home', 'Cartographer', 'Constrain', 'Ledger', 'Pact',\n  'Advocate', 'Arbiter', 'Baton', 'Sentinel', 'Chronicler',\n  'Stigmergy', 'Apprentice', 'Kindex',\n] as const;\n\nfunction makeFakeManifest(keys: readonly string[] = ALL_KEYS) {\n  return keys.map((k, i) => ({\n    path: `/${k.toLowerCase()}`,\n    label: `${k} Page`,\n    componentKey: k,\n  }));\n}\n\nfunction makeFakeComponentMap(keys: readonly string[] = ALL_KEYS) {\n  const map: Record<string, () => null> = {};\n  for (const k of keys) {\n    map[k] = () => null;\n  }\n  return map;\n}\n\nfunction setupDom(id: string) {\n  const el = document.createElement('div');\n  el.id = id;\n  document.body.appendChild(el);\n  return el;\n}\n\nfunction setupHappyMocks(targetId = 'root') {\n  mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n  mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n  mockRenderEntryPoint.mockImplementation(() => {});\n  setupDom(targetId);\n}\n\ndescribe('goodhart: verifyManifestComponentBijection', () => {\n  it('goodhart: should report both missingInMap and extraInMap simultaneously when manifest and map have non-overlapping keys', () => {\n    const manifest = [\n      { path: '/alpha', label: 'Alpha', componentKey: 'Alpha' },\n      { path: '/beta', label: 'Beta', componentKey: 'Beta' },\n    ];\n    const componentMap = { Gamma: () => null, Delta: () => null };\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.isValid).toBe(false);\n    expect(result.missingInMap).toContain('Alpha');\n    expect(result.missingInMap).toContain('Beta');\n    expect(result.extraInMap).toContain('Gamma');\n    expect(result.extraInMap).toContain('Delta');\n    expect(result.missingInMap.length).toBe(2);\n    expect(result.extraInMap.length).toBe(2);\n  });\n\n  it('goodhart: should handle empty manifest with non-empty map, reporting all map keys as extra', () => {\n    const manifest: any[] = [];\n    const componentMap = { Foo: () => null, Bar: () => null };\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.isValid).toBe(false);\n    expect(result.manifestKeys).toEqual([]);\n    expect(result.missingInMap).toEqual([]);\n    expect(result.extraInMap).toContain('Foo');\n    expect(result.extraInMap).toContain('Bar');\n    expect(result.extraInMap.length).toBe(2);\n  });\n\n  it('goodhart: should handle non-empty manifest with empty map, reporting all manifest keys as missing', () => {\n    const manifest = [\n      { path: '/x', label: 'X', componentKey: 'X' },\n      { path: '/y', label: 'Y', componentKey: 'Y' },\n    ];\n    const componentMap = {};\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.isValid).toBe(false);\n    expect(result.mapKeys).toEqual([]);\n    expect(result.extraInMap).toEqual([]);\n    expect(result.missingInMap).toContain('X');\n    expect(result.missingInMap).toContain('Y');\n    expect(result.missingInMap.length).toBe(2);\n  });\n\n  it('goodhart: should preserve manifestKeys in insertion order matching manifest entries', () => {\n    const keys = ['Zulu', 'Alpha', 'Mike', 'Bravo'];\n    const manifest = keys.map((k) => ({ path: `/${k.toLowerCase()}`, label: k, componentKey: k }));\n    const componentMap = makeFakeComponentMap(keys);\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.manifestKeys).toEqual(keys);\n    expect(result.isValid).toBe(true);\n  });\n\n  it('goodhart: should include arbitrary non-PageComponentKey string keys from the map in mapKeys and extraInMap', () => {\n    const manifest = [{ path: '/home', label: 'Home', componentKey: 'Home' }];\n    const componentMap = { Home: () => null, RandomExtraKey: () => null, AnotherOne: () => null };\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.isValid).toBe(false);\n    expect(result.mapKeys).toContain('Home');\n    expect(result.mapKeys).toContain('RandomExtraKey');\n    expect(result.mapKeys).toContain('AnotherOne');\n    expect(result.extraInMap).toContain('RandomExtraKey');\n    expect(result.extraInMap).toContain('AnotherOne');\n    expect(result.extraInMap).not.toContain('Home');\n  });\n\n  it('goodhart: should return isValid true with empty manifest and empty map since both sets are identical', () => {\n    const result = verifyManifestComponentBijection([] as any, {} as any);\n\n    expect(result.isValid).toBe(true);\n    expect(result.manifestKeys).toEqual([]);\n    expect(result.mapKeys).toEqual([]);\n    expect(result.missingInMap).toEqual([]);\n    expect(result.extraInMap).toEqual([]);\n  });\n\n  it('goodhart: should work correctly with a single-entry manifest matching a single-key map', () => {\n    const manifest = [{ path: '/solo', label: 'Solo', componentKey: 'Solo' }];\n    const componentMap = { Solo: () => null };\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    expect(result.isValid).toBe(true);\n    expect(result.manifestKeys).toEqual(['Solo']);\n    expect(result.mapKeys).toEqual(['Solo']);\n    expect(result.missingInMap).toEqual([]);\n    expect(result.extraInMap).toEqual([]);\n  });\n\n  it('goodhart: should handle duplicate componentKeys in manifest by including each occurrence in manifestKeys', () => {\n    const manifest = [\n      { path: '/a', label: 'A1', componentKey: 'Dup' },\n      { path: '/b', label: 'A2', componentKey: 'Dup' },\n    ];\n    const componentMap = { Dup: () => null };\n\n    const result = verifyManifestComponentBijection(manifest as any, componentMap as any);\n\n    // manifestKeys should reflect every entry in order\n    expect(result.manifestKeys).toEqual(['Dup', 'Dup']);\n    expect(result.manifestKeys.length).toBe(2);\n  });\n});\n\ndescribe('goodhart: bootstrapApp', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n    document.body.innerHTML = '';\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n  });\n\n  it('goodhart: should dynamically set targetElementId from config, not hardcode any specific value', () => {\n    const customId = 'my-app-container-xyz';\n    setupHappyMocks(customId);\n\n    const result = bootstrapApp({ targetElementId: customId, strictMode: true });\n\n    expect(result.targetElementId).toBe(customId);\n  });\n\n  it('goodhart: should throw manifest_component_mismatch when map has extra keys even if all manifest keys are present', () => {\n    const allKeysPlus = [...ALL_KEYS, 'BogusExtra'] as string[];\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest(ALL_KEYS));\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap(allKeysPlus));\n    setupDom('root');\n\n    expect(() => bootstrapApp({ targetElementId: 'root', strictMode: true })).toThrow();\n    // Verify it's specifically mismatch, not some other error\n    try {\n      bootstrapApp({ targetElementId: 'root', strictMode: true });\n    } catch (e: any) {\n      const msg = (e?.message ?? e ?? '').toString().toLowerCase();\n      expect(\n        msg.includes('mismatch') || msg.includes('bijection') || msg.includes('MANIFEST_COMPONENT_MISMATCH'.toLowerCase())\n      ).toBe(true);\n    }\n  });\n\n  it('goodhart: should not call renderEntryPoint when bijection verification fails', () => {\n    // Map missing one key\n    const missingKeys = ALL_KEYS.slice(0, 12);\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest(ALL_KEYS));\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap(missingKeys));\n    setupDom('root');\n\n    try {\n      bootstrapApp({ targetElementId: 'root', strictMode: true });\n    } catch {\n      // expected\n    }\n\n    expect(mockRenderEntryPoint).not.toHaveBeenCalled();\n  });\n\n  it('goodhart: should not call renderEntryPoint when target DOM element is missing', () => {\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n    // Don't add any DOM element\n\n    try {\n      bootstrapApp({ targetElementId: 'nonexistent-element', strictMode: true });\n    } catch {\n      // expected\n    }\n\n    expect(mockRenderEntryPoint).not.toHaveBeenCalled();\n  });\n\n  it('goodhart: should call getRouteManifest and getPageComponentMap exactly once per invocation across multiple sequential calls', () => {\n    setupHappyMocks('root');\n\n    bootstrapApp({ targetElementId: 'root', strictMode: true });\n    expect(mockGetRouteManifest).toHaveBeenCalledTimes(1);\n    expect(mockGetPageComponentMap).toHaveBeenCalledTimes(1);\n\n    // Second call\n    bootstrapApp({ targetElementId: 'root', strictMode: true });\n    expect(mockGetRouteManifest).toHaveBeenCalledTimes(2);\n    expect(mockGetPageComponentMap).toHaveBeenCalledTimes(2);\n  });\n\n  it('goodhart: should reject a whitespace-only targetElementId with an error', () => {\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n\n    expect(() => bootstrapApp({ targetElementId: '   ', strictMode: true })).toThrow();\n  });\n\n  it('goodhart: should propagate render_failure when renderEntryPoint throws even though bijection passes', () => {\n    mockGetRouteManifest.mockReturnValue(makeFakeManifest());\n    mockGetPageComponentMap.mockReturnValue(makeFakeComponentMap());\n    mockRenderEntryPoint.mockImplementation(() => {\n      throw new Error('React root creation failed');\n    });\n    setupDom('root');\n\n    expect(() => bootstrapApp({ targetElementId: 'root', strictMode: true })).toThrow();\n\n    // Verify the mocks were called up to the render point\n    expect(mockGetRouteManifest).toHaveBeenCalledTimes(1);\n    expect(mockGetPageComponentMap).toHaveBeenCalledTimes(1);\n    expect(mockRenderEntryPoint).toHaveBeenCalledTimes(1);\n  });\n\n  it('goodhart: should return a BootstrapResult with routeCount and pageComponentCount both exactly 13, not derived from input', () => {\n    setupHappyMocks('root');\n\n    const result = bootstrapApp({ targetElementId: 'root', strictMode: true });\n\n    expect(result.routeCount).toStrictEqual(13);\n    expect(result.pageComponentCount).toStrictEqual(13);\n    expect(result.allRoutesHaveComponents).toStrictEqual(true);\n    // Verify these are numbers, not strings\n    expect(typeof result.routeCount).toBe('number');\n    expect(typeof result.pageComponentCount).toBe('number');\n    expect(typeof result.allRoutesHaveComponents).toBe('boolean');\n  });\n});\n\ndescribe('goodhart: getRouteManifest re-export', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n  });\n\n  it('goodhart: should return entries where every path starts with a forward slash', () => {\n    const fakeManifest = makeFakeManifest();\n    mockGetRouteManifest.mockReturnValue(fakeManifest);\n\n    const manifest = getRouteManifest();\n\n    for (const entry of manifest) {\n      expect(entry.path.startsWith('/')).toBe(true);\n    }\n  });\n\n  it('goodhart: should return entries where every path contains only lowercase alphanumeric, hyphens, and slashes', () => {\n    const fakeManifest = makeFakeManifest();\n    mockGetRouteManifest.mockReturnValue(fakeManifest);\n\n    const manifest = getRouteManifest();\n\n    const validPathRegex = /^\\/[a-z0-9\\-\\/]*$/;\n    for (const entry of manifest) {\n      expect(entry.path).toMatch(validPathRegex);\n    }\n  });\n\n  it('goodhart: should return entries where every label is a non-empty string', () => {\n    const fakeManifest = makeFakeManifest();\n    mockGetRouteManifest.mockReturnValue(fakeManifest);\n\n    const manifest = getRouteManifest();\n\n    for (const entry of manifest) {\n      expect(typeof entry.label).toBe('string');\n      expect(entry.label.length).toBeGreaterThan(0);\n    }\n  });\n\n  it('goodhart: should return entries each having path, label, and componentKey properties', () => {\n    const fakeManifest = makeFakeManifest();\n    mockGetRouteManifest.mockReturnValue(fakeManifest);\n\n    const manifest = getRouteManifest();\n\n    for (const entry of manifest) {\n      expect(entry).toHaveProperty('path');\n      expect(entry).toHaveProperty('label');\n      expect(entry).toHaveProperty('componentKey');\n    }\n  });\n});\n\ndescribe('goodhart: getPageComponentMap re-export', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n  });\n\n  it('goodhart: should return a map where every value is a function (React.ComponentType)', () => {\n    const fakeMap = makeFakeComponentMap();\n    mockGetPageComponentMap.mockReturnValue(fakeMap);\n\n    const map = getPageComponentMap();\n\n    for (const key of Object.keys(map)) {\n      expect(typeof (map as any)[key]).toBe('function');\n    }\n  });\n});\n\ndescribe('goodhart: getProjectManifest re-export', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n  });\n\n  it('goodhart: should return a manifest with exactly 12 files', () => {\n    mockGetProjectManifest.mockReturnValue({\n      projectRoot: './exemplar-tools-doc',\n      files: Array.from({ length: 12 }, (_, i) => `file${i}`),\n      projectName: 'exemplar-tools-doc',\n      devServerPort: 4000,\n    });\n\n    const manifest = getProjectManifest();\n\n    expect(manifest.files.length).toBe(12);\n  });\n\n  it('goodhart: should return a manifest with a non-empty projectRoot string', () => {\n    mockGetProjectManifest.mockReturnValue({\n      projectRoot: './exemplar-tools-doc',\n      files: Array.from({ length: 12 }, (_, i) => `file${i}`),\n      projectName: 'exemplar-tools-doc',\n      devServerPort: 4000,\n    });\n\n    const manifest = getProjectManifest();\n\n    expect(typeof manifest.projectRoot).toBe('string');\n    expect(manifest.projectRoot.length).toBeGreaterThan(0);\n  });\n});\n\ndescribe('goodhart: getRequiredDependencies re-export', () => {\n  beforeEach(() => {\n    vi.clearAllMocks();\n  });\n\n  it('goodhart: should return dependencies and devDependencies as arrays with proper entry structure', () => {\n    mockGetRequiredDependencies.mockReturnValue({\n      dependencies: [\n        { packageName: 'react', versionRange: '^18.0.0', isDev: false },\n        { packageName: 'react-dom', versionRange: '^18.0.0', isDev: false },\n        { packageName: 'react-router-dom', versionRange: '^6.0.0', isDev: false },\n      ],\n      devDependencies: Array.from({ length: 13 }, (_, i) => ({\n        packageName: `dev-dep-${i}`,\n        versionRange: '^1.0.0',\n        isDev: true,\n      })),\n    });\n\n    const result = getRequiredDependencies();\n\n    expect(Array.isArray(result.dependencies)).toBe(true);\n    expect(Array.isArray(result.devDependencies)).toBe(true);\n\n    for (const dep of result.dependencies) {\n      expect(typeof dep.packageName).toBe('string');\n      expect(typeof dep.versionRange).toBe('string');\n    }\n\n    for (const dep of result.devDependencies) {\n      expect(typeof dep.packageName).toBe('string');\n      expect(typeof dep.versionRange).toBe('string');\n    }\n  });\n});\n"
 }

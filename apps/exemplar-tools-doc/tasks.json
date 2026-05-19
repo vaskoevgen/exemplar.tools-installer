@@ -29,7 +29,7 @@
       "id": "T003",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: CalloutVariant",
+      "description": "Define shared type: AppProps",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -40,7 +40,7 @@
       "id": "T004",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: OptionalString",
+      "description": "Define shared type: CalloutBoxProps",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -51,7 +51,7 @@
       "id": "T005",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: ReactElement",
+      "description": "Define shared type: CalloutType",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -62,7 +62,7 @@
       "id": "T006",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: RouteSlug",
+      "description": "Define shared type: CodeBlockProps",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -73,7 +73,7 @@
       "id": "T007",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: StepId",
+      "description": "Define shared type: DependencyEntry",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -84,7 +84,7 @@
       "id": "T008",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: StepLabel",
+      "description": "Define shared type: PageComponentKey",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -95,7 +95,7 @@
       "id": "T009",
       "phase": "foundational",
       "component_id": "",
-      "description": "Define shared type: string",
+      "description": "Define shared type: PageComponentMap",
       "file_path": "",
       "status": "pending",
       "parallel": true,
@@ -104,6 +104,193 @@
     },
     {
       "id": "T010",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: PageLayoutProps",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T011",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ProjectManifest",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T012",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ReactComponentType",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T013",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ReactNode",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T014",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RequiredDependencies",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T015",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RouteEntry",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T016",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RouteLabel",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T017",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RouteManifest",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T018",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: RoutePath",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T019",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ScaffoldError",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T020",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ScaffoldFilePath",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T021",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ScaffoldOptions",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T022",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: ScaffoldResult",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T023",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: SidebarProps",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T024",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: VersionBadgeProps",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T025",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: VideoEmbedProps",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T026",
+      "phase": "foundational",
+      "component_id": "",
+      "description": "Define shared type: string",
+      "file_path": "",
+      "status": "pending",
+      "parallel": true,
+      "depends_on": [],
+      "category": "type_definition"
+    },
+    {
+      "id": "T027",
       "phase": "component",
       "component_id": "project_scaffold",
       "description": "Review contract for Project Scaffold & Configuration",
@@ -114,7 +301,7 @@
       "category": "contract_review"
     },
     {
-      "id": "T011",
+      "id": "T028",
       "phase": "component",
       "component_id": "project_scaffold",
       "description": "Set up test harness for Project Scaffold & Configuration",
@@ -122,12 +309,12 @@
       "status": "completed",
       "parallel": false,
       "depends_on": [
-        "T010"
+        "T027"
       ],
       "category": "test_setup"
     },
     {
-      "id": "T012",
+      "id": "T029",
       "phase": "component",
       "component_id": "project_scaffold",
       "description": "Write contract tests for Project Scaffold & Configuration",
@@ -135,12 +322,12 @@
       "status": "completed",
       "parallel": false,
       "depends_on": [
-        "T011"
+        "T028"
       ],
       "category": "test_write"
     },
     {
-      "id": "T013",
+      "id": "T030",
       "phase": "component",
       "component_id": "project_scaffold",
       "description": "Implement Project Scaffold & Configuration",
@@ -148,299 +335,236 @@
       "status": "completed",
       "parallel": false,
       "depends_on": [
-        "T012"
+        "T029"
       ],
       "category": "implement"
-    },
-    {
-      "id": "T014",
-      "phase": "component",
-      "component_id": "project_scaffold",
-      "description": "Run tests and verify Project Scaffold & Configuration",
-      "file_path": "",
-      "status": "failed",
-      "parallel": false,
-      "depends_on": [
-        "T013"
-      ],
-      "category": "verify"
-    },
-    {
-      "id": "T015",
-      "phase": "component",
-      "component_id": "routing_and_layout",
-      "description": "Review contract for Routing, Layout & Navigation",
-      "file_path": "contracts/routing_and_layout/interface.json",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [],
-      "category": "contract_review"
-    },
-    {
-      "id": "T016",
-      "phase": "component",
-      "component_id": "routing_and_layout",
-      "description": "Set up test harness for Routing, Layout & Navigation",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T015"
-      ],
-      "category": "test_setup"
-    },
-    {
-      "id": "T017",
-      "phase": "component",
-      "component_id": "routing_and_layout",
-      "description": "Write contract tests for Routing, Layout & Navigation",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T016"
-      ],
-      "category": "test_write"
-    },
-    {
-      "id": "T018",
-      "phase": "component",
-      "component_id": "routing_and_layout",
-      "description": "Implement Routing, Layout & Navigation",
-      "file_path": "implementations/routing_and_layout/src/",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T017"
-      ],
-      "category": "implement"
-    },
-    {
-      "id": "T019",
-      "phase": "component",
-      "component_id": "routing_and_layout",
-      "description": "Run tests and verify Routing, Layout & Navigation",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T018"
-      ],
-      "category": "verify"
-    },
-    {
-      "id": "T020",
-      "phase": "component",
-      "component_id": "shared_ui",
-      "description": "Review contract for Shared UI Components",
-      "file_path": "contracts/shared_ui/interface.json",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [],
-      "category": "contract_review"
-    },
-    {
-      "id": "T021",
-      "phase": "component",
-      "component_id": "shared_ui",
-      "description": "Set up test harness for Shared UI Components",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T020"
-      ],
-      "category": "test_setup"
-    },
-    {
-      "id": "T022",
-      "phase": "component",
-      "component_id": "shared_ui",
-      "description": "Write contract tests for Shared UI Components",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T021"
-      ],
-      "category": "test_write"
-    },
-    {
-      "id": "T023",
-      "phase": "component",
-      "component_id": "shared_ui",
-      "description": "Implement Shared UI Components",
-      "file_path": "implementations/shared_ui/src/",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T022"
-      ],
-      "category": "implement"
-    },
-    {
-      "id": "T024",
-      "phase": "component",
-      "component_id": "shared_ui",
-      "description": "Run tests and verify Shared UI Components",
-      "file_path": "",
-      "status": "failed",
-      "parallel": false,
-      "depends_on": [
-        "T023"
-      ],
-      "category": "verify"
-    },
-    {
-      "id": "T025",
-      "phase": "component",
-      "component_id": "pipeline_diagram",
-      "description": "Review contract for Pipeline Diagram Component",
-      "file_path": "contracts/pipeline_diagram/interface.json",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [],
-      "category": "contract_review"
-    },
-    {
-      "id": "T026",
-      "phase": "component",
-      "component_id": "pipeline_diagram",
-      "description": "Set up test harness for Pipeline Diagram Component",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T025"
-      ],
-      "category": "test_setup"
-    },
-    {
-      "id": "T027",
-      "phase": "component",
-      "component_id": "pipeline_diagram",
-      "description": "Write contract tests for Pipeline Diagram Component",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T026"
-      ],
-      "category": "test_write"
-    },
-    {
-      "id": "T028",
-      "phase": "component",
-      "component_id": "pipeline_diagram",
-      "description": "Implement Pipeline Diagram Component",
-      "file_path": "implementations/pipeline_diagram/src/",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T027"
-      ],
-      "category": "implement"
-    },
-    {
-      "id": "T029",
-      "phase": "component",
-      "component_id": "pipeline_diagram",
-      "description": "Run tests and verify Pipeline Diagram Component",
-      "file_path": "",
-      "status": "failed",
-      "parallel": false,
-      "depends_on": [
-        "T028"
-      ],
-      "category": "verify"
-    },
-    {
-      "id": "T030",
-      "phase": "component",
-      "component_id": "page_content",
-      "description": "Review contract for Step Page Content & Data",
-      "file_path": "contracts/page_content/interface.json",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [],
-      "category": "contract_review"
     },
     {
       "id": "T031",
       "phase": "component",
-      "component_id": "page_content",
-      "description": "Set up test harness for Step Page Content & Data",
+      "component_id": "project_scaffold",
+      "description": "Run tests and verify Project Scaffold & Configuration",
       "file_path": "",
       "status": "completed",
       "parallel": false,
       "depends_on": [
         "T030"
       ],
-      "category": "test_setup"
+      "category": "verify"
     },
     {
       "id": "T032",
       "phase": "component",
-      "component_id": "page_content",
-      "description": "Write contract tests for Step Page Content & Data",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T031"
-      ],
-      "category": "test_write"
-    },
-    {
-      "id": "T033",
-      "phase": "component",
-      "component_id": "page_content",
-      "description": "Implement Step Page Content & Data",
-      "file_path": "implementations/page_content/src/",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T032"
-      ],
-      "category": "implement"
-    },
-    {
-      "id": "T034",
-      "phase": "component",
-      "component_id": "page_content",
-      "description": "Run tests and verify Step Page Content & Data",
-      "file_path": "",
-      "status": "completed",
-      "parallel": false,
-      "depends_on": [
-        "T033"
-      ],
-      "category": "verify"
-    },
-    {
-      "id": "T035",
-      "phase": "integration",
-      "component_id": "root",
-      "description": "Review integration contract for Root",
-      "file_path": "",
+      "component_id": "shared_components",
+      "description": "Review contract for Shared UI Components",
+      "file_path": "contracts/shared_components/interface.json",
       "status": "completed",
       "parallel": false,
       "depends_on": [],
       "category": "contract_review"
     },
     {
+      "id": "T033",
+      "phase": "component",
+      "component_id": "shared_components",
+      "description": "Set up test harness for Shared UI Components",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T032"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T034",
+      "phase": "component",
+      "component_id": "shared_components",
+      "description": "Write contract tests for Shared UI Components",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T033"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T035",
+      "phase": "component",
+      "component_id": "shared_components",
+      "description": "Implement Shared UI Components",
+      "file_path": "implementations/shared_components/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T034"
+      ],
+      "category": "implement"
+    },
+    {
       "id": "T036",
+      "phase": "component",
+      "component_id": "shared_components",
+      "description": "Run tests and verify Shared UI Components",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T035"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T037",
+      "phase": "component",
+      "component_id": "app_routing",
+      "description": "Review contract for App Shell & Routing",
+      "file_path": "contracts/app_routing/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T038",
+      "phase": "component",
+      "component_id": "app_routing",
+      "description": "Set up test harness for App Shell & Routing",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T037"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T039",
+      "phase": "component",
+      "component_id": "app_routing",
+      "description": "Write contract tests for App Shell & Routing",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T038"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T040",
+      "phase": "component",
+      "component_id": "app_routing",
+      "description": "Implement App Shell & Routing",
+      "file_path": "implementations/app_routing/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T039"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T041",
+      "phase": "component",
+      "component_id": "app_routing",
+      "description": "Run tests and verify App Shell & Routing",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T040"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T042",
+      "phase": "component",
+      "component_id": "page_components",
+      "description": "Review contract for Page Components (13 pages)",
+      "file_path": "contracts/page_components/interface.json",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T043",
+      "phase": "component",
+      "component_id": "page_components",
+      "description": "Set up test harness for Page Components (13 pages)",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T042"
+      ],
+      "category": "test_setup"
+    },
+    {
+      "id": "T044",
+      "phase": "component",
+      "component_id": "page_components",
+      "description": "Write contract tests for Page Components (13 pages)",
+      "file_path": "",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T043"
+      ],
+      "category": "test_write"
+    },
+    {
+      "id": "T045",
+      "phase": "component",
+      "component_id": "page_components",
+      "description": "Implement Page Components (13 pages)",
+      "file_path": "implementations/page_components/src/",
+      "status": "completed",
+      "parallel": false,
+      "depends_on": [
+        "T044"
+      ],
+      "category": "implement"
+    },
+    {
+      "id": "T046",
+      "phase": "component",
+      "component_id": "page_components",
+      "description": "Run tests and verify Page Components (13 pages)",
+      "file_path": "",
+      "status": "failed",
+      "parallel": false,
+      "depends_on": [
+        "T045"
+      ],
+      "category": "verify"
+    },
+    {
+      "id": "T047",
+      "phase": "integration",
+      "component_id": "root",
+      "description": "Review integration contract for Root",
+      "file_path": "",
+      "status": "pending",
+      "parallel": false,
+      "depends_on": [],
+      "category": "contract_review"
+    },
+    {
+      "id": "T048",
       "phase": "integration",
       "component_id": "root",
       "description": "Write integration tests for Root",
       "file_path": "",
-      "status": "completed",
+      "status": "pending",
       "parallel": true,
       "depends_on": [],
       "category": "test_write"
     },
     {
-      "id": "T037",
+      "id": "T049",
       "phase": "integration",
       "component_id": "root",
       "description": "Wire children for Root",
@@ -448,29 +572,28 @@
       "status": "pending",
       "parallel": false,
       "depends_on": [
-        "T034",
-        "T029",
-        "T014",
-        "T019",
-        "T024"
+        "T041",
+        "T046",
+        "T031",
+        "T036"
       ],
       "category": "integrate"
     },
     {
-      "id": "T038",
+      "id": "T050",
       "phase": "integration",
       "component_id": "root",
       "description": "Run integration tests for Root",
       "file_path": "",
-      "status": "failed",
+      "status": "pending",
       "parallel": false,
       "depends_on": [
-        "T037"
+        "T049"
       ],
       "category": "verify"
     },
     {
-      "id": "T039",
+      "id": "T051",
       "phase": "polish",
       "component_id": "",
       "description": "Run full contract validation gate",
@@ -481,7 +604,7 @@
       "category": "validate"
     },
     {
-      "id": "T040",
+      "id": "T052",
       "phase": "polish",
       "component_id": "",
       "description": "Cross-artifact analysis",
@@ -492,7 +615,7 @@
       "category": "validate"
     },
     {
-      "id": "T041",
+      "id": "T053",
       "phase": "polish",
       "component_id": "",
       "description": "Update design document",
@@ -515,6 +638,6 @@
       "validation": "All integration tests pass"
     }
   ],
-  "generated_at": "2026-05-19T10:51:10.016614",
+  "generated_at": "2026-05-19T14:11:09.772408",
   "version": 1
 }

@@ -1,32 +1,32 @@
 [
   {
     "ambiguity": "",
-    "decision": "Five components instead of trivial",
-    "rationale": "The project has genuinely distinct subsystems: build config, routing/layout, reusable UI primitives, the SVG diagram, and 14 pages of content. Each can be developed and tested independently with clean interfaces. Total LOC will exceed 500 across all pages."
+    "decision": "Four-component decomposition rather than trivial",
+    "rationale": "With 13 page components, shared UI components, routing configuration, and project scaffolding, the total LOC will significantly exceed 500. The 300-line-per-file SOP constraint alone forces at least 15+ source files. The four components have clean interfaces: scaffold produces config, shared_components produces reusable React elements, page_components consumes shared_components and howto.md content, app_routing wires pages into routes."
   },
   {
     "ambiguity": "",
-    "decision": "Content hardcoded in TSX, not parsed from markdown",
-    "rationale": "Per interview answers and the 'accuracy is paramount' requirement, all howto.md content is hardcoded into TypeScript data structures and JSX rather than using a markdown parser or Vite plugin."
+    "decision": "Route slugs follow AS3 pattern exactly",
+    "rationale": "URL slugs: /, /step-0-cartographer, /step-1a-constrain, /step-1b-ledger, /step-2a-pact, /step-2b-advocate, /step-3-arbiter, /step-4-baton, /step-5a-sentinel, /step-5b-chronicler, /step-5c-stigmergy, /step-6-apprentice, /step-7-kindex. These are the source-of-truth strings per the SOP on string keys in maps."
   },
   {
     "ambiguity": "",
-    "decision": "Pipeline diagram as separate component from shared_ui",
-    "rationale": "The SVG pipeline diagram is a complex, one-off component with routing dependencies and its own interaction logic \u2014 it doesn't belong in the generic shared UI library."
+    "decision": "prism-react-renderer for syntax highlighting with copy button",
+    "rationale": "AS9 specifies prism-react-renderer. CodeBlock component wraps it and adds a copy-to-clipboard button using navigator.clipboard API, satisfying AC15."
   },
   {
     "ambiguity": "",
-    "decision": "Single StepPage template component with per-step data",
-    "rationale": "All 13 step pages share the same layout (commands, gotchas, warnings, tips, video, version badge). A generic StepPage component receives typed step data, avoiding 13 copies of layout code. Thin wrapper components per step pass the correct data slice."
+    "decision": "Route manifest as shared data structure",
+    "rationale": "A single exported array of route definitions (path, label, componentKey) serves as the source of truth for both the Sidebar navigation and the router configuration, preventing slug mismatches per the SOP on string keys."
   },
   {
     "ambiguity": "",
-    "decision": "Tailwind CSS v3 with PostCSS",
-    "rationale": "Per assumptions, Tailwind v3 is used for stability. Standard postcss.config.js + tailwind.config.js setup with content paths pointing to src/**/*.tsx."
+    "decision": "Page components depend on shared_components but not on app_routing",
+    "rationale": "Pages are leaf content components that consume CodeBlock, VideoEmbed, etc. The routing layer (app_routing) depends on pages to wire them into routes, not the reverse. This keeps the dependency graph acyclic and shallow."
   },
   {
     "ambiguity": "",
-    "decision": "Copy-to-clipboard uses navigator.clipboard API",
-    "rationale": "Modern browsers support navigator.clipboard.writeText. No polyfill needed for a developer-facing documentation site. Button shows visual feedback on copy."
+    "decision": "Pipeline diagram as static SVG asset",
+    "rationale": "Per AS5, the pipeline diagram is a static visual. It will be placed in a public/ or src/assets/ directory and rendered in HomePage via an <img> or inline SVG component."
   }
 ]

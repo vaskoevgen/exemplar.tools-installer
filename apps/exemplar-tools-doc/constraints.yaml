@@ -1,85 +1,89 @@
-version: "1.0"
-generated_by: constrain
-session_id: docs_site_001
+- id: C001
+  boundary: "Source code language"
+  condition: "All source files must be TypeScript (.ts or .tsx extensions)"
+  violation: "Python files or non-TypeScript files present"
+  severity: must
+  rationale: "Explicit requirement to use TypeScript, never Python"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-constraints:
-  - id: C001
-    boundary: "Source file language"
-    condition: "All source files must use TypeScript with .ts or .tsx extensions"
-    violation: "Python files or non-TypeScript source files exist"
-    severity: must
-    rationale: "Implementation language explicitly specified as TypeScript"
-    classification_tier: null
-    affected_components: ["docs_site", "build_system"]
+- id: C002
+  boundary: "Output directory naming"
+  condition: "Build output must be in folder named 'exemplar-tools-doc'"
+  violation: "Output folder has different name"
+  severity: must
+  rationale: "Specific deployment requirement"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C002
-    boundary: "Command accuracy"
-    condition: "All CLI commands must match howto.md exactly with zero transcription errors"
-    violation: "Commands differ from source documentation"
-    severity: must
-    rationale: "Incorrect commands could damage developer environments"
-    classification_tier: null
-    affected_components: ["docs_site"]
+- id: C003
+  boundary: "Content accuracy"
+  condition: "All CLI commands must be copied verbatim from howto.md"
+  violation: "Modified, truncated, or incorrect CLI commands"
+  severity: must
+  rationale: "Developers will copy-paste these commands; inaccuracy causes failures"
+  classification_tier: PUBLIC
+  affected_components: ["doc-app"]
 
-  - id: C003
-    boundary: "Page completeness"
-    condition: "Exactly 13 pages must exist (1 home + 12 tool pages)"
-    violation: "Missing pages or incorrect page count"
-    severity: must
-    rationale: "Complete coverage of all tools is required"
-    classification_tier: null
-    affected_components: ["docs_site"]
+- id: C004
+  boundary: "Content completeness"
+  condition: "All gotchas, warnings, tips, and examples from howto.md must be preserved exactly"
+  violation: "Missing or modified guidance content"
+  severity: must
+  rationale: "Critical safety and usage information for developers"
+  classification_tier: PUBLIC
+  affected_components: ["doc-app"]
 
-  - id: C004
-    boundary: "Video embedding"
-    condition: "YouTube videos must be embedded and functional on each relevant page"
-    violation: "Broken video embeds or missing videos"
-    severity: must
-    rationale: "Visual learning component is critical for user experience"
-    classification_tier: null
-    affected_components: ["docs_site"]
+- id: C005
+  boundary: "Page coverage"
+  condition: "Must have 14 tool pages plus home page, one per tool in howto.md"
+  violation: "Missing tool pages or incorrect count"
+  severity: must
+  rationale: "Complete coverage requirement"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C005
-    boundary: "Development server port"
-    condition: "Vite dev server must run on port 4000"
-    violation: "Dev server runs on different port"
-    severity: must
-    rationale: "Port specification provided in requirements"
-    classification_tier: null
-    affected_components: ["build_system"]
+- id: C006
+  boundary: "Video integration"
+  condition: "YouTube videos must be properly embedded for each step"
+  violation: "Broken, missing, or non-functional video embeds"
+  severity: must
+  rationale: "Visual guidance is critical for developer onboarding"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C006
-    boundary: "Static deployment"
-    condition: "No backend services or APIs allowed"
-    violation: "Backend components or server-side processing detected"
-    severity: must
-    rationale: "System explicitly scoped as static-only"
-    classification_tier: null
-    affected_components: ["docs_site", "deployment_system"]
+- id: C007
+  boundary: "Navigation functionality"
+  condition: "Navigation between all pages must be functional"
+  violation: "Broken links or non-working navigation"
+  severity: must
+  rationale: "Basic usability requirement"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C007
-    boundary: "Navigation functionality"
-    condition: "Navigation must work between all pages without broken links"
-    violation: "Broken navigation links or unreachable pages"
-    severity: must
-    rationale: "Poor navigation creates unusable documentation"
-    classification_tier: null
-    affected_components: ["docs_site"]
+- id: C008
+  boundary: "Deployment compatibility"
+  condition: "Must be successfully deployable to Vercel"
+  violation: "Build fails or deployment errors"
+  severity: must
+  rationale: "Production hosting requirement"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C008
-    boundary: "Build success"
-    condition: "Site must build successfully with npm run build"
-    violation: "Build failures or compilation errors"
-    severity: must
-    rationale: "Failed builds prevent deployment"
-    classification_tier: null
-    affected_components: ["build_system"]
+- id: C009
+  boundary: "Development server"
+  condition: "Dev server must run on port 4000"
+  violation: "Server runs on different port"
+  severity: should
+  rationale: "Specified development environment configuration"
+  classification_tier: null
+  affected_components: ["doc-app"]
 
-  - id: C009
-    boundary: "Version badge display"
-    condition: "Version badges must show current component versions"
-    violation: "Missing or incorrect version information"
-    severity: should
-    rationale: "Version info helps developers understand compatibility"
-    classification_tier: null
-    affected_components: ["docs_site"]
+- id: C010
+  boundary: "Architecture pattern"
+  condition: "Must be single-page React application"
+  violation: "Multi-page application or non-React implementation"
+  severity: must
+  rationale: "Specified architecture requirement"
+  classification_tier: null
+  affected_components: ["doc-app"]

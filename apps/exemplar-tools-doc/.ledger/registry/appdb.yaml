@@ -1,0 +1,4 @@
+backend_id: appdb
+backend_type: sqlite
+owner_component: app
+registered_at: '2026-05-19T18:25:18.733015+00:00'

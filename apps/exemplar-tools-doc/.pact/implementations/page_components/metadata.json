@@ -1,0 +1,22 @@
+{
+  "attempt": 3,
+  "timestamp": "2026-05-19T15:38:22.109569",
+  "files": [
+    "HomePage.tsx",
+    "CartographerPage.tsx",
+    "ConstrainPage.tsx",
+    "LedgerPage.tsx",
+    "PactPage.tsx",
+    "AdvocatePage.tsx",
+    "ArbiterPage.tsx",
+    "BatonPage.tsx",
+    "SentinelPage.tsx",
+    "ChroniclerPage.tsx",
+    "StigmergyPage.tsx",
+    "ApprenticePage.tsx",
+    "KindexPage.tsx",
+    "types.ts",
+    "getPageComponentMap.ts",
+    "index.ts"
+  ]
+}

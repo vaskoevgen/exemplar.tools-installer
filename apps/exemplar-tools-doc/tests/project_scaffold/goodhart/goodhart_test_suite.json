@@ -3,341 +3,511 @@
   "contract_version": 1,
   "test_cases": [
     {
-      "id": "goodhart_app_shell_div_is_direct_child_of_browser_router",
-      "description": "The App component must render the #app-shell div as a descendant inside the BrowserRouter context, ensuring routing context is available to all children",
-      "function": "App",
+      "id": "goodhart_manifest_files_exact_paths",
+      "description": "The manifest files array must contain every specific ScaffoldFilePath variant as an exact string, not just have length 12",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Render App component and verify routing context is available within #app-shell",
-      "expected_output_description": "A hook like useLocation should work inside the app-shell div, proving BrowserRouter wraps it",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "div#app-shell is inside a Router context",
-        "useLocation hook works inside app-shell"
+        "manifest.files includes 'package.json'",
+        "manifest.files includes 'tsconfig.json'",
+        "manifest.files includes 'tsconfig.node.json'",
+        "manifest.files includes 'vite.config.ts'",
+        "manifest.files includes 'tailwind.config.ts'",
+        "manifest.files includes 'postcss.config.mjs'",
+        "manifest.files includes 'vercel.json'",
+        "manifest.files includes 'index.html'",
+        "manifest.files includes 'vitest.setup.ts'",
+        "manifest.files includes 'src/main.tsx'",
+        "manifest.files includes 'src/index.css'",
+        "manifest.files includes 'src/App.tsx'"
       ]
     },
     {
-      "id": "goodhart_app_is_function_component",
-      "description": "The App export must be a callable React function component, not a pre-rendered element or object literal",
-      "function": "App",
+      "id": "goodhart_manifest_no_extra_files",
+      "description": "The manifest files array must not contain any paths outside the ScaffoldFilePath enum — no extra entries allowed",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Import App and check its type",
-      "expected_output_description": "App should be a function that can be called as a React component",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "App is a function",
-        "typeof App === 'function'"
+        "every file in manifest.files is a member of ScaffoldFilePath enum"
       ]
     },
     {
-      "id": "goodhart_app_shell_div_has_no_hardcoded_children",
-      "description": "The scaffold App component should render an empty app-shell div with no page content, route definitions, or layout — those belong to downstream components",
-      "function": "App",
+      "id": "goodhart_manifest_projectroot_nonempty",
+      "description": "The manifest projectRoot field must be a non-empty string representing a path",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Render App and inspect the #app-shell div contents",
-      "expected_output_description": "The app-shell div should be empty or contain no meaningful page content",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "#app-shell has no text content",
-        "#app-shell has no child elements or is minimal"
+        "manifest.projectRoot is a non-empty string"
       ]
     },
     {
-      "id": "goodhart_app_returns_valid_react_element",
-      "description": "Calling App as a component must return a valid React element (not null, undefined, or a string)",
-      "function": "App",
+      "id": "goodhart_manifest_immutability",
+      "description": "getProjectManifest must return a new object each call or the returned object must not be shared mutable state — mutating one result must not affect future calls",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Call App() or render <App /> and check the return value",
-      "expected_output_description": "A valid ReactElement object",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "React.isValidElement(result) is true"
+        "mutating returned manifest does not affect subsequent calls"
       ]
     },
     {
-      "id": "goodhart_app_renders_consistently_across_multiple_renders",
-      "description": "The App component should produce the same DOM structure on repeated renders, ruling out randomized or stateful hardcoded shortcuts",
-      "function": "App",
+      "id": "goodhart_deps_specific_version_ranges",
+      "description": "Each dependency must have its exact specified caret range, not just any string starting with ^",
+      "function": "getRequiredDependencies",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Render App twice in separate containers",
-      "expected_output_description": "Both renders have a div#app-shell inside router context",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Two independent renders produce identical DOM structure"
+        "react versionRange starts with ^18.3",
+        "react-dom versionRange starts with ^18.3",
+        "react-router-dom versionRange starts with ^6.23",
+        "vite versionRange starts with ^5.4",
+        "@vitejs/plugin-react versionRange starts with ^4.3",
+        "tailwindcss versionRange starts with ^3.4",
+        "vitest versionRange starts with ^2.0",
+        "@testing-library/react versionRange starts with ^16",
+        "@testing-library/jest-dom versionRange starts with ^6",
+        "jsdom versionRange starts with ^24",
+        "prism-react-renderer versionRange starts with ^2.3",
+        "autoprefixer versionRange starts with ^10.4",
+        "postcss versionRange starts with ^8.4",
+        "typescript versionRange starts with ^5.5",
+        "@types/react versionRange starts with ^18.3",
+        "@types/react-dom versionRange starts with ^18.3"
       ]
     },
     {
-      "id": "goodhart_mount_app_uses_create_root_not_legacy_render",
-      "description": "mountApp must use the React 18 createRoot API from react-dom/client, not the legacy ReactDOM.render",
-      "function": "mountApp",
+      "id": "goodhart_deps_no_extra_dependencies",
+      "description": "The dependencies array must contain only the 3 specified packages — no unexpected extras",
+      "function": "getRequiredDependencies",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Mock react-dom/client and verify createRoot is invoked",
-      "expected_output_description": "createRoot should be called with the #root element",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "createRoot is called",
-        "legacy render is not called"
+        "dependencies array packageNames are exactly react, react-dom, react-router-dom"
       ]
     },
     {
-      "id": "goodhart_mount_app_renders_app_component_specifically",
-      "description": "mountApp must render the App component (not some other component or raw HTML) into the root",
-      "function": "mountApp",
+      "id": "goodhart_deps_no_extra_devdependencies",
+      "description": "The devDependencies array must contain only the 13 specified packages — no unexpected extras",
+      "function": "getRequiredDependencies",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Execute mountApp with mocked DOM and verify App is what gets rendered",
-      "expected_output_description": "The rendered tree should contain App's BrowserRouter and #app-shell structure",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "The rendered content includes App's output structure"
+        "devDependencies packageNames are exactly the 13 specified packages"
       ]
     },
     {
-      "id": "goodhart_index_html_has_root_div",
-      "description": "index.html must contain a div element with id='root' as the React mount point",
-      "function": "mountApp",
+      "id": "goodhart_scaffold_creates_src_subdirectory",
+      "description": "generateScaffold must create the src/ subdirectory within the output directory for files that live under src/",
+      "function": "generateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "src/ directory exists after scaffold generation"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_package_json_has_all_deps",
+      "description": "Generated package.json must declare every dependency from getRequiredDependencies with matching version ranges, not just have type:module",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read index.html file contents",
-      "expected_output_description": "The file contains a div with id root",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "index.html contains <div id='root'></div>"
+        "package.json dependencies object contains react, react-dom, react-router-dom with correct versions",
+        "package.json devDependencies object contains all 13 dev packages with correct versions"
       ]
     },
     {
-      "id": "goodhart_index_html_has_module_script_to_main",
-      "description": "index.html must reference /src/main.tsx as a module script, which is the Vite entry point",
-      "function": "mountApp",
+      "id": "goodhart_scaffold_package_json_valid_json",
+      "description": "Generated package.json must be valid parseable JSON, not just a string containing keywords",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read index.html file contents",
-      "expected_output_description": "A script tag with type=module and src=/src/main.tsx",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "index.html contains <script type='module' src='/src/main.tsx'>"
+        "JSON.parse succeeds on package.json content",
+        "parsed result is an object with dependencies and devDependencies keys"
       ]
     },
     {
-      "id": "goodhart_postcss_config_has_tailwind_and_autoprefixer",
-      "description": "postcss.config.js must include both tailwindcss and autoprefixer plugins for the CSS pipeline to work",
-      "function": "VitestConfig",
+      "id": "goodhart_scaffold_vercel_json_valid_json",
+      "description": "Generated vercel.json must be valid parseable JSON with the correct structural shape",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read or import postcss.config.js",
-      "expected_output_description": "Both tailwindcss and autoprefixer are listed as plugins",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "postcss config includes tailwindcss plugin",
-        "postcss config includes autoprefixer plugin"
+        "JSON.parse succeeds on vercel.json content",
+        "parsed result has rewrites array of length 1"
       ]
     },
     {
-      "id": "goodhart_test_setup_imports_jest_dom",
-      "description": "src/test-setup.ts must import @testing-library/jest-dom to register custom DOM matchers globally for all tests",
-      "function": "VitestConfig",
+      "id": "goodhart_scaffold_vite_config_test_globals",
+      "description": "Generated vite.config.ts must configure test.globals = true for Vitest global API availability",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read src/test-setup.ts contents",
-      "expected_output_description": "The file imports @testing-library/jest-dom",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "test-setup.ts contains import of @testing-library/jest-dom"
+        "vite.config.ts content includes globals: true or equivalent"
       ]
     },
     {
-      "id": "goodhart_package_deps_react_dom_caret_18",
-      "description": "react-dom must be listed as a runtime dependency with a caret-pinned ^18.x version, not just react alone",
-      "function": "PackageDependencyMap",
+      "id": "goodhart_scaffold_vite_config_test_setup_files",
+      "description": "Generated vite.config.ts must configure test.setupFiles to include ./vitest.setup.ts",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read package.json dependencies",
-      "expected_output_description": "react-dom version matches ^18.x pattern",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "react-dom version starts with ^18."
+        "vite.config.ts content includes setupFiles referencing vitest.setup.ts"
       ]
     },
     {
-      "id": "goodhart_package_deps_react_router_dom_present",
-      "description": "react-router-dom must be listed as a runtime dependency with a caret-pinned version",
-      "function": "PackageDependencyMap",
+      "id": "goodhart_scaffold_vite_config_resolve_alias",
+      "description": "Generated vite.config.ts must configure resolve.alias mapping '@' to the src directory using import.meta.dirname",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read package.json dependencies",
-      "expected_output_description": "react-router-dom exists with caret-pinned version",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "react-router-dom is in dependencies",
-        "version starts with ^"
+        "vite.config.ts contains resolve alias with '@' key",
+        "vite.config.ts references import.meta.dirname"
       ]
     },
     {
-      "id": "goodhart_vercel_json_rewrites_is_array_with_single_rule",
-      "description": "vercel.json must contain exactly one rewrite rule in a rewrites array, not multiple or zero rules",
-      "function": "VercelRewriteRule",
+      "id": "goodhart_scaffold_vite_config_plugin_react",
+      "description": "Generated vite.config.ts must import and use @vitejs/plugin-react",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read vercel.json",
-      "expected_output_description": "The rewrites array contains exactly one rule object",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "rewrites array has exactly 1 element"
+        "vite.config.ts imports from @vitejs/plugin-react",
+        "vite.config.ts plugins array includes react()"
       ]
     },
     {
-      "id": "goodhart_tailwind_content_both_globs_present",
-      "description": "tailwind.config.js content array must include BOTH './index.html' AND './src/**/*.{ts,tsx}' — not just one of them",
-      "function": "TailwindContentGlob",
+      "id": "goodhart_scaffold_postcss_plugins",
+      "description": "Generated postcss.config.mjs must export both tailwindcss and autoprefixer plugins",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Import tailwind.config.js and inspect content array",
-      "expected_output_description": "Both glob patterns are present in the content array",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "content includes './index.html'",
-        "content includes './src/**/*.{ts,tsx}'",
-        "both are present simultaneously"
+        "postcss.config.mjs references tailwindcss",
+        "postcss.config.mjs references autoprefixer"
       ]
     },
     {
-      "id": "goodhart_vite_config_uses_react_plugin",
-      "description": "vite.config.ts must use the @vitejs/plugin-react plugin so JSX transformation works correctly",
-      "function": "ViteServerConfig",
+      "id": "goodhart_scaffold_main_tsx_renders_to_root",
+      "description": "Generated src/main.tsx must render the App component into the #root DOM element",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Import or read vite.config.ts",
-      "expected_output_description": "The plugins array contains the react() plugin",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "vite config plugins array includes react plugin"
+        "src/main.tsx contains getElementById('root') or equivalent",
+        "src/main.tsx contains createRoot or render call"
       ]
     },
     {
-      "id": "goodhart_index_css_exact_content",
-      "description": "src/index.css must contain exactly the three Tailwind directives in order — @tailwind base, components, utilities — with no extra CSS rules",
-      "function": "mountApp",
+      "id": "goodhart_scaffold_main_tsx_react_first_import",
+      "description": "Generated src/main.tsx must import React from 'react' as its first import statement",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "first import line in src/main.tsx is React from 'react'"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_result_manifest_consistency",
+      "description": "The ScaffoldResult.manifest must contain all 12 ScaffoldFilePath entries and match the canonical manifest structure",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.manifest.files has length 12",
+        "result.manifest.projectName === 'exemplar-tools-doc'",
+        "result.manifest.devServerPort === 4000"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_file_contents_not_empty",
+      "description": "Every generated file must have non-empty content — no zero-byte placeholder files",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all 12 files have content length > 0"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_tsconfig_valid_json",
+      "description": "Generated tsconfig.json must be valid parseable JSON with expected TypeScript compiler options",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "JSON.parse succeeds on tsconfig.json",
+        "parsed result has compilerOptions key"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_tsconfig_node_valid_json",
+      "description": "Generated tsconfig.node.json must be valid parseable JSON distinct from tsconfig.json",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "JSON.parse succeeds on tsconfig.node.json",
+        "parsed result has compilerOptions key"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_different_output_dir",
+      "description": "generateScaffold must work with arbitrary valid output directory paths, not just a hardcoded path",
+      "function": "generateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "scaffold succeeds with a different temp directory name",
+        "all 12 files written at the new path"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_index_html_doctype",
+      "description": "Generated index.html should be a valid HTML document structure, not just contain the required div and script tags as fragments",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "index.html contains <!DOCTYPE html> or <html",
+        "index.html contains <head> and <body> sections"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_package_json_has_name",
+      "description": "Generated package.json should include a 'name' field matching the project name from the manifest",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "parsed package.json has name field",
+        "name matches 'exemplar-tools-doc'"
+      ]
+    },
+    {
+      "id": "goodhart_validate_corrupted_package_json",
+      "description": "validateScaffold must detect when package.json exists but has missing or incorrect dependencies",
+      "function": "validateScaffold",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read src/index.css content",
-      "expected_output_description": "Exactly three @tailwind directives and nothing else significant",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "Contains @tailwind base",
-        "Contains @tailwind components",
-        "Contains @tailwind utilities",
-        "No other CSS rules present"
+        "validation reports invalid when package.json has missing dependencies"
       ]
     },
     {
-      "id": "goodhart_app_module_no_default_export_strict_check",
-      "description": "The App module must not have a default export even if it has a named App export — checking that 'default' key is absent from module namespace",
-      "function": "App",
+      "id": "goodhart_scaffold_overwrite_actually_replaces_content",
+      "description": "When overwrite is true and files exist with different content, the scaffold must actually replace them with correct content, not just skip",
+      "function": "generateScaffold",
       "category": "edge_case",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Dynamic import of the App module to inspect all exports",
-      "expected_output_description": "The module namespace has App but no default property",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "module.default is undefined",
-        "module.App is defined and is a function"
+        "after overwrite, package.json has correct content not the pre-existing garbage content"
       ]
     },
     {
-      "id": "goodhart_vite_test_config_all_three_fields_together",
-      "description": "The vitest config block must contain all three fields (environment, globals, setupFiles) simultaneously — not just individually correct values",
-      "function": "VitestConfig",
+      "id": "goodhart_scaffold_vite_config_test_environment_jsdom",
+      "description": "Generated vite.config.ts must configure test.environment specifically as 'jsdom', not 'happy-dom' or other alternatives",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read vite.config.ts test configuration block",
-      "expected_output_description": "A single test config object with all three correct fields",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "environment === 'jsdom'",
-        "globals === true",
-        "setupFiles === './src/test-setup.ts'",
-        "all three present in same config object"
+        "vite.config.ts contains environment setting with jsdom value"
       ]
     },
     {
-      "id": "goodhart_tsconfig_all_four_options_together",
-      "description": "tsconfig.json compilerOptions must contain all four required fields simultaneously — strict, jsx, moduleResolution, isolatedModules",
-      "function": "TsCompilerOptions",
+      "id": "goodhart_scaffold_app_tsx_named_export_is_app",
+      "description": "src/App.tsx must have a named export called 'App' specifically, not just any named export alongside a default",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read tsconfig.json compilerOptions",
-      "expected_output_description": "All four fields present with correct values in the same compilerOptions object",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "strict === true",
-        "jsx === 'react-jsx'",
-        "moduleResolution === 'bundler'",
-        "isolatedModules === true",
-        "all four present in same object"
+        "src/App.tsx contains 'export function App' or 'export const App'"
       ]
     },
     {
-      "id": "goodhart_dev_deps_testing_library_jest_dom_present",
-      "description": "@testing-library/jest-dom must be in devDependencies with a caret-pinned version — this is distinct from @testing-library/react",
-      "function": "PackageDevDependencyMap",
+      "id": "goodhart_deps_immutability",
+      "description": "getRequiredDependencies must return independent objects each call — mutating one result must not affect subsequent calls",
+      "function": "getRequiredDependencies",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "Read package.json devDependencies",
-      "expected_output_description": "@testing-library/jest-dom present with caret version",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "@testing-library/jest-dom is in devDependencies",
-        "version starts with ^"
+        "mutating returned deps does not affect subsequent calls"
+      ]
+    },
+    {
+      "id": "goodhart_scaffold_whitespace_only_outputdir",
+      "description": "generateScaffold should reject an outputDir that contains only whitespace as invalid",
+      "function": "generateScaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_output_dir",
+      "assertions": [
+        "throws invalid_output_dir for whitespace-only outputDir"
       ]
     }
   ],
   "test_language": "typescript",
-  "generated_code": "\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport { readFileSync, existsSync } from 'fs';\nimport { resolve } from 'path';\n\n/**\n * Adversarial hidden tests for Project Scaffold & Configuration.\n * These tests catch implementations that hardcode returns to pass visible tests\n * without truly satisfying the contract.\n */\n\n// Helper to read a project file relative to the project root\nfunction readProjectFile(relativePath: string): string {\n  const fullPath = resolve(process.cwd(), relativePath);\n  if (!existsSync(fullPath)) {\n    throw new Error(`Expected file not found: ${relativePath}`);\n  }\n  return readFileSync(fullPath, 'utf-8');\n}\n\ndescribe('goodhart: App component behavioral properties', () => {\n  beforeEach(() => {\n    // Set up a minimal DOM for React rendering\n    document.body.innerHTML = '<div id=\"root\"></div>';\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n  });\n\n  it('goodhart: should be a callable function component, not a pre-rendered element', async () => {\n    const appModule = await import('../src/App');\n    expect(typeof appModule.App).toBe('function');\n    // It should be callable (function components are functions)\n    expect(appModule.App).toBeInstanceOf(Function);\n  });\n\n  it('goodhart: should return a valid React element when invoked as JSX', async () => {\n    const React = await import('react');\n    const { render, cleanup } = await import('@testing-library/react');\n    const { App } = await import('../src/App');\n\n    const { container } = render(React.createElement(App));\n    // The rendered output must have actual DOM content, not be empty\n    expect(container.innerHTML).not.toBe('');\n    cleanup();\n  });\n\n  it('goodhart: should produce consistent DOM structure across multiple independent renders', async () => {\n    const React = await import('react');\n    const { render, cleanup } = await import('@testing-library/react');\n    const { App } = await import('../src/App');\n\n    const result1 = render(React.createElement(App));\n    const html1 = result1.container.innerHTML;\n    cleanup();\n\n    const result2 = render(React.createElement(App));\n    const html2 = result2.container.innerHTML;\n    cleanup();\n\n    expect(html1).toBe(html2);\n    // Both should contain app-shell\n    expect(html1).toContain('app-shell');\n  });\n\n  it('goodhart: should render app-shell div inside a routing context so useLocation works for descendants', async () => {\n    const React = await import('react');\n    const { render, cleanup, screen } = await import('@testing-library/react');\n    const { useLocation } = await import('react-router-dom');\n    const { App } = await import('../src/App');\n\n    // Create a child component that uses routing hooks to verify context\n    let locationCaptured = false;\n    function LocationProbe() {\n      const location = useLocation();\n      locationCaptured = true;\n      return React.createElement('span', { 'data-testid': 'probe' }, location.pathname);\n    }\n\n    // We need to render App and ensure router context is available\n    // By rendering App on its own, BrowserRouter should be at root\n    const { container } = render(React.createElement(App));\n    const appShell = container.querySelector('#app-shell');\n    expect(appShell).not.toBeNull();\n    cleanup();\n  });\n\n  it('goodhart: should render an empty app-shell div with no page content or route definitions', async () => {\n    const React = await import('react');\n    const { render, cleanup } = await import('@testing-library/react');\n    const { App } = await import('../src/App');\n\n    const { container } = render(React.createElement(App));\n    const appShell = container.querySelector('#app-shell');\n    expect(appShell).not.toBeNull();\n    // The app-shell should be empty — no page content, no routes, no layout\n    // It might have zero children or minimal structural children, but no text\n    const textContent = appShell!.textContent?.trim() ?? '';\n    expect(textContent).toBe('');\n    cleanup();\n  });\n\n  it('goodhart: module namespace must have App but must NOT have a default key', async () => {\n    const appModule = await import('../src/App');\n    // Named export must exist\n    expect(appModule).toHaveProperty('App');\n    expect(typeof appModule.App).toBe('function');\n    // Default export must not exist\n    expect(appModule).not.toHaveProperty('default');\n  });\n});\n\ndescribe('goodhart: mountApp behavioral properties', () => {\n  it('goodhart: index.html must contain a div with id root as the React mount target', () => {\n    const html = readProjectFile('index.html');\n    // Must have a div with id=\"root\"\n    expect(html).toMatch(/<div\\s+id=[\"']root[\"']\\s*>\\s*<\\/div>/);\n  });\n\n  it('goodhart: index.html must reference /src/main.tsx as a type=module script', () => {\n    const html = readProjectFile('index.html');\n    // Must have script type=\"module\" src=\"/src/main.tsx\"\n    expect(html).toMatch(/<script\\s[^>]*type=[\"']module[\"'][^>]*src=[\"']\\/src\\/main\\.tsx[\"'][^>]*>/);\n  });\n\n  it('goodhart: src/index.css must contain all three @tailwind directives and no extra CSS rules', () => {\n    const css = readProjectFile('src/index.css');\n    expect(css).toContain('@tailwind base;');\n    expect(css).toContain('@tailwind components;');\n    expect(css).toContain('@tailwind utilities;');\n    // Strip whitespace and comments, ensure nothing else significant\n    const stripped = css\n      .replace(/\\/\\*[\\s\\S]*?\\*\\//g, '') // remove block comments\n      .replace(/\\s+/g, ' ')\n      .trim();\n    // After removing whitespace, it should be just the three directives\n    expect(stripped).toMatch(\n      /^@tailwind base;\\s*@tailwind components;\\s*@tailwind utilities;?\\s*$/\n    );\n  });\n\n  it('goodhart: main.tsx must be a side-effect-only module with no named exports', async () => {\n    // We can't actually import main.tsx without side effects, but we can read the source\n    const source = readProjectFile('src/main.tsx');\n    // Should not have export const/function/class/let/var/type/interface patterns\n    // except \"export {}\" which is sometimes used for module declaration\n    const exportStatements = source.match(/export\\s+(const|let|var|function|class|interface|type|enum)\\s/g);\n    expect(exportStatements).toBeNull();\n    // Should not have \"export default\"\n    expect(source).not.toMatch(/export\\s+default/);\n  });\n});\n\ndescribe('goodhart: vite.config.ts behavioral properties', () => {\n  it('goodhart: vite config must use @vitejs/plugin-react', () => {\n    const source = readProjectFile('vite.config.ts');\n    // Should import from @vitejs/plugin-react\n    expect(source).toMatch(/@vitejs\\/plugin-react/);\n    // Should call the plugin in the plugins array\n    expect(source).toMatch(/plugins\\s*:\\s*\\[/);\n  });\n\n  it('goodhart: vite config test block must have all three vitest fields simultaneously', () => {\n    const source = readProjectFile('vite.config.ts');\n    // All three fields must be present\n    expect(source).toContain(\"'jsdom'\");\n    expect(source).toMatch(/globals\\s*:\\s*true/);\n    expect(source).toContain('./src/test-setup.ts');\n    // Server port must be 4000\n    expect(source).toMatch(/port\\s*:\\s*4000/);\n  });\n});\n\ndescribe('goodhart: tsconfig.json behavioral properties', () => {\n  it('goodhart: tsconfig compilerOptions must contain all four required fields simultaneously', () => {\n    const raw = readProjectFile('tsconfig.json');\n    // Strip comments for JSON parsing (tsconfig supports comments)\n    const stripped = raw.replace(/\\/\\/.*$/gm, '').replace(/\\/\\*[\\s\\S]*?\\*\\//g, '');\n    const config = JSON.parse(stripped);\n    const opts = config.compilerOptions;\n\n    expect(opts).toBeDefined();\n    expect(opts.strict).toBe(true);\n    expect(opts.jsx).toBe('react-jsx');\n    expect(opts.moduleResolution).toBe('bundler');\n    expect(opts.isolatedModules).toBe(true);\n  });\n});\n\ndescribe('goodhart: tailwind.config.js behavioral properties', () => {\n  it('goodhart: content array must include both glob patterns simultaneously', () => {\n    const source = readProjectFile('tailwind.config.js');\n    expect(source).toContain('./index.html');\n    expect(source).toContain('./src/**/*.{ts,tsx}');\n  });\n});\n\ndescribe('goodhart: postcss.config.js behavioral properties', () => {\n  it('goodhart: postcss config must include both tailwindcss and autoprefixer plugins', () => {\n    const source = readProjectFile('postcss.config.js');\n    expect(source).toContain('tailwindcss');\n    expect(source).toContain('autoprefixer');\n  });\n});\n\ndescribe('goodhart: vercel.json behavioral properties', () => {\n  it('goodhart: vercel.json rewrites must be an array with exactly one rule', () => {\n    const raw = readProjectFile('vercel.json');\n    const config = JSON.parse(raw);\n    expect(config.rewrites).toBeDefined();\n    expect(Array.isArray(config.rewrites)).toBe(true);\n    expect(config.rewrites).toHaveLength(1);\n    expect(config.rewrites[0].source).toBe('/(.*)');\n    expect(config.rewrites[0].destination).toBe('/index.html');\n  });\n});\n\ndescribe('goodhart: test-setup.ts behavioral properties', () => {\n  it('goodhart: test-setup.ts must import @testing-library/jest-dom for global DOM matchers', () => {\n    const source = readProjectFile('src/test-setup.ts');\n    expect(source).toMatch(/@testing-library\\/jest-dom/);\n    // Must be an import statement, not just a comment mentioning it\n    expect(source).toMatch(/import\\s+['\"]@testing-library\\/jest-dom['\"]/);\n  });\n});\n\ndescribe('goodhart: package.json dependency behavioral properties', () => {\n  it('goodhart: react-dom must be a runtime dependency with ^18.x version', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    expect(pkg.dependencies).toBeDefined();\n    expect(pkg.dependencies['react-dom']).toBeDefined();\n    expect(pkg.dependencies['react-dom']).toMatch(/^\\^18\\./);\n  });\n\n  it('goodhart: react-router-dom must be a runtime dependency with caret-pinned version', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    expect(pkg.dependencies).toBeDefined();\n    expect(pkg.dependencies['react-router-dom']).toBeDefined();\n    expect(pkg.dependencies['react-router-dom']).toMatch(/^\\^/);\n  });\n\n  it('goodhart: react must be a runtime dependency not just a devDependency', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    // react must be in dependencies (not devDependencies)\n    expect(pkg.dependencies).toBeDefined();\n    expect(pkg.dependencies['react']).toBeDefined();\n    expect(pkg.dependencies['react']).toMatch(/^\\^18\\./);\n  });\n\n  it('goodhart: @testing-library/jest-dom must be in devDependencies with caret version', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    expect(pkg.devDependencies).toBeDefined();\n    expect(pkg.devDependencies['@testing-library/jest-dom']).toBeDefined();\n    expect(pkg.devDependencies['@testing-library/jest-dom']).toMatch(/^\\^/);\n  });\n\n  it('goodhart: all 10 required devDependencies must each have caret-pinned versions', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    const devDeps = pkg.devDependencies ?? {};\n\n    const requiredDevDeps = [\n      'vite',\n      'vitest',\n      'tailwindcss',\n      '@testing-library/react',\n      '@testing-library/jest-dom',\n      'jsdom',\n      '@vitejs/plugin-react',\n      'typescript',\n      'autoprefixer',\n      'postcss',\n    ];\n\n    for (const dep of requiredDevDeps) {\n      expect(devDeps[dep], `devDependency ${dep} should be present`).toBeDefined();\n      expect(devDeps[dep], `devDependency ${dep} should be caret-pinned`).toMatch(/^\\^/);\n    }\n  });\n\n  it('goodhart: runtime dependencies should not include devDependency-only packages like vitest or tailwindcss', () => {\n    const raw = readProjectFile('package.json');\n    const pkg = JSON.parse(raw);\n    const deps = pkg.dependencies ?? {};\n\n    // These should NOT be in runtime dependencies\n    expect(deps['vitest']).toBeUndefined();\n    expect(deps['tailwindcss']).toBeUndefined();\n    expect(deps['jsdom']).toBeUndefined();\n    expect(deps['typescript']).toBeUndefined();\n  });\n});\n"
+  "generated_code": "import { describe, it, expect, beforeEach, afterEach } from 'vitest';\nimport * as fs from 'node:fs';\nimport * as path from 'node:path';\nimport * as os from 'node:os';\nimport {\n  generateScaffold,\n  getProjectManifest,\n  getRequiredDependencies,\n  validateScaffold,\n} from '../../../src/project_scaffold';\n\nfunction makeTempDir(suffix: string): string {\n  return fs.mkdtempSync(path.join(os.tmpdir(), `goodhart-${suffix}-`));\n}\n\nfunction cleanDir(dir: string) {\n  try {\n    fs.rmSync(dir, { recursive: true, force: true });\n  } catch {\n    // ignore\n  }\n}\n\nconst SCAFFOLD_FILE_PATHS = [\n  'package.json',\n  'tsconfig.json',\n  'tsconfig.node.json',\n  'vite.config.ts',\n  'tailwind.config.ts',\n  'postcss.config.mjs',\n  'vercel.json',\n  'index.html',\n  'vitest.setup.ts',\n  'src/main.tsx',\n  'src/index.css',\n  'src/App.tsx',\n] as const;\n\ndescribe('goodhart: getProjectManifest', () => {\n  it('goodhart: should contain every specific ScaffoldFilePath variant as an exact string in the files array', () => {\n    const manifest = getProjectManifest();\n    for (const fp of SCAFFOLD_FILE_PATHS) {\n      expect(manifest.files).toContain(fp);\n    }\n  });\n\n  it('goodhart: should not contain any file paths outside the ScaffoldFilePath enum', () => {\n    const manifest = getProjectManifest();\n    const allowed = new Set<string>(SCAFFOLD_FILE_PATHS);\n    for (const f of manifest.files) {\n      expect(allowed.has(f)).toBe(true);\n    }\n  });\n\n  it('goodhart: should have a non-empty projectRoot string', () => {\n    const manifest = getProjectManifest();\n    expect(typeof manifest.projectRoot).toBe('string');\n    expect(manifest.projectRoot.length).toBeGreaterThan(0);\n  });\n\n  it('goodhart: should return independent objects so mutations do not affect future calls', () => {\n    const m1 = getProjectManifest();\n    // mutate the returned object\n    (m1 as any).projectName = 'hacked';\n    (m1 as any).files.push('evil.js');\n    (m1 as any).devServerPort = 9999;\n\n    const m2 = getProjectManifest();\n    expect(m2.projectName).toBe('exemplar-tools-doc');\n    expect(m2.files).toHaveLength(12);\n    expect(m2.devServerPort).toBe(4000);\n  });\n});\n\ndescribe('goodhart: getRequiredDependencies', () => {\n  it('goodhart: should pin each dependency to its exact specified caret range', () => {\n    const deps = getRequiredDependencies();\n    const allEntries = [...deps.dependencies, ...deps.devDependencies];\n    const lookup = new Map(allEntries.map((e: any) => [e.packageName, e.versionRange]));\n\n    // Production deps\n    expect(lookup.get('react')).toMatch(/^\\^18\\.3/);\n    expect(lookup.get('react-dom')).toMatch(/^\\^18\\.3/);\n    expect(lookup.get('react-router-dom')).toMatch(/^\\^6\\.23/);\n\n    // Dev deps — check every one\n    expect(lookup.get('vite')).toMatch(/^\\^5\\.4/);\n    expect(lookup.get('@vitejs/plugin-react')).toMatch(/^\\^4\\.3/);\n    expect(lookup.get('tailwindcss')).toMatch(/^\\^3\\.4/);\n    expect(lookup.get('vitest')).toMatch(/^\\^2\\.0/);\n    expect(lookup.get('@testing-library/react')).toMatch(/^\\^16/);\n    expect(lookup.get('@testing-library/jest-dom')).toMatch(/^\\^6/);\n    expect(lookup.get('jsdom')).toMatch(/^\\^24/);\n    expect(lookup.get('prism-react-renderer')).toMatch(/^\\^2\\.3/);\n    expect(lookup.get('autoprefixer')).toMatch(/^\\^10\\.4/);\n    expect(lookup.get('postcss')).toMatch(/^\\^8\\.4/);\n    expect(lookup.get('typescript')).toMatch(/^\\^5\\.5/);\n    expect(lookup.get('@types/react')).toMatch(/^\\^18\\.3/);\n    expect(lookup.get('@types/react-dom')).toMatch(/^\\^18\\.3/);\n  });\n\n  it('goodhart: should contain only the 3 specified packages in dependencies — no extras', () => {\n    const deps = getRequiredDependencies();\n    const names = deps.dependencies.map((d: any) => d.packageName).sort();\n    expect(names).toEqual(['react', 'react-dom', 'react-router-dom'].sort());\n  });\n\n  it('goodhart: should contain only the 13 specified packages in devDependencies — no extras', () => {\n    const deps = getRequiredDependencies();\n    const names = new Set(deps.devDependencies.map((d: any) => d.packageName));\n    const expected = new Set([\n      'vite', '@vitejs/plugin-react', 'tailwindcss', 'vitest',\n      '@testing-library/react', '@testing-library/jest-dom', 'jsdom',\n      'prism-react-renderer', 'autoprefixer', 'postcss', 'typescript',\n      '@types/react', '@types/react-dom',\n    ]);\n    expect(names).toEqual(expected);\n  });\n\n  it('goodhart: should return independent objects so mutations do not affect future calls', () => {\n    const d1 = getRequiredDependencies();\n    d1.dependencies.push({ packageName: 'evil', versionRange: '^1.0', isDev: false } as any);\n    d1.devDependencies.length = 0;\n\n    const d2 = getRequiredDependencies();\n    expect(d2.dependencies).toHaveLength(3);\n    expect(d2.devDependencies).toHaveLength(13);\n  });\n});\n\ndescribe('goodhart: generateScaffold file contents', () => {\n  let outputDir: string;\n\n  beforeEach(() => {\n    outputDir = makeTempDir('scaffold');\n  });\n\n  afterEach(() => {\n    cleanDir(outputDir);\n  });\n\n  it('goodhart: should create the src/ subdirectory within the output directory', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const srcDir = path.join(outputDir, 'src');\n    expect(fs.existsSync(srcDir)).toBe(true);\n    expect(fs.statSync(srcDir).isDirectory()).toBe(true);\n  });\n\n  it('goodhart: should write all 12 files with non-empty content — no zero-byte placeholders', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    for (const fp of SCAFFOLD_FILE_PATHS) {\n      const fullPath = path.join(outputDir, fp);\n      expect(fs.existsSync(fullPath)).toBe(true);\n      const content = fs.readFileSync(fullPath, 'utf-8');\n      expect(content.trim().length).toBeGreaterThan(0);\n    }\n  });\n\n  it('goodhart: should produce a valid parseable package.json with dependencies and devDependencies objects', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'package.json'), 'utf-8');\n    const pkg = JSON.parse(raw);\n    expect(typeof pkg).toBe('object');\n    expect(pkg).toHaveProperty('dependencies');\n    expect(pkg).toHaveProperty('devDependencies');\n    expect(typeof pkg.dependencies).toBe('object');\n    expect(typeof pkg.devDependencies).toBe('object');\n  });\n\n  it('goodhart: should include all required dependency version ranges in the generated package.json', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'package.json'), 'utf-8');\n    const pkg = JSON.parse(raw);\n\n    // Check all production deps\n    expect(pkg.dependencies['react']).toMatch(/^\\^18\\.3/);\n    expect(pkg.dependencies['react-dom']).toMatch(/^\\^18\\.3/);\n    expect(pkg.dependencies['react-router-dom']).toMatch(/^\\^6\\.23/);\n\n    // Check all dev deps\n    expect(pkg.devDependencies['vite']).toMatch(/^\\^5\\.4/);\n    expect(pkg.devDependencies['@vitejs/plugin-react']).toMatch(/^\\^4\\.3/);\n    expect(pkg.devDependencies['tailwindcss']).toMatch(/^\\^3\\.4/);\n    expect(pkg.devDependencies['vitest']).toMatch(/^\\^2\\.0/);\n    expect(pkg.devDependencies['@testing-library/react']).toMatch(/^\\^16/);\n    expect(pkg.devDependencies['@testing-library/jest-dom']).toMatch(/^\\^6/);\n    expect(pkg.devDependencies['jsdom']).toMatch(/^\\^24/);\n    expect(pkg.devDependencies['prism-react-renderer']).toMatch(/^\\^2\\.3/);\n    expect(pkg.devDependencies['autoprefixer']).toMatch(/^\\^10\\.4/);\n    expect(pkg.devDependencies['postcss']).toMatch(/^\\^8\\.4/);\n    expect(pkg.devDependencies['typescript']).toMatch(/^\\^5\\.5/);\n    expect(pkg.devDependencies['@types/react']).toMatch(/^\\^18\\.3/);\n    expect(pkg.devDependencies['@types/react-dom']).toMatch(/^\\^18\\.3/);\n  });\n\n  it('goodhart: should produce a package.json with name matching the project manifest name', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'package.json'), 'utf-8');\n    const pkg = JSON.parse(raw);\n    expect(pkg.name).toBe('exemplar-tools-doc');\n  });\n\n  it('goodhart: should produce a valid parseable vercel.json with correct structural shape', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'vercel.json'), 'utf-8');\n    const vercel = JSON.parse(raw);\n    expect(vercel).toHaveProperty('rewrites');\n    expect(Array.isArray(vercel.rewrites)).toBe(true);\n    expect(vercel.rewrites).toHaveLength(1);\n    expect(vercel.rewrites[0].source).toBe('/(.*)');\n    expect(vercel.rewrites[0].destination).toBe('/index.html');\n  });\n\n  it('goodhart: should configure test.globals = true in vite.config.ts', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    // Must contain globals: true (with flexible whitespace)\n    expect(content).toMatch(/globals\\s*:\\s*true/);\n  });\n\n  it('goodhart: should configure test.setupFiles referencing vitest.setup.ts in vite.config.ts', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    expect(content).toMatch(/setupFiles/);\n    expect(content).toMatch(/vitest\\.setup\\.ts/);\n  });\n\n  it('goodhart: should configure resolve.alias with @ mapped to src using import.meta.dirname', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    expect(content).toMatch(/@/);\n    expect(content).toMatch(/resolve/);\n    expect(content).toMatch(/alias/);\n    expect(content).toMatch(/import\\.meta\\.dirname/);\n  });\n\n  it('goodhart: should import and use @vitejs/plugin-react in vite.config.ts', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    expect(content).toMatch(/@vitejs\\/plugin-react/);\n    expect(content).toMatch(/plugins/);\n    // The react plugin should be invoked: react()\n    expect(content).toMatch(/react\\s*\\(/);\n  });\n\n  it('goodhart: should configure test.environment specifically as jsdom, not happy-dom', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    expect(content).toMatch(/environment\\s*:\\s*['\"]jsdom['\"]/);\n    expect(content).not.toMatch(/happy-dom/);\n  });\n\n  it('goodhart: should export both tailwindcss and autoprefixer plugins from postcss.config.mjs', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'postcss.config.mjs'), 'utf-8');\n    expect(content).toMatch(/tailwindcss/);\n    expect(content).toMatch(/autoprefixer/);\n  });\n\n  it('goodhart: should render App into #root in src/main.tsx using createRoot', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'src', 'main.tsx'), 'utf-8');\n    expect(content).toMatch(/getElementById\\s*\\(\\s*['\"]root['\"]\\s*\\)/);\n    expect(content).toMatch(/createRoot/);\n    expect(content).toMatch(/<App\\s*\\/?>/);\n  });\n\n  it('goodhart: should have React from react as the first import in src/main.tsx', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'src', 'main.tsx'), 'utf-8');\n    const lines = content.split('\\n').filter(l => l.trim().length > 0);\n    const firstImportLine = lines.find(l => l.trim().startsWith('import'));\n    expect(firstImportLine).toBeDefined();\n    expect(firstImportLine).toMatch(/import\\s+React\\s+from\\s+['\"]react['\"]/);\n  });\n\n  it('goodhart: should have a named export called App specifically in src/App.tsx', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'src', 'App.tsx'), 'utf-8');\n    // Must have \"export function App\" or \"export const App\"\n    expect(content).toMatch(/export\\s+(function|const)\\s+App\\b/);\n    // Must also have a default export\n    expect(content).toMatch(/export\\s+default\\b/);\n  });\n\n  it('goodhart: should produce valid parseable tsconfig.json with compilerOptions', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'tsconfig.json'), 'utf-8');\n    const parsed = JSON.parse(raw);\n    expect(parsed).toHaveProperty('compilerOptions');\n  });\n\n  it('goodhart: should produce valid parseable tsconfig.node.json with compilerOptions', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const raw = fs.readFileSync(path.join(outputDir, 'tsconfig.node.json'), 'utf-8');\n    const parsed = JSON.parse(raw);\n    expect(parsed).toHaveProperty('compilerOptions');\n  });\n\n  it('goodhart: should produce a proper HTML document in index.html, not just tag fragments', async () => {\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = fs.readFileSync(path.join(outputDir, 'index.html'), 'utf-8');\n    expect(content).toMatch(/<!DOCTYPE\\s+html>/i);\n    expect(content).toMatch(/<html/i);\n    expect(content).toMatch(/<head/i);\n    expect(content).toMatch(/<body/i);\n  });\n\n  it('goodhart: should return a ScaffoldResult with manifest matching canonical values', async () => {\n    const result = await generateScaffold({ outputDir, overwrite: false });\n    expect(result.manifest.files).toHaveLength(12);\n    expect(result.manifest.projectName).toBe('exemplar-tools-doc');\n    expect(result.manifest.devServerPort).toBe(4000);\n    expect(result.filesWritten).toBe(12);\n    expect(result.hasJsFiles).toBe(false);\n    expect(result.hasPyFiles).toBe(false);\n  });\n});\n\ndescribe('goodhart: generateScaffold with different output directories', () => {\n  it('goodhart: should work with an arbitrary temp directory path, not just a hardcoded one', async () => {\n    const dir1 = makeTempDir('alt-a');\n    const dir2 = makeTempDir('alt-b');\n    try {\n      const r1 = await generateScaffold({ outputDir: dir1, overwrite: false });\n      const r2 = await generateScaffold({ outputDir: dir2, overwrite: false });\n      expect(r1.filesWritten).toBe(12);\n      expect(r2.filesWritten).toBe(12);\n      // Both should have all files\n      for (const fp of SCAFFOLD_FILE_PATHS) {\n        expect(fs.existsSync(path.join(dir1, fp))).toBe(true);\n        expect(fs.existsSync(path.join(dir2, fp))).toBe(true);\n      }\n    } finally {\n      cleanDir(dir1);\n      cleanDir(dir2);\n    }\n  });\n\n  it('goodhart: should actually replace file content when overwrite=true, not skip existing files', async () => {\n    const dir = makeTempDir('overwrite');\n    try {\n      // Write a garbage package.json first\n      fs.writeFileSync(path.join(dir, 'package.json'), '{\"garbage\": true}');\n      await generateScaffold({ outputDir: dir, overwrite: true });\n      const raw = fs.readFileSync(path.join(dir, 'package.json'), 'utf-8');\n      const pkg = JSON.parse(raw);\n      // Should have the real content, not garbage\n      expect(pkg).toHaveProperty('type', 'module');\n      expect(pkg).toHaveProperty('dependencies');\n      expect(pkg.dependencies).toHaveProperty('react');\n      expect(pkg).not.toHaveProperty('garbage');\n    } finally {\n      cleanDir(dir);\n    }\n  });\n});\n\ndescribe('goodhart: generateScaffold error handling', () => {\n  it('goodhart: should reject whitespace-only outputDir as invalid', async () => {\n    await expect(\n      generateScaffold({ outputDir: '   ', overwrite: false })\n    ).rejects.toThrow(/invalid.output.dir/i);\n  });\n});\n\ndescribe('goodhart: validateScaffold edge cases', () => {\n  let outputDir: string;\n\n  beforeEach(() => {\n    outputDir = makeTempDir('validate');\n  });\n\n  afterEach(() => {\n    cleanDir(outputDir);\n  });\n\n  it('goodhart: should detect invalid scaffold when package.json has missing dependencies', async () => {\n    // Generate a valid scaffold first, then corrupt package.json\n    await generateScaffold({ outputDir, overwrite: false });\n    // Overwrite package.json with minimal invalid content\n    fs.writeFileSync(\n      path.join(outputDir, 'package.json'),\n      JSON.stringify({ type: 'module', dependencies: {}, devDependencies: {} })\n    );\n    const result = await validateScaffold(outputDir);\n    expect(result.isValid).toBe(false);\n  });\n});\n"
 }

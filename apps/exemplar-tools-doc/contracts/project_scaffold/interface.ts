@@ -1,113 +1,163 @@
 // === Project Scaffold & Configuration (project_scaffold) v1 ===
-// Bootstraps the exemplar-tools-doc project: package.json with all dependencies (react, react-dom, react-router-dom, vite, tailwindcss, vitest, @testing-library/react, jsdom), vite.config.ts (port 4000), tsconfig.json (strict mode), tailwind.config.js, postcss.config.js, index.html entry point, vercel.json with SPA rewrites, and the main App.tsx shell that sets up BrowserRouter. All config files only — no page content. Named exports only per SOP for application source files. Config files are tool-mandated and exempt from the named-export SOP.
+// Initialize the exemplar-tools-doc/ project directory with all configuration files for a Vite + React + TypeScript documentation website. Produces exactly 12 deterministic files at known paths: package.json, tsconfig.json, tsconfig.node.json, vite.config.ts, tailwind.config.ts, postcss.config.mjs, vercel.json, index.html, vitest.setup.ts, src/main.tsx, src/index.css, src/App.tsx. PostCSS uses standalone postcss.config.mjs (ESM, no .js). Vitest configured inside vite.config.ts with jsdom environment, globals: true, setupFiles. Dev server port 4000. Path alias @/ → src/. All dependencies pinned to compatible ranges. No .py or .js source files emitted.
 
 // Module invariants:
-//   - All application source files (.ts, .tsx) use TypeScript strict mode as enforced by tsconfig.json strict: true.
-//   - All application source files use named exports only — no default exports. Config files (package.json, vite.config.ts, tailwind.config.js, postcss.config.js, vercel.json) are exempt from this rule as they are tool-mandated.
-//   - Vite dev server always listens on port 4000.
-//   - Vitest uses jsdom environment with globals enabled and setupFiles pointing to src/test-setup.ts.
-//   - tsconfig.json uses jsx: 'react-jsx', moduleResolution: 'bundler', and isolatedModules: true.
-//   - tailwind.config.js content array includes './index.html' and './src/**/*.{ts,tsx}'.
-//   - postcss.config.js includes tailwindcss and autoprefixer plugins.
-//   - index.html contains <div id='root'></div> and <script type='module' src='/src/main.tsx'></script>.
-//   - vercel.json contains a single rewrite rule: { source: '/(.*)', destination: '/index.html' } for SPA client-side routing.
-//   - src/index.css contains exactly: @tailwind base; @tailwind components; @tailwind utilities;
-//   - src/test-setup.ts imports '@testing-library/jest-dom' to register custom DOM matchers globally.
-//   - package.json lists react, react-dom, and react-router-dom as runtime dependencies (caret-pinned to their major versions).
-//   - package.json lists vite, vitest, tailwindcss, @testing-library/react, @testing-library/jest-dom, jsdom, @vitejs/plugin-react, typescript, autoprefixer, and postcss as devDependencies (all caret-pinned).
-//   - The App component renders a BrowserRouter at its root with a child div having id='app-shell'.
-//   - No page content, route definitions, or layout components are defined by this scaffold — those are the responsibility of downstream components.
+//   - Exactly 12 files are produced, no more, no fewer — paths enumerated in ScaffoldFilePath
+//   - No file with a .js extension is ever produced (postcss uses .mjs, all others use .ts/.tsx)
+//   - No file with a .py extension is ever produced
+//   - package.json always has "type": "module"
+//   - All dependency version ranges are pinned to the specified caret ranges and never use latest or *
+//   - vite.config.ts server.port is always 4000
+//   - vitest.setup.ts always contains the import '@testing-library/jest-dom' statement
+//   - vercel.json always contains exactly one rewrite rule: { source: '/(.*)', destination: '/index.html' }
+//   - src/main.tsx always imports React from 'react' as the first import
+//   - src/App.tsx always has both a named export and a default export
+//   - postcss.config.mjs is ESM (export default) not CommonJS (module.exports)
+//   - getProjectManifest and getRequiredDependencies are pure functions with deterministic output
 
-/** Opaque React.ReactElement returned by function components. Represents a rendered React virtual DOM tree. */
-export type ReactElementNode = unknown;
+/** Literal string union of every file path produced by the scaffold, relative to project root. Downstream components depend on these exact paths. */
+export type ScaffoldFilePath = "package.json" | "tsconfig.json" | "tsconfig.node.json" | "vite.config.ts" | "tailwind.config.ts" | "postcss.config.mjs" | "vercel.json" | "index.html" | "vitest.setup.ts" | "src/main.tsx" | "src/index.css" | "src/App.tsx";
 
-/** Shape of the Vite dev server configuration block in vite.config.ts. */
-export interface ViteServerConfig {
-  port: number;  // required, range(value == 4000), Dev server listen port. Must be 4000 per SOP.
+/** Manifest enumerating all produced file paths and project metadata. Named export from the scaffold module, enabling downstream components to assert scaffold completeness. */
+export interface ProjectManifest {
+  projectRoot: string;  // required, Absolute path to the exemplar-tools-doc/ project directory.
+  files: unknown[];  // required, length(length == 12), Ordered array of all 12 file paths (ScaffoldFilePath values) relative to projectRoot.
+  projectName: string;  // required, regex(^[a-z][a-z0-9\-]*$), The npm package name: 'exemplar-tools-doc'.
+  devServerPort: number;  // required, range(value == 4000), Vite dev server port, must be 4000.
 }
 
-/** Shape of the vitest test configuration block embedded in vite.config.ts. */
-export interface VitestConfig {
-  environment: string;  // required, custom(value === 'jsdom'), Test environment. Must be 'jsdom' for React component testing.
-  globals: boolean;  // required, custom(value === true), When true, vitest globals (describe, it, expect) are available without imports.
-  setupFiles: string;  // required, custom(value === './src/test-setup.ts'), Path to the test setup file that imports @testing-library/jest-dom.
+/** A single npm dependency with its pinned semver range. */
+export interface DependencyEntry {
+  packageName: string;  // required, regex(^@?[a-z][a-z0-9\-]*(\/?[a-z][a-z0-9\-]*)*$), npm package name, e.g. 'react'.
+  versionRange: string;  // required, regex(^[\^~>=<\d\|\s\.\-\*]+.*$), Semver range string, e.g. '^18.3'.
+  isDev: boolean;  // required, True if this belongs in devDependencies, false for dependencies.
 }
 
-/** Key tsconfig.json compilerOptions that the scaffold guarantees. */
-export interface TsCompilerOptions {
-  strict: boolean;  // required, custom(value === true), TypeScript strict mode flag.
-  jsx: string;  // required, custom(value === 'react-jsx'), JSX transform mode.
-  moduleResolution: string;  // required, custom(value === 'bundler'), Module resolution strategy.
-  isolatedModules: boolean;  // required, custom(value === true), Ensures each file can be transpiled independently.
+/** Complete set of pinned dependencies the scaffold must declare in package.json. */
+export interface RequiredDependencies {
+  dependencies: unknown[];  // required, Runtime dependencies: react@^18.3, react-dom@^18.3, react-router-dom@^6.23.
+  devDependencies: unknown[];  // required, Dev dependencies: vite@^5.4, @vitejs/plugin-react@^4.3, tailwindcss@^3.4, vitest@^2.0, @testing-library/react@^16, @testing-library/jest-dom@^6, jsdom@^24, prism-react-renderer@^2.3, autoprefixer@^10.4, postcss@^8.4, typescript@^5.5, @types/react@^18.3, @types/react-dom@^18.3.
 }
 
-/** A glob pattern string used in tailwind.config.js content array to specify which files to scan for class usage. */
-export type TailwindContentGlob = unknown;
-
-/** A single Vercel rewrite rule for SPA client-side routing support. */
+/** A single Vercel rewrite rule for SPA routing. */
 export interface VercelRewriteRule {
-  source: string;  // required, custom(value === '/(.*)'), URL pattern to match. For SPA catch-all this is '/(.*)'.
-  destination: string;  // required, custom(value === '/index.html'), Target to rewrite to. For SPA this is '/index.html'.
+  source: string;  // required, custom(value === '/(.*)'), Source path pattern.
+  destination: string;  // required, custom(value === '/index.html'), Destination path.
 }
 
-/** Required npm dependencies with caret-pinned semver versions. */
-export interface PackageDependencyMap {
-  react: string;  // required, regex(^\^18\.), React 18.x runtime.
-  react_dom: string;  // required, regex(^\^18\.), React DOM 18.x renderer.
-  react_router_dom: string;  // required, regex(^\^), React Router DOM for client-side routing.
+/** Structure of vercel.json with SPA rewrite rules. */
+export interface VercelConfig {
+  rewrites: unknown[];  // required, length(length == 1), Array of VercelRewriteRule. Must contain exactly one rule for SPA routing.
 }
 
-/** Required npm devDependencies with caret-pinned semver versions. */
-export interface PackageDevDependencyMap {
-  vite: string;  // required, regex(^\^), Vite build tool.
-  vitest: string;  // required, regex(^\^), Vitest test runner.
-  tailwindcss: string;  // required, regex(^\^), Tailwind CSS utility framework.
-  testing_library_react: string;  // required, regex(^\^), @testing-library/react for component tests.
-  jsdom: string;  // required, regex(^\^), jsdom environment for vitest.
-  vitejs_plugin_react: string;  // required, regex(^\^), @vitejs/plugin-react for JSX/Fast Refresh support.
-  typescript: string;  // required, regex(^\^), TypeScript compiler.
-  autoprefixer: string;  // required, regex(^\^), PostCSS autoprefixer plugin.
-  postcss: string;  // required, regex(^\^), PostCSS processor.
-  testing_library_jest_dom: string;  // required, regex(^\^), @testing-library/jest-dom for custom DOM matchers.
+/** Key properties that must be present in vite.config.ts. */
+export interface ViteConfig {
+  serverPort: number;  // required, range(value == 4000), Dev server port, must be 4000.
+  testEnvironment: string;  // required, custom(value === 'jsdom'), Vitest environment, must be 'jsdom'.
+  testGlobals: boolean;  // required, Vitest globals flag, must be true.
+  testSetupFiles: unknown[];  // required, custom(value.includes('./vitest.setup.ts')), Vitest setupFiles array, must include './vitest.setup.ts'.
+  resolveAlias: string;  // required, Path alias '@' mapped to './src' directory using import.meta.dirname.
+  pluginReact: boolean;  // required, Must include @vitejs/plugin-react.
+}
+
+/** Result of scaffold generation, including manifest and validation status. */
+export interface ScaffoldResult {
+  manifest: ProjectManifest;  // required, The complete project manifest with all file paths.
+  filesWritten: number;  // required, range(value == 12), Number of files successfully written. Must equal 12.
+  hasJsFiles: boolean;  // required, custom(value === false), Must be false — no .js files in output.
+  hasPyFiles: boolean;  // required, custom(value === false), Must be false — no .py files in output.
+}
+
+/** Options controlling scaffold generation behavior. */
+export interface ScaffoldOptions {
+  outputDir: string;  // required, length(length >= 1), Absolute or relative path to the target project directory (exemplar-tools-doc/).
+  overwrite?: boolean;  // optional, default: false, If true, overwrite existing files. If false, fail if any target file already exists.
+}
+
+/** Discriminated error types for scaffold generation failures. */
+export type ScaffoldError = "DIRECTORY_NOT_FOUND" | "FILE_ALREADY_EXISTS" | "WRITE_PERMISSION_DENIED" | "INVALID_OUTPUT_DIR";
+
+/** Auto-stubbed type — referenced but not defined in contract 'project_scaffold' */
+export interface ScaffoldValidationResult {
 }
 
 /**
- * Root React function component. Renders a BrowserRouter wrapping a container div with id='app-shell'. Children and routes are injected by the downstream routing_and_layout component. Exported as a named export from src/App.tsx. Must NOT be a default export.
+ * Generate all 12 project configuration files at the specified output directory. Writes package.json, tsconfig.json, tsconfig.node.json, vite.config.ts, tailwind.config.ts, postcss.config.mjs, vercel.json, index.html, vitest.setup.ts, src/main.tsx, src/index.css, and src/App.tsx. Creates the src/ subdirectory if it does not exist. Returns a ScaffoldResult confirming all files were written and no forbidden file types exist.
  *
- * @precondition React 18 runtime is available in the module scope.
- * @precondition react-router-dom BrowserRouter is importable.
- * @postcondition Returns a React element tree with BrowserRouter at the root.
- * @postcondition The rendered DOM contains a div with id='app-shell' inside the BrowserRouter.
- * @postcondition The component is available as a named export: `import { App } from './App'`.
- * @postcondition No default export exists on the module.
- * @throws missing_react_router (ModuleNotFoundError) - react-router-dom is not installed or importable.
- *   module: react-router-dom
+ * @precondition options.outputDir is a valid filesystem path
+ * @precondition If options.overwrite is false, none of the 12 target files may already exist
+ * @precondition Parent directory of options.outputDir must exist and be writable
+ * @postcondition Exactly 12 files exist at the paths enumerated in ScaffoldFilePath
+ * @postcondition package.json contains all entries from RequiredDependencies with pinned version ranges
+ * @postcondition package.json has "type": "module"
+ * @postcondition vite.config.ts configures server.port = 4000
+ * @postcondition vite.config.ts configures test.environment = 'jsdom', test.globals = true, test.setupFiles = ['./vitest.setup.ts']
+ * @postcondition vite.config.ts includes @vitejs/plugin-react plugin
+ * @postcondition vite.config.ts configures resolve.alias '@' to src/ using import.meta.dirname
+ * @postcondition vitest.setup.ts contains import '@testing-library/jest-dom'
+ * @postcondition vercel.json contains exactly one rewrite: { source: '/(.*)', destination: '/index.html' }
+ * @postcondition tailwind.config.ts content array includes './index.html' and './src/**/*.{ts,tsx}'
+ * @postcondition postcss.config.mjs exports tailwindcss and autoprefixer plugins
+ * @postcondition index.html has a <div id="root"></div> mount point and <script type="module" src="/src/main.tsx"></script>
+ * @postcondition src/main.tsx imports React, ReactDOM, App, and index.css, renders <App /> into #root
+ * @postcondition src/index.css contains @tailwind base, @tailwind components, @tailwind utilities directives
+ * @postcondition src/App.tsx exports both named and default export per operating procedures
+ * @postcondition No files with .js or .py extensions exist in the output directory tree
+ * @postcondition result.filesWritten === 12
+ * @postcondition result.hasJsFiles === false
+ * @postcondition result.hasPyFiles === false
+ * @throws directory_not_found (DIRECTORY_NOT_FOUND) - The parent directory of options.outputDir does not exist on the filesystem.
+ *   path: The resolved outputDir path that was not found
+ * @throws file_already_exists (FILE_ALREADY_EXISTS) - options.overwrite is false and at least one of the 12 target files already exists.
+ *   existingFiles: JSON array of file paths that already exist
+ * @throws write_permission_denied (WRITE_PERMISSION_DENIED) - The process does not have write permissions to the output directory or src/ subdirectory.
+ *   path: The path where permission was denied
+ * @throws invalid_output_dir (INVALID_OUTPUT_DIR) - options.outputDir is empty, contains null bytes, or is otherwise not a valid filesystem path.
+ *   outputDir: The invalid outputDir value provided
+ * @sideEffects none
+ * @idempotent no
+ */
+export async function generateScaffold(
+  options: ScaffoldOptions,
+): Promise<ScaffoldResult>;
+
+/**
+ * Returns the canonical ProjectManifest for the exemplar-tools-doc project. Pure function that always returns the same manifest regardless of filesystem state. Used by downstream components to discover expected file paths without performing I/O.
+ *
+ * @postcondition Returned manifest.files has exactly 12 entries matching all ScaffoldFilePath variants
+ * @postcondition Returned manifest.projectName === 'exemplar-tools-doc'
+ * @postcondition Returned manifest.devServerPort === 4000
  * @sideEffects none
  * @idempotent yes
  */
-export function App(): ReactElementNode;
+export function getProjectManifest(): ProjectManifest;
 
 /**
- * Side-effect entry point in src/main.tsx. Imports { App } from './App', imports './index.css' for Tailwind styles, calls createRoot on the DOM element with id='root', and renders <App />. This module has no named exports — it executes on import as the Vite entry point referenced by index.html.
+ * Returns the complete list of pinned npm dependencies and devDependencies that package.json must declare. Pure function enabling downstream validation without filesystem access.
  *
- * @precondition DOM element with id='root' exists in index.html.
- * @precondition react-dom/client createRoot is importable.
- * @precondition src/App.tsx exports { App } as a named export.
- * @precondition src/index.css contains valid Tailwind @tailwind directives.
- * @postcondition React application is mounted into the #root DOM element.
- * @postcondition Tailwind base/components/utilities styles are injected into the document.
- * @postcondition No named exports exist on this module — it is a side-effect-only entry point.
- * @throws missing_root_element (DOMException) - No DOM element with id='root' found in the document.
- *   selector: #root
- * @throws app_import_failure (ImportError) - Named export { App } not found in ./App module.
- *   module: ./App
- *   export: App
- * @sideEffects Mounts React tree to DOM #root element, Imports CSS side-effect module
- * @idempotent no
+ * @postcondition dependencies contains exactly 3 entries: react@^18.3, react-dom@^18.3, react-router-dom@^6.23
+ * @postcondition devDependencies contains exactly 13 entries with pinned ranges: vite@^5.4, @vitejs/plugin-react@^4.3, tailwindcss@^3.4, vitest@^2.0, @testing-library/react@^16, @testing-library/jest-dom@^6, jsdom@^24, prism-react-renderer@^2.3, autoprefixer@^10.4, postcss@^8.4, typescript@^5.5, @types/react@^18.3, @types/react-dom@^18.3
+ * @sideEffects none
+ * @idempotent yes
  */
-export function mountApp(): null;
+export function getRequiredDependencies(): RequiredDependencies;
+
+/**
+ * Validates an existing project directory against the scaffold contract. Checks that all 12 files exist, package.json contains all required dependencies, vite.config.ts has correct port and vitest settings, vitest.setup.ts imports jest-dom, vercel.json has the SPA rewrite, and no .js or .py files exist anywhere in the output tree.
+ *
+ * @precondition projectRoot exists and is a readable directory
+ * @postcondition Result enumerates all validation checks with pass/fail status
+ * @postcondition Result.isValid is true only if all checks pass
+ * @throws directory_not_found (DIRECTORY_NOT_FOUND) - projectRoot does not exist or is not a directory.
+ *   path: The projectRoot path that was not found
+ * @sideEffects none
+ * @idempotent yes
+ */
+export async function validateScaffold(
+  projectRoot: string,  // length(length >= 1)
+): Promise<ScaffoldValidationResult>;
 
 // -- REQUIRED EXPORTS -----------------------------------------------
 // Your implementation module MUST export ALL of these names
 // with EXACTLY these spellings. Tests import them by name.
-// exports: ['ViteServerConfig', 'VitestConfig', 'TsCompilerOptions', 'VercelRewriteRule', 'PackageDependencyMap', 'PackageDevDependencyMap', 'App', 'ModuleNotFoundError', 'mountApp', 'DOMException', 'ImportError']
+// exports: ['ScaffoldFilePath', 'ProjectManifest', 'DependencyEntry', 'RequiredDependencies', 'VercelRewriteRule', 'VercelConfig', 'ViteConfig', 'ScaffoldResult', 'ScaffoldOptions', 'ScaffoldError', 'ScaffoldValidationResult', 'generateScaffold', 'DIRECTORY_NOT_FOUND', 'FILE_ALREADY_EXISTS', 'WRITE_PERMISSION_DENIED', 'INVALID_OUTPUT_DIR', 'getProjectManifest', 'getRequiredDependencies', 'validateScaffold']

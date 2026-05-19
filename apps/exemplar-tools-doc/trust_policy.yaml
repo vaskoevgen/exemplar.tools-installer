@@ -1,6 +1,6 @@
 version: "1.0"
 generated_by: constrain
-session_id: docs_site_001
+session_id: null
 system: "exemplar.tools documentation website"
 
 trust:
@@ -13,10 +13,10 @@ trust:
 classifications:
   - field_pattern: "*"
     tier: PUBLIC
-    authoritative_component: docs_site
-    canary_eligible: false
-    canary_pattern: null
-    rationale: "All content is public documentation"
+    authoritative_component: "doc-app"
+    canary_eligible: true
+    canary_pattern: ".*"
+    rationale: "All content is public developer documentation"
 
 soak:
   base_durations:
@@ -28,13 +28,11 @@ soak:
   target_requests: 1000
 
 authority_map:
-  - component: docs_site
-    domains: ["documentation/*", "commands/*", "content/*"]
-    rationale: "Single component owns all documentation content"
+  - component: "doc-app"
+    domains: ["*"]
+    rationale: "Single component static site owns all content"
 
 human_gates:
   always: []
   on_low_trust_authoritative: false
   on_unresolvable_conflict: false
-
-_note: "No sensitive data tiers involved - documentation site handles only public content"

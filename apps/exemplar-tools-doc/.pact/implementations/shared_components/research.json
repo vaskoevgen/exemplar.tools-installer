@@ -1,0 +1,103 @@
+{
+  "task_summary": "Implement a shared UI component library in TypeScript/React comprising CalloutBox, CodeBlock, VersionBadge, VideoEmbed, Sidebar, and PageLayout components, along with associated types (CalloutType enum, RouteEntry, RouteManifest, various Props interfaces). The library depends on 'app_routing' and must follow strict named-export conventions, composition-over-inheritance, and pass contract tests under vitest + @testing-library/react in jsdom.",
+  "findings": [
+    {
+      "topic": "React Component Architecture — Composition Pattern",
+      "finding": "PageLayout and Sidebar are classic composition containers. Best practice is to accept `children` as ReactNode and use slot-based props (e.g., `sidebar`, `header`, `content`) rather than deep prop-drilling. This aligns with the 'prefer composition over inheritance' mandate. PageLayout should compose Sidebar rather than extend it.",
+      "source": "React documentation (reactjs.org/docs/composition-vs-inheritance.html), community consensus",
+      "relevance": "Directly mandated by project standards. PageLayout wrapping Sidebar is a textbook composition scenario.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "CodeBlock — Syntax Highlighting Without Third-Party Libraries",
+      "finding": "The project prefers stdlib over third-party libraries, which means avoiding prism.js, highlight.js, or shiki. A minimal CodeBlock can render a <pre><code> element with a `language` class (e.g., `language-typescript`) and defer actual syntax highlighting to CSS or a future integration. This keeps the component self-contained and testable without external deps. The CodeBlockLanguage type should constrain accepted language strings.",
+      "source": "HTML spec for <pre>/<code> semantics; project preference for stdlib",
+      "relevance": "Critical design decision — avoids bloating the shared library while leaving a clean extension point.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "VideoEmbed — YouTube iframe Security",
+      "finding": "YouTube embeds should use youtube-nocookie.com domain for privacy, sandbox the iframe with `sandbox='allow-scripts allow-same-origin'`, set `loading='lazy'`, and include `title` for accessibility. The YouTubeUrl type should validate or at least accept standard youtube.com/watch and youtu.be URL formats. XSS risk: never interpolate raw URL strings into src without validation — extract the video ID via regex and construct the embed URL deterministically.",
+      "source": "OWASP iframe embedding guidelines, YouTube IFrame API docs, web.dev performance best practices",
+      "relevance": "Security-critical: iframe src injection is a known XSS vector. Extracting video ID and rebuilding the URL is the safe pattern.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "CalloutBox — Semantic HTML and Accessibility",
+      "finding": "CalloutBox (info/warning/error/tip variants via CalloutType enum) should use `role='alert'` for error/warning types and `role='note'` or `role='status'` for info/tip. Use `aria-label` or `aria-labelledby` for screen readers. Map CalloutType enum values to CSS class names and ARIA roles systematically. Common pitfall: forgetting to handle unknown enum values — always include a default/fallback case.",
+      "source": "WAI-ARIA Authoring Practices, MDN role documentation",
+      "relevance": "Accessibility is a baseline requirement for shared UI components; CalloutBox is the highest-risk component for ARIA misuse.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "VersionBadge — Semantic Versioning Display",
+      "finding": "VersionBadge should accept a VersionString (likely semver-format) and render a styled badge. Edge cases: pre-release tags (e.g., '1.0.0-beta.1'), build metadata (e.g., '1.0.0+build.42'), and empty/undefined version strings. The component should gracefully handle invalid version strings rather than crashing. No need for a semver parsing library — a simple display component suffices unless comparison logic is required.",
+      "source": "semver.org specification, defensive UI component design patterns",
+      "relevance": "VersionString is a primitive type — validation should be lightweight; rendering should be resilient.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "Sidebar + RouteManifest Integration with app_routing Dependency",
+      "finding": "Sidebar likely consumes RouteManifest (a list of RouteEntry structs) from the app_routing dependency to render navigation. CRITICAL per project rules: the string keys used in any map/registry (e.g., PageComponentKey enum values, route slugs) MUST be read from the app_routing module's exported types/enums/manifest — never inferred from component names. The contract test will verify exact key matching.",
+      "source": "Project operating procedures (String Keys in Maps and Registries rule)",
+      "relevance": "This is the highest-risk area for contract test failures. Must inspect app_routing exports before defining any key-based lookups.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Named Export Convention Compliance",
+      "finding": "Every .tsx file must: (1) `import React from 'react'` at the top, (2) export each component as both named and default (`export function Foo() {} ... export default Foo`), (3) export all types/interfaces/constants as named exports. Common pitfall: forgetting the default export on component files, or exporting types only via `export type` which may not satisfy certain test import patterns.",
+      "source": "Project operating procedures (TypeScript/React Rules)",
+      "relevance": "Non-negotiable project rule. Every component file must follow this dual-export pattern.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "Testing Strategy — jsdom Limitations",
+      "finding": "vitest + @testing-library/react in jsdom cannot test: real CSS rendering, iframe loading, or layout. Tests should focus on: (1) correct DOM structure (role, class, data attributes), (2) prop-driven conditional rendering (e.g., CalloutType changes role/class), (3) content projection (children render in correct slots), (4) YouTube URL sanitization logic. Use `screen.getByRole`, `screen.getByText`, `screen.getByTestId` for assertions. Avoid snapshot tests for these components — they're brittle with frequent UI iteration.",
+      "source": "Testing Library best practices (testing-library.com/docs/guiding-principles), vitest jsdom documentation",
+      "relevance": "Contract tests must pass without external services; jsdom constraints shape what we can meaningfully verify.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "File Size Constraint — Component Organization",
+      "finding": "With 6 components, associated types, and the 300-line-per-file limit, the recommended structure is: one file per component (.tsx), one shared types file (types.ts), and one barrel index.ts for re-exports. This keeps each file well under 300 lines. Avoid a monolithic components.tsx file.",
+      "source": "Project operating procedures (300-line limit), standard React project structure conventions",
+      "relevance": "Hard project constraint. With types + 6 components + tests, splitting is mandatory.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "YouTube URL Parsing — Edge Cases",
+      "finding": "YouTube URLs come in many formats: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID, youtube-nocookie.com/embed/ID, with optional timestamps (?t=120), playlist params (?list=X), and shorts (youtube.com/shorts/ID). A robust extractor regex: /(?:youtube\\.com\\/(?:watch\\?v=|embed\\/|shorts\\/)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})/. Always extract the 11-char video ID and construct embed URL from it — never pass through raw URLs.",
+      "source": "YouTube URL format documentation, common open-source implementations (e.g., get-youtube-id npm package patterns)",
+      "relevance": "Directly impacts VideoEmbed correctness and security. Malformed URLs should result in no iframe rendered, not a broken/exploitable embed.",
+      "confidence": 0.93
+    }
+  ],
+  "recommended_approach": "**File Structure:**\n- `src/shared/types.ts` — All type definitions (CalloutType enum, CalloutBoxProps, CodeBlockLanguage, CodeBlockProps, VersionString, VersionBadgeProps, YouTubeUrl, VideoEmbedProps, RouteEntry, RouteManifest, SidebarProps, PageLayoutProps, PageComponentKey)\n- `src/shared/CalloutBox.tsx` — CalloutBox component\n- `src/shared/CodeBlock.tsx` — CodeBlock component  \n- `src/shared/VersionBadge.tsx` — VersionBadge component\n- `src/shared/VideoEmbed.tsx` — VideoEmbed with YouTube URL ID extraction + sanitized iframe\n- `src/shared/Sidebar.tsx` — Sidebar consuming RouteManifest from app_routing\n- `src/shared/PageLayout.tsx` — PageLayout composing Sidebar + content area\n- `src/shared/index.ts` — Barrel re-exports\n- `src/shared/__tests__/` — One test file per component\n\n**Key Implementation Decisions:**\n1. **VideoEmbed**: Extract 11-char YouTube video ID via regex, construct `https://www.youtube-nocookie.com/embed/{ID}` deterministically. Return null/fallback for invalid URLs.\n2. **CalloutBox**: Map CalloutType enum → ARIA role + CSS class. Use a `Record<CalloutType, {role: string, className: string}>` lookup.\n3. **CodeBlock**: Render `<pre><code className={`language-${language}`}>` with text content. No runtime highlighting.\n4. **Sidebar**: Accept RouteManifest (RouteEntry[]) as prop, render navigation links. Import route types from app_routing dependency — verify key strings against app_routing exports.\n5. **PageLayout**: Accept sidebar content and main content via composition props. Render structural layout with semantic HTML (`<main>`, `<nav>`, `<aside>`).\n6. **PageComponentKey**: MUST be sourced from app_routing or contract test data — never inferred.\n\n**Testing**: Each component gets render tests verifying DOM structure, ARIA attributes, conditional rendering per prop variants, and edge cases (empty props, invalid URLs).",
+  "alternatives_considered": [
+    "Monolithic single-file approach: rejected due to 300-line limit and maintainability concerns.",
+    "Using third-party syntax highlighting (prism.js/highlight.js) for CodeBlock: rejected per stdlib preference; can be added later as opt-in enhancement.",
+    "Using third-party semver library for VersionBadge: rejected as unnecessary — component only displays, doesn't compare versions.",
+    "Render-prop pattern for PageLayout slots: considered but standard children + named slot props (sidebar, header) is simpler and more idiomatic for this use case.",
+    "CSS-in-JS (styled-components/emotion) for styling: rejected per stdlib preference; use CSS classes or inline styles."
+  ],
+  "risks": [
+    "PageComponentKey enum values may not match between this component and app_routing — must verify against app_routing's exported types or contract test fixtures before implementation.",
+    "RouteManifest/RouteEntry structure assumed from type signature but actual shape depends on app_routing's exports — mismatch will cause type errors or runtime failures.",
+    "YouTube URL regex may miss edge-case formats (e.g., music.youtube.com, YouTube Shorts with query params) — should fail closed (render nothing) rather than open.",
+    "jsdom does not load iframes — VideoEmbed tests can only verify iframe element attributes, not actual embed behavior.",
+    "CalloutType enum values must exactly match contract expectations — if the contract test uses string literals like 'info' vs 'INFO', a case mismatch will fail.",
+    "The app_routing dependency may not yet be implemented — may need to define compatible interface types and import from the dependency's type definitions rather than runtime exports."
+  ],
+  "compliance_notes": [
+    "All files must be .ts/.tsx — no Python generation under any circumstances.",
+    "Every component file must start with `import React from 'react'`.",
+    "Every component must have both named export and default export.",
+    "All public functions must have TypeScript type annotations.",
+    "All types, interfaces, constants must be named exports.",
+    "String keys in any map/registry must be verified against source of truth (app_routing exports or contract test data).",
+    "Use `import.meta.env.VITE_X` directly if any env vars are needed — never cast via `as any`.",
+    "Each file must stay under 300 lines.",
+    "Each function must have at least one test; tests must run without external services.",
+    "Prefer stdlib — no third-party UI libraries (no prism.js, no styled-components, etc.)."
+  ]
+}

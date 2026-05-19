@@ -1,0 +1,648 @@
+{
+  "component_id": "page_components",
+  "name": "Page Components (13 pages)",
+  "description": "One React component per page, each in its own .tsx file (<300 LOC). Content is manually transcribed from howto.md into JSX using shared components (CodeBlock, VideoEmbed, VersionBadge, CalloutBox). Pages: HomePage (pipeline diagram as SVG + overview), CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage. Every CLI command, gotcha, warning, tip, and example is verbatim from howto.md. Each page component is a React.FC with no props, dual-exported (named + default). A pageComponentMap (Record<PageComponentKey, React.ComponentType>) is exported from the barrel index as the sole integration surface consumed by app_routing. Static pipeline diagram SVG is imported as a Vite static URL in HomePage and rendered as an <img> with alt text. Page components must NOT import from react-router-dom — they are pure content components.",
+  "version": 1,
+  "types": [
+    {
+      "name": "PageComponentKey",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "Home",
+        "Cartographer",
+        "Constrain",
+        "Ledger",
+        "Pact",
+        "Advocate",
+        "Arbiter",
+        "Baton",
+        "Sentinel",
+        "Chronicler",
+        "Stigmergy",
+        "Apprentice",
+        "Kindex"
+      ],
+      "inner_types": [],
+      "description": "Discriminator enum identifying each of the 13 page components.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "ReactFC",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.FC — a React functional component type accepting no props and returning React.ReactElement | null.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactComponentType",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ComponentType — a React component type (function or class) accepting no props. Used as the value type in pageComponentMap.",
+      "owner_component": ""
+    },
+    {
+      "name": "PageComponentMap",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "home",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "HomePage component",
+          "validators": []
+        },
+        {
+          "name": "cartographer",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "CartographerPage component",
+          "validators": []
+        },
+        {
+          "name": "constrain",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "ConstrainPage component",
+          "validators": []
+        },
+        {
+          "name": "ledger",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "LedgerPage component",
+          "validators": []
+        },
+        {
+          "name": "pact",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "PactPage component",
+          "validators": []
+        },
+        {
+          "name": "advocate",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "AdvocatePage component",
+          "validators": []
+        },
+        {
+          "name": "arbiter",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "ArbiterPage component",
+          "validators": []
+        },
+        {
+          "name": "baton",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "BatonPage component",
+          "validators": []
+        },
+        {
+          "name": "sentinel",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "SentinelPage component",
+          "validators": []
+        },
+        {
+          "name": "chronicler",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "ChroniclerPage component",
+          "validators": []
+        },
+        {
+          "name": "stigmergy",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "StigmergyPage component",
+          "validators": []
+        },
+        {
+          "name": "apprentice",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "ApprenticePage component",
+          "validators": []
+        },
+        {
+          "name": "kindex",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "KindexPage component",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Record<PageComponentKey, React.ComponentType>. A map from every PageComponentKey enum value to its corresponding page component. Exactly 13 entries. This is the sole integration surface consumed by app_routing to wire pages into routes.",
+      "owner_component": ""
+    },
+    {
+      "name": "PageHeadingExpectation",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "componentName",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The named export identifier, e.g. 'HomePage', 'CartographerPage'.",
+          "validators": []
+        },
+        {
+          "name": "expectedHeading",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "The exact text expected in the h1 element rendered by this component.",
+          "validators": []
+        },
+        {
+          "name": "pageKey",
+          "type_ref": "PageComponentKey",
+          "required": true,
+          "default": "",
+          "description": "The corresponding PageComponentKey enum value for this page.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Test-only type representing the expected h1 heading text for a given page component. Used in parameterized contract tests.",
+      "owner_component": ""
+    },
+    {
+      "name": "PipelineDiagramSvgUrl",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A string URL resolved by Vite's static asset import for the pipeline diagram SVG at src/assets/pipeline-diagram.svg. Imported via `import pipelineDiagramUrl from '../assets/pipeline-diagram.svg'` in HomePage.tsx.",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "HomePage",
+      "description": "React functional component rendering the exemplar.tools home/overview page. Displays the pipeline diagram as an <img> element (src = Vite-imported SVG URL, alt = 'exemplar.tools pipeline diagram') and an overview of the CLI suite. Uses shared components for CLI examples and callouts. Exported as both named and default from HomePage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Pipeline diagram SVG exists at src/assets/pipeline-diagram.svg",
+        "Shared components (CodeBlock, CalloutBox, etc.) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'exemplar.tools'",
+        "Renders an img element with alt='exemplar.tools pipeline diagram' and src set to the imported SVG URL",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CartographerPage",
+      "description": "React functional component rendering the Cartographer tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from CartographerPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Cartographer'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "ConstrainPage",
+      "description": "React functional component rendering the Constrain tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from ConstrainPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Constrain'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "LedgerPage",
+      "description": "React functional component rendering the Ledger tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from LedgerPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Ledger'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "PactPage",
+      "description": "React functional component rendering the Pact tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from PactPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Pact'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "AdvocatePage",
+      "description": "React functional component rendering the Advocate tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from AdvocatePage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Advocate'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "ArbiterPage",
+      "description": "React functional component rendering the Arbiter tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from ArbiterPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Arbiter'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "BatonPage",
+      "description": "React functional component rendering the Baton tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from BatonPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Baton'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "SentinelPage",
+      "description": "React functional component rendering the Sentinel tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from SentinelPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Sentinel'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "ChroniclerPage",
+      "description": "React functional component rendering the Chronicler tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from ChroniclerPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Chronicler'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "StigmergyPage",
+      "description": "React functional component rendering the Stigmergy tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from StigmergyPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Stigmergy'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "ApprenticePage",
+      "description": "React functional component rendering the Apprentice tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from ApprenticePage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Apprentice'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "KindexPage",
+      "description": "React functional component rendering the Kindex tool documentation page. All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md. Exported as both named and default from KindexPage.tsx.",
+      "inputs": [],
+      "output_type": "ReactFC",
+      "error_cases": [],
+      "preconditions": [
+        "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are importable from shared_components"
+      ],
+      "postconditions": [
+        "Renders an h1 element containing the text 'Kindex'",
+        "Does not import from react-router-dom",
+        "File is under 300 lines"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "getPageComponentMap",
+      "description": "Returns the pageComponentMap: a Record<PageComponentKey, React.ComponentType> containing all 13 page components keyed by their exact PageComponentKey enum values. Exported as a constant from src/pages/index.ts. This is the sole integration surface consumed by app_routing to wire page components into routes. Keys MUST be the exact string values from the PageComponentKey enum defined in app_routing — never inferred from component names.",
+      "inputs": [],
+      "output_type": "PageComponentMap",
+      "error_cases": [],
+      "preconditions": [
+        "All 13 page component modules are importable",
+        "PageComponentKey enum is importable from app_routing"
+      ],
+      "postconditions": [
+        "Returned map contains exactly 13 entries",
+        "Every PageComponentKey enum value is present as a key",
+        "Every value is a valid React.ComponentType",
+        "Keys are the exact strings: 'home', 'cartographer', 'constrain', 'ledger', 'pact', 'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex'"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": ""
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "app_routing",
+    "shared_components"
+  ],
+  "dependency_contracts": {
+    "app_routing": [
+      "PageComponentKey"
+    ],
+    "shared_components": [
+      "CodeBlock",
+      "VideoEmbed",
+      "VersionBadge",
+      "CalloutBox",
+      "CodeBlockProps",
+      "CalloutBoxProps",
+      "VideoEmbedProps",
+      "VersionBadgeProps"
+    ]
+  },
+  "invariants": [
+    "All 13 page components are React.FC with no props (zero-argument functional components)",
+    "Every page component is dual-exported: named export + default export from its own .tsx file",
+    "No page component imports from react-router-dom — all are pure content components",
+    "Every .tsx file includes `import React from 'react'` at the top",
+    "Every page file is under 300 lines of code",
+    "All CLI commands, gotchas, warnings, tips, and examples are verbatim from howto.md — no paraphrasing",
+    "pageComponentMap keys are the exact PageComponentKey enum string values from app_routing — never inferred from component names",
+    "pageComponentMap contains exactly 13 entries — one per PageComponentKey",
+    "Pipeline diagram SVG is located at src/assets/pipeline-diagram.svg and imported as a Vite static URL in HomePage",
+    "HomePage renders the pipeline diagram as <img src={importedSvgUrl} alt='exemplar.tools pipeline diagram' />",
+    "Barrel export at src/pages/index.ts re-exports all 13 named page components plus pageComponentMap",
+    "Shared components (CodeBlock, CalloutBox, VideoEmbed, VersionBadge) are imported from shared_components — never reimplemented",
+    "Contract tests use vitest + @testing-library/react in jsdom environment with no external services"
+  ],
+  "requires": [
+    "app_routing.PageComponentKey",
+    "shared_components.CodeBlock",
+    "shared_components.CalloutBox",
+    "shared_components.VideoEmbed",
+    "shared_components.VersionBadge"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Page components read only static PUBLIC documentation content (CLI commands, tips, gotchas, version numbers, YouTube embed URLs) transcribed verbatim from howto.md. No user data, PII, or INTERNAL data is accessed. The pipeline diagram SVG is a static PUBLIC asset read from the filesystem at build time via Vite's asset import. No writes occur — components are pure render functions.",
+    "side_effects": [
+      {
+        "type": "static_asset_import",
+        "classification": "PUBLIC",
+        "fields": [
+          "src/assets/pipeline-diagram.svg"
+        ],
+        "rationale": "HomePage imports the pipeline diagram SVG as a Vite static asset URL at build time. The SVG is PUBLIC documentation content with no sensitive data."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "page_content",
+      "page_component_map"
+    ],
+    "rationale": "This component is the sole authority for page-level documentation content (the JSX rendering of each tool's documentation) and for the pageComponentMap that maps PageComponentKey values to their corresponding React components. No other component defines page content or the component-to-key mapping. The PageComponentKey enum itself is owned by app_routing; this component owns the mapping from those keys to concrete component implementations."
+  }
+}

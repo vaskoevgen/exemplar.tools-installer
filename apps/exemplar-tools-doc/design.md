@@ -9,13 +9,37 @@
 
 Build a documentation website for the exemplar.tools CLI suite.
 Developers will use this site as a reference for running commands — all content must be exact as
-  - [ ] **Step Page Content & Data** (`page_content`)
-    All 14 page components with hardcoded content from howto.md. Includes: (1) A STEP_CONTENT data structure holding per-step commands, gotchas, warnings, tips, examples, YouTube URLs, and version strings — all verbatim from howto.md. (2) HomePage component rendering overview text + PipelineDiagram. (3) StepPage generic component that receives step data and renders sections using CodeBlock, CalloutBox, YouTubeEmbed, and VersionBadge. (4) Individual page wrapper components for each of the 13 steps (CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage). Content placeholder structure is built now; exact howto.md text is filled when the file is provided. Tests verify each page renders its key sections, code blocks, and embeds.
-  - [ ] **Pipeline Diagram Component** (`pipeline_diagram`)
-    Custom React/SVG component for the Home page showing the exemplar.tools pipeline flow. Renders step boxes (Step 0 through Step 7) connected by arrows/lines in the correct order, with branching for parallel steps (1a/1b, 2a/2b, 5a/5b/5c). Each box is clickable and navigates to the corresponding step page via React Router. Responsive sizing. Named export PipelineDiagram. Tests verify all step nodes render and click navigation.
+  - [C] **App Shell & Routing** (`app_routing`)
+    Main App.tsx and routing configuration using react-router-dom BrowserRouter. Defines routes for all 13 pages: / (Home), /step-0-cartographer, /step-1a-constrain, /step-1b-ledger, /step-2a-pact, /step-2b-advocate, /step-3-arbiter, /step-4-baton, /step-5a-sentinel, /step-5b-chronicler, /step-5c-stigmergy, /step-6-apprentice, /step-7-kindex. Also includes the route manifest (array of { path, label, componentKey } objects) as a shared data structure consumed by Sidebar and the route definitions. Entry point main.tsx renders App into #root. Includes smoke test verifying all routes are registered.
+  - [C] **Page Components (13 pages)** (`page_components`)
+    One React component per page, each in its own file (<300 LOC). Content is manually transcribed from howto.md into JSX using shared components (CodeBlock for CLI commands, VideoEmbed for YouTube links, VersionBadge for versions, CalloutBox for gotchas/warnings/tips). Pages: HomePage (pipeline diagram as SVG/image + overview), CartographerPage, ConstrainPage, LedgerPage, PactPage, AdvocatePage, ArbiterPage, BatonPage, SentinelPage, ChroniclerPage, StigmergyPage, ApprenticePage, KindexPage. Every CLI command, gotcha, warning, tip, and example is verbatim from howto.md. Each page component has a vitest rendering smoke test verifying it renders without crashing and contains expected heading text. The pipeline diagram asset (SVG) is included or referenced from a static assets directory.
   - [C] **Project Scaffold & Configuration** (`project_scaffold`)
-    Bootstraps the exemplar-tools-doc project: package.json with all dependencies (react, react-dom, react-router-dom, vite, tailwindcss, vitest, @testing-library/react, jsdom), vite.config.ts (port 4000), tsconfig.json (strict mode), tailwind.config.js, postcss.config.js, index.html entry point, vercel.json with SPA rewrites, and the main App.tsx shell that sets up BrowserRouter. All config files only — no page content. Named exports only per SOP.
-  - [C] **Routing, Layout & Navigation** (`routing_and_layout`)
-    Implements the routing data model and layout shell. Includes: (1) ROUTE_SLUG_MAP constant mapping all 14 routes (home + 13 steps) with leading-slash values, (2) a persistent Sidebar component with NavLinks to all pages highlighting the active route, (3) a Layout component wrapping sidebar + content area with React Router <Outlet>, (4) route registration in App.tsx using createBrowserRouter or <Routes>. All use React Router v6 browser history mode. Slug guard utility: slug.startsWith('/') ? slug : '/' + slug. Tests verify all 14 routes exist, no double-slash bugs, and sidebar renders all links.
-  - [C] **Shared UI Components** (`shared_ui`)
-    Reusable presentational components used across all pages: (1) CodeBlock — renders preformatted CLI commands with syntax styling and a copy-to-clipboard button (navigator.clipboard.writeText), (2) VersionBadge — styled inline badge displaying a component name + version string, (3) YouTubeEmbed — responsive iframe wrapper for YouTube video URLs, (4) CalloutBox — styled container for gotchas, warnings, and tips with variant prop (gotcha | warning | tip). All components have explicit type annotations, named exports, and vitest + @testing-library/react tests.
+    Initialize the exemplar-tools-doc/ project directory with all configuration files: package.json (with dependencies: react, react-dom, react-router-dom, vite, tailwindcss, vitest, @testing-library/react, @testing-library/jest-dom, jsdom, prism-react-renderer), tsconfig.json, vite.config.ts (dev server port 4000), tailwind.config.ts, postcss.config.ts, index.html, vercel.json (SPA rewrite rule: { "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }). Also includes the vitest setup file (vitest.setup.ts importing @testing-library/jest-dom). No .py or .js source files. All config that must be .js (e.g. postcss) uses .ts or .mjs equivalent.
+  - [C] **Shared UI Components** (`shared_components`)
+    Reusable React components used across pages: (1) Sidebar — persistent navigation sidebar with links to all 13 pages using react-router-dom NavLink, highlighting active route. (2) CodeBlock — wraps prism-react-renderer to display CLI commands with syntax highlighting and a copy-to-clipboard button (navigator.clipboard.writeText). (3) VersionBadge — displays a version string in a styled badge (Tailwind pill). (4) VideoEmbed — renders a YouTube iframe given a video URL, with responsive aspect-ratio styling. (5) PageLayout — shell component that renders Sidebar + content area, responsive down to 768px. (6) CalloutBox — renders gotchas/warnings/tips with distinct visual styles (color-coded borders/icons). Each component exported as named + default. Each has a vitest smoke test.
+
+## Engineering Decisions
+
+### 
+**Decision:** Four-component decomposition rather than trivial
+**Rationale:** With 13 page components, shared UI components, routing configuration, and project scaffolding, the total LOC will significantly exceed 500. The 300-line-per-file SOP constraint alone forces at least 15+ source files. The four components have clean interfaces: scaffold produces config, shared_components produces reusable React elements, page_components consumes shared_components and howto.md content, app_routing wires pages into routes.
+
+### 
+**Decision:** Route slugs follow AS3 pattern exactly
+**Rationale:** URL slugs: /, /step-0-cartographer, /step-1a-constrain, /step-1b-ledger, /step-2a-pact, /step-2b-advocate, /step-3-arbiter, /step-4-baton, /step-5a-sentinel, /step-5b-chronicler, /step-5c-stigmergy, /step-6-apprentice, /step-7-kindex. These are the source-of-truth strings per the SOP on string keys in maps.
+
+### 
+**Decision:** prism-react-renderer for syntax highlighting with copy button
+**Rationale:** AS9 specifies prism-react-renderer. CodeBlock component wraps it and adds a copy-to-clipboard button using navigator.clipboard API, satisfying AC15.
+
+### 
+**Decision:** Route manifest as shared data structure
+**Rationale:** A single exported array of route definitions (path, label, componentKey) serves as the source of truth for both the Sidebar navigation and the router configuration, preventing slug mismatches per the SOP on string keys.
+
+### 
+**Decision:** Page components depend on shared_components but not on app_routing
+**Rationale:** Pages are leaf content components that consume CodeBlock, VideoEmbed, etc. The routing layer (app_routing) depends on pages to wire them into routes, not the reverse. This keeps the dependency graph acyclic and shallow.
+
+### 
+**Decision:** Pipeline diagram as static SVG asset
+**Rationale:** Per AS5, the pipeline diagram is a static visual. It will be placed in a public/ or src/assets/ directory and rendered in HomePage via an <img> or inline SVG component.

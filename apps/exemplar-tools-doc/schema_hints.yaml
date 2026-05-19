@@ -1,9 +1,29 @@
 version: "1.0"
 generated_by: constrain
-session_id: docs_site_001
+session_id: null
 
-storage_backends: []
+storage_backends:
+  - owner_component: "doc-app"
+    type: unknown
+    description: "Static file storage for built React application assets"
 
-field_hints: []
+field_hints:
+  - backend_owner: "doc-app"
+    field_description: "CLI commands from howto.md"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "Static content that should not be modified after build"
 
-_note: "Documentation website uses no persistent storage - all content is static files built from howto.md source. No database schemas or sensitive field classifications apply to this static documentation system."
+  - backend_owner: "doc-app"
+    field_description: "YouTube video URLs and embed codes"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "External video references that should remain stable"
+
+  - backend_owner: "doc-app"
+    field_description: "Tool documentation content (gotchas, warnings, tips, examples)"
+    likely_classification: PUBLIC
+    likely_annotations: [immutable]
+    rationale: "Static documentation content that should not be modified after build"
+
+_note: "Interview focused on static site architecture; no traditional database storage was discussed. Storage is primarily static file-based for built assets."

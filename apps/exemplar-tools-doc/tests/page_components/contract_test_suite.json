@@ -1,0 +1,336 @@
+{
+  "component_id": "page_components",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "hp_homepage_renders_heading",
+      "description": "HomePage renders an h1 containing 'exemplar.tools'",
+      "function": "HomePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'exemplar.tools' is present in the document"
+      ]
+    },
+    {
+      "id": "hp_homepage_renders_pipeline_img",
+      "description": "HomePage renders an img with alt='exemplar.tools pipeline diagram' and src set to the imported SVG URL",
+      "function": "HomePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "img element has alt='exemplar.tools pipeline diagram'",
+        "img element src is set to the mocked SVG URL"
+      ]
+    },
+    {
+      "id": "hp_cartographer_renders_heading",
+      "description": "CartographerPage renders an h1 containing 'Cartographer'",
+      "function": "CartographerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Cartographer' is present"
+      ]
+    },
+    {
+      "id": "hp_constrain_renders_heading",
+      "description": "ConstrainPage renders an h1 containing 'Constrain'",
+      "function": "ConstrainPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Constrain' is present"
+      ]
+    },
+    {
+      "id": "hp_ledger_renders_heading",
+      "description": "LedgerPage renders an h1 containing 'Ledger'",
+      "function": "LedgerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Ledger' is present"
+      ]
+    },
+    {
+      "id": "hp_pact_renders_heading",
+      "description": "PactPage renders an h1 containing 'Pact'",
+      "function": "PactPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Pact' is present"
+      ]
+    },
+    {
+      "id": "hp_advocate_renders_heading",
+      "description": "AdvocatePage renders an h1 containing 'Advocate'",
+      "function": "AdvocatePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Advocate' is present"
+      ]
+    },
+    {
+      "id": "hp_arbiter_renders_heading",
+      "description": "ArbiterPage renders an h1 containing 'Arbiter'",
+      "function": "ArbiterPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Arbiter' is present"
+      ]
+    },
+    {
+      "id": "hp_baton_renders_heading",
+      "description": "BatonPage renders an h1 containing 'Baton'",
+      "function": "BatonPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Baton' is present"
+      ]
+    },
+    {
+      "id": "hp_sentinel_renders_heading",
+      "description": "SentinelPage renders an h1 containing 'Sentinel'",
+      "function": "SentinelPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Sentinel' is present"
+      ]
+    },
+    {
+      "id": "hp_chronicler_renders_heading",
+      "description": "ChroniclerPage renders an h1 containing 'Chronicler'",
+      "function": "ChroniclerPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Chronicler' is present"
+      ]
+    },
+    {
+      "id": "hp_stigmergy_renders_heading",
+      "description": "StigmergyPage renders an h1 containing 'Stigmergy'",
+      "function": "StigmergyPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Stigmergy' is present"
+      ]
+    },
+    {
+      "id": "hp_apprentice_renders_heading",
+      "description": "ApprenticePage renders an h1 containing 'Apprentice'",
+      "function": "ApprenticePage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Apprentice' is present"
+      ]
+    },
+    {
+      "id": "hp_kindex_renders_heading",
+      "description": "KindexPage renders an h1 containing 'Kindex'",
+      "function": "KindexPage",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "h1 with text 'Kindex' is present"
+      ]
+    },
+    {
+      "id": "hp_map_has_13_entries",
+      "description": "getPageComponentMap() returns a map with exactly 13 entries",
+      "function": "getPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(map).length === 13"
+      ]
+    },
+    {
+      "id": "hp_map_keys_match_contract",
+      "description": "getPageComponentMap() keys are exactly the 13 PageComponentKey strings",
+      "function": "getPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Keys match: home, cartographer, constrain, ledger, pact, advocate, arbiter, baton, sentinel, chronicler, stigmergy, apprentice, kindex"
+      ]
+    },
+    {
+      "id": "hp_map_values_are_functions",
+      "description": "Every value in pageComponentMap is a function (React.ComponentType)",
+      "function": "getPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "typeof value === 'function' for all 13 entries"
+      ]
+    },
+    {
+      "id": "inv_map_identity",
+      "description": "pageComponentMap values are identity-equal to the named-exported page components",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "map.home === HomePage",
+        "map.cartographer === CartographerPage",
+        "map.constrain === ConstrainPage",
+        "map.ledger === LedgerPage",
+        "map.pact === PactPage",
+        "map.advocate === AdvocatePage",
+        "map.arbiter === ArbiterPage",
+        "map.baton === BatonPage",
+        "map.sentinel === SentinelPage",
+        "map.chronicler === ChroniclerPage",
+        "map.stigmergy === StigmergyPage",
+        "map.apprentice === ApprenticePage",
+        "map.kindex === KindexPage"
+      ]
+    },
+    {
+      "id": "inv_no_duplicate_values_in_map",
+      "description": "No two keys in pageComponentMap point to the same component reference",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Set of values has size 13 (no duplicates)"
+      ]
+    },
+    {
+      "id": "inv_render_each_from_map_non_empty",
+      "description": "Every component in pageComponentMap renders non-empty HTML when mounted",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "container.innerHTML is non-empty for each rendered component"
+      ]
+    },
+    {
+      "id": "edge_dual_export",
+      "description": "Each page module exports the component as both named and default export, and they are identical",
+      "function": "HomePage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Named export equals default export for each page module"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "// @vitest-environment jsdom\nimport React from 'react';\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport { render, screen, cleanup } from '@testing-library/react';\n\n// ---------------------------------------------------------------------------\n// Mock shared_components — all shared components render simple stubs\n// ---------------------------------------------------------------------------\nvi.mock('../../src/shared_components', () => ({\n  CodeBlock: ({ children }: { children?: React.ReactNode }) =>\n    React.createElement('pre', { 'data-testid': 'code-block' }, children),\n  CalloutBox: ({ children }: { children?: React.ReactNode }) =>\n    React.createElement('div', { 'data-testid': 'callout-box' }, children),\n  VideoEmbed: ({ src }: { src?: string }) =>\n    React.createElement('div', { 'data-testid': 'video-embed', 'data-src': src }),\n  VersionBadge: ({ version }: { version?: string }) =>\n    React.createElement('span', { 'data-testid': 'version-badge' }, version),\n}));\n\n// ---------------------------------------------------------------------------\n// Mock the pipeline-diagram SVG asset import (Vite static asset)\n// ---------------------------------------------------------------------------\nvi.mock('../../src/assets/pipeline-diagram.svg', () => ({\n  default: '/mocked-pipeline-diagram.svg',\n}));\n\n// ---------------------------------------------------------------------------\n// Mock app_routing to provide the PageComponentKey enum\n// ---------------------------------------------------------------------------\nvi.mock('../../src/app_routing', () => ({\n  PageComponentKey: {\n    Home: 'home',\n    Cartographer: 'cartographer',\n    Constrain: 'constrain',\n    Ledger: 'ledger',\n    Pact: 'pact',\n    Advocate: 'advocate',\n    Arbiter: 'arbiter',\n    Baton: 'baton',\n    Sentinel: 'sentinel',\n    Chronicler: 'chronicler',\n    Stigmergy: 'stigmergy',\n    Apprentice: 'apprentice',\n    Kindex: 'kindex',\n  },\n}));\n\n// ---------------------------------------------------------------------------\n// Imports under test — named exports from barrel\n// ---------------------------------------------------------------------------\nimport {\n  HomePage,\n  CartographerPage,\n  ConstrainPage,\n  LedgerPage,\n  PactPage,\n  AdvocatePage,\n  ArbiterPage,\n  BatonPage,\n  SentinelPage,\n  ChroniclerPage,\n  StigmergyPage,\n  ApprenticePage,\n  KindexPage,\n  pageComponentMap,\n} from '../../src/page_components';\n\n// ---------------------------------------------------------------------------\n// Also import individual modules to verify dual (named + default) exports\n// ---------------------------------------------------------------------------\nimport HomePageDefault from '../../src/page_components/HomePage';\nimport CartographerPageDefault from '../../src/page_components/CartographerPage';\nimport ConstrainPageDefault from '../../src/page_components/ConstrainPage';\nimport LedgerPageDefault from '../../src/page_components/LedgerPage';\nimport PactPageDefault from '../../src/page_components/PactPage';\nimport AdvocatePageDefault from '../../src/page_components/AdvocatePage';\nimport ArbiterPageDefault from '../../src/page_components/ArbiterPage';\nimport BatonPageDefault from '../../src/page_components/BatonPage';\nimport SentinelPageDefault from '../../src/page_components/SentinelPage';\nimport ChroniclerPageDefault from '../../src/page_components/ChroniclerPage';\nimport StigmergyPageDefault from '../../src/page_components/StigmergyPage';\nimport ApprenticePageDefault from '../../src/page_components/ApprenticePage';\nimport KindexPageDefault from '../../src/page_components/KindexPage';\n\n// ---------------------------------------------------------------------------\n// Fixture: PageHeadingExpectation[]\n// ---------------------------------------------------------------------------\ninterface PageHeadingExpectation {\n  componentName: string;\n  expectedHeading: string;\n  pageKey: string;\n  Component: React.ComponentType;\n}\n\nconst PAGE_EXPECTATIONS: PageHeadingExpectation[] = [\n  { componentName: 'HomePage', expectedHeading: 'exemplar.tools', pageKey: 'home', Component: HomePage },\n  { componentName: 'CartographerPage', expectedHeading: 'Cartographer', pageKey: 'cartographer', Component: CartographerPage },\n  { componentName: 'ConstrainPage', expectedHeading: 'Constrain', pageKey: 'constrain', Component: ConstrainPage },\n  { componentName: 'LedgerPage', expectedHeading: 'Ledger', pageKey: 'ledger', Component: LedgerPage },\n  { componentName: 'PactPage', expectedHeading: 'Pact', pageKey: 'pact', Component: PactPage },\n  { componentName: 'AdvocatePage', expectedHeading: 'Advocate', pageKey: 'advocate', Component: AdvocatePage },\n  { componentName: 'ArbiterPage', expectedHeading: 'Arbiter', pageKey: 'arbiter', Component: ArbiterPage },\n  { componentName: 'BatonPage', expectedHeading: 'Baton', pageKey: 'baton', Component: BatonPage },\n  { componentName: 'SentinelPage', expectedHeading: 'Sentinel', pageKey: 'sentinel', Component: SentinelPage },\n  { componentName: 'ChroniclerPage', expectedHeading: 'Chronicler', pageKey: 'chronicler', Component: ChroniclerPage },\n  { componentName: 'StigmergyPage', expectedHeading: 'Stigmergy', pageKey: 'stigmergy', Component: StigmergyPage },\n  { componentName: 'ApprenticePage', expectedHeading: 'Apprentice', pageKey: 'apprentice', Component: ApprenticePage },\n  { componentName: 'KindexPage', expectedHeading: 'Kindex', pageKey: 'kindex', Component: KindexPage },\n];\n\nconst EXPECTED_KEYS = [\n  'home', 'cartographer', 'constrain', 'ledger', 'pact',\n  'advocate', 'arbiter', 'baton', 'sentinel', 'chronicler',\n  'stigmergy', 'apprentice', 'kindex',\n] as const;\n\n// ---------------------------------------------------------------------------\n// Tests\n// ---------------------------------------------------------------------------\n\nbeforeEach(() => {\n  cleanup();\n});\n\ndescribe('Page Components — parameterized heading tests', () => {\n  describe.each(PAGE_EXPECTATIONS)(\n    '$componentName',\n    ({ componentName, expectedHeading, Component }) => {\n      it(`renders an h1 containing '${expectedHeading}'`, () => {\n        render(React.createElement(Component));\n        const heading = screen.getByRole('heading', { level: 1 });\n        expect(heading).toBeDefined();\n        expect(heading.textContent).toContain(\n          expectedHeading,\n        );\n      });\n    },\n  );\n});\n\ndescribe('HomePage — pipeline diagram image', () => {\n  it('renders an img with the correct alt text and src from the SVG import', () => {\n    render(React.createElement(HomePage));\n    const img = screen.getByAltText('exemplar.tools pipeline diagram') as HTMLImageElement;\n    expect(img).toBeDefined();\n    expect(img.tagName).toBe('IMG');\n    // src should be the mocked SVG URL\n    expect(img.getAttribute('src')).toBe('/mocked-pipeline-diagram.svg');\n  });\n});\n\ndescribe('getPageComponentMap() — registry contract', () => {\n  it('returns a map with exactly 13 entries', () => {\n    const keys = Object.keys(pageComponentMap);\n    expect(keys).toHaveLength(13);\n  });\n\n  it('keys match exactly the 13 PageComponentKey strings from the contract', () => {\n    const keys = Object.keys(pageComponentMap).sort();\n    const expected = [...EXPECTED_KEYS].sort();\n    expect(keys).toEqual(expected);\n  });\n\n  it('every value is a function (React.ComponentType)', () => {\n    for (const key of EXPECTED_KEYS) {\n      const value = (pageComponentMap as Record<string, unknown>)[key];\n      expect(typeof value).toBe('function');\n    }\n  });\n\n  it('map values are identity-equal to the named-exported page components', () => {\n    const identityMap: Record<string, React.ComponentType> = {\n      home: HomePage,\n      cartographer: CartographerPage,\n      constrain: ConstrainPage,\n      ledger: LedgerPage,\n      pact: PactPage,\n      advocate: AdvocatePage,\n      arbiter: ArbiterPage,\n      baton: BatonPage,\n      sentinel: SentinelPage,\n      chronicler: ChroniclerPage,\n      stigmergy: StigmergyPage,\n      apprentice: ApprenticePage,\n      kindex: KindexPage,\n    };\n    for (const key of EXPECTED_KEYS) {\n      expect(\n        (pageComponentMap as Record<string, React.ComponentType>)[key],\n        `pageComponentMap['${key}'] should be identity-equal to the named export`,\n      ).toBe(identityMap[key]);\n    }\n  });\n\n  it('no two keys in pageComponentMap point to the same component reference', () => {\n    const values = Object.values(pageComponentMap);\n    const uniqueValues = new Set(values);\n    expect(uniqueValues.size).toBe(\n      13,\n    );\n  });\n});\n\ndescribe('Render-each-from-map — non-empty HTML guard', () => {\n  it.each(EXPECTED_KEYS)(\n    'pageComponentMap[\"%s\"] renders non-empty HTML',\n    (key) => {\n      const Component = (pageComponentMap as Record<string, React.ComponentType>)[key];\n      const { container } = render(React.createElement(Component));\n      expect(\n        container.innerHTML.length,\n        `Component for key '${key}' rendered empty HTML`,\n      ).toBeGreaterThan(0);\n      cleanup();\n    },\n  );\n});\n\ndescribe('Dual export invariant — named export === default export', () => {\n  const dualExportPairs: Array<[string, React.ComponentType, React.ComponentType]> = [\n    ['HomePage', HomePage, HomePageDefault],\n    ['CartographerPage', CartographerPage, CartographerPageDefault],\n    ['ConstrainPage', ConstrainPage, ConstrainPageDefault],\n    ['LedgerPage', LedgerPage, LedgerPageDefault],\n    ['PactPage', PactPage, PactPageDefault],\n    ['AdvocatePage', AdvocatePage, AdvocatePageDefault],\n    ['ArbiterPage', ArbiterPage, ArbiterPageDefault],\n    ['BatonPage', BatonPage, BatonPageDefault],\n    ['SentinelPage', SentinelPage, SentinelPageDefault],\n    ['ChroniclerPage', ChroniclerPage, ChroniclerPageDefault],\n    ['StigmergyPage', StigmergyPage, StigmergyPageDefault],\n    ['ApprenticePage', ApprenticePage, ApprenticePageDefault],\n    ['KindexPage', KindexPage, KindexPageDefault],\n  ];\n\n  it.each(dualExportPairs)(\n    '%s named export is identical to its default export',\n    (name, named, defaultExport) => {\n      expect(\n        named,\n        `${name}: named export should be identity-equal to default export`,\n      ).toBe(defaultExport);\n    },\n  );\n});\n"
+}

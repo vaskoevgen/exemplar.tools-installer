@@ -1,0 +1,127 @@
+{
+  "task_summary": "Define the interface contract (types, props, exports, and contract tests) for the 'Shared UI Components' module (id: shared_components). This module provides six reusable React components — Sidebar, CodeBlock, VersionBadge, VideoEmbed, PageLayout, CalloutBox — each with strict TypeScript prop interfaces matching the canonical type registry, named + default exports, and vitest smoke tests. The contract must be precise enough for downstream page components and the app_routing module to depend on.",
+  "findings": [
+    {
+      "topic": "Named + Default Export Pattern in React/TypeScript",
+      "finding": "The project mandates every component export both a named export and a default export. The idiomatic pattern is: `export function ComponentName(props: Props): React.ReactElement { ... }` followed by `export default ComponentName;`. This ensures tree-shaking-friendly named imports while preserving default import compatibility. The named export MUST come first; re-exporting default from a named is cleaner than the reverse.",
+      "source": "Project operating procedures; React community conventions",
+      "relevance": "All six components must follow this pattern exactly. Contract tests should verify named exports exist on the module.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "Props Interface Design — Canonical Registry Compliance",
+      "finding": "The canonical type registry defines exact struct names and fields for CalloutBoxProps, CodeBlockProps, VersionBadgeProps, VideoEmbedProps, SidebarProps, and PageLayoutProps. These MUST be used verbatim. The CalloutType enum has three variants: 'gotcha', 'warning', 'tip' — these are lowercase string literal union types in TypeScript (not a TS `enum` keyword construct). ReactNode should be re-exported as `type ReactNode = React.ReactNode` or simply used inline. RouteEntry and RouteManifest are owned by app_routing and must be imported, not redefined.",
+      "source": "Canonical Type Registry in parent context",
+      "relevance": "Direct compliance requirement. Any deviation in field names, optionality, or type names breaks the contract.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "String Literal Union vs TypeScript enum for CalloutType",
+      "finding": "For a small closed set of variants (gotcha, warning, tip), a string literal union type (`type CalloutType = 'gotcha' | 'warning' | 'tip'`) is preferred over `enum CalloutType { ... }` in modern TypeScript. String unions are more ergonomic, produce no runtime artifact, and serialize naturally. However, the registry says 'enum' — the contract should define it as a string literal union type aliased as `CalloutType` since the variants are lowercase strings, not PascalCase identifiers. This matches standard React prop patterns.",
+      "source": "TypeScript handbook; React community patterns; registry specifies lowercase variants",
+      "relevance": "CalloutType is owned by this module. The choice of representation affects every downstream consumer.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Cross-Module Type Dependencies — RouteEntry and RouteManifest",
+      "finding": "SidebarProps and PageLayoutProps reference RouteManifest (owned by app_routing). The shared_components module must import these types from app_routing, NOT redefine them. This creates a compile-time dependency. For contract testing in isolation, the test file can construct mock RouteEntry[] data without importing the actual app_routing module — but the production types.ts must use the canonical import path. A common pitfall is redefining RouteEntry locally with slightly different fields.",
+      "source": "Canonical Type Registry ownership rules; modular architecture best practices",
+      "relevance": "Critical for avoiding type duplication. The contract must specify the import source for RouteManifest/RouteEntry.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "React Component Smoke Test Patterns with vitest + @testing-library/react",
+      "finding": "Smoke tests for React components should: (1) render the component with minimal valid props, (2) assert it does not throw, (3) assert key DOM elements are present (e.g., a NavLink for Sidebar, a <pre>/<code> for CodeBlock, an <iframe> for VideoEmbed). Use `render()` from @testing-library/react with jsdom environment. For components using navigator.clipboard, mock it via `Object.assign(navigator, { clipboard: { writeText: vi.fn() } })` or use `vi.stubGlobal`. For NavLink, wrap in MemoryRouter.",
+      "source": "@testing-library/react docs; vitest docs; React Router testing patterns",
+      "relevance": "Every component needs at least one passing smoke test. Router-dependent components (Sidebar, PageLayout) need MemoryRouter wrapping.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "prism-react-renderer Integration Pattern",
+      "finding": "prism-react-renderer v2 exports `Highlight` (named) and requires a theme import. The CodeBlock component wraps `<Highlight code={code} language={language} theme={theme}>` with a render-prop pattern. The copy-to-clipboard button calls `navigator.clipboard.writeText(code)`. The `language` prop should default to 'bash' since CLI commands are the primary use case. In tests, prism-react-renderer renders fine in jsdom — no special mocking needed for the highlight itself, only for clipboard.",
+      "source": "prism-react-renderer v2 documentation; project description",
+      "relevance": "CodeBlock is a core component. The contract must specify the language default and copy button behavior.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Responsive Layout Patterns — PageLayout at 768px Breakpoint",
+      "finding": "PageLayout should use Tailwind responsive utilities (md: prefix = 768px). Common pattern: sidebar is hidden on mobile (hidden md:block) with a hamburger toggle, or sidebar collapses to a top nav. The content area uses flex-1 with overflow-y-auto. The contract should specify that PageLayout renders a Sidebar and a main content area with `children`, and is responsive to 768px. Implementation details (hamburger vs. collapse) can be deferred, but the contract should assert both sidebar and content regions exist in the DOM.",
+      "source": "Tailwind CSS docs; responsive design best practices",
+      "relevance": "PageLayout is the shell component. Contract tests should verify structural DOM elements.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "VideoEmbed — YouTube URL Handling and Security",
+      "finding": "YouTube embed URLs must use the embed format (https://www.youtube.com/embed/VIDEO_ID). The component should either accept an embed URL directly or transform watch URLs to embed URLs. The iframe should include `allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'` and `allowFullScreen`. For responsive aspect-ratio, use Tailwind's `aspect-video` class (16:9). The title prop serves as the iframe's accessible title attribute.",
+      "source": "YouTube IFrame API docs; web accessibility standards (WCAG)",
+      "relevance": "VideoEmbed contract should specify URL format expectations and accessibility attributes.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "VersionBadge — Tailwind Pill Pattern",
+      "finding": "A Tailwind pill badge is typically: `inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-{color}-100 text-{color}-800`. The VersionBadge should render the version string, optionally prefixed by label. The contract should specify that the version text appears in the rendered output.",
+      "source": "Tailwind UI patterns; project description",
+      "relevance": "Simple component but contract test must verify rendered text content.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "File Organization — Keeping Under 300 Lines",
+      "finding": "With six components plus their types, a single file would exceed 300 lines. Recommended structure: (1) types.ts — all exported interfaces/types (CalloutType, CalloutBoxProps, CodeBlockProps, etc.), (2) one .tsx file per component, (3) index.ts barrel export. Each component file stays well under 300 lines. The types file re-exports RouteEntry/RouteManifest from app_routing for convenience. Test files: one per component or one combined smoke-test file.",
+      "source": "Project file size constraint; modular component architecture",
+      "relevance": "Contract must specify the file/module structure to ensure consumers know import paths.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "import React from 'react' Requirement",
+      "finding": "The project mandates `import React from 'react'` at the top of every .tsx file. This is required even with React 17+ JSX transform because the project rules are explicit. Contract tests (.test.tsx files) must also include this import.",
+      "source": "Project operating procedures — TypeScript/React Rules",
+      "relevance": "Compliance requirement for all .tsx files in this module.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "Edge Case: Empty Routes Array in Sidebar/PageLayout",
+      "finding": "When routes is an empty array, Sidebar should render an empty nav without crashing. This is a common edge case in navigation components. Contract tests should include a smoke test with at least one route entry but the component should handle zero gracefully.",
+      "source": "Defensive programming best practices",
+      "relevance": "Sidebar and PageLayout receive RouteManifest which is typed as an array — empty arrays are valid.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Clipboard API Mocking in jsdom/vitest",
+      "finding": "jsdom does not implement navigator.clipboard. For CodeBlock's copy button test, use `vi.stubGlobal('navigator', { ...navigator, clipboard: { writeText: vi.fn().mockResolvedValue(undefined) } })` or `Object.defineProperty`. The test should simulate a click on the copy button and assert `navigator.clipboard.writeText` was called with the code string. Use `await` since writeText returns a Promise.",
+      "source": "vitest documentation; jsdom limitations",
+      "relevance": "CodeBlock copy-to-clipboard is a key feature that must be testable without browser APIs.",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "Define the contract as follows:\n\n**1. Type Definitions (`types.ts`)**\n- Export `CalloutType` as a string literal union: `'gotcha' | 'warning' | 'tip'`\n- Export all six Props interfaces (CalloutBoxProps, CodeBlockProps, VersionBadgeProps, VideoEmbedProps, SidebarProps, PageLayoutProps) exactly matching the canonical registry — same field names, same optionality, same types\n- Import RouteEntry and RouteManifest from the app_routing module; re-export them for consumer convenience\n- Export `ReactNode` as `type ReactNode = React.ReactNode`\n\n**2. Component Files (one .tsx per component)**\n- `CalloutBox.tsx`, `CodeBlock.tsx`, `VersionBadge.tsx`, `VideoEmbed.tsx`, `Sidebar.tsx`, `PageLayout.tsx`\n- Each file: `import React from 'react'`, named export function, `export default` at bottom\n- CodeBlock defaults `language` to `'bash'`\n- VideoEmbed uses `aspect-video` for responsive 16:9\n- Sidebar wraps NavLinks in a `<nav>` using react-router-dom\n- PageLayout composes Sidebar + children in a flex layout with md: responsive breakpoint\n\n**3. Barrel Export (`index.ts`)**\n- Re-exports all types from types.ts\n- Re-exports all components (named exports) from their respective files\n\n**4. Contract Tests (`__tests__/shared_components.test.tsx`)**\n- One smoke test per component verifying render without crash and key DOM assertions\n- MemoryRouter wrapping for Sidebar and PageLayout\n- Clipboard mock for CodeBlock copy button test\n- All tests runnable in vitest jsdom environment with no external services\n\n**5. Key Constraints**\n- Never redefine RouteEntry/RouteManifest — always import from app_routing\n- String keys for CalloutType must be exact lowercase: 'gotcha', 'warning', 'tip'\n- All files under 300 lines\n- Composition over inheritance throughout",
+  "alternatives_considered": [
+    "Single-file component library: rejected because six components plus types would exceed 300-line limit and reduce maintainability",
+    "TypeScript `enum` for CalloutType: rejected in favor of string literal union — the registry variants are lowercase strings, and unions are idiomatic in React prop types with no runtime overhead",
+    "Redefining RouteEntry/RouteManifest locally: rejected because the canonical registry assigns ownership to app_routing; local redefinition risks drift and violates the contract",
+    "One test file per component: viable but a single contract test file is more cohesive for verifying the module's public API surface — can split later if file exceeds 300 lines",
+    "Using CSS modules or styled-components instead of Tailwind: rejected because the project uses Tailwind (pill badge, responsive utilities referenced in requirements)"
+  ],
+  "risks": [
+    "Circular dependency risk: if app_routing imports from shared_components AND shared_components imports types from app_routing. Mitigate by having shared_components import only type definitions (type-only imports via `import type`), which are erased at compile time.",
+    "prism-react-renderer version mismatch: v1 and v2 have incompatible APIs (v1 uses default export `Highlight`, v2 uses named export). Contract should specify v2.",
+    "navigator.clipboard mock fragility: different vitest/jsdom versions handle global mocking differently. Tests should use vi.stubGlobal or Object.defineProperty consistently.",
+    "RouteManifest import path may not be finalized when this module is implemented. Mitigate by defining the import path in the contract and using a temporary local type definition in tests only.",
+    "YouTube URL format ambiguity: component may receive watch URLs (youtube.com/watch?v=X) or embed URLs (youtube.com/embed/X). Contract should document expected format to avoid runtime issues."
+  ],
+  "compliance_notes": [
+    "All files must be .ts or .tsx — no Python, no .js",
+    "Every type, interface, function, and constant MUST be a named export",
+    "React components: export BOTH named AND default (e.g., `export function Foo() {}` + `export default Foo`)",
+    "Every .tsx file must include `import React from 'react'` at the top",
+    "CalloutType variants must be exact lowercase strings: 'gotcha', 'warning', 'tip' — verified against canonical registry",
+    "Props interfaces must match canonical registry exactly: same names, same fields, same optionality markers",
+    "RouteEntry and RouteManifest are owned by app_routing — import via `import type`, never redefine",
+    "All public functions require type annotations",
+    "Prefer composition over inheritance — PageLayout composes Sidebar, not extends it",
+    "Prefer stdlib over third-party libraries — only prism-react-renderer (specified in requirements) and react-router-dom (for NavLink) are acceptable third-party dependencies",
+    "All files must stay under 300 lines",
+    "Tests must be runnable without external services (no network, no real clipboard)",
+    "Use `import.meta.env.VITE_X` directly if any env vars are needed — never `(import.meta as any).env`",
+    "String keys in maps/registries must be verified against source of truth, never inferred from names"
+  ]
+}

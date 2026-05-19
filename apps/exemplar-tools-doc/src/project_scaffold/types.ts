@@ -1,48 +1,71 @@
 const PACT_KEY = "PACT:d97abb:project_scaffold";
 
-import type { ReactElement } from 'react';
+export const ScaffoldFilePath = {
+  'package.json': 'package.json',
+  'tsconfig.json': 'tsconfig.json',
+  'tsconfig.node.json': 'tsconfig.node.json',
+  'vite.config.ts': 'vite.config.ts',
+  'tailwind.config.ts': 'tailwind.config.ts',
+  'postcss.config.mjs': 'postcss.config.mjs',
+  'vercel.json': 'vercel.json',
+  'index.html': 'index.html',
+  'vitest.setup.ts': 'vitest.setup.ts',
+  'src/main.tsx': 'src/main.tsx',
+  'src/index.css': 'src/index.css',
+  'src/App.tsx': 'src/App.tsx',
+} as const;
 
-export type ReactElementNode = ReactElement;
+export type ScaffoldFilePathValue = (typeof ScaffoldFilePath)[keyof typeof ScaffoldFilePath];
 
-export type ViteServerConfig = {
-  port: 4000;
-};
+export interface ProjectManifest {
+  projectRoot: string;
+  files: string[];
+  projectName: string;
+  devServerPort: number;
+}
 
-export type VitestConfig = {
-  environment: 'jsdom';
-  globals: true;
-  setupFiles: './src/test-setup.ts';
-};
+export interface DependencyEntry {
+  packageName: string;
+  versionRange: string;
+  isDev: boolean;
+}
 
-export type TsCompilerOptions = {
-  strict: true;
-  jsx: 'react-jsx';
-  moduleResolution: 'bundler';
-  isolatedModules: true;
-};
+export interface RequiredDependencies {
+  dependencies: DependencyEntry[];
+  devDependencies: DependencyEntry[];
+}
 
-export type TailwindContentGlob = string;
-
-export type VercelRewriteRule = {
+export interface VercelRewriteRule {
   source: string;
   destination: string;
-};
+}
 
-export type PackageDependencyMap = {
-  react: string;
-  react_dom: string;
-  react_router_dom: string;
-};
+export interface VercelConfig {
+  rewrites: VercelRewriteRule[];
+}
 
-export type PackageDevDependencyMap = {
-  vite: string;
-  vitest: string;
-  tailwindcss: string;
-  testing_library_react: string;
-  jsdom: string;
-  vitejs_plugin_react: string;
-  typescript: string;
-  autoprefixer: string;
-  postcss: string;
-  testing_library_jest_dom: string;
-};
+export interface ViteConfig {
+  serverPort: number;
+  testEnvironment: string;
+  testGlobals: boolean;
+  testSetupFiles: string[];
+  resolveAlias: string;
+  pluginReact: boolean;
+}
+
+export interface ScaffoldResult {
+  manifest: ProjectManifest;
+  filesWritten: number;
+  hasJsFiles: boolean;
+  hasPyFiles: boolean;
+}
+
+export interface ScaffoldOptions {
+  outputDir: string;
+  overwrite?: boolean;
+}
+
+export interface ScaffoldValidationResult {
+  isValid: boolean;
+  checks: Array<{ check: string; passed: boolean; message?: string }>;
+}

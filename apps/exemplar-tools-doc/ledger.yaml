@@ -1,0 +1,6 @@
+project_name: exemplar-tools-doc
+schemas_dir: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/schemas
+changelog_path: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/changelog.yaml
+plans_dir: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/plans
+backends: []
+custom_annotations: []

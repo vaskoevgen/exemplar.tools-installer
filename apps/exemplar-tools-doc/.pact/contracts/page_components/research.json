@@ -1,0 +1,100 @@
+{
+  "task_summary": "Define the interface contract for 'Page Components (13 pages)' — 13 React page components for the exemplar.tools documentation site. Each page is a standalone .tsx file under 300 LOC, consuming shared components (CodeBlock, CalloutBox, VersionBadge, VideoEmbed) and rendering verbatim content from howto.md. The contract must specify: the exported interface of each page component, the PageComponentMap type linking PageComponentKey to component references, smoke-test contracts, and the static SVG asset reference for the pipeline diagram on HomePage.",
+  "findings": [
+    {
+      "topic": "Page component export pattern (React + TypeScript)",
+      "finding": "Each page component must be both a named export and a default export per project rules. The canonical pattern is: `export const HomePage: React.FC = () => { ... }; export default HomePage;` or equivalently `export function HomePage() { ... } export default HomePage;`. Every .tsx file must begin with `import React from 'react'`. Page components take no props — they are leaf route targets that internally compose shared components.",
+      "source": "Project Operating Procedures (TypeScript/React Rules)",
+      "relevance": "Directly governs the export shape of all 13 page component files. Violating this breaks tree-shaking and the PageComponentMap lookup pattern.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "PageComponentMap — linking enum keys to lazy-loaded components",
+      "finding": "The app_routing layer owns PageComponentKey (13 variants). Page components must export a lookup map typed as `Record<PageComponentKey, React.ComponentType>` or `Record<PageComponentKey, React.LazyExoticComponent<React.ComponentType>>`. The map keys MUST exactly match the enum variants: Home, Cartographer, Constrain, Ledger, Pact, Advocate, Arbiter, Baton, Sentinel, Chronicler, Stigmergy, Apprentice, Kindex. Per the String Keys in Maps rule, these must be verified against the canonical PageComponentKey enum, never inferred from component file names.",
+      "source": "Canonical Type Registry + String Keys in Maps rule",
+      "relevance": "This is the primary integration surface between page_components and app_routing. A mismatch in any key renders a route unresolvable.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "React.lazy + code splitting per page",
+      "finding": "Standard pattern for multi-page doc sites is to lazy-load each page component via `React.lazy(() => import('./pages/HomePage'))`. This requires each page file to have a default export. The page_components module should export a `pageComponentMap` that maps each PageComponentKey to a lazy factory or direct component reference. For testing, direct (non-lazy) imports are preferred since vitest/jsdom doesn't need Suspense boundaries.",
+      "source": "React documentation on code splitting; Vite best practices",
+      "relevance": "Determines whether the contract exports lazy factories or direct component references. Recommend exporting both: direct for tests, lazy map for production routing.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Smoke test pattern for page components",
+      "finding": "Each page component needs a vitest + @testing-library/react smoke test that: (1) renders the component in jsdom, (2) asserts it does not throw, (3) checks for an expected heading string via `screen.getByRole('heading')` or `screen.getByText()`. The test must be runnable without external services — no network calls, no router context required. If pages use React Router hooks (e.g., useParams), the test must wrap in MemoryRouter. Since these are leaf content pages with no dynamic params, MemoryRouter wrapping is likely unnecessary.",
+      "source": "Testing Library best practices; project verification standards",
+      "relevance": "Directly required by the verification rule: 'All functions must have at least one test' and 'Each page component has a vitest rendering smoke test'.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Static SVG asset for pipeline diagram (HomePage)",
+      "finding": "Vite supports importing SVG files as URLs (`import diagramUrl from './assets/pipeline-diagram.svg'`) or as React components via vite-plugin-svgr (`import { ReactComponent as Diagram } from './assets/pipeline-diagram.svg'`). Per the 'prefer stdlib over third-party libraries' rule, the URL import approach is preferable — render via `<img src={diagramUrl} alt='...' />`. The SVG should live in a static assets directory (e.g., `src/assets/` or `public/`). For testability, the img tag should have an accessible alt attribute that smoke tests can query.",
+      "source": "Vite static asset handling docs; project preferences (stdlib over third-party)",
+      "relevance": "HomePage specifically requires the pipeline diagram. The contract must specify the asset path convention and the expected alt text for test assertions.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Shared component consumption pattern",
+      "finding": "Page components import shared components (CodeBlock, CalloutBox, VersionBadge, VideoEmbed) via named imports from the shared_components barrel export. The contract types (CodeBlockProps, CalloutBoxProps, etc.) are owned by shared_components and must not be redefined in page_components. Pages compose these as JSX: `<CodeBlock code='npx exemplar constrain' language='bash' />`, `<CalloutBox type='gotcha' title='...'> ... </CalloutBox>`. The CalloutType enum values are exactly: 'gotcha', 'warning', 'tip'.",
+      "source": "Canonical Type Registry",
+      "relevance": "Defines the integration surface between page_components and shared_components. Mismatched prop names or CalloutType values would cause type errors or runtime failures.",
+      "confidence": 1.0
+    },
+    {
+      "topic": "Content verbatim fidelity requirement",
+      "finding": "The register states: 'Every CLI command, gotcha, warning, tip, and example is verbatim from howto.md.' This means the contract tests should verify specific content strings appear in the rendered output. However, since howto.md content is not yet provided, the contract should define the pattern (e.g., HomePage must contain heading 'exemplar.tools', CartographerPage must contain heading 'Cartographer') and leave exact CLI strings for implementation phase. The smoke test contract should at minimum verify the page heading matches the expected tool name.",
+      "source": "Component register description; systematic-verification requirements",
+      "relevance": "Establishes the minimum testable assertions for the contract phase without over-specifying content that depends on howto.md.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "File organization — one file per page, under 300 LOC",
+      "finding": "Each page component resides in its own file: `HomePage.tsx`, `CartographerPage.tsx`, etc. A barrel `index.ts` re-exports all pages and the pageComponentMap. The 300-LOC limit means pages with extensive content may need to extract long text blocks into separate data files or break sub-sections into smaller composition units. However, for a documentation site with static content, most pages will comfortably fit under 300 lines.",
+      "source": "Project preferences (file size limit); component register description",
+      "relevance": "Governs the file structure the contract must define.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Common pitfall: PageComponentKey string vs enum representation",
+      "finding": "TypeScript string enums vs union types: The canonical registry defines PageComponentKey as an enum with specific variants. In TypeScript, this should be represented as either `enum PageComponentKey { Home = 'Home', ... }` or a string union `type PageComponentKey = 'Home' | 'Cartographer' | ...`. Since the type is owned by app_routing, page_components must import and reference it — never redeclare it. The pageComponentMap must use the imported type as its key constraint.",
+      "source": "TypeScript handbook; canonical type registry ownership rules",
+      "relevance": "A redeclared or divergent PageComponentKey would cause subtle type mismatches at the integration boundary.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "Common pitfall: missing accessible landmarks in page content",
+      "finding": "Smoke tests that query by heading role (`getByRole('heading')`) require actual heading elements (h1, h2, etc.) in the rendered output. Each page must have at least one h1 with the page title. If headings are missing or use div with CSS styling instead of semantic elements, tests will fail. Additionally, the pipeline diagram img must have a non-empty alt attribute for accessibility and testability.",
+      "source": "Testing Library queries documentation; WAI-ARIA best practices",
+      "relevance": "Directly impacts whether smoke tests can reliably assert page identity.",
+      "confidence": 0.9
+    }
+  ],
+  "recommended_approach": "Define the page_components contract as follows:\n\n1. **Type imports (not redefinitions)**: Import PageComponentKey from app_routing. Import shared component types (CodeBlockProps, CalloutBoxProps, etc.) from shared_components. Do NOT redefine any canonical types.\n\n2. **Page component interface**: Each page is a `React.FC` (no props) exported as both named and default from its own .tsx file. Files: `HomePage.tsx`, `CartographerPage.tsx`, `ConstrainPage.tsx`, `LedgerPage.tsx`, `PactPage.tsx`, `AdvocatePage.tsx`, `ArbiterPage.tsx`, `BatonPage.tsx`, `SentinelPage.tsx`, `ChroniclerPage.tsx`, `StigmergyPage.tsx`, `ApprenticePage.tsx`, `KindexPage.tsx`.\n\n3. **PageComponentMap**: Export a `pageComponentMap: Record<PageComponentKey, React.ComponentType>` from the barrel index. Keys MUST be the exact PageComponentKey enum values. This is the sole integration surface consumed by app_routing.\n\n4. **Static asset convention**: Pipeline diagram SVG at `src/assets/pipeline-diagram.svg`, imported as a Vite static URL in HomePage, rendered as `<img>` with alt text `\"exemplar.tools pipeline diagram\"`.\n\n5. **Barrel export**: `src/pages/index.ts` re-exports all 13 named page components plus the `pageComponentMap`.\n\n6. **Contract tests**: One `.test.tsx` file per page (or a single parameterized test file). Each test: renders the component with `@testing-library/react`, asserts no crash, asserts expected h1 heading text exists. Expected headings: HomePage → \"exemplar.tools\", CartographerPage → \"Cartographer\", ConstrainPage → \"Constrain\", LedgerPage → \"Ledger\", PactPage → \"Pact\", AdvocatePage → \"Advocate\", ArbiterPage → \"Arbiter\", BatonPage → \"Baton\", SentinelPage → \"Sentinel\", ChroniclerPage → \"Chronicler\", StigmergyPage → \"Stigmergy\", ApprenticePage → \"Apprentice\", KindexPage → \"Kindex\". Additionally, one test verifies pageComponentMap has exactly 13 entries with all PageComponentKey values present.\n\n7. **No router dependency**: Page components must not import from react-router-dom. They are pure content components. Routing is handled by app_routing which wraps them.",
+  "alternatives_considered": [
+    "Lazy-load factory map (Record<PageComponentKey, () => Promise<{default: React.ComponentType}>>) instead of direct component map — rejected because lazy loading is a routing concern, not a page component concern. The page_components module exports direct references; app_routing can wrap them in React.lazy if desired.",
+    "Single monolithic page component with content switching via prop — rejected because it violates the 'one file per page under 300 LOC' requirement and prevents code splitting.",
+    "Using vite-plugin-svgr to import SVG as React component — rejected per 'prefer stdlib over third-party' rule; Vite's built-in static asset import is sufficient.",
+    "Defining page-specific prop types (e.g., HomePageProps) — rejected because page components take no props; they are self-contained content leaves.",
+    "Parameterized single test file vs. individual test files per page — either is acceptable, but a single parameterized test file (using vitest's `describe.each` or `it.each`) is more maintainable for 13 near-identical smoke tests. Recommend one shared test file plus any page-specific assertions in separate files if needed."
+  ],
+  "risks": [
+    "PageComponentKey enum value mismatch: If page_components uses string literals that don't exactly match the app_routing enum variants, the pageComponentMap will have type errors or runtime lookup failures. Mitigation: import the enum from app_routing and use it as map keys.",
+    "SVG import in test environment: vitest/jsdom may not resolve Vite's static asset imports by default. Mitigation: configure vitest with a file transform that stubs asset imports (e.g., returning a string path). This is standard in vitest + Vite setups.",
+    "Content drift from howto.md: Since content is manually transcribed, there's risk of divergence over time. Mitigation: contract tests verify key heading strings; implementation-phase tests can verify specific CLI command strings once howto.md content is finalized.",
+    "300 LOC limit pressure: Pages with many CLI commands, callouts, and examples may approach the limit. Mitigation: extract long content sections into co-located data constants or sub-components.",
+    "Shared component unavailability during isolated testing: If shared_components aren't built yet, page component tests will fail on import. Mitigation: define the contract interface clearly so stubs/mocks can be used, or ensure shared_components is built first (it's listed as a dependency)."
+  ],
+  "compliance_notes": [
+    "All files must be .tsx (page components) or .ts (barrel, types) — no .py or .js files.",
+    "Every page component must have both named export and default export per project React rules.",
+    "Every .tsx file must include `import React from 'react'` at the top.",
+    "pageComponentMap keys must be verified against the canonical PageComponentKey enum — never inferred from component names (String Keys in Maps rule).",
+    "Canonical types (PageComponentKey, CalloutType, CodeBlockProps, etc.) must be imported from their owning modules, never redefined with different fields.",
+    "Tests must run with vitest + @testing-library/react in jsdom environment, with no external service dependencies.",
+    "Prefer composition over inheritance — page components compose shared components via JSX, no class hierarchies.",
+    "No third-party libraries beyond what's already in the stack (React, vitest, @testing-library/react, prism-react-renderer for CodeBlock which is shared_components' concern)."
+  ]
+}

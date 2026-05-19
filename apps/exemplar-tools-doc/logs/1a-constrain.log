@@ -1,0 +1,331 @@
+# [2026-05-19T18:24:13Z] constrain new
+[2026-05-19T18:24:13Z] /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/transmogrifier/src/transmogrifier/profiles.py:15: UserWarning: Field name "register" in "RegisterAccuracy" shadows an attribute in parent "BaseModel"
+[2026-05-19T18:24:13Z]   class RegisterAccuracy(BaseModel):
+[2026-05-19T18:24:24Z] Ingesting prime.md...
+[2026-05-19T18:24:24Z]   259 words -> 34 items extracted (system_description, stakeholders, dependencies, assumptions, boundaries, success_shape, acceptance_criteria)
+[2026-05-19T18:24:24Z] 
+[2026-05-19T18:25:17Z] Add document (path or Enter to start interview): 
+[2026-05-19T18:25:17Z] Primed with 1 document(s). Current understanding:
+[2026-05-19T18:25:17Z] System: A documentation website for the exemplar.tools CLI suite that serves as a developer reference for running commands, built as a single-page React application with static content
+[2026-05-19T18:25:17Z] Stakeholders:
+[2026-05-19T18:25:17Z]   - Developers who use exemplar.tools CLI suite
+[2026-05-19T18:25:17Z] Dependencies:
+[2026-05-19T18:25:17Z]   - howto.md (source document for all content)
+[2026-05-19T18:25:17Z]   - TypeScript
+[2026-05-19T18:25:17Z]   - Vite (dev server on port 4000)
+[2026-05-19T18:25:17Z]   - React
+[2026-05-19T18:25:17Z]   - Tailwind CSS
+[2026-05-19T18:25:17Z]   - npm (package manager)
+[2026-05-19T18:25:17Z]   - Vercel (for deployment)
+[2026-05-19T18:25:17Z]   - YouTube videos linked in howto.md
+[2026-05-19T18:25:17Z] Assumptions:
+[2026-05-19T18:25:17Z]   - All content exists in howto.md
+[2026-05-19T18:25:17Z]   - YouTube videos are already available and linked
+[2026-05-19T18:25:17Z]   - Developers will copy-paste commands from this site
+[2026-05-19T18:25:17Z]   - No backend is required - all content is static
+[2026-05-19T18:25:17Z] Boundaries:
+[2026-05-19T18:25:17Z]   - Single-page React application only
+[2026-05-19T18:25:17Z]   - No backend required
+[2026-05-19T18:25:17Z]   - Output folder must be exemplar-tools-doc
+[2026-05-19T18:25:17Z]   - Must use TypeScript (never Python)
+[2026-05-19T18:25:17Z]   - All source files must be .ts or .tsx
+[2026-05-19T18:25:17Z] Success Shape:
+[2026-05-19T18:25:17Z]   - All CLI commands copied verbatim from howto.md
+[2026-05-19T18:25:17Z]   - Developers can copy-paste commands directly
+[2026-05-19T18:25:17Z]   - Accuracy is more important than brevity
+[2026-05-19T18:25:17Z]   - Each page shows relevant commands, gotchas, warnings, tips, and examples exactly as written
+[2026-05-19T18:25:17Z]   - Navigation between pages works
+[2026-05-19T18:25:17Z]   - YouTube videos are properly embedded
+[2026-05-19T18:25:17Z]   - Version badges display component versions
+[2026-05-19T18:25:17Z] Acceptance Criteria:
+[2026-05-19T18:25:17Z]   - Website built with specified tech stack (TypeScript, Vite, React, Tailwind CSS, npm)
+[2026-05-19T18:25:17Z]   - One page per tool from howto.md with all 14 specified pages
+[2026-05-19T18:25:17Z]   - All CLI commands, gotchas, warnings, tips, and examples copied exactly from howto.md
+[2026-05-19T18:25:17Z]   - YouTube videos embedded for each step
+[2026-05-19T18:25:17Z]   - Version badges showing component versions
+[2026-05-19T18:25:17Z]   - Navigation between pages functional
+[2026-05-19T18:25:17Z]   - Successfully deployable to Vercel
+[2026-05-19T18:25:17Z]   - Includes pipeline diagram on home page
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- Moving to challenge phase ---
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- Moving to synthesize phase ---
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] Generating artifacts...
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- prompt.md ---
+[2026-05-19T18:25:17Z] # Documentation Website for exemplar.tools CLI Suite
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] ## System Context
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] This is a single-page React application that serves as a developer reference for the exemplar.tools CLI suite. The website provides documentation for running commands across 14 different tools, sourced entirely from a single howto.md file. Developers use this site to look up command syntax, copy-paste CLI commands, and access embedded YouTube tutorials. The application is built with TypeScript, Vite, React, and Tailwind CSS, deployed to Vercel as a static site.
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] ## Consequence Map
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **High Severity:**
+[2026-05-19T18:25:17Z] - Incorrect CLI commands copied by developers → broken builds, corrupted data, security vulnerabilities
+[2026-05-19T18:25:17Z] - Missing or broken YouTube video embeds → developers stuck without visual guidance
+[2026-05-19T18:25:17Z] - Navigation failures → developers unable to find tool documentation
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **Medium Severity:**
+[2026-05-19T18:25:17Z] - Styling/layout issues → poor developer experience, reduced adoption
+[2026-05-19T18:25:17Z] - Slow load times → developer productivity impact
+[2026-05-19T18:25:17Z] - Deployment failures → documentation unavailable
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **Low Severity:**
+[2026-05-19T18:25:17Z] - Version badge display issues → confusion about tool versions
+[2026-05-19T18:25:17Z] - Minor formatting inconsistencies → aesthetic concerns
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] ## Failure Archaeology
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] No specific failure history provided. This appears to be a new system build. Key risks identified:
+[2026-05-19T18:25:17Z] - Static content extraction from markdown requires careful parsing
+[2026-05-19T18:25:17Z] - YouTube embed integration needs proper iframe handling
+[2026-05-19T18:25:17Z] - Copy-paste accuracy is critical for CLI commands
+[2026-05-19T18:25:17Z] - Vercel deployment requires proper build output configuration
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] ## Dependency Landscape
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **Upstream Dependencies:**
+[2026-05-19T18:25:17Z] - howto.md (single source of truth for all content)
+[2026-05-19T18:25:17Z] - YouTube videos (external hosting, linked in howto.md)
+[2026-05-19T18:25:17Z] - npm ecosystem (package management)
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **Peer Dependencies:**
+[2026-05-19T18:25:17Z] - Vite dev server (port 4000)
+[2026-05-19T18:25:17Z] - Vercel deployment platform
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **Downstream Impact:**
+[2026-05-19T18:25:17Z] - Developer productivity using exemplar.tools
+[2026-05-19T18:25:17Z] - Accuracy of CLI command execution in production systems
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] ## Boundary Conditions
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] **In Scope:**
+[2026-05-19T18:25:17Z] - Single-page React appl...
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- constraints.yaml ---
+[2026-05-19T18:25:17Z] - id: C001
+[2026-05-19T18:25:17Z]   boundary: "Source code language"
+[2026-05-19T18:25:17Z]   condition: "All source files must be TypeScript (.ts or .tsx extensions)"
+[2026-05-19T18:25:17Z]   violation: "Python files or non-TypeScript files present"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Explicit requirement to use TypeScript, never Python"
+[2026-05-19T18:25:17Z]   classification_tier: null
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C002
+[2026-05-19T18:25:17Z]   boundary: "Output directory naming"
+[2026-05-19T18:25:17Z]   condition: "Build output must be in folder named 'exemplar-tools-doc'"
+[2026-05-19T18:25:17Z]   violation: "Output folder has different name"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Specific deployment requirement"
+[2026-05-19T18:25:17Z]   classification_tier: null
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C003
+[2026-05-19T18:25:17Z]   boundary: "Content accuracy"
+[2026-05-19T18:25:17Z]   condition: "All CLI commands must be copied verbatim from howto.md"
+[2026-05-19T18:25:17Z]   violation: "Modified, truncated, or incorrect CLI commands"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Developers will copy-paste these commands; inaccuracy causes failures"
+[2026-05-19T18:25:17Z]   classification_tier: PUBLIC
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C004
+[2026-05-19T18:25:17Z]   boundary: "Content completeness"
+[2026-05-19T18:25:17Z]   condition: "All gotchas, warnings, tips, and examples from howto.md must be preserved exactly"
+[2026-05-19T18:25:17Z]   violation: "Missing or modified guidance content"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Critical safety and usage information for developers"
+[2026-05-19T18:25:17Z]   classification_tier: PUBLIC
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C005
+[2026-05-19T18:25:17Z]   boundary: "Page coverage"
+[2026-05-19T18:25:17Z]   condition: "Must have 14 tool pages plus home page, one per tool in howto.md"
+[2026-05-19T18:25:17Z]   violation: "Missing tool pages or incorrect count"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Complete coverage requirement"
+[2026-05-19T18:25:17Z]   classification_tier: null
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C006
+[2026-05-19T18:25:17Z]   boundary: "Video integration"
+[2026-05-19T18:25:17Z]   condition: "YouTube videos must be properly embedded for each step"
+[2026-05-19T18:25:17Z]   violation: "Broken, missing, or non-functional video embeds"
+[2026-05-19T18:25:17Z]   severity: must
+[2026-05-19T18:25:17Z]   rationale: "Visual guidance is critical for developer onboarding"
+[2026-05-19T18:25:17Z]   classification_tier: null
+[2026-05-19T18:25:17Z]   affected_components: ["doc-app"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] - id: C007
+[2026-05-19T18:25:17Z]   boundary: "Navigation functionality"
+[2026-05-19T18:25:17Z]   conditio...
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- trust_policy.yaml ---
+[2026-05-19T18:25:17Z] version: "1.0"
+[2026-05-19T18:25:17Z] generated_by: constrain
+[2026-05-19T18:25:17Z] session_id: null
+[2026-05-19T18:25:17Z] system: "exemplar.tools documentation website"
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] trust:
+[2026-05-19T18:25:17Z]   floor: 0.10
+[2026-05-19T18:25:17Z]   authority_override_floor: 0.40
+[2026-05-19T18:25:17Z]   decay_lambda: 0.05
+[2026-05-19T18:25:17Z]   taint_lock_tiers: []
+[2026-05-19T18:25:17Z]   conflict_trust_delta_threshold: 0.20
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] classifications:
+[2026-05-19T18:25:17Z]   - field_pattern: "*"
+[2026-05-19T18:25:17Z]     tier: PUBLIC
+[2026-05-19T18:25:17Z]     authoritative_component: "doc-app"
+[2026-05-19T18:25:17Z]     canary_eligible: true
+[2026-05-19T18:25:17Z]     canary_pattern: ".*"
+[2026-05-19T18:25:17Z]     rationale: "All content is public developer documentation"
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] soak:
+[2026-05-19T18:25:17Z]   base_durations:
+[2026-05-19T18:25:17Z]     PUBLIC: 1h
+[2026-05-19T18:25:17Z]     PII: 6h
+[2026-05-19T18:25:17Z]     FINANCIAL: 24h
+[2026-05-19T18:25:17Z]     AUTH: 48h
+[2026-05-19T18:25:17Z]     COMPLIANCE: 72h
+[2026-05-19T18:25:17Z]   target_requests: 1000
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] authority_map:
+[2026-05-19T18:25:17Z]   - component: "doc-app"
+[2026-05-19T18:25:17Z]     domains: ["*"]
+[2026-05-19T18:25:17Z]     rationale: "Single component static site owns all content"
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] human_gates:
+[2026-05-19T18:25:17Z]   always: []
+[2026-05-19T18:25:17Z]   on_low_trust_authoritative: false
+[2026-05-19T18:25:17Z]   on_unresolvable_conflict: false
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] --- component_map.yaml ---
+[2026-05-19T18:25:17Z] version: "1.0"
+[2026-05-19T18:25:17Z] generated_by: constrain
+[2026-05-19T18:25:17Z] session_id: null
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z] components:
+[2026-05-19T18:25:17Z]   - name: "doc-app"
+[2026-05-19T18:25:17Z]     description: "React application serving static documentation for exemplar.tools CLI suite"
+[2026-05-19T18:25:17Z]     type: service
+[2026-05-19T18:25:17Z]     port: 4000
+[2026-05-19T18:25:17Z]     protocol: http
+[2026-05-19T18:25:17Z]     data_access:
+[2026-05-19T18:25:17Z]       reads: [PUBLIC]
+[2026-05-19T18:25:17Z]       writes: []
+[2026-05-19T18:25:17Z]       rationale: "Reads from howto.md at build time, serves static content"
+[2026-05-19T18:25:17Z]     authority:
+[2026-05-19T18:25:17Z]       domains: ["*"]
+[2026-05-19T18:25:17Z]       rationale: "Single component static site owns all content"
+[2026-05-19T18:25:17Z]     dependencies: ["howto-md", "youtube-videos"]
+[2026-05-19T18:25:17Z]     constraints: ["C001", "C002", "C003", "C004", "C005", "C006", "C007", "C008", "C009", "C010"]
+[2026-05-19T18:25:17Z] 
+[2026-05-19T18:25:17Z]   - name: "howto-md"
+[2026-05-19T18:25:17Z]     description: "Source markdown file containing all documentation content"
+[2026-05-19T18:25:17Z]     type: egress
+[2026-05-19T18:25:17Z]     port: null
+[2026-05-19T18:25:17Z]     protocol: tcp
+[2026-05-19T18:25:17Z]     data_access:
+[2026-05-19T18:25:18Z]       reads: []
+[2026-05-19T18:25:18Z]       writes: [PUBLIC]
+[2026-05-19T18:25:18Z]       rationale: "Source of truth for all documentation content"
+[2026-05-19T18:25:18Z]     authority:
+[2026-05-19T18:25:18Z]       domains: []
+[2026-05-19T18:25:18Z]       rationale: null
+[2026-05-19T18:25:18Z]     dependencies: []
+[2026-05-19T18:25:18Z]     constraints: []
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - name: "youtube-videos"
+[2026-05-19T18:25:18Z]     description: "External YouTube videos linked in documentation"
+[2026-05-19T18:25:18Z]     type: egress
+[2026-05-19T18:25:18Z]     port: null
+[2026-05-19T18:25:18Z]     protocol: http
+[2026-05-19T18:25:18Z]     data_access:
+[2026-05-19T18:25:18Z]       reads: []
+[2026-05-19T18:25:18Z]       writes: [PUBLIC]
+[2026-05-19T18:25:18Z]       rationale: "External video content embedded in documentation"
+[2026-05-19T18:25:18Z]     authority:
+[2026-05-19T18:25:18Z]       domains: []
+[2026-05-19T18:25:18Z]       rationale: null
+[2026-05-19T18:25:18Z]     dependencies: []
+[2026-05-19T18:25:18Z]     constraints: []
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - name: "vercel-platform"
+[2026-05-19T18:25:18Z]     description: "Deployment platform for hosting static site"
+[2026-05-19T18:25:18Z]     type: egress
+[2026-05-19T18:25:18Z]     port: null
+[2026-05-19T18:25:18Z]     protocol: http
+[2026-05-19T18:25:18Z]     data_access:
+[2026-05-19T18:25:18Z]       reads: [PUBLIC]
+[2026-05-19T18:25:18Z]       writes: []
+[2026-05-19T18:25:18Z]       rationale: "Hosts and serves the built static application"
+[2026-05-19T18:25:18Z]     authority:
+[2026-05-19T18:25:18Z]       domains: []
+[2026-05-19T18:25:18Z]       rationale: null
+[2026-05-19T18:25:18Z]     dependencies: ["doc-app"]
+[2026-05-19T18:25:18Z]     constraints: []
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] edges:
+[2026-05-19T18:25:18Z]   - from: "doc-app"
+[2026-05-19T18:25:18Z]     to: "howto-md"
+[2026-05-19T18:25:18Z]     protocol: tcp
+[2026-05-19T18:25:18Z]     description: "Reads content at build time"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - from: "doc-app"
+[2026-05-19T18:25:18Z]     to: "youtube-videos"
+[2026-05-19T18:25:18Z]     protocol: http
+[2026-05-19T18:25:18Z]     description: "Embeds video content via iframe"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - from: "vercel-platform"
+[2026-05-19T18:25:18Z]     to: "doc-app"
+[2026-05-19T18:25:18Z]     prot...
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] --- schema_hints.yaml ---
+[2026-05-19T18:25:18Z] version: "1.0"
+[2026-05-19T18:25:18Z] generated_by: constrain
+[2026-05-19T18:25:18Z] session_id: null
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] storage_backends:
+[2026-05-19T18:25:18Z]   - owner_component: "doc-app"
+[2026-05-19T18:25:18Z]     type: unknown
+[2026-05-19T18:25:18Z]     description: "Static file storage for built React application assets"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] field_hints:
+[2026-05-19T18:25:18Z]   - backend_owner: "doc-app"
+[2026-05-19T18:25:18Z]     field_description: "CLI commands from howto.md"
+[2026-05-19T18:25:18Z]     likely_classification: PUBLIC
+[2026-05-19T18:25:18Z]     likely_annotations: [immutable]
+[2026-05-19T18:25:18Z]     rationale: "Static content that should not be modified after build"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - backend_owner: "doc-app"
+[2026-05-19T18:25:18Z]     field_description: "YouTube video URLs and embed codes"
+[2026-05-19T18:25:18Z]     likely_classification: PUBLIC
+[2026-05-19T18:25:18Z]     likely_annotations: [immutable]
+[2026-05-19T18:25:18Z]     rationale: "External video references that should remain stable"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z]   - backend_owner: "doc-app"
+[2026-05-19T18:25:18Z]     field_description: "Tool documentation content (gotchas, warnings, tips, examples)"
+[2026-05-19T18:25:18Z]     likely_classification: PUBLIC
+[2026-05-19T18:25:18Z]     likely_annotations: [immutable]
+[2026-05-19T18:25:18Z]     rationale: "Static documentation content that should not be modified after build"
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] _note: "Interview focused on static site architecture; no traditional database storage was discussed. Storage is primarily static file-based for built assets."
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] Review the artifacts above. Enter feedback to revise, or press Enter/Ctrl+D to accept.
+[2026-05-19T18:25:18Z] 
+[2026-05-19T18:25:18Z] Feedback> 
+[2026-05-19T18:25:18Z] Artifacts written:
+[2026-05-19T18:25:18Z]   /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/prompt.md
+[2026-05-19T18:25:18Z]   /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/constraints.yaml
+[2026-05-19T18:25:18Z]   /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/trust_policy.yaml
+[2026-05-19T18:25:18Z]   /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/component_map.yaml
+[2026-05-19T18:25:18Z]   /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/schema_hints.yaml
+# [2026-05-19T18:25:18Z] EXIT: 0

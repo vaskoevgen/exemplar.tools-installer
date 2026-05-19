@@ -1,0 +1,263 @@
+{
+  "component_id": "page_components",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_map_values_render_correct_headings",
+      "description": "Each component retrieved from pageComponentMap renders the h1 heading that matches its key, ensuring the map wires the correct component to each key rather than having swapped or mismatched entries",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pageComponentMap['home'] renders h1 containing 'exemplar.tools'",
+        "pageComponentMap['cartographer'] renders h1 containing 'Cartographer'",
+        "pageComponentMap['constrain'] renders h1 containing 'Constrain'",
+        "pageComponentMap['ledger'] renders h1 containing 'Ledger'",
+        "pageComponentMap['pact'] renders h1 containing 'Pact'",
+        "pageComponentMap['advocate'] renders h1 containing 'Advocate'",
+        "pageComponentMap['arbiter'] renders h1 containing 'Arbiter'",
+        "pageComponentMap['baton'] renders h1 containing 'Baton'",
+        "pageComponentMap['sentinel'] renders h1 containing 'Sentinel'",
+        "pageComponentMap['chronicler'] renders h1 containing 'Chronicler'",
+        "pageComponentMap['stigmergy'] renders h1 containing 'Stigmergy'",
+        "pageComponentMap['apprentice'] renders h1 containing 'Apprentice'",
+        "pageComponentMap['kindex'] renders h1 containing 'Kindex'"
+      ]
+    },
+    {
+      "id": "goodhart_barrel_reexports_all_named_components",
+      "description": "The barrel index module re-exports all 13 named page components so consumers can import them individually without going through the map",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "HomePage is exported from barrel",
+        "CartographerPage is exported from barrel",
+        "ConstrainPage is exported from barrel",
+        "LedgerPage is exported from barrel",
+        "PactPage is exported from barrel",
+        "AdvocatePage is exported from barrel",
+        "ArbiterPage is exported from barrel",
+        "BatonPage is exported from barrel",
+        "SentinelPage is exported from barrel",
+        "ChroniclerPage is exported from barrel",
+        "StigmergyPage is exported from barrel",
+        "ApprenticePage is exported from barrel",
+        "KindexPage is exported from barrel"
+      ]
+    },
+    {
+      "id": "goodhart_barrel_reexports_pagecomponentmap",
+      "description": "The barrel index module exports pageComponentMap as a named export so consumers can import the map directly",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "pageComponentMap is a named export from the barrel"
+      ]
+    },
+    {
+      "id": "goodhart_homepage_h1_is_specifically_h1_element",
+      "description": "The heading element is specifically an h1 tag, not an h2/h3/span styled to look like a heading — the contract requires an h1 element",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "document.querySelector('h1') is not null",
+        "The h1 textContent contains 'exemplar.tools'"
+      ]
+    },
+    {
+      "id": "goodhart_homepage_img_alt_exact_match",
+      "description": "The pipeline diagram img alt attribute is the exact string specified in the contract, not a substring or close variant",
+      "function": "HomePage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "img alt is exactly 'exemplar.tools pipeline diagram'",
+        "There is exactly one img with that alt text"
+      ]
+    },
+    {
+      "id": "goodhart_homepage_img_src_is_nonempty_string",
+      "description": "The pipeline diagram img src attribute is a non-empty string value (from the Vite SVG import), not undefined or empty",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "img src is a non-empty string",
+        "img src is not the literal string 'undefined'"
+      ]
+    },
+    {
+      "id": "goodhart_each_page_renders_exactly_one_h1",
+      "description": "Each page component renders exactly one h1 element — proper document structure requires a single primary heading per page",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each of the 13 page components has exactly one h1 in its rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_page_components_render_more_than_just_heading",
+      "description": "Page components are substantive documentation pages with content beyond just a heading — they should render multiple elements, not just a bare h1",
+      "function": "CartographerPage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Rendered innerHTML length is significantly more than just a heading",
+        "Multiple child elements exist in the rendered output"
+      ]
+    },
+    {
+      "id": "goodhart_map_no_extra_keys",
+      "description": "The pageComponentMap contains no keys beyond the 13 specified PageComponentKey values — no accidental extra entries",
+      "function": "getPageComponentMap",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(pageComponentMap).length === 13",
+        "No keys exist that are not in the PageComponentKey enum"
+      ]
+    },
+    {
+      "id": "goodhart_map_keys_are_lowercase",
+      "description": "The pageComponentMap keys are the exact lowercase enum string values, not PascalCase component names or any other casing variant",
+      "function": "getPageComponentMap",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "No key starts with uppercase letter",
+        "Keys include 'home' not 'Home' or 'HomePage'",
+        "Keys include 'cartographer' not 'Cartographer' or 'CartographerPage'"
+      ]
+    },
+    {
+      "id": "goodhart_dual_export_all_pages_not_just_home",
+      "description": "Every page module (not just HomePage) has both a named and default export that are referentially identical — the visible test only checks HomePage",
+      "function": "CartographerPage",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "CartographerPage named === default",
+        "ConstrainPage named === default",
+        "LedgerPage named === default",
+        "PactPage named === default",
+        "AdvocatePage named === default",
+        "ArbiterPage named === default",
+        "BatonPage named === default",
+        "SentinelPage named === default",
+        "ChroniclerPage named === default",
+        "StigmergyPage named === default",
+        "ApprenticePage named === default",
+        "KindexPage named === default"
+      ]
+    },
+    {
+      "id": "goodhart_components_accept_no_props",
+      "description": "Page components are zero-argument functional components that render correctly when called with no props — they must not require any props to function",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Components render without error when given empty props object",
+        "Components render without error when given no props"
+      ]
+    },
+    {
+      "id": "goodhart_map_components_render_headings_via_map_lookup",
+      "description": "When rendering components obtained by iterating over pageComponentMap entries, each renders an h1 with text matching its key's expected heading — prevents hardcoded map with dummy components",
+      "function": "getPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All 13 map entries render an h1 when mounted",
+        "The h1 text varies per component (not all the same)"
+      ]
+    },
+    {
+      "id": "goodhart_homepage_renders_beyond_heading_and_img",
+      "description": "HomePage is a full overview page with content beyond just the heading and pipeline diagram — it should contain explanatory text about the CLI suite",
+      "function": "HomePage",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Rendered output contains text content beyond just the heading",
+        "Multiple semantic elements are present"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi } from 'vitest';\nimport React from 'react';\nimport { render } from '@testing-library/react';\n\n// Mock shared_components to isolate page components\nvi.mock('shared_components', () => ({\n  CodeBlock: ({ children, ...props }: any) => React.createElement('pre', { 'data-testid': 'codeblock', ...props }, children),\n  CalloutBox: ({ children, ...props }: any) => React.createElement('div', { 'data-testid': 'calloutbox', ...props }, children),\n  VideoEmbed: (props: any) => React.createElement('div', { 'data-testid': 'videoembed', ...props }),\n  VersionBadge: (props: any) => React.createElement('span', { 'data-testid': 'versionbadge', ...props }),\n}));\n\n// Mock the SVG asset import\nvi.mock('../../../src/page_components/assets/pipeline-diagram.svg', () => ({\n  default: 'mocked-pipeline-diagram.svg',\n}));\n\n// Also mock via the src/assets path in case it's imported that way\nvi.mock('../../../src/assets/pipeline-diagram.svg', () => ({\n  default: 'mocked-pipeline-diagram.svg',\n}));\n\ndescribe('Page Components - Goodhart Tests', () => {\n  it('goodhart: each component in pageComponentMap renders an h1 heading matching its key identity', async () => {\n    // This catches: map with swapped components, map with dummy/placeholder components,\n    // or a map that hardcodes keys but assigns wrong components to them.\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n\n    const keyToExpectedHeading: Record<string, string> = {\n      home: 'exemplar.tools',\n      cartographer: 'Cartographer',\n      constrain: 'Constrain',\n      ledger: 'Ledger',\n      pact: 'Pact',\n      advocate: 'Advocate',\n      arbiter: 'Arbiter',\n      baton: 'Baton',\n      sentinel: 'Sentinel',\n      chronicler: 'Chronicler',\n      stigmergy: 'Stigmergy',\n      apprentice: 'Apprentice',\n      kindex: 'Kindex',\n    };\n\n    for (const [key, expectedText] of Object.entries(keyToExpectedHeading)) {\n      const Component = map[key];\n      expect(Component, `map['${key}'] should be defined`).toBeDefined();\n      const { container, unmount } = render(React.createElement(Component));\n      const h1 = container.querySelector('h1');\n      expect(h1, `map['${key}'] should render an h1`).not.toBeNull();\n      expect(h1!.textContent, `map['${key}'] h1 should contain '${expectedText}'`).toContain(expectedText);\n      unmount();\n    }\n  });\n\n  it('goodhart: barrel index re-exports all 13 named page components as importable symbols', async () => {\n    // Catches: barrel that only exports pageComponentMap but not the individual named components\n    const barrel = await import('../../../src/page_components');\n\n    const expectedNamedExports = [\n      'HomePage',\n      'CartographerPage',\n      'ConstrainPage',\n      'LedgerPage',\n      'PactPage',\n      'AdvocatePage',\n      'ArbiterPage',\n      'BatonPage',\n      'SentinelPage',\n      'ChroniclerPage',\n      'StigmergyPage',\n      'ApprenticePage',\n      'KindexPage',\n    ];\n\n    for (const name of expectedNamedExports) {\n      expect((barrel as any)[name], `barrel should export '${name}'`).toBeDefined();\n      expect(typeof (barrel as any)[name], `'${name}' should be a function`).toBe('function');\n    }\n  });\n\n  it('goodhart: barrel index exports pageComponentMap as a named export', async () => {\n    const barrel = await import('../../../src/page_components');\n    expect((barrel as any).pageComponentMap).toBeDefined();\n    expect(typeof (barrel as any).pageComponentMap).toBe('object');\n    expect(Object.keys((barrel as any).pageComponentMap).length).toBe(13);\n  });\n\n  it('goodhart: HomePage renders exactly one h1 element (not zero, not multiple)', async () => {\n    const { HomePage } = await import('../../../src/page_components');\n    const { container } = render(React.createElement(HomePage));\n    const h1s = container.querySelectorAll('h1');\n    expect(h1s.length).toBe(1);\n  });\n\n  it('goodhart: every page component renders exactly one h1 element', async () => {\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n\n    for (const key of Object.keys(map)) {\n      const Component = map[key];\n      const { container, unmount } = render(React.createElement(Component));\n      const h1s = container.querySelectorAll('h1');\n      expect(h1s.length, `map['${key}'] should render exactly one h1`).toBe(1);\n      unmount();\n    }\n  });\n\n  it('goodhart: HomePage img alt text is exactly the contract-specified string', async () => {\n    const { HomePage } = await import('../../../src/page_components');\n    const { container } = render(React.createElement(HomePage));\n    const imgs = container.querySelectorAll('img');\n    const pipelineImg = Array.from(imgs).find(\n      (img) => img.getAttribute('alt') === 'exemplar.tools pipeline diagram'\n    );\n    expect(pipelineImg, 'Should find img with exact alt text').not.toBeNull();\n\n    // Ensure the alt is exact, not a superset\n    expect(pipelineImg!.getAttribute('alt')).toBe('exemplar.tools pipeline diagram');\n  });\n\n  it('goodhart: HomePage pipeline diagram img src is a non-empty string', async () => {\n    const { HomePage } = await import('../../../src/page_components');\n    const { container } = render(React.createElement(HomePage));\n    const img = container.querySelector('img[alt=\"exemplar.tools pipeline diagram\"]');\n    expect(img).not.toBeNull();\n    const src = img!.getAttribute('src');\n    expect(src, 'img src should be a string').toBeTruthy();\n    expect(typeof src).toBe('string');\n    expect(src!.length).toBeGreaterThan(0);\n    expect(src).not.toBe('undefined');\n    expect(src).not.toBe('null');\n  });\n\n  it('goodhart: page components render substantive content beyond just a heading', async () => {\n    // Catches: minimal stub components that only render <h1>Name</h1>\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n\n    // Check a subset of non-Home pages for substantive content\n    const keysToCheck = ['cartographer', 'constrain', 'ledger', 'pact', 'advocate',\n      'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex'];\n\n    for (const key of keysToCheck) {\n      const Component = map[key];\n      const { container, unmount } = render(React.createElement(Component));\n      const innerHTML = container.innerHTML;\n      // A real documentation page should have significantly more content than just an h1\n      expect(\n        innerHTML.length,\n        `map['${key}'] should render substantive content (got ${innerHTML.length} chars)`\n      ).toBeGreaterThan(100);\n      // Should have multiple child elements, not just a single h1\n      const firstChild = container.firstElementChild;\n      expect(firstChild, `map['${key}'] should have a root element`).not.toBeNull();\n      if (firstChild) {\n        const childCount = firstChild.querySelectorAll('*').length;\n        expect(\n          childCount,\n          `map['${key}'] should have multiple descendant elements (got ${childCount})`\n        ).toBeGreaterThan(2);\n      }\n      unmount();\n    }\n  });\n\n  it('goodhart: pageComponentMap has no keys beyond the 13 specified PageComponentKey values', async () => {\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n    const validKeys = new Set([\n      'home', 'cartographer', 'constrain', 'ledger', 'pact', 'advocate',\n      'arbiter', 'baton', 'sentinel', 'chronicler', 'stigmergy', 'apprentice', 'kindex',\n    ]);\n    const actualKeys = Object.keys(map);\n    expect(actualKeys.length).toBe(13);\n    for (const key of actualKeys) {\n      expect(validKeys.has(key), `Unexpected key '${key}' in pageComponentMap`).toBe(true);\n    }\n  });\n\n  it('goodhart: pageComponentMap keys are lowercase strings, not PascalCase or component names', async () => {\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n    const keys = Object.keys(map);\n\n    for (const key of keys) {\n      expect(key, `Key '${key}' should be lowercase`).toBe(key.toLowerCase());\n      expect(key.endsWith('Page'), `Key '${key}' should not end with 'Page'`).toBe(false);\n    }\n\n    // Specifically verify these are not PascalCase\n    expect(keys).not.toContain('Home');\n    expect(keys).not.toContain('Cartographer');\n    expect(keys).toContain('home');\n    expect(keys).toContain('cartographer');\n  });\n\n  it('goodhart: dual export (named === default) for all 12 non-Home page modules', async () => {\n    // The visible test only checks HomePage. This checks ALL other page modules.\n    const moduleMap: Record<string, string> = {\n      CartographerPage: '../../../src/page_components/CartographerPage',\n      ConstrainPage: '../../../src/page_components/ConstrainPage',\n      LedgerPage: '../../../src/page_components/LedgerPage',\n      PactPage: '../../../src/page_components/PactPage',\n      AdvocatePage: '../../../src/page_components/AdvocatePage',\n      ArbiterPage: '../../../src/page_components/ArbiterPage',\n      BatonPage: '../../../src/page_components/BatonPage',\n      SentinelPage: '../../../src/page_components/SentinelPage',\n      ChroniclerPage: '../../../src/page_components/ChroniclerPage',\n      StigmergyPage: '../../../src/page_components/StigmergyPage',\n      ApprenticePage: '../../../src/page_components/ApprenticePage',\n      KindexPage: '../../../src/page_components/KindexPage',\n    };\n\n    for (const [name, path] of Object.entries(moduleMap)) {\n      try {\n        const mod = await import(path);\n        expect(mod[name], `${name} should have a named export`).toBeDefined();\n        expect(mod.default, `${name} should have a default export`).toBeDefined();\n        expect(mod[name], `${name} named and default exports should be identical`).toBe(mod.default);\n      } catch (e) {\n        // If the path doesn't resolve, try pages/ subfolder pattern\n        // This is acceptable — the test will fail if neither works\n        throw new Error(`Could not import ${name} from ${path}: ${e}`);\n      }\n    }\n  });\n\n  it('goodhart: all page components are callable with no arguments and produce valid React elements', async () => {\n    // Catches: components that require props but happen to work in visible tests due to mocking\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n\n    for (const [key, Component] of Object.entries(map)) {\n      expect(() => {\n        const { unmount } = render(React.createElement(Component as React.ComponentType));\n        unmount();\n      }, `map['${key}'] should render without errors when given no props`).not.toThrow();\n    }\n  });\n\n  it('goodhart: all h1 headings in rendered map components have distinct text', async () => {\n    // Catches: all components rendering the same generic heading\n    const barrel = await import('../../../src/page_components');\n    const map = (barrel as any).pageComponentMap;\n    const headingTexts = new Set<string>();\n\n    for (const [key, Component] of Object.entries(map)) {\n      const { container, unmount } = render(React.createElement(Component as React.ComponentType));\n      const h1 = container.querySelector('h1');\n      expect(h1, `map['${key}'] should render an h1`).not.toBeNull();\n      headingTexts.add(h1!.textContent || '');\n      unmount();\n    }\n\n    // All 13 headings should be distinct\n    expect(headingTexts.size, 'All 13 page components should have distinct h1 text').toBe(13);\n  });\n\n  it('goodhart: HomePage renders substantive content beyond just heading and img', async () => {\n    const { HomePage } = await import('../../../src/page_components');\n    const { container } = render(React.createElement(HomePage));\n\n    // Should have text beyond just the heading\n    const textContent = container.textContent || '';\n    // Remove heading text and check there's more\n    const withoutHeading = textContent.replace('exemplar.tools', '');\n    expect(\n      withoutHeading.trim().length,\n      'HomePage should contain text content beyond just the heading'\n    ).toBeGreaterThan(20);\n\n    // Should have multiple elements\n    const allElements = container.querySelectorAll('*');\n    expect(allElements.length, 'HomePage should render multiple DOM elements').toBeGreaterThan(5);\n  });\n});\n"
+}

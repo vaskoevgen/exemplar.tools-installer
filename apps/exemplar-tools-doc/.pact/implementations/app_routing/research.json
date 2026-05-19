@@ -1,0 +1,95 @@
+{
+  "task_summary": "Implement 'App Shell & Routing' component in TypeScript/React with functions getRouteManifest(), App(), renderEntryPoint(), and buildPageComponentMap(). Must handle route configuration, page component registry, and DOM mounting. Prior attempts failed specifically on renderEntryPoint() — the #root element mounting test fails, likely due to issues with react-dom/client createRoot API mocking or DOM setup in vitest/jsdom.",
+  "findings": [
+    {
+      "topic": "renderEntryPoint() failure analysis — 'replaced' error",
+      "finding": "The error 'throw new Error(replaced)' at line 65 strongly suggests that `react-dom/client` is being dynamically imported or conditionally required, and vitest is replacing/mocking the module incorrectly. In vitest with jsdom, `react-dom/client` is available directly — the implementation should use a static top-level import: `import { createRoot } from 'react-dom/client'`. Dynamic imports or lazy requires of react-dom/client will fail in vitest's module resolution. The 'replaced' error pattern is characteristic of a module that vitest has stubbed/mocked but the implementation tries to access in an unexpected way.",
+      "source": "vitest documentation, react-dom/client API, error trace analysis",
+      "relevance": "Directly addresses the prior failure. The implementation must use a straightforward static import of createRoot.",
+      "confidence": 0.92
+    },
+    {
+      "topic": "renderEntryPoint() failure analysis — 'expected 0 to be greater than 0'",
+      "finding": "The assertion 'expected 0 to be greater than 0' likely checks that the #root element has childNodes.length > 0 after renderEntryPoint() is called. React 18's createRoot().render() is asynchronous in test environments. The test may need the render to flush synchronously. However, since we cannot modify the contract test, the implementation must ensure rendering actually occurs. Key insight: renderEntryPoint() must (1) find document.getElementById('root'), (2) call createRoot(element), (3) call root.render(<App />). If the function returns before React commits, the assertion fails. Using react-dom/client's createRoot with flushSync or ensuring the test uses act() — but since we don't control the test, we should ensure our render is as direct as possible. Also verify: the function must target '#root' (id='root'), not '#app' or another selector.",
+      "source": "React 18 createRoot API docs, testing-library/react patterns",
+      "relevance": "Directly addresses the prior test failure. Must ensure synchronous DOM update or that the test's assertion timing works.",
+      "confidence": 0.88
+    },
+    {
+      "topic": "React 18 createRoot and synchronous rendering in tests",
+      "finding": "In vitest/jsdom, createRoot().render() schedules rendering asynchronously via microtasks. For the test to see rendered content immediately after calling renderEntryPoint(), the implementation could use `flushSync` from 'react-dom' to force synchronous rendering: `import { flushSync } from 'react-dom'; const root = createRoot(el); flushSync(() => { root.render(<App />); });`. Alternatively, if the contract test wraps in act() or awaits, standard render suffices. Given the test failure suggests content isn't present synchronously, using flushSync is the safest approach.",
+      "source": "React 18 docs — flushSync, concurrent rendering model",
+      "relevance": "Critical for fixing the renderEntryPoint test. flushSync ensures DOM is updated before the function returns.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "Route manifest and page component map patterns",
+      "finding": "Standard SPA routing patterns define a route manifest as an array of RouteEntry objects (path, label, component key), and a page component map as a Record<PageComponentKey, React.ComponentType>. The getRouteManifest() function returns the static route configuration. buildPageComponentMap() returns a mapping from enum keys to lazy or eagerly-loaded React components. Keys MUST match exactly what the contract test expects — per operating procedures, never infer key strings from names.",
+      "source": "React Router patterns, SPA architecture best practices",
+      "relevance": "Core architecture for the component. Must align with contract test expectations for route paths and component keys.",
+      "confidence": 0.95
+    },
+    {
+      "topic": "App component shell pattern",
+      "finding": "The App() component typically renders a layout shell with navigation (using route manifest for nav links) and a content area that renders the current route's page component. With react-router-dom: wrap in BrowserRouter, use Routes/Route for page switching, and a nav bar from shared_components. Without react-router: implement simple hash-based or state-based routing. Given the dependency on 'shared_components' and 'page_components', the App should compose these. The component must be both a named export and default export per project rules.",
+      "source": "React SPA architecture, project operating procedures",
+      "relevance": "Defines the structure of the main App component.",
+      "confidence": 0.93
+    },
+    {
+      "topic": "PageComponentKey as enum — TypeScript string enum pattern",
+      "finding": "TypeScript string enums are the idiomatic way to define a fixed set of component keys: `export enum PageComponentKey { Dashboard = 'dashboard', Settings = 'settings' }`. The exact values MUST come from the contract test or interface definition, not be guessed. The enum is used as keys in PageComponentMap (Record<PageComponentKey, ReactComponentType>).",
+      "source": "TypeScript handbook — enums, project string key rules",
+      "relevance": "The PageComponentKey enum values are the source of truth for the component map. Must verify against contract test.",
+      "confidence": 0.9
+    },
+    {
+      "topic": "vitest jsdom environment and DOM manipulation",
+      "finding": "In vitest with jsdom environment, document is available globally. For renderEntryPoint(), the function should check for document.getElementById('root'). The test likely creates a div#root in the document body before calling renderEntryPoint(). The implementation must not create the #root element itself — it should find the existing one. If the element doesn't exist, the function should either no-op or throw.",
+      "source": "vitest jsdom docs, testing-library patterns",
+      "relevance": "Ensures correct DOM interaction in test environment.",
+      "confidence": 0.91
+    },
+    {
+      "topic": "Avoiding third-party routing libraries per stdlib preference",
+      "finding": "Per project preferences ('prefer stdlib over third-party libraries'), the routing implementation should avoid react-router-dom if possible. A minimal hash-based router or simple state-based routing using React.useState and window.location can suffice. This avoids dependency issues and keeps the implementation lightweight. However, if the contract test expects specific routing behavior (e.g., BrowserRouter), it may be necessary.",
+      "source": "Project operating procedures — stdlib preference",
+      "relevance": "Guides the routing implementation approach. Minimal custom routing preferred unless contract demands otherwise.",
+      "confidence": 0.85
+    },
+    {
+      "topic": "Named exports and React component export pattern",
+      "finding": "Per project rules: every .tsx file must `import React from 'react'`. Components must have both named and default exports: `export function App() { ... } export default App;`. All types, interfaces, enums must be named exports. This is critical for test imports to work correctly.",
+      "source": "Project operating procedures — TypeScript/React rules",
+      "relevance": "Compliance requirement for all output files.",
+      "confidence": 1.0
+    }
+  ],
+  "recommended_approach": "1. **renderEntryPoint()**: Use static top-level imports of `createRoot` from 'react-dom/client' and `flushSync` from 'react-dom'. Find `document.getElementById('root')`, create root, and render `<App />` wrapped in `flushSync` to ensure synchronous DOM commit. This directly addresses both prior failures (the 'replaced' error from dynamic imports and the '0 > 0' assertion from async rendering).\n\n2. **PageComponentKey enum**: Define as a string enum. Extract exact key values from the contract test data or dependency component exports — do NOT guess.\n\n3. **getRouteManifest()**: Return a static array of RouteEntry objects with path, label, and component key. Values must match contract test expectations exactly.\n\n4. **buildPageComponentMap()**: Return a Record mapping PageComponentKey values to actual React component imports from the 'page_components' dependency.\n\n5. **App()**: Implement as a shell component that reads the route manifest, renders navigation, and displays the active page component. Use minimal custom routing (hash-based or state-based) to avoid third-party dependencies.\n\n6. **All files**: Use named exports everywhere, pair named+default for React components, include `import React from 'react'` in all .tsx files, keep under 300 lines.",
+  "alternatives_considered": [
+    "Use react-router-dom for full routing — rejected due to stdlib preference, but may be needed if contract tests expect it",
+    "Use dynamic import() for react-dom/client — rejected, this caused the 'replaced' error in prior attempts; must use static imports",
+    "Use ReactDOM.render (legacy API) instead of createRoot — rejected, React 18 deprecates this and vitest may warn/error",
+    "Use flushSync to force synchronous rendering in renderEntryPoint — recommended approach to ensure DOM is populated before function returns",
+    "Implement custom hash-based routing vs. state-based routing — hash-based is simpler and works without history API mocking in tests"
+  ],
+  "risks": [
+    "PageComponentKey enum values may not match contract test expectations if guessed — must verify against test source",
+    "Route paths and labels in the manifest must exactly match contract test assertions — any mismatch fails the test",
+    "flushSync may not fully resolve if App component has async dependencies or suspense boundaries — keep App render synchronous",
+    "The contract test may mock or stub specific modules — static imports are critical to avoid vitest module replacement issues",
+    "Dependencies 'shared_components' and 'page_components' export shapes are unknown — may need to adapt imports based on their actual API"
+  ],
+  "compliance_notes": [
+    "All output files must be .ts/.tsx — no Python",
+    "Named exports required for all types, interfaces, functions, constants",
+    "React components must have both named and default exports",
+    "Every .tsx file must include `import React from 'react'`",
+    "Use `import.meta.env.VITE_X` directly — never cast with `as any`",
+    "String keys in maps must be verified against contract test source of truth, not inferred",
+    "Prefer stdlib over third-party libraries",
+    "All functions must have at least one test",
+    "Files must stay under 300 lines",
+    "Type annotations on all public functions"
+  ]
+}

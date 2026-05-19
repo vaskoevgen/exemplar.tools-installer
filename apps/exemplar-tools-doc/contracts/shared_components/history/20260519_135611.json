@@ -1,0 +1,656 @@
+{
+  "component_id": "shared_components",
+  "name": "Shared UI Components",
+  "description": "Reusable React components used across all documentation pages: Sidebar (persistent navigation with NavLink active highlighting for all 13 routes), CodeBlock (prism-react-renderer syntax highlighting with copy-to-clipboard button), VersionBadge (Tailwind pill badge for version strings), VideoEmbed (responsive 16:9 YouTube iframe), PageLayout (Sidebar + content area shell responsive to 768px), and CalloutBox (color-coded gotcha/warning/tip callouts). All components exported as named + default. Each has a vitest smoke test. Types re-export RouteEntry/RouteManifest from app_routing for consumer convenience.",
+  "version": 1,
+  "types": [
+    {
+      "name": "CalloutType",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "gotcha",
+        "warning",
+        "tip"
+      ],
+      "inner_types": [],
+      "description": "Visual variant for a CalloutBox — determines border color, icon, and background tint.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "ReactNode",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "React.ReactNode — opaque type representing renderable JSX children.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "RouteEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "URL path segment, e.g. '/step-0-cartographer' or '/' for home.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable navigation label shown in the Sidebar, e.g. 'Step 0 — Cartographer'.",
+          "validators": []
+        },
+        {
+          "name": "componentKey",
+          "type_ref": "PageComponentKey",
+          "required": true,
+          "default": "",
+          "description": "Lookup key that maps this route to its lazy-loaded or statically-imported page component.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single route definition consumed by both the router configuration and the Sidebar navigation.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RouteManifest",
+      "kind": "list",
+      "fields": [],
+      "item_type": "RouteEntry",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of all 13 route entries; single source of truth for navigation and routing.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "CalloutBoxProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "type",
+          "type_ref": "CalloutType",
+          "required": true,
+          "default": "",
+          "description": "Visual style variant (gotcha, warning, or tip).",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional bold heading rendered above the body text.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Body content of the callout (JSX).",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the CalloutBox component; used by every page component to render callouts.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "CodeBlockLanguage",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Language identifier string accepted by prism-react-renderer. Defaults to 'bash' when not specified.",
+      "owner_component": ""
+    },
+    {
+      "name": "CodeBlockProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "code",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "The verbatim CLI command or code snippet to display.",
+          "validators": []
+        },
+        {
+          "name": "language",
+          "type_ref": "string",
+          "required": false,
+          "default": "bash",
+          "description": "Prism language identifier for syntax highlighting.",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional filename or label shown above the code block.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the CodeBlock component; used by every page to render CLI commands with syntax highlighting and copy button.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "VersionString",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A semver-like version string displayed in a badge. Must be non-empty.",
+      "owner_component": ""
+    },
+    {
+      "name": "VersionBadgeProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "version",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Semantic version string to display, e.g. '1.2.3'.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Optional tool name rendered before the version number.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the VersionBadge component; used by page components to show component version pills.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "YouTubeUrl",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated YouTube embed URL. Must match YouTube embed or watch URL patterns.",
+      "owner_component": ""
+    },
+    {
+      "name": "VideoEmbedProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "url",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Full YouTube video URL (https://www.youtube.com/watch?v=... or https://youtu.be/...).",
+          "validators": []
+        },
+        {
+          "name": "title",
+          "type_ref": "string",
+          "required": false,
+          "default": "",
+          "description": "Accessible title for the iframe element.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the VideoEmbed component; used by page components to embed YouTube walkthroughs.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "SidebarProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routes",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "The full ordered list of routes to render as nav links.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the Sidebar component; receives the route manifest to render navigation links.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "PageLayoutProps",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "routes",
+          "type_ref": "RouteManifest",
+          "required": true,
+          "default": "",
+          "description": "Route manifest forwarded to the Sidebar for navigation rendering.",
+          "validators": []
+        },
+        {
+          "name": "children",
+          "type_ref": "ReactNode",
+          "required": true,
+          "default": "",
+          "description": "Page content rendered in the main content area.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props accepted by the PageLayout shell component; wraps Sidebar + scrollable content area.",
+      "owner_component": "shared_components"
+    },
+    {
+      "name": "PageComponentKey",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "Home",
+        "Cartographer",
+        "Constrain",
+        "Ledger",
+        "Pact",
+        "Advocate",
+        "Arbiter",
+        "Baton",
+        "Sentinel",
+        "Chronicler",
+        "Stigmergy",
+        "Apprentice",
+        "Kindex"
+      ],
+      "inner_types": [],
+      "description": "Discriminator enum identifying each of the 13 page components.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'shared_components'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "CalloutBox",
+      "description": "React component that renders a callout box with color-coded border and icon based on CalloutType. 'gotcha' renders red/error styling, 'warning' renders amber/caution styling, 'tip' renders green/info styling. Exported as named + default from CalloutBox.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CalloutBoxProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing type, optional title, and children.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "invalid_callout_type",
+          "condition": "props.type is not one of the three valid CalloutType variants",
+          "error_type": "TypeScript compile error or runtime mismatch",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.type is one of 'gotcha' | 'warning' | 'tip' (exact lowercase)",
+        "props.children is a valid ReactNode"
+      ],
+      "postconditions": [
+        "Returned element contains a container div with border color matching props.type",
+        "If props.title is provided and non-empty, a heading element is rendered with that text",
+        "props.children is rendered inside the callout body area",
+        "An icon element is rendered matching the callout type"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function — no side effects beyond DOM output"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "CodeBlock",
+      "description": "React component that wraps prism-react-renderer to display code/CLI commands with syntax highlighting. Includes a copy-to-clipboard button that invokes navigator.clipboard.writeText(props.code). Language defaults to 'bash'. Exported as named + default from CodeBlock.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "CodeBlockProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing code string, optional language, and optional title.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "empty_code_string",
+          "condition": "props.code is empty string",
+          "error_type": "ValidationError",
+          "error_data": {}
+        },
+        {
+          "name": "clipboard_unavailable",
+          "condition": "navigator.clipboard is undefined (e.g. insecure context)",
+          "error_type": "ClipboardUnavailableError",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.code is a non-empty string",
+        "navigator.clipboard API is available in the browser environment (graceful degradation if not)"
+      ],
+      "postconditions": [
+        "Code text is rendered with prism-react-renderer syntax highlighting",
+        "A button element with accessible label (e.g. 'Copy' or copy icon) is present in the DOM",
+        "Clicking the copy button calls navigator.clipboard.writeText with the exact props.code value",
+        "If props.language is omitted, 'bash' is used as the Prism language",
+        "If props.title is provided, it is rendered above the code block"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "navigator.clipboard",
+          "description": "Copy button click writes props.code to system clipboard via navigator.clipboard.writeText"
+        }
+      ],
+      "performance_budget": {
+        "p95_latency_ms": 100,
+        "max_memory_mb": null,
+        "complexity": "O(n) where n = code string length"
+      }
+    },
+    {
+      "name": "VersionBadge",
+      "description": "React component that displays a version string inside a styled Tailwind pill badge (rounded-full, px/py padding, bg/text color). Exported as named + default from VersionBadge.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "VersionBadgeProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing version string and optional className.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "empty_version",
+          "condition": "props.version is an empty string",
+          "error_type": "ValidationError",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.version is a non-empty string"
+      ],
+      "postconditions": [
+        "A span or inline element is rendered with Tailwind pill classes (rounded-full, inline-flex or similar)",
+        "The text content of the badge is exactly props.version",
+        "If props.className is provided, those classes are merged onto the badge element"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "VideoEmbed",
+      "description": "React component that renders a responsive YouTube iframe with aspect-video (16:9) styling. The iframe src is set from the provided URL. Exported as named + default from VideoEmbed.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "VideoEmbedProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing YouTube URL and optional title.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "invalid_youtube_url",
+          "condition": "props.url does not match the YouTube URL regex pattern",
+          "error_type": "ValidationError",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.url matches a valid YouTube embed or watch URL pattern"
+      ],
+      "postconditions": [
+        "An iframe element is rendered with src derived from props.url",
+        "The iframe container has Tailwind aspect-video class for responsive 16:9 ratio",
+        "The iframe title attribute is set to props.title (default 'Video')",
+        "The iframe includes allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture' and allowFullScreen"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "network_call",
+          "target": "youtube.com",
+          "description": "Iframe triggers browser network request to YouTube to load video player. This is a browser-level side effect, not a component-level fetch."
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "Sidebar",
+      "description": "React component that renders a persistent navigation sidebar. Iterates over the RouteManifest and creates a react-router-dom NavLink for each RouteEntry, with active route highlighting via NavLink's className callback. Wrapped in a semantic <nav> element. Exported as named + default from Sidebar.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "SidebarProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing routes array and optional className.",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "no_router_context",
+          "condition": "Sidebar is rendered outside of a Router provider",
+          "error_type": "React runtime error from react-router-dom: useLocation/useMatch called outside Router",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.routes is a non-empty array of RouteEntry objects",
+        "Component is rendered within a react-router-dom Router context (BrowserRouter, MemoryRouter, etc.)"
+      ],
+      "postconditions": [
+        "A <nav> element is rendered as the root container",
+        "Exactly props.routes.length NavLink elements are rendered",
+        "Each NavLink 'to' attribute matches the corresponding RouteEntry.path",
+        "Each NavLink text content matches the corresponding RouteEntry.label",
+        "The NavLink for the currently active route receives active styling (distinct className or aria-current)",
+        "If props.className is provided, it is applied to the <nav> element"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure render function — NavLink click navigation is handled by react-router-dom, not by this component"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "PageLayout",
+      "description": "Shell component that composes Sidebar and a content area in a flex layout. At md: (768px+) breakpoint, sidebar is visible as a fixed-width column; below 768px, layout adapts (sidebar collapses or stacks). Exported as named + default from PageLayout.tsx.",
+      "inputs": [
+        {
+          "name": "props",
+          "type_ref": "PageLayoutProps",
+          "required": true,
+          "default": "",
+          "description": "Component props containing routes (passed to Sidebar) and children (page content).",
+          "validators": []
+        }
+      ],
+      "output_type": "ReactNode",
+      "error_cases": [
+        {
+          "name": "no_router_context",
+          "condition": "PageLayout is rendered outside of a Router provider (propagated from Sidebar)",
+          "error_type": "React runtime error from react-router-dom",
+          "error_data": {}
+        }
+      ],
+      "preconditions": [
+        "props.routes is a non-empty array of RouteEntry objects",
+        "props.children is a valid ReactNode",
+        "Component is rendered within a react-router-dom Router context"
+      ],
+      "postconditions": [
+        "A flex container div is rendered as the root element",
+        "Sidebar component is rendered as a child, receiving props.routes",
+        "props.children is rendered in a main content area element (<main> or content div)",
+        "Layout uses Tailwind responsive classes: flex-col below md:, flex-row at md: and above",
+        "Content area occupies remaining horizontal space (flex-1 or equivalent)"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure composition component — delegates side effects to Sidebar child"
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "app_routing"
+  ],
+  "dependency_contracts": {
+    "app_routing": [
+      "RouteEntry",
+      "RouteManifest"
+    ]
+  },
+  "invariants": [
+    "All six components (CalloutBox, CodeBlock, VersionBadge, VideoEmbed, Sidebar, PageLayout) are exported as both named and default exports from their respective .tsx files",
+    "Every .tsx file begins with 'import React from \"react\"'",
+    "index.ts barrel re-exports all types from types.ts and all named component exports from their respective files",
+    "RouteEntry and RouteManifest are NEVER redefined in this component — always imported from app_routing and re-exported",
+    "CalloutType variants are exactly 'gotcha', 'warning', 'tip' in lowercase — no other values accepted",
+    "CodeBlock language prop defaults to 'bash' when omitted",
+    "VideoEmbed container uses Tailwind 'aspect-video' class for 16:9 responsive ratio",
+    "Sidebar renders exactly one NavLink per RouteEntry in the provided routes array",
+    "PageLayout responsive breakpoint is md: (768px) — flex-col below, flex-row at and above",
+    "No file in this component exceeds 300 lines",
+    "Composition over inheritance: no class-based components, no component inheritance chains",
+    "All component tests are runnable in vitest jsdom environment with no external services",
+    "Sidebar and PageLayout tests must wrap rendered components in MemoryRouter",
+    "CodeBlock copy button test must mock navigator.clipboard.writeText"
+  ],
+  "requires": [
+    "app_routing.RouteEntry",
+    "app_routing.RouteManifest"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Components read PUBLIC data only: route manifest entries (slug, label, path) for navigation rendering, version strings for badge display, YouTube URLs for iframe embedding, and CLI command strings for syntax-highlighted code blocks. No PII, no INTERNAL data, no persistent writes.",
+    "side_effects": [
+      {
+        "type": "clipboard_write",
+        "classification": "PUBLIC",
+        "fields": [
+          "CodeBlockProps.code"
+        ],
+        "rationale": "CodeBlock copy button invokes navigator.clipboard.writeText with the code string passed via props — a user-initiated side effect writing PUBLIC CLI command text to the system clipboard."
+      },
+      {
+        "type": "dom_render",
+        "classification": "PUBLIC",
+        "fields": [
+          "SidebarProps.routes",
+          "PageLayoutProps.children",
+          "CalloutBoxProps.children",
+          "CodeBlockProps.code",
+          "VersionBadgeProps.version",
+          "VideoEmbedProps.url"
+        ],
+        "rationale": "All six components render PUBLIC content into the DOM via React. No sensitive data is rendered."
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "shared_ui_component_props",
+      "callout_type_enum"
+    ],
+    "rationale": "This component is the sole owner of all shared UI component prop interfaces (CalloutBoxProps, CodeBlockProps, VersionBadgeProps, VideoEmbedProps, SidebarProps, PageLayoutProps) and the CalloutType enum. No other component may redefine these types. RouteEntry/RouteManifest are imported from app_routing and re-exported but NOT owned here."
+  }
+}

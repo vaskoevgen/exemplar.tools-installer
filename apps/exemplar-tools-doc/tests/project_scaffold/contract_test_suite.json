@@ -3,89 +3,363 @@
   "contract_version": 1,
   "test_cases": [
     {
-      "id": "app_happy_path_renders",
-      "description": "App() renders a BrowserRouter with a child div having id='app-shell'",
-      "function": "App",
+      "id": "manifest_shape",
+      "description": "getProjectManifest returns a ProjectManifest with all required fields and correct types",
+      "function": "getProjectManifest",
       "category": "happy_path",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
-      "input_description": "No inputs — App is a zero-arg React function component",
-      "expected_output_description": "Rendered DOM contains a div with id='app-shell' inside a BrowserRouter context",
+      "input_description": "",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "rendered container includes an element with id 'app-shell'",
-        "no default export exists on the App module"
+        "manifest has projectRoot string",
+        "manifest has files array",
+        "manifest has projectName string",
+        "manifest has devServerPort number"
       ]
     },
     {
-      "id": "app_named_export_only",
-      "description": "App module exports App as a named export and has no default export",
-      "function": "App",
+      "id": "manifest_files_count",
+      "description": "getProjectManifest returns exactly 12 files matching ScaffoldFilePath enum",
+      "function": "getProjectManifest",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
       "input_description": "",
-      "expected_output_description": "Named export App exists; default export does not",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "typeof App === 'function'",
-        "module default export is undefined"
+        "manifest.files.length === 12",
+        "every ScaffoldFilePath variant is present in manifest.files"
       ]
     },
     {
-      "id": "app_error_missing_react_router",
-      "description": "App() throws or fails when react-router-dom is not importable",
-      "function": "App",
-      "category": "error_case",
-      "setup_description": "",
-      "mock_dependencies": {
-        "react-router-dom": "throw new Error('missing_react_router')"
-      },
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "missing_react_router",
-      "assertions": [
-        "rendering App without react-router-dom throws an error"
-      ]
-    },
-    {
-      "id": "mount_app_happy_path",
-      "description": "mountApp() calls createRoot on #root element and renders <App />",
-      "function": "mountApp",
+      "id": "manifest_project_name",
+      "description": "getProjectManifest returns projectName === 'exemplar-tools-doc'",
+      "function": "getProjectManifest",
       "category": "happy_path",
-      "setup_description": "Insert a div#root into document.body; mock react-dom/client createRoot",
+      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
       "input_description": "",
-      "expected_output_description": "createRoot is called with the #root element and render is invoked",
+      "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "createRoot called with document.getElementById('root')",
-        "render method called once"
+        "manifest.projectName === 'exemplar-tools-doc'"
       ]
     },
     {
-      "id": "mount_app_missing_root_element",
-      "description": "mountApp() errors when no #root element exists in the DOM",
-      "function": "mountApp",
+      "id": "manifest_dev_server_port",
+      "description": "getProjectManifest returns devServerPort === 4000",
+      "function": "getProjectManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "manifest.devServerPort === 4000"
+      ]
+    },
+    {
+      "id": "manifest_project_name_regex",
+      "description": "getProjectManifest projectName matches ^[a-z][a-z0-9\\-]*$",
+      "function": "getProjectManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "manifest.projectName matches /^[a-z][a-z0-9\\-]*$/"
+      ]
+    },
+    {
+      "id": "manifest_deterministic",
+      "description": "getProjectManifest is pure and returns identical results on repeated calls",
+      "function": "getProjectManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "two sequential calls return deeply equal results"
+      ]
+    },
+    {
+      "id": "deps_shape",
+      "description": "getRequiredDependencies returns dependencies and devDependencies arrays",
+      "function": "getRequiredDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.dependencies is an array",
+        "result.devDependencies is an array"
+      ]
+    },
+    {
+      "id": "deps_counts",
+      "description": "getRequiredDependencies returns exactly 3 dependencies and 13 devDependencies",
+      "function": "getRequiredDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.dependencies.length === 3",
+        "result.devDependencies.length === 13"
+      ]
+    },
+    {
+      "id": "deps_dependency_entries",
+      "description": "getRequiredDependencies dependencies contain react, react-dom, react-router-dom with ^18.3/^6.23 ranges",
+      "function": "getRequiredDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "react@^18.3 present",
+        "react-dom@^18.3 present",
+        "react-router-dom@^6.23 present"
+      ]
+    },
+    {
+      "id": "deps_dev_entries",
+      "description": "getRequiredDependencies devDependencies contain all 13 required packages",
+      "function": "getRequiredDependencies",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "vite, @vitejs/plugin-react, tailwindcss, vitest, @testing-library/react, @testing-library/jest-dom, jsdom, prism-react-renderer, autoprefixer, postcss, typescript, @types/react, @types/react-dom all present"
+      ]
+    },
+    {
+      "id": "deps_entry_shape",
+      "description": "Each DependencyEntry has packageName, versionRange, isDev with correct types",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every entry has string packageName",
+        "every entry has string versionRange",
+        "every entry has boolean isDev"
+      ]
+    },
+    {
+      "id": "deps_isdev_consistency",
+      "description": "isDev is false for dependencies and true for devDependencies",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all dependencies entries have isDev === false",
+        "all devDependencies entries have isDev === true"
+      ]
+    },
+    {
+      "id": "deps_packagename_regex",
+      "description": "Every packageName matches ^@?[a-z][a-z0-9\\-]*(\\/?[a-z][a-z0-9\\-]*)*$",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every packageName matches the regex"
+      ]
+    },
+    {
+      "id": "deps_version_regex",
+      "description": "Every versionRange matches ^[\\^~>=<\\d\\|\\s\\.\\-\\*]+.*$",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every versionRange matches the regex"
+      ]
+    },
+    {
+      "id": "deps_no_duplicates",
+      "description": "No duplicate packageNames across dependencies and devDependencies",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "all packageNames are unique"
+      ]
+    },
+    {
+      "id": "deps_no_latest_or_star",
+      "description": "No dependency uses 'latest' or bare '*' as version range",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "no versionRange is 'latest'",
+        "no versionRange is '*'"
+      ]
+    },
+    {
+      "id": "deps_deterministic",
+      "description": "getRequiredDependencies is pure and returns identical results on repeated calls",
+      "function": "getRequiredDependencies",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "two sequential calls return deeply equal results"
+      ]
+    },
+    {
+      "id": "scaffold_happy_path",
+      "description": "generateScaffold writes all 12 files and returns correct ScaffoldResult",
+      "function": "generateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.filesWritten === 12",
+        "result.hasJsFiles === false",
+        "result.hasPyFiles === false",
+        "result.manifest is defined",
+        "all 12 files exist on disk"
+      ]
+    },
+    {
+      "id": "scaffold_overwrite_false_conflict",
+      "description": "generateScaffold with overwrite=false throws file_already_exists when files exist",
+      "function": "generateScaffold",
       "category": "error_case",
-      "setup_description": "Ensure no div#root exists in document.body",
+      "setup_description": "",
       "mock_dependencies": {},
       "input_values": {},
       "input_description": "",
       "expected_output_description": "",
-      "expected_error": "missing_root_element",
+      "expected_error": "file_already_exists",
+      "assertions": []
+    },
+    {
+      "id": "scaffold_overwrite_true_replaces",
+      "description": "generateScaffold with overwrite=true succeeds even when files already exist",
+      "function": "generateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
       "assertions": [
-        "throws or logs error about missing root element"
+        "result.filesWritten === 12",
+        "no error thrown"
       ]
     },
     {
-      "id": "mount_app_no_named_exports",
-      "description": "mountApp module has no named exports — it is a side-effect-only entry point",
-      "function": "mountApp",
+      "id": "scaffold_directory_not_found",
+      "description": "generateScaffold throws directory_not_found when parent directory does not exist",
+      "function": "generateScaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_found",
+      "assertions": []
+    },
+    {
+      "id": "scaffold_invalid_output_dir_empty",
+      "description": "generateScaffold throws invalid_output_dir when outputDir is empty string",
+      "function": "generateScaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_output_dir",
+      "assertions": []
+    },
+    {
+      "id": "scaffold_invalid_output_dir_null_byte",
+      "description": "generateScaffold throws invalid_output_dir when outputDir contains null bytes",
+      "function": "generateScaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "invalid_output_dir",
+      "assertions": []
+    },
+    {
+      "id": "scaffold_no_js_files",
+      "description": "After generateScaffold, no .js files exist in output directory tree",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -94,13 +368,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "module has no named exports"
+        "recursive listing contains no .js files"
       ]
     },
     {
-      "id": "vite_server_config_port",
-      "description": "ViteServerConfig port must be exactly 4000",
-      "function": "ViteServerConfig",
+      "id": "scaffold_no_py_files",
+      "description": "After generateScaffold, no .py files exist in output directory tree",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -109,13 +383,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "port === 4000"
+        "recursive listing contains no .py files"
       ]
     },
     {
-      "id": "vitest_config_environment",
-      "description": "VitestConfig environment must be 'jsdom'",
-      "function": "VitestConfig",
+      "id": "scaffold_package_json_type_module",
+      "description": "Generated package.json has type: module",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -124,13 +398,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "environment === 'jsdom'"
+        "parsed package.json has type === 'module'"
       ]
     },
     {
-      "id": "vitest_config_globals",
-      "description": "VitestConfig globals must be true",
-      "function": "VitestConfig",
+      "id": "scaffold_vite_port",
+      "description": "Generated vite.config.ts configures server.port = 4000",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -139,13 +413,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "globals === true"
+        "vite.config.ts content contains server port 4000"
       ]
     },
     {
-      "id": "vitest_config_setup_files",
-      "description": "VitestConfig setupFiles must point to './src/test-setup.ts'",
-      "function": "VitestConfig",
+      "id": "scaffold_vitest_setup",
+      "description": "Generated vitest.setup.ts contains import '@testing-library/jest-dom'",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -154,13 +428,13 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "setupFiles === './src/test-setup.ts'"
+        "vitest.setup.ts includes jest-dom import"
       ]
     },
     {
-      "id": "ts_compiler_strict",
-      "description": "TsCompilerOptions strict must be true",
-      "function": "TsCompilerOptions",
+      "id": "scaffold_vercel_json",
+      "description": "Generated vercel.json has exactly one rewrite: source=/(.*), destination=/index.html",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -169,13 +443,15 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "strict === true"
+        "vercel.json parsed has rewrites array of length 1",
+        "rewrite source === '/(.*)'",
+        "rewrite destination === '/index.html'"
       ]
     },
     {
-      "id": "ts_compiler_jsx",
-      "description": "TsCompilerOptions jsx must be 'react-jsx'",
-      "function": "TsCompilerOptions",
+      "id": "scaffold_index_html_root",
+      "description": "Generated index.html has div#root and module script pointing to /src/main.tsx",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -184,13 +460,14 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "jsx === 'react-jsx'"
+        "index.html contains <div id=\"root\"></div>",
+        "index.html contains <script type=\"module\" src=\"/src/main.tsx\">"
       ]
     },
     {
-      "id": "ts_compiler_module_resolution",
-      "description": "TsCompilerOptions moduleResolution must be 'bundler'",
-      "function": "TsCompilerOptions",
+      "id": "scaffold_main_tsx_imports",
+      "description": "Generated src/main.tsx imports React, ReactDOM, App, and index.css",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -199,131 +476,16 @@
       "expected_output_description": "",
       "expected_error": "",
       "assertions": [
-        "moduleResolution === 'bundler'"
+        "main.tsx contains import React",
+        "main.tsx contains import ReactDOM",
+        "main.tsx contains import App",
+        "main.tsx contains import index.css"
       ]
     },
     {
-      "id": "ts_compiler_isolated_modules",
-      "description": "TsCompilerOptions isolatedModules must be true",
-      "function": "TsCompilerOptions",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "isolatedModules === true"
-      ]
-    },
-    {
-      "id": "tailwind_content_globs",
-      "description": "tailwind.config.js content array includes './index.html' and './src/**/*.{ts,tsx}'",
-      "function": "TailwindContentGlob",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "content includes './index.html'",
-        "content includes './src/**/*.{ts,tsx}'"
-      ]
-    },
-    {
-      "id": "vercel_rewrite_rule",
-      "description": "vercel.json rewrite rule maps /(.*) to /index.html",
-      "function": "VercelRewriteRule",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "source === '/(.*)'",
-        "destination === '/index.html'"
-      ]
-    },
-    {
-      "id": "package_deps_react",
-      "description": "package.json dependencies include react ^18.x",
-      "function": "PackageDependencyMap",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "react version starts with ^18.",
-        "react-dom version starts with ^18.",
-        "react-router-dom version starts with ^"
-      ]
-    },
-    {
-      "id": "package_dev_deps_all_present",
-      "description": "package.json devDependencies include all 10 required dev deps with caret-pinned versions",
-      "function": "PackageDevDependencyMap",
-      "category": "invariant",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "vite starts with ^",
-        "vitest starts with ^",
-        "tailwindcss starts with ^",
-        "@testing-library/react starts with ^",
-        "jsdom starts with ^",
-        "@vitejs/plugin-react starts with ^",
-        "typescript starts with ^",
-        "autoprefixer starts with ^",
-        "postcss starts with ^",
-        "@testing-library/jest-dom starts with ^"
-      ]
-    },
-    {
-      "id": "vite_server_config_port_invalid",
-      "description": "ViteServerConfig rejects port values other than 4000",
-      "function": "ViteServerConfig",
-      "category": "edge_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "port set to 3000",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "port !== 4000 is rejected or flagged as invalid"
-      ]
-    },
-    {
-      "id": "vitest_config_environment_invalid",
-      "description": "VitestConfig rejects environment values other than 'jsdom'",
-      "function": "VitestConfig",
-      "category": "edge_case",
-      "setup_description": "",
-      "mock_dependencies": {},
-      "input_values": {},
-      "input_description": "environment set to 'node'",
-      "expected_output_description": "",
-      "expected_error": "",
-      "assertions": [
-        "environment !== 'jsdom' is rejected"
-      ]
-    },
-    {
-      "id": "index_css_tailwind_directives",
-      "description": "src/index.css contains exactly the three @tailwind directives",
-      "function": "mountApp",
+      "id": "scaffold_index_css_tailwind",
+      "description": "Generated src/index.css contains @tailwind base, components, utilities directives",
+      "function": "generateScaffold",
       "category": "invariant",
       "setup_description": "",
       "mock_dependencies": {},
@@ -336,8 +498,132 @@
         "index.css contains @tailwind components",
         "index.css contains @tailwind utilities"
       ]
+    },
+    {
+      "id": "scaffold_app_tsx_exports",
+      "description": "Generated src/App.tsx has both named export and default export",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "App.tsx contains export function or export const",
+        "App.tsx contains export default"
+      ]
+    },
+    {
+      "id": "scaffold_postcss_esm",
+      "description": "Generated postcss.config.mjs uses export default (ESM), not module.exports",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "postcss.config.mjs contains 'export default'",
+        "postcss.config.mjs does not contain 'module.exports'"
+      ]
+    },
+    {
+      "id": "scaffold_tailwind_content",
+      "description": "Generated tailwind.config.ts content array includes ./index.html and ./src/**/*.{ts,tsx}",
+      "function": "generateScaffold",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "tailwind.config.ts contains './index.html'",
+        "tailwind.config.ts contains './src/**/*.{ts,tsx}'"
+      ]
+    },
+    {
+      "id": "validate_round_trip",
+      "description": "validateScaffold returns valid result after generateScaffold completes",
+      "function": "validateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid === true or all checks pass"
+      ]
+    },
+    {
+      "id": "validate_directory_not_found",
+      "description": "validateScaffold throws directory_not_found for non-existent directory",
+      "function": "validateScaffold",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "directory_not_found",
+      "assertions": []
+    },
+    {
+      "id": "validate_missing_file",
+      "description": "validateScaffold reports invalid when a scaffold file is deleted",
+      "function": "validateScaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid is false or missing file check fails"
+      ]
+    },
+    {
+      "id": "validate_empty_directory",
+      "description": "validateScaffold reports invalid for an empty directory",
+      "function": "validateScaffold",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "result.isValid is false"
+      ]
+    },
+    {
+      "id": "integration_generate_validate_inspect",
+      "description": "End-to-end: generate, validate, and structurally inspect generated config files",
+      "function": "generateScaffold",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "generateScaffold succeeds",
+        "validateScaffold returns valid",
+        "vercel.json structurally correct",
+        "package.json contains all required deps"
+      ]
     }
   ],
   "test_language": "typescript",
-  "generated_code": "import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\n\n// ---------------------------------------------------------------------------\n// Mocks — declared at module scope so vi.mock factories can reference them\n// ---------------------------------------------------------------------------\nconst mockRender = vi.fn();\nconst mockCreateRoot = vi.fn(() => ({ render: mockRender }));\n\n// We will dynamically control whether react-router-dom is available\nlet shouldThrowRouterImport = false;\n\n// Mock react-dom/client for mountApp tests\nvi.mock('react-dom/client', () => ({\n  createRoot: mockCreateRoot,\n}));\n\n// ---------------------------------------------------------------------------\n// 1. App() Component Tests\n// ---------------------------------------------------------------------------\ndescribe('App() Component', () => {\n  // We import dynamically so we can test module shape\n  it('renders a div with id=\"app-shell\" inside a BrowserRouter', async () => {\n    // Use dynamic import to get the App component\n    const { render, screen } = await import('@testing-library/react');\n    const AppModule = await import('../../src/project_scaffold/App');\n\n    const { App } = AppModule;\n    expect(typeof App).toBe('function');\n\n    const { container } = render(App());\n    const appShell = container.querySelector('#app-shell');\n    expect(appShell).not.toBeNull();\n    expect(appShell?.tagName.toLowerCase()).toBe('div');\n  });\n\n  it('is available as a named export { App } — not a default export', async () => {\n    const AppModule = await import('../../src/project_scaffold/App');\n\n    // Named export must exist\n    expect(AppModule).toHaveProperty('App');\n    expect(typeof AppModule.App).toBe('function');\n\n    // No default export\n    expect(\n      (AppModule as Record<string, unknown>)['default'],\n    ).toBeUndefined();\n  });\n\n  it('postcondition: rendered tree has BrowserRouter at its root', async () => {\n    const { render } = await import('@testing-library/react');\n    const { App } = await import('../../src/project_scaffold/App');\n\n    // Rendering App outside any router context should still work because\n    // App itself provides BrowserRouter. We just confirm no error is thrown.\n    expect(() => render(App())).not.toThrow();\n  });\n});\n\n// ---------------------------------------------------------------------------\n// 2. mountApp() Bootstrap Tests\n// ---------------------------------------------------------------------------\ndescribe('mountApp() Bootstrap', () => {\n  let rootDiv: HTMLDivElement | null = null;\n\n  beforeEach(() => {\n    // Reset mocks\n    mockCreateRoot.mockClear();\n    mockRender.mockClear();\n\n    // Reset modules so each test gets a fresh side-effect import\n    vi.resetModules();\n  });\n\n  afterEach(() => {\n    // Clean up #root if it was added\n    if (rootDiv && rootDiv.parentNode) {\n      rootDiv.parentNode.removeChild(rootDiv);\n    }\n    rootDiv = null;\n  });\n\n  it('happy path: calls createRoot on #root and renders <App />', async () => {\n    // Set up DOM\n    rootDiv = document.createElement('div');\n    rootDiv.id = 'root';\n    document.body.appendChild(rootDiv);\n\n    // Re-mock createRoot for this fresh module load\n    vi.doMock('react-dom/client', () => ({\n      createRoot: mockCreateRoot,\n    }));\n\n    // Dynamically import to trigger the side-effect\n    await import('../../src/project_scaffold/main');\n\n    expect(mockCreateRoot).toHaveBeenCalledTimes(1);\n    // Verify it was called with the actual #root element\n    const calledWith = mockCreateRoot.mock.calls[0][0];\n    expect(calledWith).toBe(rootDiv);\n    expect(mockRender).toHaveBeenCalledTimes(1);\n  });\n\n  it('error: missing_root_element — throws when no #root exists in DOM', async () => {\n    // Ensure no #root element exists\n    const existing = document.getElementById('root');\n    if (existing) existing.remove();\n\n    vi.doMock('react-dom/client', () => ({\n      createRoot: mockCreateRoot,\n    }));\n\n    // The side-effect module should throw or createRoot should receive null\n    try {\n      await import('../../src/project_scaffold/main');\n      // If it didn't throw, at minimum createRoot should NOT have been\n      // called with a valid element — or it may have thrown inside\n      if (mockCreateRoot.mock.calls.length > 0) {\n        const calledWith = mockCreateRoot.mock.calls[0][0];\n        expect(calledWith).toBeNull();\n      }\n    } catch (err: unknown) {\n      // Expected — module threw because #root is missing\n      expect(err).toBeDefined();\n    }\n  });\n\n  it('invariant: mountApp module has no named exports (side-effect only)', async () => {\n    rootDiv = document.createElement('div');\n    rootDiv.id = 'root';\n    document.body.appendChild(rootDiv);\n\n    vi.doMock('react-dom/client', () => ({\n      createRoot: mockCreateRoot,\n    }));\n\n    const mainModule = await import('../../src/project_scaffold/main') as Record<string, unknown>;\n    const exportedKeys = Object.keys(mainModule).filter(\n      (k) => k !== '__esModule' && k !== 'default',\n    );\n    expect(exportedKeys.length).toBe(0);\n  });\n});\n\n// ---------------------------------------------------------------------------\n// 3. Configuration Contract Tests\n// ---------------------------------------------------------------------------\ndescribe('Configuration Contracts', () => {\n  // --- ViteServerConfig ---\n  describe('ViteServerConfig', () => {\n    it('port must be exactly 4000', async () => {\n      const viteConfig = await import('../../src/project_scaffold/vite.config') as Record<string, unknown>;\n      // The config might expose server.port at the top level or via a default export\n      const config = (viteConfig.default ?? viteConfig) as Record<string, unknown>;\n      const server = config.server as Record<string, unknown> | undefined;\n      expect(server).toBeDefined();\n      expect(server!.port).toBe(4000);\n    });\n\n    it('rejects port values other than 4000', async () => {\n      const invalidPort = 3000;\n      expect(invalidPort).not.toBe(4000);\n      // Contract: ViteServerConfig port validator (range): value == 4000\n      // Any config with port !== 4000 violates the contract\n    });\n  });\n\n  // --- VitestConfig ---\n  describe('VitestConfig', () => {\n    it('environment must be \"jsdom\"', async () => {\n      const viteConfig = await import('../../src/project_scaffold/vite.config') as Record<string, unknown>;\n      const config = (viteConfig.default ?? viteConfig) as Record<string, unknown>;\n      const test = config.test as Record<string, unknown> | undefined;\n      expect(test).toBeDefined();\n      expect(test!.environment).toBe('jsdom');\n    });\n\n    it('globals must be true', async () => {\n      const viteConfig = await import('../../src/project_scaffold/vite.config') as Record<string, unknown>;\n      const config = (viteConfig.default ?? viteConfig) as Record<string, unknown>;\n      const test = config.test as Record<string, unknown> | undefined;\n      expect(test).toBeDefined();\n      expect(test!.globals).toBe(true);\n    });\n\n    it('setupFiles must point to \"./src/test-setup.ts\"', async () => {\n      const viteConfig = await import('../../src/project_scaffold/vite.config') as Record<string, unknown>;\n      const config = (viteConfig.default ?? viteConfig) as Record<string, unknown>;\n      const test = config.test as Record<string, unknown> | undefined;\n      expect(test).toBeDefined();\n      expect(test!.setupFiles).toBe('./src/test-setup.ts');\n    });\n\n    it('rejects environment values other than \"jsdom\"', () => {\n      const invalidEnv = 'node';\n      expect(invalidEnv).not.toBe('jsdom');\n      // Contract: VitestConfig environment validator: value === 'jsdom'\n    });\n  });\n\n  // --- TsCompilerOptions ---\n  describe('TsCompilerOptions', () => {\n    it('strict must be true', async () => {\n      const tsConfig = await import('../../src/project_scaffold/tsconfig.json') as Record<string, unknown>;\n      const config = (tsConfig.default ?? tsConfig) as Record<string, unknown>;\n      const compilerOptions = config.compilerOptions as Record<string, unknown>;\n      expect(compilerOptions).toBeDefined();\n      expect(compilerOptions.strict).toBe(true);\n    });\n\n    it('jsx must be \"react-jsx\"', async () => {\n      const tsConfig = await import('../../src/project_scaffold/tsconfig.json') as Record<string, unknown>;\n      const config = (tsConfig.default ?? tsConfig) as Record<string, unknown>;\n      const compilerOptions = config.compilerOptions as Record<string, unknown>;\n      expect(compilerOptions).toBeDefined();\n      expect(compilerOptions.jsx).toBe('react-jsx');\n    });\n\n    it('moduleResolution must be \"bundler\"', async () => {\n      const tsConfig = await import('../../src/project_scaffold/tsconfig.json') as Record<string, unknown>;\n      const config = (tsConfig.default ?? tsConfig) as Record<string, unknown>;\n      const compilerOptions = config.compilerOptions as Record<string, unknown>;\n      expect(compilerOptions).toBeDefined();\n      expect(compilerOptions.moduleResolution).toBe('bundler');\n    });\n\n    it('isolatedModules must be true', async () => {\n      const tsConfig = await import('../../src/project_scaffold/tsconfig.json') as Record<string, unknown>;\n      const config = (tsConfig.default ?? tsConfig) as Record<string, unknown>;\n      const compilerOptions = config.compilerOptions as Record<string, unknown>;\n      expect(compilerOptions).toBeDefined();\n      expect(compilerOptions.isolatedModules).toBe(true);\n    });\n  });\n\n  // --- TailwindContentGlob ---\n  describe('TailwindContentGlob', () => {\n    it('content array includes \"./index.html\" and \"./src/**/*.{ts,tsx}\"', async () => {\n      const twConfig = await import('../../src/project_scaffold/tailwind.config') as Record<string, unknown>;\n      const config = (twConfig.default ?? twConfig) as Record<string, unknown>;\n      const content = config.content as string[];\n      expect(Array.isArray(content)).toBe(true);\n      expect(content).toContain('./index.html');\n      expect(content).toContain('./src/**/*.{ts,tsx}');\n    });\n  });\n\n  // --- VercelRewriteRule ---\n  describe('VercelRewriteRule', () => {\n    it('has a catch-all rewrite: /(.*) -> /index.html', async () => {\n      const vercelConfig = await import('../../src/project_scaffold/vercel.json') as Record<string, unknown>;\n      const config = (vercelConfig.default ?? vercelConfig) as Record<string, unknown>;\n      const rewrites = config.rewrites as Array<{ source: string; destination: string }>;\n      expect(Array.isArray(rewrites)).toBe(true);\n      expect(rewrites.length).toBeGreaterThanOrEqual(1);\n\n      const catchAll = rewrites.find((r) => r.source === '/(.*)');\n      expect(catchAll).toBeDefined();\n      expect(catchAll!.source).toBe('/(.*)');\n      expect(catchAll!.destination).toBe('/index.html');\n    });\n  });\n\n  // --- PackageDependencyMap ---\n  describe('PackageDependencyMap', () => {\n    it('lists react, react-dom, and react-router-dom as runtime dependencies with correct semver', async () => {\n      const pkg = await import('../../src/project_scaffold/package.json') as Record<string, unknown>;\n      const config = (pkg.default ?? pkg) as Record<string, unknown>;\n      const deps = config.dependencies as Record<string, string>;\n      expect(deps).toBeDefined();\n\n      // react ^18.x\n      expect(deps.react).toBeDefined();\n      expect(deps.react).toMatch(/^\\^18\\./);\n\n      // react-dom ^18.x\n      expect(deps['react-dom']).toBeDefined();\n      expect(deps['react-dom']).toMatch(/^\\^18\\./);\n\n      // react-router-dom ^x\n      expect(deps['react-router-dom']).toBeDefined();\n      expect(deps['react-router-dom']).toMatch(/^\\^/);\n    });\n  });\n\n  // --- PackageDevDependencyMap ---\n  describe('PackageDevDependencyMap', () => {\n    it('lists all 10 required devDependencies with caret-pinned versions', async () => {\n      const pkg = await import('../../src/project_scaffold/package.json') as Record<string, unknown>;\n      const config = (pkg.default ?? pkg) as Record<string, unknown>;\n      const devDeps = config.devDependencies as Record<string, string>;\n      expect(devDeps).toBeDefined();\n\n      const requiredDevDeps = [\n        'vite',\n        'vitest',\n        'tailwindcss',\n        '@testing-library/react',\n        'jsdom',\n        '@vitejs/plugin-react',\n        'typescript',\n        'autoprefixer',\n        'postcss',\n        '@testing-library/jest-dom',\n      ];\n\n      for (const dep of requiredDevDeps) {\n        expect(devDeps[dep], `devDependency \"${dep}\" should be present`).toBeDefined();\n        expect(\n          devDeps[dep],\n          `devDependency \"${dep}\" should start with ^`,\n        ).toMatch(/^\\^/);\n      }\n    });\n  });\n\n  // --- index.css Tailwind directives ---\n  describe('index.css Tailwind directives', () => {\n    it('contains @tailwind base, components, and utilities directives', async () => {\n      // We read the file as a raw string via fs\n      const fs = await import('fs');\n      const path = await import('path');\n      const cssPath = path.resolve(__dirname, '../../src/project_scaffold/src/index.css');\n      const cssContent = fs.readFileSync(cssPath, 'utf-8');\n\n      expect(cssContent).toContain('@tailwind base;');\n      expect(cssContent).toContain('@tailwind components;');\n      expect(cssContent).toContain('@tailwind utilities;');\n    });\n  });\n\n  // --- index.html structure ---\n  describe('index.html structure', () => {\n    it('contains <div id=\"root\"></div> and <script type=\"module\" src=\"/src/main.tsx\"></script>', async () => {\n      const fs = await import('fs');\n      const path = await import('path');\n      const htmlPath = path.resolve(__dirname, '../../src/project_scaffold/index.html');\n      const htmlContent = fs.readFileSync(htmlPath, 'utf-8');\n\n      expect(htmlContent).toContain('<div id=\"root\"></div>');\n      expect(htmlContent).toContain('src=\"/src/main.tsx\"');\n      expect(htmlContent).toContain('type=\"module\"');\n    });\n  });\n\n  // --- postcss.config.js ---\n  describe('postcss.config.js plugins', () => {\n    it('includes tailwindcss and autoprefixer plugins', async () => {\n      const postcssConfig = await import('../../src/project_scaffold/postcss.config') as Record<string, unknown>;\n      const config = (postcssConfig.default ?? postcssConfig) as Record<string, unknown>;\n      const plugins = config.plugins as Record<string, unknown>;\n      expect(plugins).toBeDefined();\n      expect(plugins).toHaveProperty('tailwindcss');\n      expect(plugins).toHaveProperty('autoprefixer');\n    });\n  });\n\n  // --- test-setup.ts ---\n  describe('test-setup.ts', () => {\n    it('imports @testing-library/jest-dom for global matchers', async () => {\n      const fs = await import('fs');\n      const path = await import('path');\n      const setupPath = path.resolve(__dirname, '../../src/project_scaffold/src/test-setup.ts');\n      const setupContent = fs.readFileSync(setupPath, 'utf-8');\n\n      expect(setupContent).toContain('@testing-library/jest-dom');\n    });\n  });\n});\n"
+  "generated_code": "import { describe, it, expect, beforeEach, afterEach } from 'vitest';\nimport * as fs from 'node:fs/promises';\nimport * as path from 'node:path';\nimport * as os from 'node:os';\nimport {\n  generateScaffold,\n  getProjectManifest,\n  getRequiredDependencies,\n  validateScaffold,\n} from '../../src/project_scaffold';\n\nconst SCAFFOLD_FILE_PATHS = [\n  'package.json',\n  'tsconfig.json',\n  'tsconfig.node.json',\n  'vite.config.ts',\n  'tailwind.config.ts',\n  'postcss.config.mjs',\n  'vercel.json',\n  'index.html',\n  'vitest.setup.ts',\n  'src/main.tsx',\n  'src/index.css',\n  'src/App.tsx',\n] as const;\n\n/** Recursively list all files relative to `dir`. */\nasync function listFiles(dir: string, base = dir): Promise<string[]> {\n  const entries = await fs.readdir(dir, { withFileTypes: true });\n  const results: string[] = [];\n  for (const e of entries) {\n    const full = path.join(dir, e.name);\n    if (e.isDirectory()) {\n      results.push(...(await listFiles(full, base)));\n    } else {\n      results.push(path.relative(base, full));\n    }\n  }\n  return results;\n}\n\nlet tmpDir: string;\n\nasync function makeTmpDir(): Promise<string> {\n  return fs.mkdtemp(path.join(os.tmpdir(), 'scaffold-test-'));\n}\n\n// ─────────────────────────────────────────────────────────────\n// 1. getProjectManifest\n// ─────────────────────────────────────────────────────────────\ndescribe('getProjectManifest', () => {\n  it('returns a ProjectManifest with all required fields and correct types', () => {\n    const manifest = getProjectManifest();\n    expect(typeof manifest.projectRoot).toBe('string');\n    expect(Array.isArray(manifest.files)).toBe(true);\n    expect(typeof manifest.projectName).toBe('string');\n    expect(typeof manifest.devServerPort).toBe('number');\n  });\n\n  it('returns exactly 12 files matching all ScaffoldFilePath variants', () => {\n    const manifest = getProjectManifest();\n    expect(manifest.files).toHaveLength(12);\n    for (const fp of SCAFFOLD_FILE_PATHS) {\n      expect(manifest.files, `manifest.files should contain \"${fp}\"`).toContain(fp);\n    }\n  });\n\n  it('returns projectName === \"exemplar-tools-doc\"', () => {\n    const manifest = getProjectManifest();\n    expect(manifest.projectName).toBe('exemplar-tools-doc');\n  });\n\n  it('returns devServerPort === 4000', () => {\n    const manifest = getProjectManifest();\n    expect(manifest.devServerPort).toBe(4000);\n  });\n\n  it('projectName matches ^[a-z][a-z0-9\\\\-]*$', () => {\n    const manifest = getProjectManifest();\n    expect(manifest.projectName).toMatch(/^[a-z][a-z0-9\\-]*$/);\n  });\n\n  it('is pure — two sequential calls return deeply equal results', () => {\n    const a = getProjectManifest();\n    const b = getProjectManifest();\n    expect(a).toEqual(b);\n  });\n});\n\n// ─────────────────────────────────────────────────────────────\n// 2. getRequiredDependencies\n// ─────────────────────────────────────────────────────────────\ndescribe('getRequiredDependencies', () => {\n  it('returns dependencies and devDependencies arrays', () => {\n    const deps = getRequiredDependencies();\n    expect(Array.isArray(deps.dependencies)).toBe(true);\n    expect(Array.isArray(deps.devDependencies)).toBe(true);\n  });\n\n  it('returns exactly 3 dependencies and 13 devDependencies', () => {\n    const deps = getRequiredDependencies();\n    expect(deps.dependencies).toHaveLength(3);\n    expect(deps.devDependencies).toHaveLength(13);\n  });\n\n  it('dependencies contain react@^18.3, react-dom@^18.3, react-router-dom@^6.23', () => {\n    const deps = getRequiredDependencies();\n    const names = deps.dependencies.map((d: { packageName: string }) => d.packageName);\n    expect(names).toContain('react');\n    expect(names).toContain('react-dom');\n    expect(names).toContain('react-router-dom');\n    for (const d of deps.dependencies as Array<{ packageName: string; versionRange: string }>) {\n      if (d.packageName === 'react') expect(d.versionRange).toMatch(/\\^18\\.3/);\n      if (d.packageName === 'react-dom') expect(d.versionRange).toMatch(/\\^18\\.3/);\n      if (d.packageName === 'react-router-dom') expect(d.versionRange).toMatch(/\\^6\\.23/);\n    }\n  });\n\n  it('devDependencies contain all 13 required packages', () => {\n    const deps = getRequiredDependencies();\n    const names = deps.devDependencies.map((d: { packageName: string }) => d.packageName);\n    const required = [\n      'vite', '@vitejs/plugin-react', 'tailwindcss', 'vitest',\n      '@testing-library/react', '@testing-library/jest-dom', 'jsdom',\n      'prism-react-renderer', 'autoprefixer', 'postcss', 'typescript',\n      '@types/react', '@types/react-dom',\n    ];\n    for (const pkg of required) {\n      expect(names, `devDependencies should contain \"${pkg}\"`).toContain(pkg);\n    }\n  });\n\n  it('each DependencyEntry has correct field types', () => {\n    const deps = getRequiredDependencies();\n    const all = [...deps.dependencies, ...deps.devDependencies] as Array<{\n      packageName: string; versionRange: string; isDev: boolean;\n    }>;\n    for (const entry of all) {\n      expect(typeof entry.packageName).toBe('string');\n      expect(typeof entry.versionRange).toBe('string');\n      expect(typeof entry.isDev).toBe('boolean');\n    }\n  });\n\n  it('isDev is false for dependencies and true for devDependencies', () => {\n    const deps = getRequiredDependencies();\n    for (const d of deps.dependencies as Array<{ isDev: boolean }>) {\n      expect(d.isDev, 'dependency entry should have isDev === false').toBe(false);\n    }\n    for (const d of deps.devDependencies as Array<{ isDev: boolean }>) {\n      expect(d.isDev, 'devDependency entry should have isDev === true').toBe(true);\n    }\n  });\n\n  it('every packageName matches the valid regex', () => {\n    const deps = getRequiredDependencies();\n    const all = [...deps.dependencies, ...deps.devDependencies] as Array<{ packageName: string }>;\n    const re = /^@?[a-z][a-z0-9\\-]*(\\/[a-z][a-z0-9\\-]*)*$/;\n    for (const e of all) {\n      expect(e.packageName, `\"${e.packageName}\" should match packageName regex`).toMatch(re);\n    }\n  });\n\n  it('every versionRange matches the valid regex', () => {\n    const deps = getRequiredDependencies();\n    const all = [...deps.dependencies, ...deps.devDependencies] as Array<{ versionRange: string }>;\n    const re = /^[\\^~>=<\\d\\|\\s\\.\\-\\*]+.*$/;\n    for (const e of all) {\n      expect(e.versionRange, `\"${e.versionRange}\" should match versionRange regex`).toMatch(re);\n    }\n  });\n\n  it('no duplicate packageNames', () => {\n    const deps = getRequiredDependencies();\n    const all = [...deps.dependencies, ...deps.devDependencies] as Array<{ packageName: string }>;\n    const names = all.map((e) => e.packageName);\n    expect(new Set(names).size, 'all packageNames should be unique').toBe(names.length);\n  });\n\n  it('no dependency uses \"latest\" or bare \"*\" as version range', () => {\n    const deps = getRequiredDependencies();\n    const all = [...deps.dependencies, ...deps.devDependencies] as Array<{ versionRange: string }>;\n    for (const e of all) {\n      expect(e.versionRange).not.toBe('latest');\n      expect(e.versionRange).not.toBe('*');\n    }\n  });\n\n  it('is pure — two sequential calls return deeply equal results', () => {\n    const a = getRequiredDependencies();\n    const b = getRequiredDependencies();\n    expect(a).toEqual(b);\n  });\n});\n\n// ─────────────────────────────────────────────────────────────\n// 3. generateScaffold\n// ─────────────────────────────────────────────────────────────\ndescribe('generateScaffold', () => {\n  beforeEach(async () => {\n    tmpDir = await makeTmpDir();\n  });\n  afterEach(async () => {\n    await fs.rm(tmpDir, { recursive: true, force: true });\n  });\n\n  it('happy path: writes all 12 files and returns correct ScaffoldResult', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    const result = await generateScaffold({ outputDir, overwrite: false });\n\n    expect(result.filesWritten, 'filesWritten should be 12').toBe(12);\n    expect(result.hasJsFiles, 'hasJsFiles should be false').toBe(false);\n    expect(result.hasPyFiles, 'hasPyFiles should be false').toBe(false);\n    expect(result.manifest).toBeDefined();\n\n    for (const fp of SCAFFOLD_FILE_PATHS) {\n      const fullPath = path.join(outputDir, fp);\n      const stat = await fs.stat(fullPath);\n      expect(stat.isFile(), `${fp} should exist as a file`).toBe(true);\n    }\n  });\n\n  it('overwrite=false with existing files throws file_already_exists', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    // First generation\n    await generateScaffold({ outputDir, overwrite: true });\n    // Second generation with overwrite=false\n    await expect(\n      generateScaffold({ outputDir, overwrite: false })\n    ).rejects.toThrow(/file_already_exists|FILE_ALREADY_EXISTS|already exist/i);\n  });\n\n  it('overwrite=true succeeds even when files already exist', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: true });\n    const result = await generateScaffold({ outputDir, overwrite: true });\n    expect(result.filesWritten).toBe(12);\n  });\n\n  it('throws directory_not_found when parent directory does not exist', async () => {\n    const outputDir = path.join(tmpDir, 'nonexistent', 'deep', 'project');\n    await expect(\n      generateScaffold({ outputDir, overwrite: false })\n    ).rejects.toThrow(/directory_not_found|DIRECTORY_NOT_FOUND|not found|does not exist/i);\n  });\n\n  it('throws invalid_output_dir when outputDir is empty string', async () => {\n    await expect(\n      generateScaffold({ outputDir: '', overwrite: false })\n    ).rejects.toThrow(/invalid_output_dir|INVALID_OUTPUT_DIR|invalid.*output/i);\n  });\n\n  it('throws invalid_output_dir when outputDir contains null bytes', async () => {\n    await expect(\n      generateScaffold({ outputDir: '/tmp/foo\\0bar', overwrite: false })\n    ).rejects.toThrow(/invalid_output_dir|INVALID_OUTPUT_DIR|invalid|null/i);\n  });\n\n  it('no .js files exist in output directory tree after generation', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const files = await listFiles(outputDir);\n    const jsFiles = files.filter((f) => f.endsWith('.js'));\n    expect(jsFiles, 'no .js files should exist').toEqual([]);\n  });\n\n  it('no .py files exist in output directory tree after generation', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const files = await listFiles(outputDir);\n    const pyFiles = files.filter((f) => f.endsWith('.py'));\n    expect(pyFiles, 'no .py files should exist').toEqual([]);\n  });\n\n  it('package.json has \"type\": \"module\"', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const pkg = JSON.parse(await fs.readFile(path.join(outputDir, 'package.json'), 'utf-8'));\n    expect(pkg.type).toBe('module');\n  });\n\n  it('vite.config.ts configures server.port = 4000', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'vite.config.ts'), 'utf-8');\n    expect(content).toMatch(/4000/);\n  });\n\n  it('vitest.setup.ts contains import \"@testing-library/jest-dom\"', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'vitest.setup.ts'), 'utf-8');\n    expect(content).toMatch(/@testing-library\\/jest-dom/);\n  });\n\n  it('vercel.json has exactly one rewrite with correct source and destination', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const vercel = JSON.parse(await fs.readFile(path.join(outputDir, 'vercel.json'), 'utf-8'));\n    expect(vercel.rewrites).toHaveLength(1);\n    expect(vercel.rewrites[0].source).toBe('/(.*)');\n    expect(vercel.rewrites[0].destination).toBe('/index.html');\n  });\n\n  it('index.html has div#root and module script for main.tsx', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const html = await fs.readFile(path.join(outputDir, 'index.html'), 'utf-8');\n    expect(html).toMatch(/<div id=\"root\"><\\/div>/);\n    expect(html).toMatch(/<script type=\"module\" src=\"\\/src\\/main\\.tsx\"><\\/script>/);\n  });\n\n  it('src/main.tsx imports React, ReactDOM, App, and index.css', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'src/main.tsx'), 'utf-8');\n    expect(content, 'main.tsx should import React').toMatch(/import\\s+React/);\n    expect(content, 'main.tsx should import ReactDOM').toMatch(/ReactDOM|react-dom/);\n    expect(content, 'main.tsx should import App').toMatch(/import.*App/);\n    expect(content, 'main.tsx should import index.css').toMatch(/index\\.css/);\n  });\n\n  it('src/index.css contains @tailwind base, components, utilities', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'src/index.css'), 'utf-8');\n    expect(content).toMatch(/@tailwind base/);\n    expect(content).toMatch(/@tailwind components/);\n    expect(content).toMatch(/@tailwind utilities/);\n  });\n\n  it('src/App.tsx has both named export and default export', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'src/App.tsx'), 'utf-8');\n    expect(content, 'App.tsx should have a named export').toMatch(/export\\s+(function|const)\\s+App/);\n    expect(content, 'App.tsx should have a default export').toMatch(/export default/);\n  });\n\n  it('postcss.config.mjs uses ESM export default, not CommonJS module.exports', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'postcss.config.mjs'), 'utf-8');\n    expect(content).toMatch(/export default/);\n    expect(content).not.toMatch(/module\\.exports/);\n  });\n\n  it('postcss.config.mjs references tailwindcss and autoprefixer plugins', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'postcss.config.mjs'), 'utf-8');\n    expect(content).toMatch(/tailwindcss/);\n    expect(content).toMatch(/autoprefixer/);\n  });\n\n  it('tailwind.config.ts content array includes ./index.html and ./src/**/*.{ts,tsx}', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const content = await fs.readFile(path.join(outputDir, 'tailwind.config.ts'), 'utf-8');\n    expect(content).toMatch(/\\.\\/index\\.html/);\n    expect(content).toMatch(/\\.\\/src\\/\\*\\*\\/\\*\\.\\{ts,tsx\\}/);\n  });\n});\n\n// ─────────────────────────────────────────────────────────────\n// 4. validateScaffold\n// ─────────────────────────────────────────────────────────────\ndescribe('validateScaffold', () => {\n  beforeEach(async () => {\n    tmpDir = await makeTmpDir();\n  });\n  afterEach(async () => {\n    await fs.rm(tmpDir, { recursive: true, force: true });\n  });\n\n  it('returns valid result after successful generateScaffold', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    const result = await validateScaffold(outputDir);\n    expect(result.isValid, 'scaffold should validate as valid after generation').toBe(true);\n  });\n\n  it('throws directory_not_found for non-existent directory', async () => {\n    const nonexistent = path.join(tmpDir, 'does-not-exist');\n    await expect(\n      validateScaffold(nonexistent)\n    ).rejects.toThrow(/directory_not_found|DIRECTORY_NOT_FOUND|not found|does not exist/i);\n  });\n\n  it('reports invalid when a scaffold file is deleted', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n    await generateScaffold({ outputDir, overwrite: false });\n    // Delete one file\n    await fs.unlink(path.join(outputDir, 'vercel.json'));\n    const result = await validateScaffold(outputDir);\n    expect(result.isValid, 'scaffold should be invalid when a file is missing').toBe(false);\n  });\n\n  it('reports invalid for an empty directory', async () => {\n    const emptyDir = path.join(tmpDir, 'empty');\n    await fs.mkdir(emptyDir, { recursive: true });\n    const result = await validateScaffold(emptyDir);\n    expect(result.isValid, 'empty directory should not validate').toBe(false);\n  });\n});\n\n// ─────────────────────────────────────────────────────────────\n// 5. Integration: scaffold round-trip\n// ─────────────────────────────────────────────────────────────\ndescribe('integration: scaffold round-trip', () => {\n  beforeEach(async () => {\n    tmpDir = await makeTmpDir();\n  });\n  afterEach(async () => {\n    await fs.rm(tmpDir, { recursive: true, force: true });\n  });\n\n  it('generate → validate → inspect config files structurally', async () => {\n    const outputDir = path.join(tmpDir, 'project');\n    await fs.mkdir(outputDir, { recursive: true });\n\n    // Generate\n    const scaffoldResult = await generateScaffold({ outputDir, overwrite: false });\n    expect(scaffoldResult.filesWritten).toBe(12);\n\n    // Validate\n    const validationResult = await validateScaffold(outputDir);\n    expect(validationResult.isValid, 'round-trip validation should pass').toBe(true);\n\n    // Structurally inspect vercel.json\n    const vercel = JSON.parse(await fs.readFile(path.join(outputDir, 'vercel.json'), 'utf-8'));\n    expect(vercel.rewrites).toHaveLength(1);\n    expect(vercel.rewrites[0]).toEqual({ source: '/(.*)', destination: '/index.html' });\n\n    // Structurally inspect package.json\n    const pkg = JSON.parse(await fs.readFile(path.join(outputDir, 'package.json'), 'utf-8'));\n    expect(pkg.type).toBe('module');\n\n    // Verify all required deps are in package.json\n    const requiredDeps = getRequiredDependencies();\n    for (const dep of requiredDeps.dependencies as Array<{ packageName: string; versionRange: string }>) {\n      expect(\n        pkg.dependencies?.[dep.packageName],\n        `package.json dependencies should include ${dep.packageName}`\n      ).toBeDefined();\n      expect(pkg.dependencies[dep.packageName]).toBe(dep.versionRange);\n    }\n    for (const dep of requiredDeps.devDependencies as Array<{ packageName: string; versionRange: string }>) {\n      expect(\n        pkg.devDependencies?.[dep.packageName],\n        `package.json devDependencies should include ${dep.packageName}`\n      ).toBeDefined();\n      expect(pkg.devDependencies[dep.packageName]).toBe(dep.versionRange);\n    }\n\n    // Verify manifest consistency\n    const manifest = getProjectManifest();\n    expect(scaffoldResult.manifest.files).toEqual(expect.arrayContaining(manifest.files));\n    expect(scaffoldResult.manifest.files).toHaveLength(12);\n  });\n});\n"
 }

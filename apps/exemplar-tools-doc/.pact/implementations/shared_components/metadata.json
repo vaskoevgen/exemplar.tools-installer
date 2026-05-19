@@ -1,0 +1,14 @@
+{
+  "attempt": 1,
+  "timestamp": "2026-05-19T15:23:21.183719",
+  "files": [
+    "types.ts",
+    "CalloutBox.tsx",
+    "CodeBlock.tsx",
+    "VersionBadge.tsx",
+    "VideoEmbed.tsx",
+    "Sidebar.tsx",
+    "PageLayout.tsx",
+    "index.ts"
+  ]
+}

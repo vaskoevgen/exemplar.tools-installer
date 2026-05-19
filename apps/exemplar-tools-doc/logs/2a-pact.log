@@ -1,0 +1,915 @@
+# [2026-05-19T18:25:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact init .
+[2026-05-19T18:25:20Z] Initialized project: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc
+[2026-05-19T18:25:20Z] Initialized project: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc
+[2026-05-19T18:25:20Z]   Edit /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/task.md to describe your task
+[2026-05-19T18:25:20Z]   Edit /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/sops.md to set operating procedures
+[2026-05-19T18:25:20Z]   Then run: pact daemon .
+# [2026-05-19T18:25:20Z] EXIT: 0
+Created FIFO: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/.pact/dispatch
+Dispatching phase: interview
+/Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/transmogrifier/src/transmogrifier/profiles.py:15: UserWarning: Field name "register" in "RegisterAccuracy" shadows an attribute in parent "BaseModel"
+  class RegisterAccuracy(BaseModel):
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Processing register established: systematic-verification
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Phase complete: interview -> paused ($0.0748)
+Paused: Interview questions pending — waiting for user answers — waiting for signal on FIFO
+# [2026-05-19T18:26:28Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact approve .
+Received signal: approved
+Dispatching phase: interview
+Phase complete: shape -> active ($0.0748)
+Dispatching phase: shape
+Phase complete: decompose -> active ($0.0748)
+Dispatching phase: decompose
+[2026-05-19T18:26:28Z] Interview approved. Answer summary:
+[2026-05-19T18:26:28Z]   Q: "Q1: Where is howto.md? Is it in a repository, provided as an..." -> [auto, 0.4] "AS1: howto.md will be provided as an input artifac..."
+[2026-05-19T18:26:28Z]   Q: "Q2: What routing library should be used — react-router-dom, ..." -> [auto, 0.4] "AS2: Client-side routing via react-router-dom with..."
+[2026-05-19T18:26:28Z]   Q: "Q3: What are the exact URL slugs for each of the 13 pages?" -> [auto, 0.3] "AS6: Navigation will be a persistent sidebar with ..."
+[2026-05-19T18:26:28Z]   Q: "Q4: Where do component version numbers come from? Are they h..." -> [auto, 0.5] "AS4: Version badges are hardcoded strings extracte..."
+[2026-05-19T18:26:28Z]   Q: "Q5: What is the pipeline diagram — an image file, an SVG, or..." -> [auto, 0.3] "AS5: The pipeline diagram is a static visual (SVG ..."
+[2026-05-19T18:26:28Z]   Q: "Q6: Should howto.md be parsed at build time (Markdown → Reac..." -> [auto, 0.8] "AS7: Content from howto.md will be manually transc..."
+[2026-05-19T18:26:28Z]   Q: "Q7: Are there existing contract tests (pact tests) that this..." -> [auto, 0.5] "AS7: Content from howto.md will be manually transc..."
+[2026-05-19T18:26:28Z]   Q: "Q8: Is there a design system, color palette, or visual refer..." -> [auto, 0.5] "AS8: Every React component gets a basic rendering ..."
+[2026-05-19T18:26:28Z]   Q: "Q9: For the SOP rule 'All functions must have at least one t..." -> [auto, 0.4] "AS8: Every React component gets a basic rendering ..."
+[2026-05-19T18:26:28Z]   Q: "Q10: Does the site need to handle deep-link navigation on Ve..." -> [auto, 0.2] "AS2: Client-side routing via react-router-dom with..."
+[2026-05-19T18:26:28Z] Daemon signaled to continue.
+# [2026-05-19T18:26:28Z] EXIT: 0
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+# [2026-05-19T18:26:30Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+[2026-05-19T18:26:30Z] Run is already active.
+# [2026-05-19T18:26:30Z] EXIT: 0
+Created synthetic root for 4 top-level groups: app_routing, page_components, project_scaffold, shared_components
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Type registry: 11 shared types
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 6234 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (6718 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (6645 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for app_routing: 9 types, 4 functions (10187 tokens)
+Type registry enforcement: app_routing.PageComponentKey — replaced LLM version with canonical
+Type registry enforcement: app_routing.RouteEntry — replaced LLM version with canonical
+Type registry: 2 corrections applied to app_routing
+Auto-stubbed undefined type 'string' in component 'app_routing'
+Type stub: Auto-stubbed undefined type 'string' in component 'app_routing' — consider defining it explicitly
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4792 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5120 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for app_routing: 17 cases (11224 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Goodhart tests authored for app_routing: 15 cases (8135 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 6427 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (6739 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for page_components: 6 types, 14 functions (11170 tokens)
+Type registry enforcement: page_components.PageComponentKey — replaced LLM version with canonical
+Type registry: 1 corrections applied to page_components
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4764 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5238 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for page_components: 21 cases (5595 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Goodhart tests authored for page_components: 14 cases (10126 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 12 findings, 6944 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (7476 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): revise (8045 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 3): revise (8483 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for project_scaffold: 10 types, 4 functions (12427 tokens)
+Auto-stubbed undefined type 'ScaffoldValidationResult' in component 'project_scaffold'
+Type stub: Auto-stubbed undefined type 'ScaffoldValidationResult' in component 'project_scaffold' — consider defining it explicitly
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 12 findings, 5072 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5611 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for project_scaffold: 40 cases (10783 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Goodhart tests authored for project_scaffold: 31 cases (13433 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 13 findings, 6646 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (6838 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for shared_components: 13 types, 6 functions (10407 tokens)
+Type registry enforcement: shared_components.RouteEntry — replaced LLM version with canonical
+Type registry enforcement: shared_components.CalloutBoxProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.CodeBlockProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.VersionBadgeProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.VideoEmbedProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.SidebarProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.PageLayoutProps — replaced LLM version with canonical
+Type registry enforcement: shared_components.PageComponentKey — injected referenced shared type
+Type registry: 8 corrections applied to shared_components
+Auto-stubbed undefined type 'string' in component 'shared_components'
+Type stub: Auto-stubbed undefined type 'string' in component 'shared_components' — consider defining it explicitly
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5173 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5713 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for shared_components: 27 cases (9420 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Goodhart tests authored for shared_components: 30 cases (11705 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 6074 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (6397 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Contract authored for root: 27 types, 15 functions (10843 tokens)
+Type registry enforcement: root.RouteEntry — replaced LLM version with canonical
+Type registry enforcement: root.CalloutBoxProps — replaced LLM version with canonical
+Type registry enforcement: root.CodeBlockProps — replaced LLM version with canonical
+Type registry enforcement: root.VersionBadgeProps — replaced LLM version with canonical
+Type registry enforcement: root.VideoEmbedProps — replaced LLM version with canonical
+Type registry enforcement: root.PageLayoutProps — replaced LLM version with canonical
+Type registry: 6 corrections applied to root
+Auto-stubbed undefined type 'string' in component 'root'
+Type stub: Auto-stubbed undefined type 'string' in component 'root' — consider defining it explicitly
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5695 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (6718 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (6280 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Tests authored for root: 30 cases (10117 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Goodhart tests authored for root: 23 cases (13704 tokens)
+Type reconciliation: root.RoutePath — aligned with app_routing's definition
+Type reconciliation: root.RouteLabel — aligned with app_routing's definition
+Type reconciliation: page_components.PageComponentMap — aligned with app_routing's definition
+Type reconciliation: root.PageComponentMap — aligned with app_routing's definition
+Phase complete: preflight -> active ($5.0567)
+Dispatching phase: preflight
+Preflight skipped — backend 'anthropic' is not claude_code
+Phase complete: implement -> active ($5.0567)
+Dispatching phase: implement
+Implementing project_scaffold (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4994 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5384 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for project_scaffold: 6 files (8891 tokens)
+Synthesized root package.json for exemplar-tools-doc from component packages
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Dependency install via bun exited 1: error: The argument '--frozen-lockfile' does not take a value.
+
+Installed dependencies in /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc via npm
+Component project_scaffold passed all 41 tests on attempt 1
+Implementing shared_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 11 findings, 5319 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5729 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for shared_components: 9 files (4674 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component shared_components passed all 28 tests on attempt 1
+Implementing app_routing (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4518 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4783 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (3882 tokens)
+Auto-aliased missing export: PageComponentMap = buildPageComponentMap
+Injected 1 export aliases into index.ts
+Cannot auto-fix 1 missing exports: ['AppProps']
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 1
+Implementing app_routing (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4794 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5284 tokens)
+Using PATCH mode for app_routing (47/48 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (3735 tokens)
+Auto-aliased missing export: PageComponentMap = buildPageComponentMap
+Injected 1 export aliases into index.ts
+Cannot auto-fix 1 missing exports: ['AppProps']
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing passed all 48 tests on attempt 2
+Implementing page_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4673 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4705 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (7033 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 1
+Implementing page_components (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4822 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5092 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (7136 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 2
+Implementing page_components (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4710 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4790 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (7129 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 3
+Component page_components failed after 3 attempts
+HEALTH WARNING: [output_planning_ratio] Planning heavy: 0.35x generation/planning ratio. Consider reducing plan revisions.
+Phase complete: diagnose -> active ($6.9321)
+Dispatching phase: diagnose
+Diagnosed page_components: implementation_bug in page_components
+HEALTH WARNING: [output_planning_ratio] Planning heavy: 0.35x generation/planning ratio. Consider reducing plan revisions.
+Phase complete: implement -> active ($6.9321)
+Dispatching phase: implement
+Implementing project_scaffold (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 9 findings, 4982 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5617 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for project_scaffold: 8 files (8103 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component project_scaffold passed all 41 tests on attempt 1
+Implementing shared_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5308 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5879 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for shared_components: 9 files (4581 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component shared_components passed all 28 tests on attempt 1
+Implementing app_routing (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4812 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5222 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 6 files (4304 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/1 tests on attempt 1
+Implementing app_routing (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4546 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4993 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 6 files (4009 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 2
+Implementing app_routing (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4759 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5262 tokens)
+Using PATCH mode for app_routing (47/48 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 6 files (4001 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 3
+Component app_routing failed after 3 attempts
+Implementing page_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 9 findings, 4487 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4381 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6961 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 1
+Implementing page_components (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4561 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5473 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (5634 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (7040 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 2
+Implementing page_components (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4754 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5865 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (6129 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (7040 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 3
+Component page_components failed after 3 attempts
+Phase complete: diagnose -> active ($9.1668)
+Dispatching phase: diagnose
+Diagnosed app_routing: implementation_bug in app_routing
+Diagnosed page_components: implementation_bug in page_components
+Phase complete: implement -> active ($9.1668)
+Dispatching phase: implement
+Implementing project_scaffold (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 5334 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5557 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for project_scaffold: 5 files (8211 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component project_scaffold passed all 41 tests on attempt 1
+Implementing shared_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5077 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5324 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for shared_components: 9 files (4229 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component shared_components passed all 28 tests on attempt 1
+Implementing app_routing (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4620 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4753 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (3863 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 1
+Implementing app_routing (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Per-project budget exceeded: $10.0167 > $10.00
+Budget exceeded for ea10fd0704c7
+Phase complete: implement -> budget_exceeded ($10.0167)
+Run terminal: budget_exceeded
+Daemon starting for: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc
+  FIFO: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/.pact/dispatch
+  Health check: every 30s
+  Max idle: 600s
+  Phase timeout: 3600s (hard wall-clock)
+  Resume with: pact signal .
+
+
+[ea10fd0704c7] budget_exceeded $10.0167
+  Phase: implement
+  Project: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc
+  Components: 2/5 done, 0 failed
+  Reason: Budget cap reached
+  Health: HEALTHY
+# [2026-05-19T19:58:21Z] Budget bumped #1
+Created FIFO: /Users/yevhenvasko/source/exemplar.tools-installer/apps/exemplar-tools-doc/.pact/dispatch
+Dispatching phase: implement
+Implementing project_scaffold (attempt 1/3)
+/Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/transmogrifier/src/transmogrifier/profiles.py:15: UserWarning: Field name "register" in "RegisterAccuracy" shadows an attribute in parent "BaseModel"
+  class RegisterAccuracy(BaseModel):
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+# [2026-05-19T19:58:29Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+[2026-05-19T19:58:29Z] Run is already active.
+# [2026-05-19T19:58:29Z] EXIT: 0
+Research complete: 10 findings, 5409 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5510 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for project_scaffold: 6 files (8744 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component project_scaffold passed all 41 tests on attempt 1
+Implementing shared_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5084 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5009 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for shared_components: 9 files (4219 tokens)
+Cannot auto-fix 2 missing exports: ['RouteEntry', 'PageComponentKey']
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component shared_components passed all 28 tests on attempt 1
+Implementing app_routing (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4570 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5077 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (5084 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (4513 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 1
+Implementing app_routing (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4531 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4576 tokens)
+Using PATCH mode for app_routing (47/48 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (4720 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing passed all 48 tests on attempt 2
+Implementing page_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 9 findings, 4448 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4822 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (5885 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 1
+Implementing page_components (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4544 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5196 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (5569 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6024 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 2
+Implementing page_components (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4758 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5489 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): revise (6325 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 3): proceed (6210 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6156 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 3
+Component page_components failed after 3 attempts
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 3}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> active ($2.0503)
+Dispatching phase: diagnose
+Diagnosed page_components: implementation_bug in page_components
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 3}. Consider simplifying or skipping these components.
+Phase complete: implement -> active ($2.0503)
+Dispatching phase: implement
+Implementing project_scaffold (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5389 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5606 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for project_scaffold: 4 files (8138 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component project_scaffold passed all 41 tests on attempt 1
+Implementing shared_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 5237 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5629 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for shared_components: 8 files (4382 tokens)
+Cannot auto-fix 2 missing exports: ['RouteEntry', 'PageComponentKey']
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component shared_components passed all 28 tests on attempt 1
+Implementing app_routing (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4835 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5001 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (4318 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 1
+Implementing app_routing (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4938 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5851 tokens)
+Using PATCH mode for app_routing (47/48 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (4573 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing failed 1/48 tests on attempt 2
+Implementing app_routing (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 9 findings, 4761 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4635 tokens)
+Using PATCH mode for app_routing (47/48 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for app_routing: 5 files (4079 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component app_routing passed all 48 tests on attempt 3
+Implementing page_components (attempt 1/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 10 findings, 4710 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (5320 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6651 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 1
+Implementing page_components (attempt 2/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 7 findings, 4497 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): revise (5448 tokens)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 2): proceed (5493 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6797 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 2
+Implementing page_components (attempt 3/3)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Research complete: 8 findings, 4541 tokens
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Plan evaluation (attempt 1): proceed (4589 tokens)
+Using PATCH mode for page_components (44/45 passed previously)
+HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+Code authored for page_components: 16 files (6766 tokens)
+Synthesized root vitest.config.ts for exemplar-tools-doc
+Component page_components failed 1/45 tests on attempt 3
+Component page_components failed after 3 attempts
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> active ($4.2053)
+Dispatching phase: diagnose
+Phase cycle limit reached (4 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (4 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:38:29Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:38:29Z] Resumed from implement
+[2026-05-19T20:38:29Z]   Original failure: Phase cycle limit reached (4 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:38:29Z]   Completed components: 3
+[2026-05-19T20:38:29Z] Daemon signaled to continue.
+# [2026-05-19T20:38:29Z] EXIT: 0
+Phase cycle limit reached (5 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (5 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:38:41Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:38:41Z] Resumed from implement
+[2026-05-19T20:38:41Z]   Original failure: Phase cycle limit reached (5 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:38:41Z]   Completed components: 3
+[2026-05-19T20:38:41Z] Daemon signaled to continue.
+# [2026-05-19T20:38:41Z] EXIT: 0
+Phase cycle limit reached (6 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (6 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:38:53Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:38:53Z] Resumed from implement
+[2026-05-19T20:38:53Z]   Original failure: Phase cycle limit reached (6 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:38:53Z]   Completed components: 3
+[2026-05-19T20:38:53Z] Daemon signaled to continue.
+# [2026-05-19T20:38:53Z] EXIT: 0
+Phase cycle limit reached (7 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (7 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:39:05Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:39:05Z] Resumed from implement
+[2026-05-19T20:39:05Z]   Original failure: Phase cycle limit reached (7 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:39:05Z]   Completed components: 3
+[2026-05-19T20:39:05Z] Daemon signaled to continue.
+# [2026-05-19T20:39:05Z] EXIT: 0
+Phase cycle limit reached (8 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (8 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:39:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:39:18Z] Resumed from implement
+[2026-05-19T20:39:18Z]   Original failure: Phase cycle limit reached (8 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:39:18Z]   Completed components: 3
+[2026-05-19T20:39:18Z] Daemon signaled to continue.
+# [2026-05-19T20:39:18Z] EXIT: 0
+Phase cycle limit reached (9 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (9 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:39:30Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:39:30Z] Resumed from implement
+[2026-05-19T20:39:30Z]   Original failure: Phase cycle limit reached (9 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:39:30Z]   Completed components: 3
+[2026-05-19T20:39:30Z] Daemon signaled to continue.
+# [2026-05-19T20:39:30Z] EXIT: 0
+Phase cycle limit reached (10 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (10 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:39:42Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:39:42Z] Resumed from implement
+[2026-05-19T20:39:42Z]   Original failure: Phase cycle limit reached (10 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:39:42Z]   Completed components: 3
+[2026-05-19T20:39:42Z] Daemon signaled to continue.
+# [2026-05-19T20:39:42Z] EXIT: 0
+Phase cycle limit reached (11 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (11 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:39:54Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:39:54Z] Resumed from implement
+[2026-05-19T20:39:54Z]   Original failure: Phase cycle limit reached (11 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:39:54Z]   Completed components: 3
+[2026-05-19T20:39:54Z] Daemon signaled to continue.
+# [2026-05-19T20:39:54Z] EXIT: 0
+Phase cycle limit reached (12 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (12 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:40:07Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:40:07Z] Resumed from implement
+[2026-05-19T20:40:07Z]   Original failure: Phase cycle limit reached (12 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:40:07Z]   Completed components: 3
+[2026-05-19T20:40:07Z] Daemon signaled to continue.
+# [2026-05-19T20:40:07Z] EXIT: 0
+Phase cycle limit reached (13 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (13 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:40:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:40:19Z] Resumed from implement
+[2026-05-19T20:40:19Z]   Original failure: Phase cycle limit reached (13 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:40:19Z]   Completed components: 3
+[2026-05-19T20:40:19Z] Daemon signaled to continue.
+# [2026-05-19T20:40:19Z] EXIT: 0
+Phase cycle limit reached (14 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (14 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:40:31Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:40:31Z] Resumed from implement
+[2026-05-19T20:40:31Z]   Original failure: Phase cycle limit reached (14 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:40:31Z]   Completed components: 3
+[2026-05-19T20:40:31Z] Daemon signaled to continue.
+# [2026-05-19T20:40:31Z] EXIT: 0
+Phase cycle limit reached (15 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (15 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:40:43Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:40:43Z] Resumed from implement
+[2026-05-19T20:40:43Z]   Original failure: Phase cycle limit reached (15 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:40:43Z]   Completed components: 3
+[2026-05-19T20:40:43Z] Daemon signaled to continue.
+# [2026-05-19T20:40:43Z] EXIT: 0
+Phase cycle limit reached (16 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (16 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:40:56Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:40:56Z] Resumed from implement
+[2026-05-19T20:40:56Z]   Original failure: Phase cycle limit reached (16 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:40:56Z]   Completed components: 3
+[2026-05-19T20:40:56Z] Daemon signaled to continue.
+# [2026-05-19T20:40:56Z] EXIT: 0
+Phase cycle limit reached (17 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (17 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:41:08Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:41:08Z] Resumed from implement
+[2026-05-19T20:41:08Z]   Original failure: Phase cycle limit reached (17 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:41:08Z]   Completed components: 3
+[2026-05-19T20:41:08Z] Daemon signaled to continue.
+# [2026-05-19T20:41:08Z] EXIT: 0
+Phase cycle limit reached (18 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (18 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:41:20Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:41:20Z] Resumed from implement
+[2026-05-19T20:41:20Z]   Original failure: Phase cycle limit reached (18 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:41:20Z]   Completed components: 3
+[2026-05-19T20:41:20Z] Daemon signaled to continue.
+# [2026-05-19T20:41:20Z] EXIT: 0
+Phase cycle limit reached (19 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (19 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:41:32Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:41:32Z] Resumed from implement
+[2026-05-19T20:41:32Z]   Original failure: Phase cycle limit reached (19 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:41:32Z]   Completed components: 3
+[2026-05-19T20:41:32Z] Daemon signaled to continue.
+# [2026-05-19T20:41:32Z] EXIT: 0
+Phase cycle limit reached (20 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (20 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:41:44Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:41:45Z] Resumed from implement
+[2026-05-19T20:41:45Z]   Original failure: Phase cycle limit reached (20 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:41:45Z]   Completed components: 3
+[2026-05-19T20:41:45Z] Daemon signaled to continue.
+# [2026-05-19T20:41:45Z] EXIT: 0
+Phase cycle limit reached (21 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (21 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:41:57Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:41:57Z] Resumed from implement
+[2026-05-19T20:41:57Z]   Original failure: Phase cycle limit reached (21 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:41:57Z]   Completed components: 3
+[2026-05-19T20:41:57Z] Daemon signaled to continue.
+# [2026-05-19T20:41:57Z] EXIT: 0
+Phase cycle limit reached (22 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (22 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:43:41Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:43:42Z] Resumed from implement
+[2026-05-19T20:43:42Z]   Original failure: Phase cycle limit reached (22 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:43:42Z]   Completed components: 3
+[2026-05-19T20:43:42Z] Daemon signaled to continue.
+# [2026-05-19T20:43:42Z] EXIT: 0
+Phase cycle limit reached (23 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (23 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:43:54Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:43:54Z] Resumed from implement
+[2026-05-19T20:43:54Z]   Original failure: Phase cycle limit reached (23 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:43:54Z]   Completed components: 3
+[2026-05-19T20:43:54Z] Daemon signaled to continue.
+# [2026-05-19T20:43:54Z] EXIT: 0
+Phase cycle limit reached (24 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (24 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:44:06Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:44:06Z] Resumed from implement
+[2026-05-19T20:44:06Z]   Original failure: Phase cycle limit reached (24 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:44:06Z]   Completed components: 3
+[2026-05-19T20:44:06Z] Daemon signaled to continue.
+# [2026-05-19T20:44:06Z] EXIT: 0
+Phase cycle limit reached (25 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (25 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:44:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:44:18Z] Resumed from implement
+[2026-05-19T20:44:18Z]   Original failure: Phase cycle limit reached (25 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:44:18Z]   Completed components: 3
+[2026-05-19T20:44:18Z] Daemon signaled to continue.
+# [2026-05-19T20:44:18Z] EXIT: 0
+Phase cycle limit reached (26 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (26 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:44:30Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:44:30Z] Resumed from implement
+[2026-05-19T20:44:30Z]   Original failure: Phase cycle limit reached (26 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:44:30Z]   Completed components: 3
+[2026-05-19T20:44:30Z] Daemon signaled to continue.
+# [2026-05-19T20:44:30Z] EXIT: 0
+Phase cycle limit reached (27 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (27 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:44:43Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:44:43Z] Resumed from implement
+[2026-05-19T20:44:43Z]   Original failure: Phase cycle limit reached (27 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:44:43Z]   Completed components: 3
+[2026-05-19T20:44:43Z] Daemon signaled to continue.
+# [2026-05-19T20:44:43Z] EXIT: 0
+Phase cycle limit reached (28 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (28 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:44:55Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:44:55Z] Resumed from implement
+[2026-05-19T20:44:55Z]   Original failure: Phase cycle limit reached (28 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:44:55Z]   Completed components: 3
+[2026-05-19T20:44:55Z] Daemon signaled to continue.
+# [2026-05-19T20:44:55Z] EXIT: 0
+Phase cycle limit reached (29 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (29 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:45:07Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:45:07Z] Resumed from implement
+[2026-05-19T20:45:07Z]   Original failure: Phase cycle limit reached (29 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:45:07Z]   Completed components: 3
+[2026-05-19T20:45:07Z] Daemon signaled to continue.
+# [2026-05-19T20:45:07Z] EXIT: 0
+Phase cycle limit reached (30 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (30 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:45:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:45:19Z] Resumed from implement
+[2026-05-19T20:45:19Z]   Original failure: Phase cycle limit reached (30 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:45:19Z]   Completed components: 3
+[2026-05-19T20:45:19Z] Daemon signaled to continue.
+# [2026-05-19T20:45:19Z] EXIT: 0
+Phase cycle limit reached (31 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (31 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:45:32Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:45:32Z] Resumed from implement
+[2026-05-19T20:45:32Z]   Original failure: Phase cycle limit reached (31 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:45:32Z]   Completed components: 3
+[2026-05-19T20:45:32Z] Daemon signaled to continue.
+# [2026-05-19T20:45:32Z] EXIT: 0
+Phase cycle limit reached (32 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (32 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:45:44Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:45:44Z] Resumed from implement
+[2026-05-19T20:45:44Z]   Original failure: Phase cycle limit reached (32 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:45:44Z]   Completed components: 3
+[2026-05-19T20:45:44Z] Daemon signaled to continue.
+# [2026-05-19T20:45:44Z] EXIT: 0
+Phase cycle limit reached (33 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (33 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO
+# [2026-05-19T20:45:56Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/pact/.venv/bin/pact resume .
+Received signal: resumed
+Dispatching phase: diagnose
+[2026-05-19T20:45:56Z] Resumed from implement
+[2026-05-19T20:45:56Z]   Original failure: Phase cycle limit reached (33 diagnose cycles, max=3). Human review required.
+[2026-05-19T20:45:56Z]   Completed components: 3
+[2026-05-19T20:45:56Z] Daemon signaled to continue.
+# [2026-05-19T20:45:56Z] EXIT: 0
+Phase cycle limit reached (34 > 3) — pausing for human review
+HEALTH WARNING: [graceful_degradation] Repeated failures: {'page_components': 4}. Consider simplifying or skipping these components.
+Phase complete: diagnose -> paused ($4.2053)
+Paused: Phase cycle limit reached (34 diagnose cycles, max=3). Human review required. — waiting for signal on FIFO

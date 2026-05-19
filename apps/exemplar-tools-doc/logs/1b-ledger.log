@@ -1,0 +1,24 @@
+# [2026-05-19T18:25:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger init
+# [2026-05-19T18:25:18Z] EXIT: 0
+# [2026-05-19T18:25:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger backend add appdb --type sqlite --owner app
+# [2026-05-19T18:25:18Z] EXIT: 0
+# [2026-05-19T18:25:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger schema add schemas/items.yaml
+# [2026-05-19T18:25:18Z] EXIT: 0
+# [2026-05-19T18:25:18Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger schema validate
+# [2026-05-19T18:25:19Z] EXIT: 0
+# [2026-05-19T18:25:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger export --format pact
+[2026-05-19T18:25:19Z] {'contracts': []}
+# [2026-05-19T18:25:19Z] EXIT: 0
+# [2026-05-19T18:25:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger export --format arbiter
+[2026-05-19T18:25:19Z] {'contracts': []}
+# [2026-05-19T18:25:19Z] EXIT: 0
+# [2026-05-19T18:25:19Z] CMD: /Users/yevhenvasko/source/exemplar.tools-installer/exemplar.tools/ledger/.venv/bin/ledger builtins list
+[2026-05-19T18:25:19Z] audit_field: pact=not_null arbiter=audit_only baton=no_mask sentinel=high
+[2026-05-19T18:25:19Z] encrypted_at_rest: pact=type_match arbiter=enforce_tier baton=full_mask sentinel=critical
+[2026-05-19T18:25:19Z] gdpr_erasable: pact=field_present arbiter=enforce_tier baton=full_mask sentinel=high
+[2026-05-19T18:25:19Z] immutable: pact=field_present arbiter=block_downgrade baton=no_mask sentinel=critical
+[2026-05-19T18:25:19Z] not_null: pact=not_null arbiter=audit_only baton=no_mask sentinel=low
+[2026-05-19T18:25:19Z] pii_field: pact=field_present arbiter=enforce_tier baton=partial_mask sentinel=high
+[2026-05-19T18:25:19Z] primary_key: pact=not_null arbiter=audit_only baton=no_mask sentinel=info
+[2026-05-19T18:25:19Z] soft_delete_marker: pact=field_present arbiter=enforce_tier baton=no_mask sentinel=medium
+# [2026-05-19T18:25:19Z] EXIT: 0

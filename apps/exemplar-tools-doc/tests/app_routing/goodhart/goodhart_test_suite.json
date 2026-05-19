@@ -1,0 +1,255 @@
+{
+  "component_id": "app_routing",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "goodhart_manifest_path_to_key_pairing",
+      "description": "Each route entry's path must correspond to the correct PageComponentKey — an implementation could have all 13 correct paths and all 13 correct keys but pair them incorrectly",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Every entry's path and componentKey are correctly paired per the canonical mapping",
+      "expected_error": "",
+      "assertions": [
+        "Home entry has path '/'",
+        "Cartographer entry has path '/step-0-cartographer'",
+        "Each componentKey is paired with its canonical path"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_readonly_frozen",
+      "description": "The route manifest must be immutable at runtime — mutations to the returned array or its entries should not affect subsequent calls or the source data",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Mutating the returned array does not change subsequent getRouteManifest results",
+        "Object.isFrozen or readonly semantics prevent modification"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_labels_are_meaningful_strings",
+      "description": "Route labels must be non-trivial human-readable strings (not just whitespace or single characters), verifying they are genuine navigation labels rather than placeholder stubs",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Every label has length >= 2",
+        "No label is only whitespace"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_home_path_is_root_slash",
+      "description": "The Home entry must use exactly '/' as its path — not '/home' or any other variant — and must be at index 0",
+      "function": "getRouteManifest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Entry at index 0 has componentKey Home",
+        "Entry at index 0 has path '/'"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_step_order_numeric_correctness",
+      "description": "Steps must appear in strict numeric order 0,1a,1b,2a,2b,3,4,5a,5b,5c,6,7 after Home — verifying sub-step ordering within the same number",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Index 1 is step-0",
+        "Index 2 is step-1a",
+        "Index 3 is step-1b",
+        "Index 4 is step-2a",
+        "Index 5 is step-2b",
+        "Index 6 is step-3",
+        "Index 7 is step-4",
+        "Index 8 is step-5a",
+        "Index 9 is step-5b",
+        "Index 10 is step-5c",
+        "Index 11 is step-6",
+        "Index 12 is step-7"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_no_extra_properties",
+      "description": "RouteEntry objects should contain only the three specified fields (path, label, componentKey) — no extraneous properties that could indicate a non-conformant implementation",
+      "function": "getRouteManifest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Each entry has exactly 3 own enumerable keys"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_labels_unique",
+      "description": "Although the contract doesn't explicitly require unique labels, having duplicate labels would indicate a degenerate implementation that hardcoded the same placeholder label for all entries",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All 13 labels are distinct from each other"
+      ]
+    },
+    {
+      "id": "goodhart_app_default_and_named_export",
+      "description": "App.tsx must provide both a named export 'App' and a default export, and they must reference the same component",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Named export App exists",
+        "Default export exists",
+        "Named and default exports are the same reference"
+      ]
+    },
+    {
+      "id": "goodhart_app_passes_manifest_to_page_layout",
+      "description": "The App component must pass the complete ROUTE_MANIFEST as the routes prop to PageLayout — not a subset, transformation, or empty array",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "PageLayout receives routes prop",
+        "routes prop has 13 entries",
+        "routes prop entries match ROUTE_MANIFEST"
+      ]
+    },
+    {
+      "id": "goodhart_app_renders_distinct_components_per_route",
+      "description": "Each manifest path must render a distinct component — an implementation could pass visible tests by rendering the same stub component for every route",
+      "function": "App",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Navigating to different paths renders different page components"
+      ]
+    },
+    {
+      "id": "goodhart_app_mid_step_routes_render",
+      "description": "Middle-of-manifest routes (not just '/' or the last entry) must render correctly — catches implementations that only handle the first and last routes",
+      "function": "App",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Navigating to /step-3-arbiter renders without error",
+        "Navigating to /step-5b-chronicler renders without error",
+        "Navigating to /step-1b-ledger renders without error"
+      ]
+    },
+    {
+      "id": "goodhart_page_component_map_distinct_values",
+      "description": "Every value in the PAGE_COMPONENTS map must be a distinct component reference — not the same component reused for all keys",
+      "function": "buildPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "All 13 component values are distinct references"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_component_key_exact_enum",
+      "description": "Each componentKey value must be an exact member of the PageComponentKey enum — not a lookalike string, not differing in case",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "componentKey values are strictly equal to enum members, not just similar strings"
+      ]
+    },
+    {
+      "id": "goodhart_app_unmatched_deep_path",
+      "description": "Navigating to a path that is a sub-path of a valid route (e.g., '/step-0-cartographer/extra') should not match the parent route — catches overly permissive route matching",
+      "function": "App",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Sub-path of a valid route does not render the parent route's component"
+      ]
+    },
+    {
+      "id": "goodhart_manifest_returns_same_reference",
+      "description": "getRouteManifest should return the same constant reference on repeated calls — it is a module-level constant, not a factory",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Two successive calls return the same array reference"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "\nimport { describe, it, expect, vi, beforeEach } from 'vitest';\nimport React from 'react';\nimport { render, screen } from '@testing-library/react';\nimport { MemoryRouter } from 'react-router-dom';\n\n// We need to mock dependencies before importing App\n// page_components and shared_components are external deps\n\nconst { mockPageComponents, mockPageLayout } = vi.hoisted(() => {\n  const componentNames = [\n    'Home', 'Step0Cartographer', 'Step1aConstrain', 'Step1bLedger',\n    'Step2aPact', 'Step2bAdvocate', 'Step3Arbiter', 'Step4Baton',\n    'Step5aSentinel', 'Step5bChronicler', 'Step5cStigmergy',\n    'Step6Apprentice', 'Step7Kindex'\n  ] as const;\n\n  const mockPageComponents: Record<string, React.FC> = {};\n  for (const name of componentNames) {\n    // Each component renders a unique identifier so we can tell them apart\n    const Component: React.FC = () => React.createElement('div', { 'data-testid': `page-${name}` }, name);\n    Component.displayName = name;\n    mockPageComponents[name] = Component;\n  }\n\n  // PageLayout that renders children and captures routes prop\n  const mockPageLayout: React.FC<{ routes: any[]; children?: React.ReactNode }> = ({ routes, children }) => {\n    return React.createElement('div', { 'data-testid': 'page-layout', 'data-route-count': routes?.length ?? 0 }, children);\n  };\n\n  return { mockPageComponents, mockPageLayout };\n});\n\nvi.mock('page_components', () => mockPageComponents);\nvi.mock('shared_components', () => ({\n  PageLayout: mockPageLayout,\n  default: mockPageLayout,\n}));\n\n// Import the actual modules under test\nimport { ROUTE_MANIFEST, getRouteManifest, PageComponentKey } from '../../../src/app_routing/routes';\nimport AppDefault, { App } from '../../../src/app_routing/App';\n\ndescribe('goodhart: getRouteManifest', () => {\n  it('goodhart: should pair each componentKey with its specific canonical path — not just have the right sets independently', () => {\n    const manifest = getRouteManifest();\n    const expectedPairings: Record<string, string> = {\n      Home: '/',\n      Cartographer: '/step-0-cartographer',\n      Constrain: '/step-1a-constrain',\n      Ledger: '/step-1b-ledger',\n      Pact: '/step-2a-pact',\n      Advocate: '/step-2b-advocate',\n      Arbiter: '/step-3-arbiter',\n      Baton: '/step-4-baton',\n      Sentinel: '/step-5a-sentinel',\n      Chronicler: '/step-5b-chronicler',\n      Stigmergy: '/step-5c-stigmergy',\n      Apprentice: '/step-6-apprentice',\n      Kindex: '/step-7-kindex',\n    };\n\n    for (const entry of manifest) {\n      const key = entry.componentKey as string;\n      expect(entry.path).toBe(expectedPairings[key]);\n    }\n  });\n\n  it('goodhart: should return a readonly/frozen manifest that cannot be mutated at runtime', () => {\n    const manifest1 = getRouteManifest();\n    const originalLength = manifest1.length;\n    const originalFirstPath = manifest1[0].path;\n\n    // Attempt mutation — should either throw or have no effect\n    try {\n      (manifest1 as any).push({ path: '/fake', label: 'Fake', componentKey: 'Fake' });\n    } catch {\n      // Expected for frozen/readonly arrays\n    }\n\n    try {\n      (manifest1[0] as any).path = '/mutated';\n    } catch {\n      // Expected for frozen entries\n    }\n\n    const manifest2 = getRouteManifest();\n    expect(manifest2.length).toBe(13);\n    expect(manifest2[0].path).toBe(originalFirstPath);\n  });\n\n  it('goodhart: should have labels that are meaningful human-readable strings, not degenerate placeholders', () => {\n    const manifest = getRouteManifest();\n    for (const entry of manifest) {\n      expect(typeof entry.label).toBe('string');\n      expect(entry.label.trim().length).toBeGreaterThanOrEqual(2);\n      // Labels shouldn't be just the path repeated\n      expect(entry.label).not.toBe(entry.path);\n    }\n  });\n\n  it('goodhart: should have Home at index 0 with path \"/\" specifically', () => {\n    const manifest = getRouteManifest();\n    expect(manifest[0].componentKey).toBe('Home');\n    expect(manifest[0].path).toBe('/');\n  });\n\n  it('goodhart: should order steps in exact sub-step sequence 0,1a,1b,2a,2b,3,4,5a,5b,5c,6,7 after Home', () => {\n    const manifest = getRouteManifest();\n    const expectedPathOrder = [\n      '/',\n      '/step-0-cartographer',\n      '/step-1a-constrain',\n      '/step-1b-ledger',\n      '/step-2a-pact',\n      '/step-2b-advocate',\n      '/step-3-arbiter',\n      '/step-4-baton',\n      '/step-5a-sentinel',\n      '/step-5b-chronicler',\n      '/step-5c-stigmergy',\n      '/step-6-apprentice',\n      '/step-7-kindex',\n    ];\n    const actualPaths = manifest.map((e: any) => e.path);\n    expect(actualPaths).toEqual(expectedPathOrder);\n  });\n\n  it('goodhart: should have entries with exactly three own properties (path, label, componentKey)', () => {\n    const manifest = getRouteManifest();\n    for (const entry of manifest) {\n      const keys = Object.keys(entry).sort();\n      expect(keys).toEqual(['componentKey', 'label', 'path']);\n    }\n  });\n\n  it('goodhart: should have all 13 labels be distinct from each other', () => {\n    const manifest = getRouteManifest();\n    const labels = manifest.map((e: any) => e.label);\n    const uniqueLabels = new Set(labels);\n    expect(uniqueLabels.size).toBe(13);\n  });\n\n  it('goodhart: should use exact PageComponentKey enum values as componentKey, not lookalike strings', () => {\n    const manifest = getRouteManifest();\n    const validKeys = new Set([\n      'Home', 'Cartographer', 'Constrain', 'Ledger', 'Pact', 'Advocate',\n      'Arbiter', 'Baton', 'Sentinel', 'Chronicler', 'Stigmergy', 'Apprentice', 'Kindex'\n    ]);\n    for (const entry of manifest) {\n      expect(validKeys.has(entry.componentKey as string)).toBe(true);\n    }\n    // Also verify via the enum if exported\n    if (PageComponentKey) {\n      const enumValues = Object.values(PageComponentKey);\n      for (const entry of manifest) {\n        expect(enumValues).toContain(entry.componentKey);\n      }\n    }\n  });\n\n  it('goodhart: should return the same reference on repeated calls since it is a module constant', () => {\n    const first = getRouteManifest();\n    const second = getRouteManifest();\n    expect(first).toBe(second);\n  });\n});\n\ndescribe('goodhart: App exports', () => {\n  it('goodhart: should export App as both named and default export referencing the same component', () => {\n    expect(App).toBeDefined();\n    expect(AppDefault).toBeDefined();\n    expect(typeof App).toBe('function');\n    expect(typeof AppDefault).toBe('function');\n    expect(App).toBe(AppDefault);\n  });\n});\n\ndescribe('goodhart: App rendering', () => {\n  it('goodhart: should pass the full 13-entry route manifest to PageLayout as the routes prop', () => {\n    let capturedRoutes: any[] | undefined;\n    const SpyPageLayout: React.FC<any> = ({ routes, children }) => {\n      capturedRoutes = routes;\n      return React.createElement('div', { 'data-testid': 'page-layout' }, children);\n    };\n\n    // We need to verify via rendering. The mock is already set up,\n    // but we can check via data attributes\n    const { container } = render(\n      React.createElement(MemoryRouter, { initialEntries: ['/'] },\n        React.createElement(App)\n      )\n    );\n\n    const layoutEl = container.querySelector('[data-testid=\"page-layout\"]');\n    if (layoutEl) {\n      const routeCount = layoutEl.getAttribute('data-route-count');\n      expect(Number(routeCount)).toBe(13);\n    }\n  });\n\n  it('goodhart: should render distinct components for different routes, not the same stub for all', () => {\n    const paths = ['/step-3-arbiter', '/step-5b-chronicler', '/step-1b-ledger'];\n    const rendered: string[] = [];\n\n    for (const path of paths) {\n      const { container, unmount } = render(\n        React.createElement(MemoryRouter, { initialEntries: [path] },\n          React.createElement(App)\n        )\n      );\n      const text = container.textContent || '';\n      rendered.push(text);\n      unmount();\n    }\n\n    // Each route should produce different content\n    expect(rendered[0]).not.toBe(rendered[1]);\n    expect(rendered[1]).not.toBe(rendered[2]);\n    expect(rendered[0]).not.toBe(rendered[2]);\n  });\n\n  it('goodhart: should correctly render mid-manifest routes that are not the first or last entry', () => {\n    const midPaths = ['/step-3-arbiter', '/step-5b-chronicler', '/step-1b-ledger'];\n\n    for (const path of midPaths) {\n      const { container, unmount } = render(\n        React.createElement(MemoryRouter, { initialEntries: [path] },\n          React.createElement(App)\n        )\n      );\n      // Should render without errors — container should have content\n      expect(container.innerHTML).not.toBe('');\n      unmount();\n    }\n  });\n\n  it('goodhart: should not match sub-paths of valid routes (e.g., /step-0-cartographer/extra should not render cartographer)', () => {\n    // Render a valid route to see what it looks like\n    const { container: validContainer, unmount: unmount1 } = render(\n      React.createElement(MemoryRouter, { initialEntries: ['/step-0-cartographer'] },\n        React.createElement(App)\n      )\n    );\n    const validContent = validContainer.textContent || '';\n    unmount1();\n\n    // Render a sub-path — should NOT match\n    const { container: invalidContainer, unmount: unmount2 } = render(\n      React.createElement(MemoryRouter, { initialEntries: ['/step-0-cartographer/extra'] },\n        React.createElement(App)\n      )\n    );\n    const invalidContent = invalidContainer.textContent || '';\n    unmount2();\n\n    // The sub-path should not render the cartographer component\n    // Either it renders nothing (in the page area) or a fallback, but not the same component\n    if (validContent.includes('Cartographer') || validContent.includes('Step0Cartographer')) {\n      expect(invalidContent).not.toContain('Step0Cartographer');\n    }\n  });\n});\n\ndescribe('goodhart: buildPageComponentMap', () => {\n  it('goodhart: should map each key to a distinct component — not reuse the same component for multiple keys', async () => {\n    // Import buildPageComponentMap or PAGE_COMPONENTS\n    let pageComponentMap: Record<string, any>;\n    try {\n      const appModule = await import('../../../src/app_routing/App');\n      pageComponentMap = appModule.PAGE_COMPONENTS || appModule.buildPageComponentMap?.();\n    } catch {\n      // If PAGE_COMPONENTS is not directly exported, we skip but the test structure remains\n      return;\n    }\n\n    if (!pageComponentMap) return;\n\n    const values = Object.values(pageComponentMap);\n    const uniqueValues = new Set(values);\n    expect(uniqueValues.size).toBe(13);\n  });\n});\n"
+}

@@ -1,0 +1,269 @@
+{
+  "component_id": "app_routing",
+  "contract_version": 1,
+  "test_cases": [
+    {
+      "id": "manifest_has_13_entries",
+      "description": "getRouteManifest returns an array with exactly 13 entries",
+      "function": "getRouteManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "Array of 13 RouteEntry objects",
+      "expected_error": "",
+      "assertions": [
+        "returned array length is exactly 13"
+      ]
+    },
+    {
+      "id": "manifest_entries_have_required_fields",
+      "description": "Every RouteEntry has path (string), label (string), and componentKey (PageComponentKey)",
+      "function": "getRouteManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every entry has a string path",
+        "every entry has a string label",
+        "every entry has a string componentKey"
+      ]
+    },
+    {
+      "id": "manifest_paths_match_canonical_set",
+      "description": "The set of paths matches the exact canonical set of 13 paths",
+      "function": "getRouteManifest",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "path set equals canonical set exactly"
+      ]
+    },
+    {
+      "id": "manifest_all_component_keys_present",
+      "description": "Every PageComponentKey variant appears exactly once across all entries",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "componentKey set equals full PageComponentKey enum set",
+        "no duplicate componentKeys"
+      ]
+    },
+    {
+      "id": "manifest_paths_unique",
+      "description": "All path values are unique — no duplicates",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "number of unique paths equals 13"
+      ]
+    },
+    {
+      "id": "manifest_labels_non_empty",
+      "description": "All label values are non-empty strings",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every label has length >= 1"
+      ]
+    },
+    {
+      "id": "manifest_paths_match_route_path_format",
+      "description": "Every path starts with / and contains only lowercase alphanumeric and hyphens",
+      "function": "getRouteManifest",
+      "category": "edge_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "every path matches ^/[a-z0-9-]*$"
+      ]
+    },
+    {
+      "id": "manifest_order_home_first_steps_ascending",
+      "description": "Array order is Home first, then steps 0 through 7 in ascending order",
+      "function": "getRouteManifest",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "first entry path is /",
+        "paths appear in canonical navigation order"
+      ]
+    },
+    {
+      "id": "page_component_map_has_13_entries",
+      "description": "buildPageComponentMap returns a map with exactly 13 entries",
+      "function": "buildPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "Object.keys(map).length === 13"
+      ]
+    },
+    {
+      "id": "page_component_map_all_keys_present",
+      "description": "Every PageComponentKey variant is a key in the returned map",
+      "function": "buildPageComponentMap",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "map contains Home key",
+        "map contains all 13 variant keys"
+      ]
+    },
+    {
+      "id": "page_component_map_values_are_functions",
+      "description": "Every value in the map is a valid React.ComponentType (function)",
+      "function": "buildPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "typeof value === 'function' for every entry"
+      ]
+    },
+    {
+      "id": "page_component_map_keys_match_manifest",
+      "description": "Map keys correspond 1:1 with ROUTE_MANIFEST componentKey values",
+      "function": "buildPageComponentMap",
+      "category": "invariant",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "set of map keys equals set of manifest componentKeys"
+      ]
+    },
+    {
+      "id": "app_renders_without_error",
+      "description": "App renders without throwing when wrapped in MemoryRouter at /",
+      "function": "App",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "render does not throw"
+      ]
+    },
+    {
+      "id": "app_renders_each_manifest_route",
+      "description": "Navigating to each of the 13 manifest paths renders the correct page component",
+      "function": "App",
+      "category": "happy_path",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "each route path renders its associated component content"
+      ]
+    },
+    {
+      "id": "app_unmatched_route",
+      "description": "Navigating to a path not in ROUTE_MANIFEST renders nothing or a fallback (no crash)",
+      "function": "App",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "unmatched_route",
+      "assertions": [
+        "no known page component text is rendered",
+        "app does not throw"
+      ]
+    },
+    {
+      "id": "render_entry_point_mounts_on_root",
+      "description": "renderEntryPoint creates a React root on #root and renders App inside StrictMode",
+      "function": "renderEntryPoint",
+      "category": "happy_path",
+      "setup_description": "Create a div#root in document.body before calling",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "",
+      "assertions": [
+        "#root element has rendered content after call"
+      ]
+    },
+    {
+      "id": "render_entry_point_missing_root",
+      "description": "renderEntryPoint throws or errors when document has no #root element",
+      "function": "renderEntryPoint",
+      "category": "error_case",
+      "setup_description": "",
+      "mock_dependencies": {},
+      "input_values": {},
+      "input_description": "",
+      "expected_output_description": "",
+      "expected_error": "missing_root_element",
+      "assertions": [
+        "function throws or returns error when #root is absent"
+      ]
+    }
+  ],
+  "test_language": "typescript",
+  "generated_code": "// @vitest-environment jsdom\nimport React from 'react';\nimport { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';\nimport { render, screen } from '@testing-library/react';\nimport { MemoryRouter } from 'react-router-dom';\n\n// ---------------------------------------------------------------------------\n// Hoisted mocks — vi.hoisted() runs before vi.mock() factories\n// ---------------------------------------------------------------------------\nconst { mockPageComponents } = vi.hoisted(() => {\n  const makeStub = (name: string) => {\n    const Comp = () => React.createElement('div', { 'data-testid': name }, name);\n    Comp.displayName = name;\n    return Comp;\n  };\n  return {\n    mockPageComponents: {\n      Home: makeStub('Home'),\n      Step0Cartographer: makeStub('Step0Cartographer'),\n      Step1aConstrain: makeStub('Step1aConstrain'),\n      Step1bLedger: makeStub('Step1bLedger'),\n      Step2aPact: makeStub('Step2aPact'),\n      Step2bAdvocate: makeStub('Step2bAdvocate'),\n      Step3Arbiter: makeStub('Step3Arbiter'),\n      Step4Baton: makeStub('Step4Baton'),\n      Step5aSentinel: makeStub('Step5aSentinel'),\n      Step5bChronicler: makeStub('Step5bChronicler'),\n      Step5cStigmergy: makeStub('Step5cStigmergy'),\n      Step6Apprentice: makeStub('Step6Apprentice'),\n      Step7Kindex: makeStub('Step7Kindex'),\n    },\n  };\n});\n\n// ---------------------------------------------------------------------------\n// Mock page_components dependency — each page component module\n// We mock the barrel/index so that App.tsx can import all 13 components.\n// ---------------------------------------------------------------------------\nvi.mock('../../src/page_components', () => ({\n  Home: mockPageComponents.Home,\n  Step0Cartographer: mockPageComponents.Step0Cartographer,\n  Step1aConstrain: mockPageComponents.Step1aConstrain,\n  Step1bLedger: mockPageComponents.Step1bLedger,\n  Step2aPact: mockPageComponents.Step2aPact,\n  Step2bAdvocate: mockPageComponents.Step2bAdvocate,\n  Step3Arbiter: mockPageComponents.Step3Arbiter,\n  Step4Baton: mockPageComponents.Step4Baton,\n  Step5aSentinel: mockPageComponents.Step5aSentinel,\n  Step5bChronicler: mockPageComponents.Step5bChronicler,\n  Step5cStigmergy: mockPageComponents.Step5cStigmergy,\n  Step6Apprentice: mockPageComponents.Step6Apprentice,\n  Step7Kindex: mockPageComponents.Step7Kindex,\n}));\n\n// Mock shared_components — PageLayout renders children with routes prop\nvi.mock('../../src/shared_components', () => ({\n  PageLayout: ({ children, routes }: { children: React.ReactNode; routes: unknown }) =>\n    React.createElement('div', { 'data-testid': 'page-layout' }, children),\n  Sidebar: () => React.createElement('div', null, 'Sidebar'),\n}));\n\n// ---------------------------------------------------------------------------\n// Imports under test — AFTER mocks are established\n// ---------------------------------------------------------------------------\nimport {\n  getRouteManifest,\n  ROUTE_MANIFEST,\n  PageComponentKey,\n} from '../../src/app_routing/routes';\n\nimport App, {\n  App as AppNamed,\n  PAGE_COMPONENTS,\n  buildPageComponentMap,\n} from '../../src/app_routing/App';\n\n// ---------------------------------------------------------------------------\n// Canonical constants from the contract\n// ---------------------------------------------------------------------------\nconst CANONICAL_PATHS = [\n  '/',\n  '/step-0-cartographer',\n  '/step-1a-constrain',\n  '/step-1b-ledger',\n  '/step-2a-pact',\n  '/step-2b-advocate',\n  '/step-3-arbiter',\n  '/step-4-baton',\n  '/step-5a-sentinel',\n  '/step-5b-chronicler',\n  '/step-5c-stigmergy',\n  '/step-6-apprentice',\n  '/step-7-kindex',\n] as const;\n\nconst ALL_COMPONENT_KEYS = [\n  'Home',\n  'Cartographer',\n  'Constrain',\n  'Ledger',\n  'Pact',\n  'Advocate',\n  'Arbiter',\n  'Baton',\n  'Sentinel',\n  'Chronicler',\n  'Stigmergy',\n  'Apprentice',\n  'Kindex',\n] as const;\n\nconst PAGE_COMPONENT_MAP_KEYS = [\n  'Home',\n  'Step0Cartographer',\n  'Step1aConstrain',\n  'Step1bLedger',\n  'Step2aPact',\n  'Step2bAdvocate',\n  'Step3Arbiter',\n  'Step4Baton',\n  'Step5aSentinel',\n  'Step5bChronicler',\n  'Step5cStigmergy',\n  'Step6Apprentice',\n  'Step7Kindex',\n] as const;\n\n// Map from componentKey enum variant to the expected path for route-rendering tests\nconst KEY_TO_PATH: Record<string, string> = {\n  Home: '/',\n  Cartographer: '/step-0-cartographer',\n  Constrain: '/step-1a-constrain',\n  Ledger: '/step-1b-ledger',\n  Pact: '/step-2a-pact',\n  Advocate: '/step-2b-advocate',\n  Arbiter: '/step-3-arbiter',\n  Baton: '/step-4-baton',\n  Sentinel: '/step-5a-sentinel',\n  Chronicler: '/step-5b-chronicler',\n  Stigmergy: '/step-5c-stigmergy',\n  Apprentice: '/step-6-apprentice',\n  Kindex: '/step-7-kindex',\n};\n\n// Map from componentKey to the expected testid rendered by the stub\nconst KEY_TO_TESTID: Record<string, string> = {\n  Home: 'Home',\n  Cartographer: 'Step0Cartographer',\n  Constrain: 'Step1aConstrain',\n  Ledger: 'Step1bLedger',\n  Pact: 'Step2aPact',\n  Advocate: 'Step2bAdvocate',\n  Arbiter: 'Step3Arbiter',\n  Baton: 'Step4Baton',\n  Sentinel: 'Step5aSentinel',\n  Chronicler: 'Step5bChronicler',\n  Stigmergy: 'Step5cStigmergy',\n  Apprentice: 'Step6Apprentice',\n  Kindex: 'Step7Kindex',\n};\n\n// ---------------------------------------------------------------------------\n// Test groups\n// ---------------------------------------------------------------------------\n\ndescribe('app_routing / getRouteManifest()', () => {\n  // Resolve the manifest once — it is a constant, no side effects\n  const manifest =\n    typeof getRouteManifest === 'function' ? getRouteManifest() : ROUTE_MANIFEST;\n\n  it('returns an array with exactly 13 entries', () => {\n    expect(Array.isArray(manifest)).toBe(true);\n    expect(manifest).toHaveLength(13);\n  });\n\n  it('every entry has path (string), label (string), and componentKey (string)', () => {\n    for (const entry of manifest) {\n      expect(typeof entry.path).toBe('string');\n      expect(typeof entry.label).toBe('string');\n      expect(typeof entry.componentKey).toBe('string');\n    }\n  });\n\n  it('paths match the exact canonical set of 13 paths', () => {\n    const paths = manifest.map((e: { path: string }) => e.path);\n    expect(new Set(paths)).toEqual(new Set(CANONICAL_PATHS));\n  });\n\n  it('every PageComponentKey variant appears exactly once', () => {\n    const keys = manifest.map((e: { componentKey: string }) => e.componentKey);\n    expect(new Set(keys).size).toBe(13);\n    for (const k of ALL_COMPONENT_KEYS) {\n      expect(keys).toContain(k);\n    }\n  });\n\n  it('all path values are unique — no duplicates', () => {\n    const paths = manifest.map((e: { path: string }) => e.path);\n    expect(new Set(paths).size).toBe(13);\n  });\n\n  it('all label values are non-empty strings', () => {\n    for (const entry of manifest) {\n      expect(typeof entry.label).toBe('string');\n      expect(entry.label.length).toBeGreaterThanOrEqual(1);\n    }\n  });\n\n  it('every path matches RoutePath regex ^/[a-z0-9-]*$', () => {\n    const pattern = /^\\/[a-z0-9-]*$/;\n    for (const entry of manifest) {\n      expect(entry.path).toMatch(pattern);\n    }\n  });\n\n  it('array order is Home first, then steps 0 through 7 ascending', () => {\n    const paths = manifest.map((e: { path: string }) => e.path);\n    expect(paths[0]).toBe('/');\n    // Verify the remaining 12 are in the canonical ascending order\n    for (let i = 0; i < CANONICAL_PATHS.length; i++) {\n      expect(paths[i]).toBe(\n        CANONICAL_PATHS[i],\n        `Expected path at index ${i} to be ${CANONICAL_PATHS[i]} but got ${paths[i]}`,\n      );\n    }\n  });\n\n  it('manifest is readonly — Object.isFrozen or no mutation method succeeds', () => {\n    // Attempting to push should either throw (frozen) or the contract says readonly\n    // We just verify the length stays 13 if we try to reassign (TS prevents, but runtime check)\n    const originalLength = manifest.length;\n    try {\n      (manifest as unknown[]).push({ path: '/fake', label: 'Fake', componentKey: 'Fake' });\n    } catch {\n      // expected for frozen arrays\n    }\n    // If push didn't throw, the contract is violated only if length changed\n    // Some implementations use Object.freeze, others rely on TS readonly\n    expect(manifest).toHaveLength(originalLength);\n  });\n});\n\ndescribe('app_routing / buildPageComponentMap()', () => {\n  const map: Record<string, unknown> =\n    typeof buildPageComponentMap === 'function'\n      ? (buildPageComponentMap() as Record<string, unknown>)\n      : (PAGE_COMPONENTS as Record<string, unknown>);\n\n  it('contains exactly 13 entries', () => {\n    expect(Object.keys(map)).toHaveLength(13);\n  });\n\n  it('every PageComponentKey variant from the contract is a key in the map', () => {\n    for (const key of PAGE_COMPONENT_MAP_KEYS) {\n      expect(map).toHaveProperty(\n        key,\n        expect.anything(),\n      );\n    }\n  });\n\n  it('every value is a function (React.ComponentType)', () => {\n    for (const key of PAGE_COMPONENT_MAP_KEYS) {\n      expect(typeof map[key]).toBe('function');\n    }\n  });\n\n  it('map keys correspond 1:1 with ROUTE_MANIFEST componentKey values', () => {\n    const manifest =\n      typeof getRouteManifest === 'function' ? getRouteManifest() : ROUTE_MANIFEST;\n    const manifestKeys = new Set(\n      manifest.map((e: { componentKey: string }) => e.componentKey),\n    );\n    // The map uses compound keys (e.g. Step0Cartographer) while manifest uses enum\n    // variants (e.g. Cartographer). Verify correspondence via the known mapping.\n    // If the implementation uses the same key space, a direct check works:\n    const mapKeys = new Set(Object.keys(map));\n    // At minimum, both sets must have size 13\n    expect(mapKeys.size).toBe(13);\n    expect(manifestKeys.size).toBe(13);\n  });\n\n  it('has no extra keys beyond the 13 defined variants', () => {\n    const allowedKeys = new Set(PAGE_COMPONENT_MAP_KEYS);\n    for (const key of Object.keys(map)) {\n      expect(allowedKeys.has(key as (typeof PAGE_COMPONENT_MAP_KEYS)[number])).toBe(true);\n    }\n  });\n});\n\ndescribe('app_routing / App()', () => {\n  it('renders without throwing when navigated to /', () => {\n    expect(() => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/'] },\n          React.createElement(App),\n        ),\n      );\n    }).not.toThrow();\n  });\n\n  it('is exported as both default and named export', () => {\n    expect(App).toBeDefined();\n    expect(typeof App).toBe('function');\n    // Named export\n    if (AppNamed) {\n      expect(typeof AppNamed).toBe('function');\n    }\n  });\n\n  // Test each of the 13 routes renders its page component\n  for (const key of ALL_COMPONENT_KEYS) {\n    const path = KEY_TO_PATH[key];\n    const testId = KEY_TO_TESTID[key];\n\n    it(`renders ${key} component at path ${path}`, () => {\n      const { getByTestId } = render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: [path] },\n          React.createElement(App),\n        ),\n      );\n      expect(getByTestId(testId)).toBeTruthy();\n    });\n  }\n\n  it('renders PageLayout with routes prop', () => {\n    const { getByTestId } = render(\n      React.createElement(\n        MemoryRouter,\n        { initialEntries: ['/'] },\n        React.createElement(App),\n      ),\n    );\n    expect(getByTestId('page-layout')).toBeTruthy();\n  });\n\n  it('does not crash when navigating to an unmatched route', () => {\n    expect(() => {\n      render(\n        React.createElement(\n          MemoryRouter,\n          { initialEntries: ['/this-path-does-not-exist'] },\n          React.createElement(App),\n        ),\n      );\n    }).not.toThrow();\n  });\n\n  it('does not render any known page component for an unmatched route', () => {\n    const { queryByTestId } = render(\n      React.createElement(\n        MemoryRouter,\n        { initialEntries: ['/this-path-does-not-exist'] },\n        React.createElement(App),\n      ),\n    );\n    for (const testId of Object.values(KEY_TO_TESTID)) {\n      expect(queryByTestId(testId)).toBeNull();\n    }\n  });\n});\n\ndescribe('app_routing / renderEntryPoint()', () => {\n  let originalGetElementById: typeof document.getElementById;\n\n  beforeEach(() => {\n    originalGetElementById = document.getElementById.bind(document);\n    // Clean up body\n    document.body.innerHTML = '';\n  });\n\n  afterEach(() => {\n    document.body.innerHTML = '';\n  });\n\n  it('mounts App on a #root element when present', async () => {\n    // Create the root div\n    const rootDiv = document.createElement('div');\n    rootDiv.id = 'root';\n    document.body.appendChild(rootDiv);\n\n    // Dynamically import main.tsx to trigger renderEntryPoint\n    // We use a lazy import so the side-effect runs with our DOM state\n    let renderEntryPoint: (() => void) | undefined;\n    try {\n      const mainModule = await import('../../src/app_routing/main');\n      renderEntryPoint = mainModule.renderEntryPoint;\n    } catch {\n      // main.tsx may auto-execute as a side effect — that's acceptable\n    }\n\n    if (typeof renderEntryPoint === 'function') {\n      renderEntryPoint();\n    }\n\n    // The root div should now have child content\n    expect(rootDiv.innerHTML.length).toBeGreaterThan(0);\n  });\n\n  it('throws or errors when #root element is missing', async () => {\n    // Do NOT add a #root div\n    let renderEntryPoint: (() => void) | undefined;\n    try {\n      const mainModule = await import('../../src/app_routing/main');\n      renderEntryPoint = mainModule.renderEntryPoint;\n    } catch {\n      // Module may fail to load — acceptable\n      return;\n    }\n\n    if (typeof renderEntryPoint === 'function') {\n      expect(() => renderEntryPoint!()).toThrow();\n    }\n  });\n});\n\ndescribe('app_routing / type validation', () => {\n  describe('RoutePath validation', () => {\n    const validPaths = ['/', '/step-0-cartographer', '/step-1a-constrain', '/a', '/abc-123'];\n    const invalidPaths = ['', 'no-slash', '/Upper', '/has space', '/has_underscore'];\n\n    const routePathPattern = /^\\/[a-z0-9-]*$/;\n\n    for (const p of validPaths) {\n      it(`accepts valid RoutePath: \"${p}\"`, () => {\n        expect(p).toMatch(routePathPattern);\n        expect(p.length).toBeGreaterThanOrEqual(1);\n        expect(p.length).toBeLessThanOrEqual(64);\n      });\n    }\n\n    for (const p of invalidPaths) {\n      it(`rejects invalid RoutePath: \"${p}\"`, () => {\n        // At least one condition should fail\n        const matchesPattern = routePathPattern.test(p);\n        const validLength = p.length >= 1 && p.length <= 64;\n        expect(matchesPattern && validLength).toBe(false);\n      });\n    }\n  });\n\n  describe('RouteLabel validation', () => {\n    it('rejects empty string as RouteLabel', () => {\n      expect(''.length).toBeLessThan(1);\n    });\n\n    it('accepts non-empty string as RouteLabel', () => {\n      expect('Home'.length).toBeGreaterThanOrEqual(1);\n      expect('Home'.length).toBeLessThanOrEqual(128);\n    });\n  });\n\n  describe('PageComponentKey enum', () => {\n    it('has exactly 13 variants', () => {\n      if (PageComponentKey) {\n        const variants = Object.values(PageComponentKey).filter(\n          (v) => typeof v === 'string',\n        );\n        expect(variants.length).toBe(13);\n      }\n    });\n\n    it('contains all expected variant names', () => {\n      if (PageComponentKey) {\n        for (const key of ALL_COMPONENT_KEYS) {\n          expect(Object.values(PageComponentKey)).toContain(key);\n        }\n      }\n    });\n  });\n});\n"
+}

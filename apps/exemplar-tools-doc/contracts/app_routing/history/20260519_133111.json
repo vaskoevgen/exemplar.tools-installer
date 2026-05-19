@@ -1,0 +1,511 @@
+{
+  "component_id": "app_routing",
+  "name": "App Shell & Routing",
+  "description": "Main App.tsx and routing configuration using react-router-dom BrowserRouter. Defines routes for all 13 pages: / (Home), /step-0-cartographer, /step-1a-constrain, /step-1b-ledger, /step-2a-pact, /step-2b-advocate, /step-3-arbiter, /step-4-baton, /step-5a-sentinel, /step-5b-chronicler, /step-5c-stigmergy, /step-6-apprentice, /step-7-kindex. Exports the route manifest (readonly array of RouteEntry objects) as a shared data structure consumed by Sidebar and route definitions. Structured as three source files: src/routes.ts (pure data), src/App.tsx (shell component), src/main.tsx (entry point). Contract tests verify manifest completeness, path uniqueness, label validity, enum coverage, and render smoke tests for all routes.",
+  "version": 1,
+  "types": [
+    {
+      "name": "PageComponentKey",
+      "kind": "enum",
+      "fields": [],
+      "item_type": "",
+      "variants": [
+        "Home",
+        "Cartographer",
+        "Constrain",
+        "Ledger",
+        "Pact",
+        "Advocate",
+        "Arbiter",
+        "Baton",
+        "Sentinel",
+        "Chronicler",
+        "Stigmergy",
+        "Apprentice",
+        "Kindex"
+      ],
+      "inner_types": [],
+      "description": "Discriminator enum identifying each of the 13 page components.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RouteEntry",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "path",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "URL path segment, e.g. '/step-0-cartographer' or '/' for home.",
+          "validators": []
+        },
+        {
+          "name": "label",
+          "type_ref": "string",
+          "required": true,
+          "default": "",
+          "description": "Human-readable navigation label shown in the Sidebar, e.g. 'Step 0 — Cartographer'.",
+          "validators": []
+        },
+        {
+          "name": "componentKey",
+          "type_ref": "PageComponentKey",
+          "required": true,
+          "default": "",
+          "description": "Lookup key that maps this route to its lazy-loaded or statically-imported page component.",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A single route definition consumed by both the router configuration and the Sidebar navigation.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "RoutePath",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "regex",
+              "expression": "^/[a-z0-9-]*$",
+              "error_message": "RoutePath must start with '/' followed by zero or more lowercase alphanumeric chars or hyphens"
+            },
+            {
+              "kind": "length",
+              "expression": "min=1,max=64",
+              "error_message": "RoutePath must be between 1 and 64 characters"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated URL path string. Must start with '/' and contain only lowercase alphanumeric characters, hyphens, and forward slashes. Matches the AS3 slug pattern.",
+      "owner_component": ""
+    },
+    {
+      "name": "RouteLabel",
+      "kind": "primitive",
+      "fields": [
+        {
+          "name": "value",
+          "type_ref": "str",
+          "required": true,
+          "default": "",
+          "description": "",
+          "validators": [
+            {
+              "kind": "length",
+              "expression": "min=1,max=128",
+              "error_message": "RouteLabel must be a non-empty string of at most 128 characters"
+            }
+          ]
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "A validated non-empty string used as the sidebar display label for a route.",
+      "owner_component": ""
+    },
+    {
+      "name": "RouteManifest",
+      "kind": "list",
+      "fields": [],
+      "item_type": "RouteEntry",
+      "variants": [],
+      "inner_types": [],
+      "description": "Ordered array of all 13 route entries; single source of truth for navigation and routing.",
+      "owner_component": "app_routing"
+    },
+    {
+      "name": "PageComponentMap",
+      "kind": "struct",
+      "fields": [
+        {
+          "name": "Home",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "HomePage component",
+          "validators": []
+        },
+        {
+          "name": "Step0Cartographer",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step0CartographerPage component",
+          "validators": []
+        },
+        {
+          "name": "Step1aConstrain",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step1aConstrainPage component",
+          "validators": []
+        },
+        {
+          "name": "Step1bLedger",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step1bLedgerPage component",
+          "validators": []
+        },
+        {
+          "name": "Step2aPact",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step2aPactPage component",
+          "validators": []
+        },
+        {
+          "name": "Step2bAdvocate",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step2bAdvocatePage component",
+          "validators": []
+        },
+        {
+          "name": "Step3Arbiter",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step3ArbiterPage component",
+          "validators": []
+        },
+        {
+          "name": "Step4Baton",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step4BatonPage component",
+          "validators": []
+        },
+        {
+          "name": "Step5aSentinel",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step5aSentinelPage component",
+          "validators": []
+        },
+        {
+          "name": "Step5bChronicler",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step5bChroniclerPage component",
+          "validators": []
+        },
+        {
+          "name": "Step5cStigmergy",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step5cStigmergyPage component",
+          "validators": []
+        },
+        {
+          "name": "Step6Apprentice",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step6ApprenticePage component",
+          "validators": []
+        },
+        {
+          "name": "Step7Kindex",
+          "type_ref": "ReactComponentType",
+          "required": true,
+          "default": "",
+          "description": "Step7KindexPage component",
+          "validators": []
+        }
+      ],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Record<PageComponentKey, React.ComponentType> — exhaustive lookup map from every PageComponentKey variant to its corresponding React page component. Defined in App.tsx. TypeScript compiler enforces that every enum variant has a mapping.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactComponentType",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Opaque reference to React.ComponentType — a function or class component. Not validated at the contract level; TypeScript compiler enforces component type compatibility.",
+      "owner_component": ""
+    },
+    {
+      "name": "AppProps",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Props for the App component. Empty — App takes no props as it is the root component.",
+      "owner_component": ""
+    },
+    {
+      "name": "ReactElement",
+      "kind": "primitive",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Opaque React.ReactElement returned by component render functions.",
+      "owner_component": ""
+    },
+    {
+      "name": "string",
+      "kind": "struct",
+      "fields": [],
+      "item_type": "",
+      "variants": [],
+      "inner_types": [],
+      "description": "Auto-stubbed type — referenced but not defined in contract 'app_routing'",
+      "owner_component": ""
+    }
+  ],
+  "functions": [
+    {
+      "name": "getRouteManifest",
+      "description": "Returns the ROUTE_MANIFEST constant — the canonical readonly array of all 13 RouteEntry objects. This is a module-level constant export from src/routes.ts, modeled here as a pure accessor for contract verification. The manifest is the single source of truth for all route paths, labels, and component keys consumed by App.tsx and shared_components (Sidebar).",
+      "inputs": [],
+      "output_type": "RouteManifest",
+      "error_cases": [],
+      "preconditions": [],
+      "postconditions": [
+        "returned array has exactly 13 entries",
+        "every PageComponentKey variant appears exactly once across all entries",
+        "all path values are unique (no duplicates)",
+        "all label values are non-empty strings",
+        "paths match the canonical set: '/', '/step-0-cartographer', '/step-1a-constrain', '/step-1b-ledger', '/step-2a-pact', '/step-2b-advocate', '/step-3-arbiter', '/step-4-baton', '/step-5a-sentinel', '/step-5b-chronicler', '/step-5c-stigmergy', '/step-6-apprentice', '/step-7-kindex'",
+        "array order matches navigation order: Home first, then steps 0 through 7 in ascending order"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure data accessor — returns a frozen constant array with no side effects"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "App",
+      "description": "Root React component exported from src/App.tsx as both named and default export. Renders <BrowserRouter> wrapping <PageLayout routes={ROUTE_MANIFEST}> which in turn wraps <Routes> containing one <Route> element per ROUTE_MANIFEST entry. Each Route's element is resolved by looking up the entry's componentKey in the PAGE_COMPONENTS map (Record<PageComponentKey, React.ComponentType>). The component map is compile-time exhaustive — every PageComponentKey variant must have a corresponding component import.",
+      "inputs": [],
+      "output_type": "ReactElement",
+      "error_cases": [
+        {
+          "name": "missing_page_component",
+          "condition": "A PageComponentKey variant exists in the manifest but has no entry in PAGE_COMPONENTS (compile-time TypeScript error, not a runtime error)",
+          "error_type": "TypeScriptCompileError",
+          "error_data": {
+            "message": "Property 'X' is missing in type — Record<PageComponentKey, React.ComponentType> requires all enum variants"
+          }
+        },
+        {
+          "name": "unmatched_route",
+          "condition": "User navigates to a URL path not present in ROUTE_MANIFEST",
+          "error_type": "NoMatchingRoute",
+          "error_data": {
+            "behavior": "react-router-dom renders no matching Route; no explicit fallback 404 is defined in this contract version"
+          }
+        }
+      ],
+      "preconditions": [
+        "react-router-dom BrowserRouter (or MemoryRouter in tests) is available in the render tree or provided by this component",
+        "all 13 page components are importable from page_components dependency",
+        "PageLayout component is importable from shared_components dependency"
+      ],
+      "postconditions": [
+        "renders a BrowserRouter at the root",
+        "renders PageLayout with the full ROUTE_MANIFEST passed as the routes prop",
+        "renders exactly 13 Route elements inside a Routes container",
+        "each Route path matches the corresponding ROUTE_MANIFEST entry path",
+        "each Route element renders the component resolved from PAGE_COMPONENTS[entry.componentKey]",
+        "navigating to any manifest path renders without throwing"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "DOM #root element",
+          "description": "Renders the full React component tree into the DOM via BrowserRouter, PageLayout, and page components"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "renderEntryPoint",
+      "description": "Minimal entry point function in src/main.tsx. Calls ReactDOM.createRoot on document.getElementById('root') and renders <React.StrictMode><App /></React.StrictMode>. This is the bootstrap function invoked by the Vite dev server and production build.",
+      "inputs": [],
+      "output_type": "None",
+      "error_cases": [
+        {
+          "name": "missing_root_element",
+          "condition": "document.getElementById('root') returns null",
+          "error_type": "TypeError",
+          "error_data": {
+            "message": "Cannot call createRoot on null — #root element not found in document"
+          }
+        }
+      ],
+      "preconditions": [
+        "document contains an element with id='root'",
+        "ReactDOM is available (react-dom/client)"
+      ],
+      "postconditions": [
+        "React root is created and mounted on #root element",
+        "App component is rendered inside React.StrictMode"
+      ],
+      "idempotent": false,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "mutates_state",
+          "target": "DOM #root element",
+          "description": "Creates React root and mounts the entire application component tree into the DOM"
+        }
+      ],
+      "performance_budget": null
+    },
+    {
+      "name": "buildPageComponentMap",
+      "description": "Constructs the PAGE_COMPONENTS constant: Record<PageComponentKey, React.ComponentType>. Defined as a module-level constant in App.tsx mapping every PageComponentKey enum variant to its imported page component. TypeScript's Record type enforces compile-time exhaustiveness — omitting any variant is a type error. Modeled as a function for contract verification purposes.",
+      "inputs": [],
+      "output_type": "PageComponentMap",
+      "error_cases": [
+        {
+          "name": "missing_import",
+          "condition": "A page component module fails to resolve at build time",
+          "error_type": "ModuleNotFoundError",
+          "error_data": {
+            "message": "Cannot find module 'page_components/XxxPage' — ensure page_components dependency exports the component"
+          }
+        }
+      ],
+      "preconditions": [
+        "all 13 page components are imported from page_components dependency"
+      ],
+      "postconditions": [
+        "returned map contains exactly 13 entries",
+        "every PageComponentKey variant is a key in the map",
+        "every value is a valid React.ComponentType (function or class component)",
+        "map keys correspond 1:1 with ROUTE_MANIFEST componentKey values"
+      ],
+      "idempotent": true,
+      "is_async": false,
+      "side_effects": [],
+      "structured_side_effects": [
+        {
+          "kind": "none",
+          "target": "",
+          "description": "Pure data construction — builds a static lookup map with no side effects"
+        }
+      ],
+      "performance_budget": null
+    }
+  ],
+  "dependencies": [
+    "shared_components",
+    "page_components"
+  ],
+  "dependency_contracts": {
+    "shared_components": [
+      "PageLayout"
+    ],
+    "page_components": [
+      "HomePage",
+      "Step0CartographerPage",
+      "Step1aConstrainPage",
+      "Step1bLedgerPage",
+      "Step2aPactPage",
+      "Step2bAdvocatePage",
+      "Step3ArbiterPage",
+      "Step4BatonPage",
+      "Step5aSentinelPage",
+      "Step5bChroniclerPage",
+      "Step5cStigmergyPage",
+      "Step6ApprenticePage",
+      "Step7KindexPage"
+    ]
+  },
+  "invariants": [
+    "ROUTE_MANIFEST always contains exactly 13 entries — one per documentation page",
+    "The set of PageComponentKey enum variants is exactly {Home, Step0Cartographer, Step1aConstrain, Step1bLedger, Step2aPact, Step2bAdvocate, Step3Arbiter, Step4Baton, Step5aSentinel, Step5bChronicler, Step5cStigmergy, Step6Apprentice, Step7Kindex}",
+    "The set of route paths is exactly {'/', '/step-0-cartographer', '/step-1a-constrain', '/step-1b-ledger', '/step-2a-pact', '/step-2b-advocate', '/step-3-arbiter', '/step-4-baton', '/step-5a-sentinel', '/step-5b-chronicler', '/step-5c-stigmergy', '/step-6-apprentice', '/step-7-kindex'}",
+    "All route paths are unique within the manifest",
+    "All route labels are non-empty strings",
+    "PAGE_COMPONENTS map has an entry for every PageComponentKey — enforced by TypeScript Record type at compile time",
+    "ROUTE_MANIFEST is readonly — no runtime mutation allowed",
+    "src/routes.ts has zero React component imports — it is a pure data module",
+    "App component is exported as both named export and default export from App.tsx",
+    "Entry point main.tsx renders App inside React.StrictMode",
+    "Route manifest ordering follows navigation order: Home first, then steps 0 through 7 in ascending numeric/alpha order"
+  ],
+  "requires": [
+    "react",
+    "react-dom",
+    "react-router-dom"
+  ],
+  "processing_register": "systematic-verification",
+  "data_access": {
+    "reads": [
+      "PUBLIC"
+    ],
+    "writes": [],
+    "rationale": "Reads only PUBLIC-tier static route configuration data (paths, labels, component keys) defined at build time in the ROUTE_MANIFEST constant. No user data, PII, or external data sources are accessed. The route manifest is fully static documentation site metadata baked into the bundle.",
+    "side_effects": [
+      {
+        "type": "DOM_MUTATION",
+        "classification": "PUBLIC",
+        "fields": [
+          "document.getElementById('root').innerHTML"
+        ],
+        "rationale": "main.tsx creates a React root on the #root DOM element and mounts the App component tree, mutating the DOM to render the documentation site UI"
+      },
+      {
+        "type": "BROWSER_HISTORY",
+        "classification": "PUBLIC",
+        "fields": [
+          "window.history",
+          "window.location"
+        ],
+        "rationale": "BrowserRouter reads and writes browser history state to enable client-side navigation between the 13 documentation pages without full page reloads"
+      }
+    ]
+  },
+  "authority": {
+    "domains": [
+      "route_manifest",
+      "page_component_keys"
+    ],
+    "rationale": "This component is the single source of truth for the route manifest (ROUTE_MANIFEST) defining all navigable paths, labels, and component keys, and for the PageComponentKey enum. Other components (shared_components Sidebar, page_components) consume these definitions but do not define or modify them. Route paths and component key assignments originate exclusively from this component."
+  }
+}

@@ -1,31 +1,39 @@
+CRITICAL: implementation language is typescript. Never generate Python. All output files must be .ts/.tsx (or equivalent for typescript).
+
 # Operating Procedures
 
 ## Tech Stack
-CRITICAL: implementation language is TypeScript. Never generate Python. All source files must be .ts or .tsx.
-- Language: TypeScript (strict mode)
+- Language: typescript
 - Testing: vitest
-- Framework: React 18
-- Build tool: Vite (dev server on port 4000)
-- Styling: Tailwind CSS
-- Package manager: npm
 
 ## Standards
 - Type annotations on all public functions
-- Named exports only — no default exports
-- Use `export type { }` for interfaces and type aliases
 - Prefer composition over inheritance
-- When importing from a sibling module, use the exact exported names — never guess
-
-## vi.mock() Rules
-- vi.mock() factory objects MUST provide every named runtime export of the mocked module
-- Match export names exactly — STEPS not STEP_CONTENT_LIST, ROUTE_SLUG_MAP not ROUTE_SLUGS
-
-## Slug Handling
-- ROUTE_SLUG_MAP values already include a leading slash (e.g. "/step-0-cartographer")
-- Never prepend an extra "/" to a slug that already starts with "/"
-- Always guard: slug.startsWith('/') ? slug : '/' + slug
 
 ## Verification
 - All functions must have at least one test
 - Tests must be runnable without external services
 - No task is done until its contract tests pass
+
+## Preferences
+- Prefer stdlib over third-party libraries
+- Keep files under 300 lines
+
+## TypeScript / React Rules — CRITICAL
+- Named exports: every type, interface, function, and constant MUST be a named export
+- React components: export BOTH as named AND default (e.g. `export function Foo() {}` + `export default Foo`)
+- Every .tsx file must include `import React from 'react'` at the top
+- Tests run with vitest + @testing-library/react in jsdom environment
+- Do NOT use `export default` as the only export — always pair with a named export
+
+## String Keys in Maps and Registries — CRITICAL
+When implementing any component that builds a map keyed by string values (slug maps, route registries, component lookups):
+- NEVER infer key strings from component names or natural language — they may differ from the contract value
+- ALWAYS read the key strings from: (1) the TypeScript interface definition for the map, (2) the contract test's test data, or (3) the dependency component's exported manifest/enum
+- A key that "looks right" by name may not match the contract — always verify against the source of truth
+
+## import.meta.env in Vite/Vitest — CRITICAL
+- ALWAYS use `import.meta.env.VITE_X` directly — never `(import.meta as any).env?.VITE_X`
+- The `as any` cast bypasses vitest's vi.stubEnv: stubs return undefined instead of the stubbed value
+- Correct: `const url = import.meta.env.VITE_CONVEX_URL;`
+- Wrong: `const url = (import.meta as any).env?.VITE_CONVEX_URL;`
